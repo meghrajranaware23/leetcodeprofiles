@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LeetCode Profiles — DSA Rank Packs. 30-day focused topic packs to take you from E-Rank to S-Rank. Master Recursion, Trees, Graphs, DP, and more.">
+  <title>LeetCode Profiles — DSA Rank Packs | Level Up Your Coding</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- ======== NAVBAR ======== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-logo">
+      <span class="logo-mark">■</span>
+      <span class="logo-leet">LEETCODE</span>
+      <span class="logo-profiles">PROFILES</span>
+    </div>
+    <div class="nav-links">
+      <a href="#packs">Packs</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#legends">Legends</a>
+    </div>
+    <button class="nav-cta">START GRINDING →</button>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#packs">Packs</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#legends">Legends</a>
+    <a href="#" class="nav-cta" style="margin-top:20px;">START GRINDING →</a>
+  </div>
+
+  <!-- ======== HERO ======== -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <span class="hero-badge">⚔ RANK SYSTEM ACTIVE • 30-DAY PACKS</span>
+      <div class="hero-headline">
+        <div>STOP GRINDING</div>
+        <div>RANDOMLY.</div>
+        <div class="hero-red">START RANKING UP.</div>
+      </div>
+      <p class="hero-subtext">Most coders grind 500 problems with zero direction. Legends follow a system. Our 30-day focused packs take you from E-Rank to S-Rank — one topic at a time.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary">CHOOSE YOUR PACK →</button>
+        <button class="btn-secondary">HOW IT WORKS</button>
+      </div>
+      <div class="hero-social">
+        <span>42,000+ coders follow LeetCode Profiles</span>
+        <span class="divider">|</span>
+        <span>★★★★★ Trusted by competitive programmers</span>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="code-editor">
+        <div class="editor-top">
+          <span class="editor-dot red"></span>
+          <span class="editor-dot yellow"></span>
+          <span class="editor-dot green"></span>
+          <span class="editor-filename">recursion_template.cpp</span>
+        </div>
+        <pre class="editor-code"><span class="comment">// E-RANK → S-RANK RECURSION TEMPLATE</span>
+<span class="comment">// Pattern: Subsets via Backtracking</span>
+
+<span class="keyword">void</span> solve(<span class="keyword">int</span> idx, <span class="type">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; arr,
+           <span class="type">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; curr,
+           <span class="type">vector</span>&lt;<span class="type">vector</span>&lt;<span class="keyword">int</span>&gt;&gt;&amp; res) {
+    res.push_back(curr);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = idx; i &lt; arr.size(); i++) {
+        curr.push_back(arr[i]);   <span class="comment">// choose</span>
+        solve(i+1, arr, curr, res); <span class="comment">// explore</span>
+        curr.pop_back();          <span class="comment">// unchoose</span>
+    }
+}
+<span class="comment">// Time: O(2^n) | Space: O(n)</span>
+<span class="comment">// Used by: Tourist, Benq, Um_nik</span></pre>
+        <div class="editor-bottom">C++ • Python • Java • Pattern #04 of 30</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== RANK SYSTEM ======== -->
+  <section class="rank-system animate-on-scroll" id="ranks">
+    <div class="section-header">
+      <div class="section-overline">THE PROGRESSION</div>
+      <h2 class="section-title">EVERY PACK. SIX RANKS.</h2>
+      <p class="section-subtitle">You don't just learn a topic. You conquer it.</p>
+    </div>
+    <div class="rank-grid">
+      <div class="rank-card" style="--rank-color: #666666">
+        <div class="rank-label">E-RANK</div>
+        <div class="rank-name">Foundation</div>
+        <div class="rank-days">Day 1–5</div>
+        <div class="rank-desc">Core patterns, base cases</div>
+      </div>
+      <div class="rank-card" style="--rank-color: #4A9EFF">
+        <div class="rank-label">D-RANK</div>
+        <div class="rank-name">Builder</div>
+        <div class="rank-days">Day 6–12</div>
+        <div class="rank-desc">Pattern stacking begins</div>
+      </div>
+      <div class="rank-card" style="--rank-color: #4AFF9E">
+        <div class="rank-label">C-RANK</div>
+        <div class="rank-name">Intermediate</div>
+        <div class="rank-days">Day 13–20</div>
+        <div class="rank-desc">Medium-level problems</div>
+      </div>
+      <div class="rank-card" style="--rank-color: #FFD700">
+        <div class="rank-label">B-RANK</div>
+        <div class="rank-name">Advanced</div>
+        <div class="rank-days">Day 21–25</div>
+        <div class="rank-desc">Hard problem strategies</div>
+      </div>
+      <div class="rank-card" style="--rank-color: #FF6B35">
+        <div class="rank-label">A-RANK</div>
+        <div class="rank-name">Elite</div>
+        <div class="rank-days">Day 26–28</div>
+        <div class="rank-desc">CP-level thinking</div>
+      </div>
+      <div class="rank-card" style="--rank-color: #E50000">
+        <div class="rank-label">S-RANK</div>
+        <div class="rank-name">LEGEND</div>
+        <div class="rank-days">Day 29–30</div>
+        <div class="rank-desc">Real contest problems</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== PACKS SHOWCASE ======== -->
+  <section class="packs animate-on-scroll" id="packs">
+    <div class="section-header">
+      <div class="section-overline">THE ARSENAL</div>
+      <h2 class="section-title">CHOOSE YOUR BATTLEFIELD</h2>
+      <p class="section-subtitle">Pick your weak topic. Destroy it in 30 days. Move on.</p>
+    </div>
+    <div class="packs-grid">
+      <!-- Pack 1 -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">🔄</span>
+          <span class="pack-badge">30 DAYS</span>
+        </div>
+        <div class="pack-name">Recursion & Backtracking</div>
+        <p class="pack-desc">Master recursive thinking and backtracking patterns used in contests</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+      <!-- Pack 2 -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">🌲</span>
+          <span class="pack-badge">30 DAYS</span>
+        </div>
+        <div class="pack-name">Trees & BST</div>
+        <p class="pack-desc">Conquer tree traversals, BST operations, and advanced tree DP</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+      <!-- Pack 3 -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">🕸️</span>
+          <span class="pack-badge">30 DAYS</span>
+        </div>
+        <div class="pack-name">Graphs</div>
+        <p class="pack-desc">BFS, DFS, Dijkstra, Union-Find — every graph pattern you need</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+      <!-- Pack 4 — DP -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">⚡</span>
+          <span class="pack-badge">40 DAYS</span>
+        </div>
+        <div class="pack-name">Dynamic Programming</div>
+        <p class="pack-desc">The hardest topic. 40 problems. Broken down so it clicks.</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 40 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$15 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+      <!-- Pack 5 -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">📐</span>
+          <span class="pack-badge">30 DAYS</span>
+        </div>
+        <div class="pack-name">Arrays & Strings</div>
+        <p class="pack-desc">Two pointers, sliding window, prefix sums — interview essentials</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+      <!-- Pack 6 -->
+      <div class="pack-card">
+        <div class="pack-top">
+          <span class="pack-icon">🎯</span>
+          <span class="pack-badge">30 DAYS</span>
+        </div>
+        <div class="pack-name">Binary Search</div>
+        <p class="pack-desc">The pattern most coders get wrong. Fixed in 20 days.</p>
+        <hr class="pack-divider">
+        <div class="pack-stats">
+          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">⚔ 6 Ranks</span>
+          <span class="pack-stat">💻 3 Languages</span>
+        </div>
+        <div class="pack-langs">
+          <span class="lang-pill">C++</span>
+          <span class="lang-pill">Python</span>
+          <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-bottom">
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <button class="pack-btn">START PACK →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== HOW IT WORKS ======== -->
+  <section class="how-it-works animate-on-scroll" id="how-it-works">
+    <div class="section-header">
+      <h2 class="section-title">THE SYSTEM</h2>
+      <p class="section-subtitle">Simple. Brutal. Effective.</p>
+    </div>
+    <div class="steps-container">
+      <div class="step">
+        <div class="step-number">01</div>
+        <div class="step-title">PICK YOUR WEAK SPOT</div>
+        <p class="step-desc">Choose the topic that's costing you interviews. Graphs? DP? Recursion? Start there.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <div class="step-title">DAILY QUEST. NO EXCUSES.</div>
+        <p class="step-desc">Every day: one pattern, one problem, one template. Takes 45 minutes. Miss it and you stay E-Rank.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <div class="step-title">RANK UP. PROVE IT.</div>
+        <p class="step-desc">Day 30: the S-Rank challenge. One hard problem used in a real Codeforces contest. Solve it. Become a Legend.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== WHAT'S INSIDE ======== -->
+  <section class="whats-inside animate-on-scroll" id="features">
+    <div class="inside-grid">
+      <!-- Left Column -->
+      <div class="inside-left">
+        <div class="section-overline">INSIDE EVERY PACK</div>
+        <h2 class="section-title">EVERYTHING LEGENDS ACTUALLY NEED</h2>
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">30 daily problems, ranked E to S</div>
+              <div class="feature-sub">Each problem chosen because top coders actually use this pattern</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">Pattern recognition templates</div>
+              <div class="feature-sub">Copy → adapt → apply. Works in C++, Python, and Java</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">Common mistakes breakdown</div>
+              <div class="feature-sub">The 3 ways most coders fail this pattern. Avoid them.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">How competitive programmers think about it</div>
+              <div class="feature-sub">Insights from the training patterns of top Codeforces coders</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">S-Rank final challenge</div>
+              <div class="feature-sub">A real problem from a Codeforces or LeetCode contest. No hints.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">■</span>
+            <div>
+              <div class="feature-text">Lifetime access. One payment.</div>
+              <div class="feature-sub">Buy once. Come back whenever. Pack updated when new patterns emerge.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Right Column — Quest Card -->
+      <div class="inside-right">
+        <div class="quest-card">
+          <div class="quest-header">⚔ DAY 14 QUEST — C-RANK</div>
+          <div class="quest-body">
+            <div class="quest-row">
+              <span class="label">Pattern</span>
+              <span class="value">N-Queens Backtracking</span>
+            </div>
+            <div class="quest-row">
+              <span class="label">Difficulty</span>
+              <span class="value">★★★☆☆</span>
+            </div>
+            <div class="quest-row">
+              <span class="label">Time limit</span>
+              <span class="value">45 min</span>
+            </div>
+            <hr class="quest-divider">
+            <p class="quest-description">"Place N queens on an N×N board such that no two queens attack each other."</p>
+            <hr class="quest-divider">
+            <div class="quest-langs">
+              <span class="quest-lang">C++</span>
+              <span class="quest-lang">Python</span>
+              <span class="quest-lang">Java</span>
+            </div>
+            <div class="quest-progress">
+              <div class="progress-labels">
+                <span class="current">C-RANK</span>
+                <span class="next">B-RANK</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+              <div class="progress-labels">
+                <span style="color: var(--text-dim); font-size: 11px;">→ Complete → Rank Progress: 75%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== PRICING ======== -->
+  <section class="pricing animate-on-scroll" id="pricing">
+    <div class="section-header">
+      <h2 class="section-title">SIMPLE PRICING</h2>
+      <p class="section-subtitle">No subscriptions. No tricks. Pay once, own it forever.</p>
+    </div>
+    <div class="pricing-cards">
+      <!-- Card 1 — Single Pack -->
+      <div class="pricing-card">
+        <div class="pricing-label">ONE BATTLEFIELD</div>
+        <div class="pricing-amount">$12</div>
+        <div class="pricing-per">per pack / one-time</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> 30-day structured content</li>
+          <li><span class="check">✓</span> All 6 ranks (E → S)</li>
+          <li><span class="check">✓</span> C++, Python, Java code</li>
+          <li><span class="check">✓</span> Lifetime access</li>
+        </ul>
+        <button class="pricing-btn outline">PICK A PACK</button>
+      </div>
+      <!-- Card 2 — All Packs Bundle -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">MOST POPULAR</div>
+        <div class="pricing-label">FULL ARSENAL</div>
+        <div class="pricing-amount">$49 <span class="pricing-original">$84</span></div>
+        <div class="pricing-per">all packs / one-time</div>
+        <div class="pricing-red-note">All future packs included free.</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> All 6 current packs</li>
+          <li><span class="check">✓</span> All future packs FREE</li>
+          <li><span class="check">✓</span> 180+ daily problems</li>
+          <li><span class="check">✓</span> C++, Python, Java</li>
+          <li><span class="check">✓</span> Legend certificate on completion</li>
+          <li><span class="check">✓</span> Private Discord access</li>
+        </ul>
+        <button class="pricing-btn filled">GET EVERYTHING →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== FINAL CTA ======== -->
+  <section class="final-cta animate-on-scroll" id="legends">
+    <div class="content">
+      <div class="manifesto">
+        <div>THE LEGENDS YOU FOLLOW</div>
+        <div>DIDN'T GRIND BLINDLY.</div>
+        <div class="red-line">NEITHER SHOULD YOU.</div>
+      </div>
+      <p class="final-subtext">42,000+ coders follow LeetCode Profiles. It's time to actually level up.</p>
+      <button class="final-btn">START YOUR RANK-UP →</button>
+    </div>
+  </section>
+
+  <!-- ======== FOOTER ======== -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <div class="nav-logo">
+          <span class="logo-mark">■</span>
+          <span class="logo-leet">LEETCODE</span>
+          <span class="logo-profiles">PROFILES</span>
+        </div>
+        <p class="footer-tagline">Made for coders who refuse to stay E-Rank.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#packs">Packs</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#">Discord</a>
+        <a href="#">Instagram</a>
+        <a href="#">YouTube</a>
+      </div>
+      <div class="footer-copy">© 2025 LeetCode Profiles. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
