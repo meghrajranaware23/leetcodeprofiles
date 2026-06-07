@@ -1,10 +1,20 @@
 # ⚔ Quest: Two Sum
 
-> **Day 4** · LeetCode #1 · Easy · 10 min
+> **Day 4** · [Two Sum #1](https://leetcode.com/problems/two-sum/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Two Sum on LeetCode](https://leetcode.com/problems/two-sum/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given an array `nums` and a `target`, return indices of two numbers that add up to `target`. Each input has exactly one solution.
 
@@ -13,11 +23,17 @@ Input:  nums = [2, 7, 11, 15], target = 9
 Output: [0, 1]   (nums[0] + nums[1] = 2 + 7 = 9)
 ```
 
-> 🤔 **Before you scroll:** Brute force checks every pair — O(n²). Can you do it in one pass with a hash map?
+---
+
+## 💡 Hints
+
+Brute force checks every pair — O(n²). Can you do it in one pass with a hash map?
+
+For each number, compute the **complement** (`target - num`) and check if the map already contains it. Check *before* inserting.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 For each number, compute the **complement** (`target - num`) and check if the map already contains it:
 

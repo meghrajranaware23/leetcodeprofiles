@@ -1,10 +1,20 @@
 # ⚔ Quest: Remove Duplicates from Sorted Array
 
-> **Day 1** · LeetCode #26 · Easy · 10 min
+> **Day 1** · [Remove Duplicates from Sorted Array #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Remove Duplicates on LeetCode](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given a sorted array `nums`, remove the duplicates **in-place** so that each element appears only once. Return the number of unique elements.
 
@@ -16,11 +26,17 @@ Input:  [0, 0, 1, 1, 1, 2, 2, 3, 3, 4]
 Output: 5, nums = [0, 1, 2, 3, 4, ...]
 ```
 
-> 🤔 **Before you scroll:** The array is already sorted, so duplicates are always adjacent. Which pattern from the concept lesson lets you filter elements in-place?
+---
+
+## 💡 Hints
+
+The array is already sorted, so duplicates are always adjacent. Which pattern from the concept lesson lets you filter elements in-place?
+
+The write pointer should only advance when you see a *new* value — compare `nums[read]` with `nums[write]`.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Use the **read-write pointer pattern** again — but this time, the write pointer advances only when we see a *new* value.
 

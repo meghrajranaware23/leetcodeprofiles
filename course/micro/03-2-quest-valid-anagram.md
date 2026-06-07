@@ -1,10 +1,20 @@
 # ⚔ Quest: Valid Anagram
 
-> **Day 3** · LeetCode #242 · Easy · 10 min
+> **Day 3** · [Valid Anagram #242](https://leetcode.com/problems/valid-anagram/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Valid Anagram on LeetCode](https://leetcode.com/problems/valid-anagram/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given two strings `s` and `t`, return `true` if `t` is an anagram of `s` (uses all original letters exactly once).
 
@@ -16,11 +26,17 @@ Input:  s = "rat", t = "car"
 Output: false
 ```
 
-> 🤔 **Before you scroll:** You could sort both strings and compare — but that's O(n log n). Can you do it in O(n) using the frequency pattern from the concept lesson?
+---
+
+## 💡 Hints
+
+You could sort both strings and compare — but that's O(n log n). Can you do it in O(n) using the frequency pattern from the concept lesson?
+
+Try the increment/decrement trick with a single `int[26]` array. Different lengths → instant `false`.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Use the **increment/decrement trick** with a single `int[26]` array:
 

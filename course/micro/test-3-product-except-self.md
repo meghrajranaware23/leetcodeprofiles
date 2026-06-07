@@ -1,10 +1,20 @@
 # ⚔ E-Rank Test — Problem 3
 
-> **Product of Array Except Self** · LeetCode #238 · Medium · 100 XP
+> [Product of Array Except Self #238](https://leetcode.com/problems/product-of-array-except-self/) · Medium · 100 XP
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it for **at least 15 minutes** before revealing hints or solutions.
+
+**[→ Open Product of Array Except Self on LeetCode](https://leetcode.com/problems/product-of-array-except-self/)**
+
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real LeetCode practice. No peeking until you've genuinely tried.
+
+---
+
+## The Problem
 
 Given an integer array `nums`, return an array `answer` where `answer[i]` equals the product of all elements **except** `nums[i]`. You must do it in O(n) time **without using division**.
 
@@ -16,14 +26,22 @@ Input:  [-1, 1, 0, -3, 3]
 Output: [0, 0, 9, 0, 0]
 ```
 
+---
+
+## 💡 Hints
+
 > 🎯 **What's being tested:** Prefix/suffix product thinking — the extension of prefix sums to products (Day 5).
+
+`answer[i] = (product of everything LEFT of i) × (product of everything RIGHT of i)`
+
+Two passes: build left products first, then multiply in right products.
 
 ---
 
 <details>
-<summary><strong>🔓 Reveal Solution</strong></summary>
+<summary><strong>📖 Solution & Walkthrough</strong></summary>
 
-### Approach
+### Walkthrough
 
 `answer[i] = (product of everything LEFT of i) × (product of everything RIGHT of i)`
 

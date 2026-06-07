@@ -1,10 +1,20 @@
 # ⚔ Quest: Range Sum Query
 
-> **Day 5** · LeetCode #303 · Easy · 10 min
+> **Day 5** · [Range Sum Query — Immutable #303](https://leetcode.com/problems/range-sum-query-immutable/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Range Sum Query on LeetCode](https://leetcode.com/problems/range-sum-query-immutable/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given an integer array `nums`, handle multiple queries: calculate the sum of elements between indices `left` and `right` inclusive.
 
@@ -15,11 +25,17 @@ sumRange(2, 5) → -1   (3 + -5 + 2 + -1)
 sumRange(0, 5) → -3   (entire array)
 ```
 
-> 🤔 **Before you scroll:** If you just loop from left to right for each query, that's O(n) per query. With many queries, this adds up. Can you precompute something?
+---
+
+## 💡 Hints
+
+If you just loop from left to right for each query, that's O(n) per query. With many queries, this adds up. Can you precompute something?
+
+Build a prefix sum array once. Every query becomes a single subtraction: `prefix[R+1] - prefix[L]`.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Build a prefix sum array once. Every query becomes a single subtraction:
 

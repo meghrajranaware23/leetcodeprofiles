@@ -30,7 +30,9 @@
 
 ## 🏋️ Mini Challenge
 
-**Remove Element** (LeetCode #27)
+### [Remove Element #27](https://leetcode.com/problems/remove-element/)
+
+**[→ Try Remove Element on LeetCode](https://leetcode.com/problems/remove-element/)**
 
 Given an array and a value, remove all instances of that value in-place. Return the new length.
 

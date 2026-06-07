@@ -1,10 +1,20 @@
 # ⚔ Quest: Find Pivot Index
 
-> **Day 5** · LeetCode #724 · Easy · 10 min
+> **Day 5** · [Find Pivot Index #724](https://leetcode.com/problems/find-pivot-index/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Find Pivot Index on LeetCode](https://leetcode.com/problems/find-pivot-index/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given an array of integers `nums`, return the **pivot index** — the index where the sum of all elements to the left equals the sum of all elements to the right. If no such index exists, return `-1`.
 
@@ -16,11 +26,17 @@ Input:  [1, 2, 3]
 Output: -1      (← no index where left sum = right sum)
 ```
 
-> 🤔 **Before you scroll:** You know the total sum. As you scan left to right, you track a running left sum. Can you compute the right sum without a second pass?
+---
+
+## 💡 Hints
+
+You know the total sum. As you scan left to right, track a running left sum. Can you compute the right sum without a second pass?
+
+At each index: `right_sum = total - left_sum - nums[i]`.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Compute the total sum first. Then scan left to right, maintaining a running left sum. At each index, the right sum is `total - left_sum - nums[i]`.
 

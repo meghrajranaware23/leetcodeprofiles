@@ -1,10 +1,20 @@
 # ⚔ Quest: Move Zeroes
 
-> **Day 1** · LeetCode #283 · Easy · 10 min
+> **Day 1** · [Move Zeroes #283](https://leetcode.com/problems/move-zeroes/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Move Zeroes on LeetCode](https://leetcode.com/problems/move-zeroes/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given an integer array `nums`, move all `0`s to the end while maintaining the relative order of non-zero elements. Do this **in-place**.
 
@@ -13,11 +23,17 @@ Input:  [0, 1, 0, 3, 12]
 Output: [1, 3, 12, 0, 0]
 ```
 
-> 🤔 **Before you scroll:** Which pattern from the concept lesson applies here? The array needs in-place modification... Try for 5 minutes.
+---
+
+## 💡 Hints
+
+Which pattern from the concept lesson applies here? The array needs in-place modification — think read-write pointers.
+
+If you're stuck after 5 minutes: the write pointer marks where the next non-zero should go. Non-zeros swap forward; zeros accumulate at the end naturally.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Use the **read-write pointer pattern**. The write pointer marks where the next non-zero should go. Swap non-zeros forward, and zeros accumulate at the end naturally.
 

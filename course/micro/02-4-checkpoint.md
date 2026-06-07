@@ -30,7 +30,11 @@
 
 ## 🏋️ Mini Challenge
 
-**Reverse Only Vowels** (LeetCode #345) — Two pointers that skip non-vowels and swap vowels.
+### [Reverse Vowels of a String #345](https://leetcode.com/problems/reverse-vowels-of-a-string/)
+
+**[→ Try Reverse Vowels on LeetCode](https://leetcode.com/problems/reverse-vowels-of-a-string/)**
+
+Two pointers that skip non-vowels and swap vowels in-place.
 
 > 💡 **Hint:** Store vowels in a set `{'a','e','i','o','u','A','E','I','O','U'}` for O(1) lookup.
 

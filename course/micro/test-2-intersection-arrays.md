@@ -1,10 +1,20 @@
 # ⚔ E-Rank Test — Problem 2
 
-> **Intersection of Two Arrays II** · LeetCode #350 · Easy · 100 XP
+> [Intersection of Two Arrays II #350](https://leetcode.com/problems/intersection-of-two-arrays-ii/) · Easy · 100 XP
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it for **at least 15 minutes** before revealing hints or solutions.
+
+**[→ Open Intersection of Two Arrays II on LeetCode](https://leetcode.com/problems/intersection-of-two-arrays-ii/)**
+
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real LeetCode practice. No peeking until you've genuinely tried.
+
+---
+
+## The Problem
 
 Given two integer arrays `nums1` and `nums2`, return an array of their intersection. Each element in the result must appear as many times as it shows in both arrays. Return the result in any order.
 
@@ -16,14 +26,20 @@ Input:  nums1 = [4, 9, 5], nums2 = [9, 4, 9, 8, 4]
 Output: [4, 9]  (order doesn't matter)
 ```
 
+---
+
+## 💡 Hints
+
 > 🎯 **What's being tested:** Frequency counting (Day 3) + hash map lookup (Day 4) — build a frequency map from one array, then match against the other.
+
+Build a frequency map from `nums1`. Then iterate `nums2` — if the current element exists in the map with count > 0, add it to the result and decrement the count.
 
 ---
 
 <details>
-<summary><strong>🔓 Reveal Solution</strong></summary>
+<summary><strong>📖 Solution & Walkthrough</strong></summary>
 
-### Approach
+### Walkthrough
 
 Build a frequency map from `nums1`. Then iterate `nums2` — if the current element exists in the map with count > 0, add it to the result and decrement the count.
 

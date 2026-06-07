@@ -1,10 +1,20 @@
 # ⚔ Quest: Contains Duplicate
 
-> **Day 4** · LeetCode #217 · Easy · 10 min
+> **Day 4** · [Contains Duplicate #217](https://leetcode.com/problems/contains-duplicate/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Contains Duplicate on LeetCode](https://leetcode.com/problems/contains-duplicate/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Given an integer array `nums`, return `true` if any value appears **at least twice**, and `false` if every element is distinct.
 
@@ -16,11 +26,17 @@ Input:  [1, 2, 3, 4]
 Output: false      (← all distinct)
 ```
 
-> 🤔 **Before you scroll:** Brute force checks every pair — O(n²). How can a hash set make this O(n)?
+---
+
+## 💡 Hints
+
+Brute force checks every pair — O(n²). How can a hash set make this O(n)?
+
+Walk through the array. For each element, check if it's already in the set. If yes, duplicate found. If no, add it.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Walk through the array. For each element, check if it's already in the set. If yes, duplicate found. If no, add it.
 

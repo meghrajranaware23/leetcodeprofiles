@@ -28,7 +28,11 @@
 
 ## 🏋️ Mini Challenge
 
-**Running Sum of 1D Array** (LeetCode #1480) — Return an array where each element is the running sum of the input. This IS a prefix sum — just without the extra zero at the start.
+### [Running Sum of 1D Array #1480](https://leetcode.com/problems/running-sum-of-1d-array/)
+
+**[→ Try Running Sum on LeetCode](https://leetcode.com/problems/running-sum-of-1d-array/)**
+
+Return an array where each element is the running sum of the input. This IS a prefix sum — just without the extra zero at the start.
 
 > 💡 **Hint:** `result[i] = result[i-1] + nums[i]`. One pass, in-place.
 

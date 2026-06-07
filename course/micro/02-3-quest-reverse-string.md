@@ -1,10 +1,20 @@
 # ⚔ Quest: Reverse String
 
-> **Day 2** · LeetCode #344 · Easy · 10 min
+> **Day 2** · [Reverse String #344](https://leetcode.com/problems/reverse-string/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Reverse String on LeetCode](https://leetcode.com/problems/reverse-string/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 Write a function that reverses a string in-place. The input is given as an array of characters.
 
@@ -16,11 +26,17 @@ Input:  ["H","a","n","n","a","h"]
 Output: ["h","a","n","n","a","H"]
 ```
 
-> 🤔 **Before you scroll:** This is the most fundamental two-pointer problem on strings. Use what you learned in the concept lesson — pointers from both ends, swapping toward the center.
+---
+
+## 💡 Hints
+
+This is the most fundamental two-pointer problem on strings. Use pointers from both ends, swapping toward the center.
+
+Stop when the left pointer meets or crosses the right pointer.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Two pointers start at opposite ends and swap their way inward:
 

@@ -1,10 +1,20 @@
 # ⚔ Quest: Valid Palindrome
 
-> **Day 2** · LeetCode #125 · Easy · 10 min
+> **Day 2** · [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) · Easy · 10 min
 
 ---
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Valid Palindrome on LeetCode](https://leetcode.com/problems/valid-palindrome/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
+
+---
+
+## The Problem
 
 A phrase is a palindrome if, after converting all uppercase letters to lowercase and removing all non-alphanumeric characters, it reads the same forward and backward. Return `true` if it's a palindrome.
 
@@ -16,11 +26,17 @@ Input:  "race a car"
 Output: false  ("raceacar" → not a palindrome)
 ```
 
-> 🤔 **Before you scroll:** Don't create a cleaned string first. Can you use two pointers that skip non-alphanumeric characters on the fly?
+---
+
+## 💡 Hints
+
+Don't create a cleaned string first. Can you use two pointers that skip non-alphanumeric characters on the fly?
+
+Compare lowercase versions of characters at the left and right pointers after skipping invalid characters.
 
 ---
 
-## Approach
+## 📖 Walkthrough
 
 Two pointers converge from both ends, skipping non-alphanumeric characters and comparing lowercase versions:
 

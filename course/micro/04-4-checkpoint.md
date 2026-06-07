@@ -28,7 +28,11 @@
 
 ## 🏋️ Mini Challenge
 
-**Intersection of Two Arrays** (LeetCode #349) — Return the unique intersection of two arrays using two hash sets.
+### [Intersection of Two Arrays #349](https://leetcode.com/problems/intersection-of-two-arrays/)
+
+**[→ Try Intersection of Two Arrays on LeetCode](https://leetcode.com/problems/intersection-of-two-arrays/)**
+
+Return the unique intersection of two arrays using two hash sets.
 
 > 💡 **Hint:** Add all elements of `nums1` to a set. Then check each element of `nums2` against that set.
 

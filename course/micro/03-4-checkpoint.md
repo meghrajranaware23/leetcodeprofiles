@@ -28,7 +28,11 @@
 
 ## 🏋️ Mini Challenge
 
-**Unicode Anagram** — What if the strings contain any Unicode character, not just lowercase? Switch from `int[26]` to a HashMap. The *pattern* is identical — only the container changes.
+### [Valid Anagram #242](https://leetcode.com/problems/valid-anagram/) — Unicode variant
+
+**[→ Try Valid Anagram on LeetCode](https://leetcode.com/problems/valid-anagram/)**
+
+Start with the standard lowercase version, then extend: what if the strings contain any Unicode character, not just lowercase? Switch from `int[26]` to a HashMap. The *pattern* is identical — only the container changes.
 
 ---
 

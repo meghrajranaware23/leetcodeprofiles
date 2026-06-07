@@ -87,6 +87,25 @@
     </div>
   </section>
 
+  <!-- ======== CONTINUE LEARNING (shown when progress exists) ======== -->
+  <section class="continue-section" id="continueSection" hidden>
+    <div class="continue-inner">
+      <div class="continue-card">
+        <div class="continue-body">
+          <span class="continue-label">WELCOME BACK, HUNTER</span>
+          <h2 class="continue-title" id="continueTitle">Continue Arrays & Strings Ascension</h2>
+          <p class="continue-meta" id="continueMeta">0 / 25 lessons · 0 XP</p>
+          <div class="continue-progress-bar">
+            <div class="continue-progress-fill" id="continueProgressFill"></div>
+          </div>
+          <p class="continue-last" id="continueLast"></p>
+          <p class="continue-recommended" id="continueRecommended" hidden></p>
+        </div>
+        <a href="./course-reader.html" class="continue-btn" id="continueBtn">CONTINUE LEARNING →</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ======== RANK SYSTEM ======== -->
   <section class="rank-system animate-on-scroll" id="ranks">
     <div class="section-header">
@@ -256,6 +275,15 @@
           <span class="lang-pill">C++</span>
           <span class="lang-pill">Python</span>
           <span class="lang-pill">Java</span>
+        </div>
+        <div class="pack-progress" id="arrays-pack-progress" hidden>
+          <div class="pack-progress-header">
+            <span class="pack-progress-label">0/25 lessons</span>
+            <span class="pack-progress-xp">0 XP</span>
+          </div>
+          <div class="pack-progress-bar">
+            <div class="pack-progress-fill"></div>
+          </div>
         </div>
         <div class="pack-bottom">
           <div class="pack-price">$12 <span class="currency">USD</span></div>
@@ -487,5 +515,6 @@
   </footer>
 
   <script src="./script.js"></script>
+  <script type="module" src="./landing-progress.js"></script>
 </body>
 </html>

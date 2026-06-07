@@ -1,12 +1,22 @@
 # ⚔ E-Rank Test — Problem 1
 
-> **Majority Element** · LeetCode #169 · Easy · 100 XP
+> [Majority Element #169](https://leetcode.com/problems/majority-element/) · Easy · 100 XP
 
 ---
 
-You've completed 5 days of training. Now prove your foundation. **Attempt each problem for 15 minutes before revealing the solution.**
+You've completed 5 days of training. Now prove your foundation.
 
-## The Mission
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it for **at least 15 minutes** before revealing hints or solutions.
+
+**[→ Open Majority Element on LeetCode](https://leetcode.com/problems/majority-element/)**
+
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real LeetCode practice. No peeking until you've genuinely tried.
+
+---
+
+## The Problem
 
 Given an array `nums` of size `n`, return the **majority element** — the element that appears more than `⌊n / 2⌋` times. You may assume the majority element always exists.
 
@@ -18,14 +28,22 @@ Input:  [2, 2, 1, 1, 1, 2, 2]
 Output: 2
 ```
 
+---
+
+## 💡 Hints
+
 > 🎯 **What's being tested:** Frequency counting (Day 3) — the most direct application of the pattern.
+
+Build a frequency map. The first element whose count exceeds `n / 2` is the answer.
+
+**Bonus approach:** Boyer-Moore Voting solves this in O(1) space. Maintain a candidate and counter — increment for matches, decrement for mismatches.
 
 ---
 
 <details>
-<summary><strong>🔓 Reveal Solution</strong></summary>
+<summary><strong>📖 Solution & Walkthrough</strong></summary>
 
-### Approach
+### Walkthrough
 
 Build a frequency map. The first element whose count exceeds `n / 2` is the answer.
 
