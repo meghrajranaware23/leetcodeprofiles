@@ -36,6 +36,55 @@ Try the increment/decrement trick with a single `int[26]` array. Different lengt
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Frequency Counting — Increment/Decrement Comparison
+
+**How to identify this from the problem statement:**
+- "anagram" → same letters, same counts — **compare compositions, not order**
+- two strings of equal length → if counts match, they're anagrams
+- lowercase letters only → `int[26]` beats a hash map
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "anagram" / "rearrange letters" | Frequency counting |
+| "same characters" / "permutation" | Increment one string, decrement the other |
+| "lowercase only" | Fixed-size `int[26]` array |
+
+**Why this pattern works:** Anagrams differ only in order. Order doesn't affect counts — so count equality proves anagram status in O(n).
+
+**How a strong solver thinks before coding:**
+1. *"Anagram → frequency count, not sort."*
+2. *"Different lengths → instant false."*
+3. *"++ for s, -- for t, all zeros → true."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **Sort both strings and compare** | O(n log n) — frequency counting is O(n) |
+| **Nested loops: for each char in s, find and remove from t** | O(n²) — each character triggers a linear search |
+| **Two separate frequency arrays, compare at end** | Works, but one array with ++/-- is simpler and one pass |
+| **Skip the length check** | Wastes O(n) work when lengths differ — O(1) early exit |
+
+**The insight brute force misses:** Anagrams differ only in **order**. Counts are order-independent — tally both strings in one array and check for zeros.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Find the Difference #389](https://leetcode.com/problems/find-the-difference/) | One extra character in longer string | Increment/decrement; non-zero entry is the answer |
+| [Ransom Note #383](https://leetcode.com/problems/ransom-note/) | Can magazine cover ransom note? | Frequency subset check — counts must not go negative |
+| [Group Anagrams #49](https://leetcode.com/problems/group-anagrams/) | Group words by letter composition | Frequency signature as key (D-Rank) |
+
+Same skeleton: **build counts, answer from counts** — only the query changes.
+
+---
+
 ## 📖 Walkthrough
 
 Use the **increment/decrement trick** with a single `int[26]` array:
@@ -102,6 +151,16 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space (fixed 26-element array)
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+- **"Anagram"** → Count characters. Sorting works but O(n log n) — frequency is O(n).
+- **"Same length required"** → Check this first; skip all counting if lengths differ.
+- **"Increment/decrement trick"** → One array, two strings, one pass.
+
+Next time you see "are these two collections the same multiset?" — think frequency, not nested loops.
 
 > 🎯 **Pattern Unlocked:** Single-array increment/decrement to compare two collections in O(n). Beats sorting every time.
 

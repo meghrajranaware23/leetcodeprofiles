@@ -36,6 +36,56 @@ The write pointer should only advance when you see a *new* value — compare `nu
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Read-Write Pointer with Adjacent Comparison (Sorted Array)
+
+**How to identify this from the problem statement:**
+- "sorted array" + "remove duplicates" → duplicates are **always adjacent** — no hash set needed
+- "in-place" + "return new length" → classic read-write pointer output
+- "each element appears at most once" → write pointer advances only on **value change**
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "sorted" | Compare neighbors, not all pairs |
+| "remove duplicates in-place" | Read-write pointer |
+| "return the new length" | Write pointer + 1 is the answer |
+| "relative order preserved" | Forward-only scan |
+
+**Why this pattern works:** Sorting guarantees duplicates sit next to each other. You only need to ask: *"Is this value different from the last one I kept?"*
+
+**How a strong solver thinks before coding:**
+1. *"Sorted + unique → compare nums[read] vs nums[write]."*
+2. *"Write pointer starts at 0; read starts at 1."*
+3. *"Return write + 1 — not write."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **Hash set to track seen values** | Works logically, but violates "in-place" — O(n) extra space |
+| **Nested loops comparing every pair** | O(n²) — sorted array makes this unnecessary |
+| **Build a new array of unique values** | Violates in-place; you must modify the original |
+| **Sort then dedupe** | Array is already sorted — redundant work |
+
+**The insight brute force misses:** Sorting guarantees duplicates are **neighbors**. You only need to ask *"Is this different from the last value I kept?"* — one forward pass, no set, no second array.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Move Zeroes #283](https://leetcode.com/problems/move-zeroes/) | Keep non-zeros | Read-write with condition |
+| [Remove Element #27](https://leetcode.com/problems/remove-element/) | Keep when `!= val` | Read-write with condition |
+| [Remove Duplicates II #80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) | Allow at most 2 copies | Read-write + compare `nums[write-1]` |
+
+Same skeleton as Move Zeroes — only the keep condition changes.
+
+---
+
 ## 📖 Walkthrough
 
 Use the **read-write pointer pattern** again — but this time, the write pointer advances only when we see a *new* value.
@@ -118,6 +168,16 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+- **"Sorted array"** → I don't need a hash set. Adjacent comparison is enough.
+- **"Remove duplicates in-place"** → Same read-write pattern as Move Zeroes, but the condition is `nums[read] != nums[write]`.
+- **"Return length"** → The write pointer tracks the last valid index; answer is `write + 1`.
+
+The pattern isn't "Remove Duplicates" — it's **read-write pointer with a keep/discard condition**. Once you see that, this problem takes 2 minutes.
 
 > 🎯 **Pattern Unlocked:** Read-write pointer with a condition check. The write pointer only advances when we find something worth keeping — the core idea behind all in-place filtering.
 

@@ -33,6 +33,55 @@ If you're stuck after 5 minutes: the write pointer marks where the next non-zero
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Read-Write Pointer (In-Place Rearrangement)
+
+**How to identify this from the problem statement:**
+- "Move all 0s to the end" → you're **filtering and repositioning** elements, not counting them
+- "in-place" → no extra array allowed → you need two indices: one to read, one to write
+- "maintain relative order of non-zero elements" → forward pass only (read-write moves left to right)
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "move … to the end" | Partition the array with a write boundary |
+| "in-place" | Read-write pointer, O(1) space |
+| "maintain relative order" | Single forward scan — don't sort |
+| "without making a copy" | Same as in-place — confirms read-write |
+
+**Why this pattern works:** The write pointer always marks the boundary between "kept elements" and "unprocessed zone." Non-zeros get written to the front; zeros naturally fall behind without explicit tracking.
+
+**How a strong solver thinks before coding:**
+1. *"In-place + reorder → read-write pointer from Day 1."*
+2. *"Write pointer = count of non-zeros seen so far."*
+3. *"One forward pass — O(n) time, O(1) space."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **New array:** copy non-zeros, append zeros | Violates "in-place" — O(n) extra space |
+| **For each zero, swap with next non-zero (nested loops)** | O(n²) — each zero may trigger a full re-scan |
+| **Count zeros, fill from end in second pass** | Works, but two passes when one suffices; easy to get indices wrong |
+
+**The insight brute force misses:** You don't need to track zeros at all. Just **write non-zeros forward** — zeros end up at the tail automatically.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Remove Element #27](https://leetcode.com/problems/remove-element/) | Keep when `!= val` | Read-write with condition |
+| [Remove Duplicates #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) | Keep when value changes | Read-write + adjacent compare |
+| [Sort Colors #75](https://leetcode.com/problems/sort-colors/) | Three groups (D-Rank) | Read-write variant (Dutch flag) |
+
+If you recognized Move Zeroes, you already have the skeleton for half of Day 1's practice queue.
+
+---
+
 ## 📖 Walkthrough
 
 Use the **read-write pointer pattern**. The write pointer marks where the next non-zero should go. Swap non-zeros forward, and zeros accumulate at the end naturally.
@@ -113,6 +162,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+Before writing code, a strong solver's internal monologue sounds like this:
+
+- **"In-place rearrangement"** → I can't use a second array. I need read + write pointers.
+- **"Move zeros to the end, keep order"** → Forward scan: write non-zeros to the front, skip zeros.
+- **"This is the same family as Remove Element and Remove Duplicates"** → One pattern, many problems.
+
+If you tried nested loops or a new array first, that's fine — but the breakthrough is **recognizing the pattern family**, not memorizing this one solution.
 
 > 🎯 **Pattern Unlocked:** Read-write pointer for in-place element rearrangement. The write pointer defines the boundary between "processed" and "unprocessed."
 

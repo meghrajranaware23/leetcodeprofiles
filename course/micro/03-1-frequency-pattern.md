@@ -1,58 +1,140 @@
 # 📝 The Frequency Counting Pattern
 
-> **Day 3** · Frequency Counting · ★★☆☆☆ · 5 min read
+> **Day 3** · Frequency Counting · ★★☆☆☆ · 8 min read
 
 ---
 
-Frequency counting is one of the most versatile patterns in DSA. Instead of comparing elements one-by-one, you **summarize data by counting occurrences** — then comparisons become trivial.
+Instead of comparing elements one-by-one, you **count how many times each element appears** — then answer questions from the tally.
 
-Think of it like an inventory sheet. You don't check every shelf — you check the counts.
+Think of it like an inventory sheet: you don't inspect every shelf repeatedly; you check the counts once.
 
-## The Frequency Array (int[26])
+---
 
-When input is constrained to lowercase letters, skip the hash map. Use a simple integer array:
+## Part 1 — Learn the Pattern
+
+### 1. What is the pattern?
+
+Maintain a tally — how many times each character or value has appeared — using:
+
+- **`int[26]`** when input is lowercase letters only
+- **Hash map** when keys can be anything (integers, words, Unicode)
+
+Then answer questions by reading the tally, not by re-scanning the data.
+
+### 2. Simple explanation
+
+If someone asks "do these two bags have the same fruit?", you don't compare fruit one-by-one in nested loops. You count each type in both bags and compare the counts.
+
+Frequency counting turns **pairwise comparison** into **tally comparison**.
+
+### 3. Small visual example
+
+Count letters in `"hello"`:
 
 ```
-Character:  a  b  c  d  e  f  ... z
-Index:      0  1  2  3  4  5  ... 25
+char:   h   e   l   l   o
+index:  7   4  11  11  14   (h=7, e=4, l=11, o=14 in a-z)
 
-Mapping:  index = char - 'a'
-          'c' - 'a' = 2  →  freq[2]++
+freq[7]++  → 1
+freq[4]++  → 1
+freq[11]++ → 1, then 2
+freq[14]++ → 1
+
+Result: h:1  e:1  l:2  o:1
 ```
 
-**O(1) access**, zero overhead — no hashing, no collisions, no memory allocation.
-
-> 💡 **Key Insight:** A frequency array IS a hash map — just a perfect one with zero collisions for a known domain.
-
-## The Hash Map (for everything else)
-
-When elements can be anything — integers, Unicode, words — use a hash map:
+Compare `"listen"` and `"silent"` with **one array** — increment for the first string, decrement for the second:
 
 ```
-Input: ["apple", "banana", "apple", "cherry", "banana", "apple"]
-Map:   { "apple" → 3, "banana" → 2, "cherry" → 1 }
+After "listen":  l:1  i:1  s:1  t:1  e:1  n:1
+After "silent":  all counts → 0  ✓  (anagram!)
 ```
 
-## When to Use Which?
+### 4. How the pattern works
+
+**Build counts (one pass):**
+```
+for each character c:
+    freq[index(c)]++
+```
+
+**Compare two strings (increment/decrement):**
+```
+for i in range(len(s)):
+    freq[s[i]]++
+    freq[t[i]]--
+check all freq values are 0
+```
+
+**Find "first unique" (two passes):**
+```
+Pass 1: build counts
+Pass 2: walk original string, return first char with count == 1
+```
+
+### 5. What problem does this pattern solve?
+
+- Are two strings **anagrams**? (same multiset of characters)
+- Which character appears **most/least** often?
+- What is the **first non-repeating** character?
+- Do two collections share the **same composition**?
+
+### 6. Why brute force is inefficient
+
+| Brute force | Problem |
+|---|---|
+| Nested loops comparing every pair | O(n²) |
+| Sort both strings, then compare | O(n log n) — counting is O(n) |
+| Re-scan the array for each query | Redundant recounting |
+
+### 7. The key observation
+
+When the question is about **what's inside** a collection (not the order), order doesn't matter. Count once, answer many times.
+
+For lowercase letters, `int[26]` is a perfect hash map with zero collisions.
+
+### 8. Pattern signals & recognition clues
+
+| When the problem says… | Think frequency counting |
+|---|---|
+| "anagram" / "permutation" / "same characters" | Increment/decrement one array |
+| "count occurrences" / "how many times" | Build freq map, scan for max/min |
+| "first unique" / "non-repeating" | Two-pass: count, then scan in order |
+| "most frequent" / "majority" | Count, then find peak |
+
+**Keywords:** `anagram` · `permutation` · `count` · `frequency` · `first unique` · `most common`
+
+### 9. Common beginner mistakes
+
+| Mistake | Fix |
+|---|---|
+| Sorting when counting works | Counting is O(n) vs O(n log n) sort |
+| Using HashMap for lowercase-only input | `int[26]` is simpler and faster |
+| Scanning freq array for "first unique" | Walk the **original string** in Pass 2 to preserve order |
+| Forgetting length check on anagrams | Different lengths → instant false |
+
+### 10. Recognition drill
+
+Read this problem aloud:
+
+> *"Given two strings, determine if one is an anagram of the other."*
+
+Before coding, say:
+
+> *"Same multiset, order irrelevant → increment/decrement freq array, check all zeros."*
+
+---
+
+## Part 2 — Choosing Your Container
 
 | Scenario | Use | Why |
 |---|---|---|
-| Lowercase letters only | `int[26]` | Faster, simpler, cache-friendly |
-| Mixed case / ASCII | `int[128]` | Covers all ASCII characters |
-| Unicode / arbitrary keys | HashMap | Handles any element type |
+| Lowercase letters only | `int[26]` | O(1) access, no hashing overhead |
+| Mixed ASCII | `int[128]` | Covers full ASCII range |
+| Arbitrary keys (words, ints) | Hash map | Flexible key types |
 
-## The Increment/Decrement Trick
-
-To compare two strings, use **one** array: increment for string A, decrement for string B. If all entries are zero → match!
-
-```
-Process "listen":  freq[l]++ freq[e]++ freq[i]++ freq[s]++ freq[t]++ freq[n]++
-Process "silent":  freq[s]-- freq[i]-- freq[l]-- freq[e]-- freq[n]-- freq[t]--
-Result: all zeros → anagram confirmed ✓
-```
-
-> ⚡ **Pattern Signal:** Keywords like "anagram", "permutation", "count occurrences", "most frequent", "rearrange" → frequency counting.
+> 💡 A frequency array **is** a hash map — a perfect one when the key space is small and known.
 
 ---
 
-*Time to apply this pattern. First quest: detecting anagrams. →*
+*You understand the pattern. First quest: detecting anagrams. →*

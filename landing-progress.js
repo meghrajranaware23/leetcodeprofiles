@@ -27,8 +27,8 @@ function renderContinueBanner(summary, continueUrl) {
   const recommended = document.getElementById('continueRecommended');
 
   if (title) {
-    title.textContent = summary.rankProgress?.e?.complete
-      ? 'E-Rank Complete — Review Your Journey'
+    title.textContent = summary.currentRank?.includes('Complete')
+      ? `${summary.currentRank} — Review Your Journey`
       : 'Continue Arrays & Strings Ascension';
   }
 

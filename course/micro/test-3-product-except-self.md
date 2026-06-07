@@ -38,6 +38,60 @@ Two passes: build left products first, then multiply in right products.
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Prefix + Suffix Products (Extension of Prefix Sums)
+
+| Clue in the problem | What it signals |
+|---|---|
+| "product of all elements **except** nums[i]" | Each answer uses everything left × right of i |
+| "without division" | Can't simply divide total product — use prefix/suffix |
+| "O(n) time" | Two passes, not nested loops |
+| "except self" / "exclude index i" | Prefix × suffix at every position |
+| answer[i] depends on **all other** elements | Precompute left and right aggregates |
+
+**How to identify from the statement:** "Except self" is the giveaway — each index needs aggregated info from **both sides**. That's prefix thinking applied to multiplication.
+
+**How a strong solver thinks before coding:**
+1. *"Product except self → prefix products from left, suffix from right."*
+2. *"answer[i] = left_product × right_product."*
+3. *"Two passes, O(1) extra space if output array doesn't count."*
+4. *"'Except self' = need both sides — same instinct as pivot index, but multiply."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **For each i, loop all j ≠ i and multiply** | O(n²) — nested loops re-walk the same products |
+| **Compute total product, divide by nums[i]** | Violates "without division" — also breaks on zeros |
+| **Build separate left[] and right[] arrays** | O(n) extra space — two-pass trick folds suffix into the answer array |
+
+**The insight brute force misses:** `answer[i]` only needs the **product of everything left of i** and **everything right of i**. Prefix products from the left, suffix products from the right — same precomputation instinct as range sums, different operator.
+
+---
+
+## 🎯 Transfer to Unseen Problems
+
+Can you spot prefix/suffix thinking without the word "product"?
+
+**Scenario 1:** *"Given an array, return an array where each element is the sum of all elements to its left (index 0 gets 0)."*
+
+Which pattern? **Prefix sum construction** (Running Sum variant). One forward pass, `result[i] = result[i-1] + nums[i-1]`.
+
+**Scenario 2:** *"Given an array, find the index where the product of elements to the left equals the product of elements to the right."*
+
+Which pattern? **Prefix/suffix products + balance check** — pivot index with multiplication instead of addition. Total product is tricky with zeros; prefix/suffix products handle it cleanly.
+
+**Scenario 3:** *"Given a matrix, precompute row sums so any rectangular region sum can be answered in O(1)."*
+
+Which pattern? **2D prefix sums** (B-Rank preview). Same precomputation instinct, extended to two dimensions.
+
+> **Answer key:** All three → prefix/suffix family. Scenario 1 is addition (Day 5). Scenario 2 is the product mirror of pivot index. Scenario 3 is the 2D extension. If "except self" or "both sides" appears → prefix + suffix.
+
+---
+
 <details>
 <summary><strong>📖 Solution & Walkthrough</strong></summary>
 
@@ -118,6 +172,16 @@ class Solution {
 **Complexity:** O(n) time · O(1) extra space (output array doesn't count)
 
 </details>
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+- **"Except nums[i]"** → Don't include index i — need left half × right half.
+- **"No division"** → Prefix/suffix products, not total/nums[i].
+- **"This is prefix sums with multiplication"** → Same precomputation instinct, different operator.
+
+This is the capstone E-Rank pattern test: if prefix sums clicked on Day 5, this is the natural extension.
 
 ---
 

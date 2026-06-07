@@ -4,15 +4,48 @@
 
 ---
 
-## 🔍 Pattern Signals
+## 🔍 Pattern Signals — Recognition Drill
 
-| When you see... | Think... |
-|---|---|
-| "find pair / two numbers that sum" | Complement lookup (one-pass) |
-| "check if exists" / "contains" / "duplicate" | Hash Set |
-| "group by" / "categorize" | HashMap with list values |
-| "O(n) time" with matching/finding | Hash map eliminates inner loop |
-| "count" / "frequency" of arbitrary elements | HashMap counting |
+Before you move on, practice **hearing the signal** in each phrase below:
+
+| When you see... | Think... | Why |
+|---|---|---|
+| "find pair" / "two numbers that sum" / "complement" | Complement lookup (one-pass map) | Replace inner search with O(1) lookup |
+| "return indices" | Map: value → index | Need metadata, not just existence |
+| "check if exists" / "contains" / "duplicate" | Hash set | Pure membership — set not map |
+| "seen before" / "already visited" | Hash set | Early exit on first repeat |
+| "group by" / "categorize" | HashMap with list values | Key = shared property |
+| "O(n) time" with matching/finding | Hash map eliminates inner loop | Nested loop → hash lookup |
+| "count" / "frequency" of arbitrary elements | HashMap counting | Keys aren't limited to letters |
+| nested loop searching prior elements | Hash structure | Inner loop is the signal |
+
+### 🧠 Quick Recognition Test
+
+Read each mini-problem. Which pattern fires first?
+
+1. *"Does this array contain any duplicate?"* → **Hash set**
+2. *"Find two numbers that add to target"* → **Complement map**
+3. *"Find intersection of two arrays"* → **Set or frequency map** (E-Rank Test #2 preview)
+
+---
+
+## 🎯 Transfer to Unseen Problems
+
+You've seen Two Sum and Contains Duplicate. Can you recognize hash patterns on problems you've never studied?
+
+**Scenario 1:** *"Given an array of integers and a target, return true if any two distinct indices i and j exist such that nums[i] + nums[j] == target."* (Boolean version of Two Sum)
+
+Which pattern? **Complement lookup.** For each num, check if `target - num` is in the map. Check before insert — same skeleton as Two Sum, just return true/false.
+
+**Scenario 2:** *"Given an array, return true if any value appears at least twice within k indices of each other."*
+
+Which pattern? **Hash set + sliding window.** Add nums[i] to set. If already present and within distance k, return true. Remove nums[i-k] when window exceeds k.
+
+**Scenario 3:** *"Given two integer arrays, return their intersection. Each element in the result must appear in both arrays."*
+
+Which pattern? **Set from first array, check second.** Add all of nums1 to a set. For each element in nums2, if in set, add to result and remove from set (unique intersection).
+
+> **Answer key:** Scenarios 1 & 3 → hash map/set lookup. Scenario 2 → set with window management. The signal is always: *"Am I re-searching prior elements?"* → remember them in a hash structure.
 
 ---
 

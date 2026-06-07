@@ -10,6 +10,8 @@ Here's the truth: **the difference between struggling and solving isn't intellig
 
 Top competitive programmers don't think harder. They've internalized a library of patterns — mental templates they match against every new problem in seconds. This course builds that library.
 
+**Recognition-first philosophy:** Every concept teaches you *when* to reach for a pattern before *how* to code it. Every quest asks you to try first, then reveals what should have clicked. Every checkpoint drills transfer — spotting the same pattern in problems you've never studied. Memorizing solutions is the trap; naming the pattern from the problem statement is the skill.
+
 **30 days. 30 missions. 6 ranks. One ascension.**
 
 ---
@@ -20,9 +22,13 @@ Each day is a focused mission. You learn one pattern, solve real LeetCode proble
 
 | | Your Daily Flow | |
 |---|---|---|
-| 📝 | **Concept** | Learn the pattern and mental model |
-| ⚔ | **Quests** | Solve real problems using the pattern |
-| ✅ | **Checkpoint** | Recap signals, mistakes, and practice |
+| 📝 | **Concept** | Learn the pattern, signals, and how to recognize it |
+| ⚔ | **Quests** | Try on LeetCode first, then study the **Pattern Recognition Breakdown** |
+| ✅ | **Checkpoint** | Drill signals, spot patterns in new problems |
+
+Every quest includes:
+- **🔍 Pattern Recognition Breakdown** — how to identify the pattern from the problem statement
+- **💭 What Should Have Clicked** — the thoughts a strong solver has *before* writing code
 
 Every quest has solutions in **C++, Python, and Java**. Pick your weapon.
 

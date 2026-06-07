@@ -35,6 +35,17 @@ export const ERANK_LESSONS = COURSE_LESSONS.filter(
 );
 export const ERANK_LESSON_IDS = new Set(ERANK_LESSONS.map(l => l.id));
 
+export const DRANK_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && l.rank === 'd'
+);
+export const DRANK_LESSON_IDS = new Set(DRANK_LESSONS.map(l => l.id));
+
+/** Lessons with live content on the learning path (intro + E + D) */
+export const AVAILABLE_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && (l.rank === 'intro' || l.rank === 'e' || l.rank === 'd')
+);
+export const AVAILABLE_LESSON_IDS = new Set(AVAILABLE_LESSONS.map(l => l.id));
+
 export const LESSON_STEPS = {
   intro: [
     { id: 'read_briefing', label: 'Read the welcome briefing', kind: 'auto-scroll' },
@@ -59,7 +70,7 @@ export const LESSON_STEPS = {
     { id: 'review_solution', label: 'Reveal solution walkthrough', kind: 'reveal', requires: ['attempt'] },
   ],
   complete: [
-    { id: 'view_journey', label: 'Review your E-Rank journey', kind: 'auto-scroll' },
+    { id: 'view_journey', label: 'Review your rank journey', kind: 'auto-scroll' },
   ],
 };
 
@@ -70,6 +81,11 @@ const ACHIEVEMENT_DEFS = {
   'first-checkpoint': { title: 'First Checkpoint Passed', icon: '✅' },
   'first-test': { title: 'First Rank Test Cleared', icon: '🎯' },
   'e-rank-complete': { title: 'E-Rank Awakening', icon: '🏆' },
+  'first-d-rank-concept': { title: 'First D-Rank Pattern', icon: '🔵' },
+  'pointer-master': { title: 'Pointer Master', icon: '🎯' },
+  'window-opener': { title: 'Window Opener', icon: '🪟' },
+  'pattern-combo': { title: 'First Pattern Combo', icon: '🔗' },
+  'd-rank-complete': { title: 'D-Rank Builder', icon: '🏗️' },
 };
 
 /* ─── In-memory state: root store + active pack slice ─── */
@@ -78,6 +94,15 @@ let activePackId = PACK_ID;
 let progressData = null;
 export let completedSet = new Set();
 export let stepProgress = {};
+
+function isERankComplete(completed) {
+  const eLessons = COURSE_LESSONS.filter(l => l.rank === 'e' && l.content);
+  return eLessons.length > 0 && eLessons.every(l => completed.has(l.id));
+}
+
+export function isDRankUnlocked() {
+  return DRANK_LESSONS.length > 0;
+}
 
 function buildRankSnapshot(completedIds) {
   const completed = new Set(completedIds);
@@ -90,11 +115,12 @@ function buildRankSnapshot(completedIds) {
       completed: done,
       total,
       complete: total > 0 && done >= total,
-      unlocked: rank === 'intro' || rank === 'e' || done > 0,
+      unlocked: rank === 'intro' || rank === 'e' || rank === 'd' || done > 0,
     };
   });
   ranks.e.unlocked = true;
   ranks.intro.unlocked = true;
+  if (DRANK_LESSONS.length > 0) ranks.d.unlocked = true;
   return ranks;
 }
 
@@ -117,10 +143,17 @@ function persistActivePack() {
   writeRootStore(rootStore);
 }
 
+function getLearningPathLessons() {
+  const path = [...ERANK_LESSONS];
+  if (isDRankUnlocked()) path.push(...DRANK_LESSONS);
+  return path;
+}
+
 function inferLastVisitedIfMissing() {
   if (progressData.lastVisited || completedSet.size === 0) return false;
-  const lastIncomplete = ERANK_LESSONS.find(l => !completedSet.has(l.id));
-  const target = lastIncomplete || ERANK_LESSONS[ERANK_LESSONS.length - 1];
+  const path = getLearningPathLessons();
+  const lastIncomplete = path.find(l => !completedSet.has(l.id));
+  const target = lastIncomplete || path[path.length - 1];
   const idx = COURSE_LESSONS.findIndex(l => l.id === target.id);
   if (idx === -1) return false;
   progressData.lastVisited = {
@@ -202,7 +235,7 @@ export function migrateLegacyProgress() {
   let changed = false;
   completedSet.forEach(id => {
     const lesson = COURSE_LESSONS.find(l => l.id === id);
-    if (!lesson || !ERANK_LESSON_IDS.has(id)) return;
+    if (!lesson || !AVAILABLE_LESSON_IDS.has(id)) return;
     getLessonSteps(lesson).forEach(step => {
       if (!isStepDone(id, step.id)) {
         getStepState(id)[step.id] = true;
@@ -248,10 +281,25 @@ export function getStepProgressCount(lesson) {
 }
 
 export function getRecommendedNext() {
-  for (const lesson of ERANK_LESSONS) {
+  for (const lesson of getLearningPathLessons()) {
     if (!completedSet.has(lesson.id)) return lesson;
   }
   return null;
+}
+
+export function getCurrentRankLessons() {
+  const eIncomplete = ERANK_LESSONS.some(l => !completedSet.has(l.id));
+  if (eIncomplete) return ERANK_LESSONS;
+  if (isDRankUnlocked()) return DRANK_LESSONS;
+  return ERANK_LESSONS;
+}
+
+export function getCurrentRankLabel() {
+  const lessons = getCurrentRankLessons();
+  if (lessons === DRANK_LESSONS || (lessons.length && lessons[0]?.rank === 'd')) {
+    return 'D-Rank';
+  }
+  return 'E-Rank';
 }
 
 export function getRecommendedNextIndex() {
@@ -277,35 +325,47 @@ export function getCompletedDays(rank = 'e') {
   return [...days].filter(day => getDayProgress(rank, day).complete);
 }
 
-export function getTotalXP() {
+function sumXpForLessons(lessons, completed) {
   let xp = 0;
-  ERANK_LESSONS.forEach(lesson => {
-    if (completedSet.has(lesson.id)) xp += lesson.xp || 0;
+  lessons.forEach(lesson => {
+    if (completed.has(lesson.id)) xp += lesson.xp || 0;
   });
   return xp;
 }
 
+export function getTotalXP() {
+  return sumXpForLessons(AVAILABLE_LESSONS, completedSet);
+}
+
 export function getCompletedCount() {
-  return ERANK_LESSONS.filter(l => completedSet.has(l.id)).length;
+  return getCurrentRankLessons().filter(l => completedSet.has(l.id)).length;
 }
 
 export function getCompletionPercent() {
-  const total = ERANK_LESSONS.length;
+  const lessons = getCurrentRankLessons();
+  const total = lessons.length;
   if (!total) return 0;
-  return Math.round((getCompletedCount() / total) * 100);
+  const done = lessons.filter(l => completedSet.has(l.id)).length;
+  return Math.round((done / total) * 100);
 }
 
-export function getQuestStats() {
+export function getQuestStats(rank = null) {
+  const lessons = rank
+    ? COURSE_LESSONS.filter(l => l.content && l.rank === rank)
+    : getCurrentRankLessons();
   return {
-    quests: ERANK_LESSONS.filter(l => l.type === 'quest' && completedSet.has(l.id)).length,
-    checkpoints: ERANK_LESSONS.filter(l => l.type === 'checkpoint' && completedSet.has(l.id)).length,
-    tests: ERANK_LESSONS.filter(l => l.type === 'test' && completedSet.has(l.id)).length,
-    concepts: ERANK_LESSONS.filter(l => l.type === 'concept' && completedSet.has(l.id)).length,
+    quests: lessons.filter(l => l.type === 'quest' && completedSet.has(l.id)).length,
+    checkpoints: lessons.filter(l => l.type === 'checkpoint' && completedSet.has(l.id)).length,
+    tests: lessons.filter(l => l.type === 'test' && completedSet.has(l.id)).length,
+    concepts: lessons.filter(l => l.type === 'concept' && completedSet.has(l.id)).length,
   };
 }
 
-export function getCompletedByType(type) {
-  return ERANK_LESSONS.filter(l => l.type === type && completedSet.has(l.id));
+export function getCompletedByType(type, rank = null) {
+  const lessons = rank
+    ? COURSE_LESSONS.filter(l => l.content && l.rank === rank && l.type === type)
+    : AVAILABLE_LESSONS.filter(l => l.type === type);
+  return lessons.filter(l => completedSet.has(l.id));
 }
 
 export function recordAchievement(achievementId) {
@@ -336,9 +396,18 @@ export function recordLessonAchievements(lesson) {
   if (lesson.type === 'test' && getCompletedByType('test').length === 1) {
     recordAchievement('first-test');
   }
-  if (lesson.type === 'complete' || lesson.id === 'rank-e-complete') {
+  if (lesson.type === 'complete' && lesson.id === 'rank-e-complete') {
     recordAchievement('e-rank-complete');
   }
+  if (lesson.type === 'complete' && lesson.id === 'rank-d-complete') {
+    recordAchievement('d-rank-complete');
+  }
+  if (lesson.type === 'concept' && lesson.rank === 'd' && getCompletedByType('concept', 'd').length === 1) {
+    recordAchievement('first-d-rank-concept');
+  }
+  if (lesson.id === '8-4') recordAchievement('pointer-master');
+  if (lesson.id === '9-2') recordAchievement('window-opener');
+  if (lesson.id === '10-3') recordAchievement('pattern-combo');
 }
 
 export function hasMilestoneShown(key) {
@@ -402,25 +471,43 @@ function buildProgressSummary(packId, pack, completed, steps) {
     };
   }
 
-  const stats = {
-    quests: ERANK_LESSONS.filter(l => l.type === 'quest' && completed.has(l.id)).length,
-    checkpoints: ERANK_LESSONS.filter(l => l.type === 'checkpoint' && completed.has(l.id)).length,
-    tests: ERANK_LESSONS.filter(l => l.type === 'test' && completed.has(l.id)).length,
-  };
-  const recommended = ERANK_LESSONS.find(l => !completed.has(l.id)) || null;
-  const last = pack.lastVisited;
-  const completedCount = ERANK_LESSONS.filter(l => completed.has(l.id)).length;
-  const total = ERANK_LESSONS.length;
   const rankProgress = buildRankSnapshot([...completed]);
+  const pathLessons = ERANK_LESSONS.concat(DRANK_LESSONS);
+  const currentRank = (() => {
+    if (ERANK_LESSONS.some(l => !completed.has(l.id))) return 'e';
+    if (DRANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 'd';
+    if (rankProgress.d?.complete) return 'd';
+    return 'e';
+  })();
+  const activeLessons = currentRank === 'd' ? DRANK_LESSONS : ERANK_LESSONS;
+  const stats = {
+    quests: activeLessons.filter(l => l.type === 'quest' && completed.has(l.id)).length,
+    checkpoints: activeLessons.filter(l => l.type === 'checkpoint' && completed.has(l.id)).length,
+    tests: activeLessons.filter(l => l.type === 'test' && completed.has(l.id)).length,
+  };
+  const recommended = pathLessons.find(l => !completed.has(l.id)) || null;
+  const last = pack.lastVisited;
+  const completedCount = activeLessons.filter(l => completed.has(l.id)).length;
+  const total = activeLessons.length;
 
-  let xp = 0;
-  ERANK_LESSONS.forEach(l => { if (completed.has(l.id)) xp += l.xp || 0; });
+  const xp = sumXpForLessons(AVAILABLE_LESSONS, completed);
 
-  const days = new Set(ERANK_LESSONS.filter(l => l.day > 0).map(l => l.day));
-  const daysCompleted = [...days].filter(day => {
-    const lessons = getDayLessons('e', day);
-    return lessons.length > 0 && lessons.every(l => completed.has(l.id));
+  const daysCompleted = ['e', 'd'].flatMap(rank => {
+    const days = new Set(
+      COURSE_LESSONS.filter(l => l.rank === rank && l.content && l.day > 0).map(l => l.day)
+    );
+    return [...days]
+      .filter(day => {
+        const lessons = getDayLessons(rank, day);
+        return lessons.length > 0 && lessons.every(l => completed.has(l.id));
+      })
+      .map(day => ({ rank, day }));
   });
+
+  const rankLabel = currentRank === 'd' ? 'D-Rank' : 'E-Rank';
+  let currentRankStatus = 'Not Started';
+  if (rankProgress[currentRank]?.complete) currentRankStatus = `${rankLabel} Complete`;
+  else if (completedCount > 0) currentRankStatus = `${rankLabel} — In Progress`;
 
   return {
     hasProgress: completedCount > 0 || last !== null || Object.keys(steps).length > 0,
@@ -430,7 +517,7 @@ function buildProgressSummary(packId, pack, completed, steps) {
     totalLessons: total,
     completionPercent: total ? Math.round((completedCount / total) * 100) : 0,
     totalXp: xp,
-    currentRank: rankProgress.e?.complete ? 'E-Rank Complete' : completedCount > 0 ? 'E-Rank — In Progress' : 'Not Started',
+    currentRank: currentRankStatus,
     rankProgress,
     questsCompleted: stats.quests,
     checkpointsCompleted: stats.checkpoints,

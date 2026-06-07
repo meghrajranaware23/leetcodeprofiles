@@ -36,6 +36,54 @@ Stop when the left pointer meets or crosses the right pointer.
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Two Pointers Converging with Swap
+
+**How to identify this from the problem statement:**
+- "reverse in-place" → swap elements from both ends moving toward center
+- "array of characters" → strings are arrays; same two-pointer technique applies
+- No extra space allowed → confirms swap-based reversal
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "reverse" / "mirror" | Two pointers + swap |
+| "in-place" | No new array — swap in the original |
+| "both ends toward center" | `left++`, `right--` until they meet |
+
+**Why this pattern works:** Reversing is symmetric swapping. Each swap fixes two positions; n/2 swaps total.
+
+**How a strong solver thinks before coding:**
+1. *"Reverse in-place → left at 0, right at n-1, swap and converge."*
+2. *"Same skeleton as palindrome check — but swap instead of compare."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **New array, copy elements in reverse order** | Violates in-place — O(n) extra space |
+| **`s[::-1]` or built-in reverse** | Solves it, but doesn't train the pattern used in follow-ups |
+| **Shift every element right one-by-one** | O(n²) — each shift rewrites the whole array |
+| **Stack to pop characters in reverse** | O(n) extra space; overkill for a swap problem |
+
+**The insight brute force misses:** Reversing is symmetric swapping. Each swap fixes two positions; n/2 swaps total — no copy, no stack, no language shortcut.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Compare instead of swap | Two pointers converging |
+| [Reverse String II #541](https://leetcode.com/problems/reverse-string-ii/) | Reverse every 2k chars | Swap within sub-ranges |
+| [Reverse Words in a String III #557](https://leetcode.com/problems/reverse-words-in-a-string-iii/) | Reverse per word | Two pointers per segment |
+
+This is the simplest two-pointer problem — every string reversal variant builds on this skeleton.
+
+---
+
 ## 📖 Walkthrough
 
 Two pointers start at opposite ends and swap their way inward:
@@ -102,6 +150,16 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+- **"Reverse in-place"** → Two pointers from both ends, swap inward.
+- **"This is the simplest two-pointer problem"** → Master this skeleton; palindromes and partitioning build on it.
+- **"Stop when left >= right"** → Handles odd/even length automatically.
+
+Memorizing `s[::-1]` doesn't train pattern recognition. The skill is seeing "reverse" and immediately drawing two converging arrows.
 
 > 🎯 **Pattern Unlocked:** Two-pointer swap from both ends — the building block for palindrome checks, reversal tricks, and partitioning. You'll use this pattern constantly.
 

@@ -6,7 +6,10 @@
 import { COURSE_LESSONS } from './course-content.js';
 import {
   ERANK_LESSONS,
-  ERANK_LESSON_IDS,
+  DRANK_LESSONS,
+  AVAILABLE_LESSON_IDS,
+  isDRankUnlocked,
+  getCurrentRankLabel,
   completedSet,
   loadProgress,
   saveProgress,
@@ -39,7 +42,7 @@ const MILESTONE_COPY = {
   quest: { icon: '⚔️', label: 'QUEST CLEARED', title: 'Quest Complete!', msg: 'You solved it the hunter\'s way — attempt first, then learn.' },
   checkpoint: { icon: '✅', label: 'DAY COMPLETE', title: 'Checkpoint Passed!', msg: 'Day mastered. Pattern signals locked in. Onward to the next mission.' },
   test: { icon: '🎯', label: 'TEST CLEARED', title: 'Test Problem Conquered!', msg: 'Your foundation holds. One step closer to rank-up.' },
-  complete: { icon: '🏆', label: 'RANK UP', title: 'E-Rank Awakening Confirmed!', msg: 'Foundation complete. D-Rank awaits when it\'s forged.' },
+  complete: { icon: '🏆', label: 'RANK UP', title: 'Rank Ascension Confirmed!', msg: 'You\'ve proven mastery. The next rank awaits.' },
   concept: { icon: '📝', label: 'LESSON COMPLETE', title: 'Pattern Learned!', msg: 'Mental model acquired. Time to put it to the test.' },
   intro: { icon: '⚔️', label: 'BRIEFING COMPLETE', title: 'Ready to Ascend!', msg: 'Your journey begins. Complete each quest in order.' },
 };
@@ -123,7 +126,7 @@ function init() {
 
 function isLessonAccessible(lesson) {
   if (!lesson.content) return false;
-  if (ERANK_LESSON_IDS.has(lesson.id) || lesson.rank === 'intro') return true;
+  if (AVAILABLE_LESSON_IDS.has(lesson.id)) return true;
   return getUnlockedRanks().has(lesson.rank);
 }
 
@@ -202,7 +205,7 @@ function initSidebarState() {
     return true;
   }
 
-  expandedRanks = new Set(['intro', 'e']);
+  expandedRanks = new Set(['intro', 'e', 'd']);
   expandedDays = new Set();
   return false;
 }
@@ -312,7 +315,7 @@ function buildSidebar() {
     const items = groups.get(rank);
     const isExpanded = expandedRanks.has(rank);
     const isLocked = !unlockedRanks.has(rank);
-    const rankProgress = rank === 'e' || rank === 'intro'
+    const rankProgress = (rank === 'e' || rank === 'intro' || rank === 'd')
       ? (() => {
           const rankLessons = items.map(i => i.lesson).filter(l => l.content);
           const done = rankLessons.filter(l => completedSet.has(l.id)).length;
@@ -447,21 +450,25 @@ function buildSidebar() {
 function buildSidebarRecommendedCard() {
   const recommended = getRecommendedNext();
   if (!recommended) {
-    const completeLesson = ERANK_LESSONS.find(l => l.type === 'complete');
+    const dComplete = DRANK_LESSONS.find(l => l.type === 'complete');
+    const eComplete = ERANK_LESSONS.find(l => l.type === 'complete');
+    const allDRankDone = DRANK_LESSONS.length > 0 && DRANK_LESSONS.every(l => completedSet.has(l.id));
+    const completeLesson = allDRankDone && dComplete ? dComplete : eComplete;
     if (!completeLesson) return '';
     const idx = COURSE_LESSONS.findIndex(l => l.id === completeLesson.id);
     const onComplete = COURSE_LESSONS[currentLessonIndex]?.id === completeLesson.id;
+    const rankLabel = completeLesson.rank === 'd' ? 'D-Rank' : 'E-Rank';
     if (onComplete) {
       return `
         <div class="cr-sidebar-rec cr-sidebar-rec-done">
-          <span class="cr-sidebar-rec-label">E-Rank</span>
-          <span class="cr-sidebar-rec-title">🏆 Foundation Complete</span>
+          <span class="cr-sidebar-rec-label">${rankLabel}</span>
+          <span class="cr-sidebar-rec-title">🏆 ${rankLabel} Complete</span>
         </div>
       `;
     }
     return `
       <button class="cr-sidebar-rec cr-sidebar-rec-done" data-index="${idx}" type="button">
-        <span class="cr-sidebar-rec-label">E-Rank Complete</span>
+        <span class="cr-sidebar-rec-label">${rankLabel} Complete</span>
         <span class="cr-sidebar-rec-title">🏆 Review Your Journey</span>
       </button>
     `;
@@ -524,9 +531,7 @@ function updateSidebarRecommended() {
 }
 
 function getUnlockedRanks() {
-  // Only intro and E-Rank are unlocked for now (Phase 1 content)
-  // Future ranks (D, C, B, A, S) remain locked until their content is created
-  const unlocked = new Set(['intro', 'e']);
+  const unlocked = new Set(['intro', 'e', 'd']);
   return unlocked;
 }
 
@@ -637,14 +642,18 @@ function buildRecommendedNextBanner(lesson) {
   const recommended = getRecommendedNext();
 
   if (!recommended) {
-    const completeLesson = ERANK_LESSONS.find(l => l.type === 'complete');
+    const allDRankDone = DRANK_LESSONS.length > 0 && DRANK_LESSONS.every(l => completedSet.has(l.id));
+    const completeLesson = allDRankDone
+      ? DRANK_LESSONS.find(l => l.type === 'complete')
+      : ERANK_LESSONS.find(l => l.type === 'complete');
     if (!completeLesson || lesson.id === completeLesson.id) return '';
     const idx = COURSE_LESSONS.findIndex(l => l.id === completeLesson.id);
+    const rankLabel = completeLesson.rank === 'd' ? 'D-Rank' : 'E-Rank';
     return `
       <div class="cr-recommended-next all-complete">
         <div class="cr-recommended-next-text">
-          <span class="cr-rec-label">E-Rank Complete</span>
-          <span class="cr-rec-title">🏆 Review your awakening and stats</span>
+          <span class="cr-rec-label">${rankLabel} Complete</span>
+          <span class="cr-rec-title">🏆 Review your journey and stats</span>
         </div>
         <button class="cr-rec-go-btn" data-index="${idx}" type="button">Review Journey →</button>
       </div>
@@ -852,8 +861,8 @@ function renderLesson(lesson) {
   }
   html += '</div>';
 
-  // Mission panel for E-Rank content
-  if (ERANK_LESSON_IDS.has(lesson.id)) {
+  // Mission panel for lessons with checklist flow
+  if (AVAILABLE_LESSON_IDS.has(lesson.id)) {
     html += buildMissionPanel(lesson);
   }
 
@@ -1124,12 +1133,15 @@ function injectCheckpointStats(lesson) {
 function injectLiveStats(lesson) {
   if (lesson.type !== 'complete') return;
 
-  const stats = getQuestStats();
+  const rank = lesson.rank === 'd' ? 'd' : 'e';
+  const rankLessons = rank === 'd' ? DRANK_LESSONS : ERANK_LESSONS;
+  const stats = getQuestStats(rank);
   const xp = getTotalXP();
-  const completed = getCompletedCount();
-  const total = ERANK_LESSONS.length;
+  const completed = rankLessons.filter(l => completedSet.has(l.id)).length;
+  const total = rankLessons.length;
+  const questTotal = rankLessons.filter(l => l.type === 'quest').length;
+  const testTotal = rankLessons.filter(l => l.type === 'test').length;
 
-  const statsSection = contentEl.querySelector('h2');
   let statsBlock = null;
   contentEl.querySelectorAll('h2').forEach(h2 => {
     if (/stats/i.test(h2.textContent)) {
@@ -1138,28 +1150,49 @@ function injectLiveStats(lesson) {
   });
 
   if (statsBlock && statsBlock.tagName === 'UL') {
-    statsBlock.innerHTML = `
-      <li><strong>Quests completed:</strong> ${stats.quests} / 10</li>
-      <li><strong>Test problems solved:</strong> ${stats.tests} / 3</li>
-      <li><strong>Total XP earned:</strong> ${xp.toLocaleString()}</li>
-      <li><strong>Lessons completed:</strong> ${completed} / ${total}</li>
-      <li><strong>Rank:</strong> E → ${stats.tests === 3 && stats.quests === 10 ? 'Ready for D-Rank' : 'In Progress'}</li>
-    `;
+    if (rank === 'd') {
+      statsBlock.innerHTML = `
+        <li><strong>Quests completed:</strong> ${stats.quests} / ${questTotal}</li>
+        <li><strong>Test problems solved:</strong> ${stats.tests} / ${testTotal}</li>
+        <li><strong>Total XP earned:</strong> ${xp.toLocaleString()}</li>
+        <li><strong>D-Rank lessons:</strong> ${completed} / ${total}</li>
+        <li><strong>Rank:</strong> D → ${stats.tests === testTotal && stats.quests === questTotal ? 'Ready for C-Rank' : 'In Progress'}</li>
+      `;
+    } else {
+      statsBlock.innerHTML = `
+        <li><strong>Quests completed:</strong> ${stats.quests} / ${questTotal}</li>
+        <li><strong>Test problems solved:</strong> ${stats.tests} / ${testTotal}</li>
+        <li><strong>Total XP earned:</strong> ${xp.toLocaleString()}</li>
+        <li><strong>Lessons completed:</strong> ${completed} / ${total}</li>
+        <li><strong>Rank:</strong> E → ${isDRankUnlocked() ? 'D-Rank Unlocked' : 'In Progress'}</li>
+      `;
+    }
   }
 
   if (completed >= total - 1) {
     const panel = document.createElement('div');
     panel.className = 'cr-rank-awakening';
+    const awakening = rank === 'd'
+      ? {
+          icon: '🔵→🟢',
+          title: 'D-Rank Builder Confirmed',
+          detail: `You've earned <strong>${xp.toLocaleString()} XP</strong> total. D-Rank: ${stats.quests} quests and ${stats.tests} tests cleared.`,
+        }
+      : {
+          icon: '⬛→🔵',
+          title: 'E-Rank Foundation Mastered',
+          detail: `You've earned <strong>${xp.toLocaleString()} XP</strong> across ${stats.quests} quests and ${stats.tests} rank tests.`,
+        };
     panel.innerHTML = `
       <div class="cr-rank-awakening-inner">
-        <span class="cr-awakening-icon">⬛→🔵</span>
-        <h3>E-Rank Foundation Mastered</h3>
-        <p>You've earned <strong>${xp.toLocaleString()} XP</strong> across ${stats.quests} quests and ${stats.tests} rank tests.</p>
+        <span class="cr-awakening-icon">${awakening.icon}</span>
+        <h3>${awakening.title}</h3>
+        <p>${awakening.detail}</p>
       </div>
     `;
-    const firstH2 = contentEl.querySelector('h1');
-    if (firstH2 && firstH2.nextElementSibling) {
-      firstH2.parentNode.insertBefore(panel, firstH2.nextElementSibling);
+    const firstH1 = contentEl.querySelector('h1');
+    if (firstH1 && firstH1.nextElementSibling) {
+      firstH1.parentNode.insertBefore(panel, firstH1.nextElementSibling);
     }
   }
 }
@@ -1523,7 +1556,7 @@ function toggleComplete() {
     return;
   }
 
-  if (ERANK_LESSON_IDS.has(lesson.id) && !areAllStepsDone(lesson)) {
+  if (AVAILABLE_LESSON_IDS.has(lesson.id) && !areAllStepsDone(lesson)) {
     showToast('Complete all objectives in the checklist first.');
     return;
   }
@@ -1544,7 +1577,7 @@ function toggleComplete() {
   void xpBadge.offsetWidth;
   xpBadge.classList.add('xp-pulse');
 
-  if (ERANK_LESSON_IDS.has(lesson.id)) {
+  if (AVAILABLE_LESSON_IDS.has(lesson.id)) {
     showMilestone(lesson);
   }
 }
@@ -1559,7 +1592,7 @@ function updateCompleteButton() {
 
   markCompleteBtn.classList.toggle('completed', isCompleted);
   markCompleteBtn.classList.toggle('ready', !isCompleted && allStepsDone);
-  markCompleteBtn.disabled = !isCompleted && ERANK_LESSON_IDS.has(lesson.id) && !allStepsDone;
+  markCompleteBtn.disabled = !isCompleted && AVAILABLE_LESSON_IDS.has(lesson.id) && !allStepsDone;
 
   if (isCompleted) {
     const labels = {
@@ -1586,12 +1619,14 @@ function updateCompleteButton() {
 }
 
 function updateProgress() {
-  const total = ERANK_LESSONS.length;
+  const rankLabel = getCurrentRankLabel();
+  const lessons = rankLabel === 'D-Rank' ? DRANK_LESSONS : ERANK_LESSONS;
+  const total = lessons.length;
   const completed = getCompletedCount();
   const xp = getTotalXP();
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  progressText.textContent = `${completed} / ${total} E-Rank`;
+  progressText.textContent = `${completed} / ${total} ${rankLabel}`;
   progressFill.style.width = `${pct}%`;
   xpValue.textContent = xp.toLocaleString();
 }
@@ -1630,6 +1665,14 @@ function showMilestone(lesson) {
 
   if (lesson.type === 'checkpoint') {
     milestoneTitle.textContent = `Day ${lesson.day} Complete!`;
+  }
+  if (lesson.id === 'rank-e-complete') {
+    milestoneTitle.textContent = 'E-Rank Awakening Confirmed!';
+    milestoneMsg.textContent = 'Foundation complete. D-Rank is unlocked — learn to move.';
+  }
+  if (lesson.id === 'rank-d-complete') {
+    milestoneTitle.textContent = 'D-Rank Builder Confirmed!';
+    milestoneMsg.textContent = 'Pointer mastery achieved. C-Rank awaits when it\'s forged.';
   }
 
   markMilestoneShown(lesson.id);

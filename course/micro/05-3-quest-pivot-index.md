@@ -36,6 +36,55 @@ At each index: `right_sum = total - left_sum - nums[i]`.
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Prefix Sum Thinking — Left/Right Balance
+
+**How to identify this from the problem statement:**
+- "sum of left equals sum of right" → split the array at index i into two halves
+- "pivot index" → at each position, compare cumulative left sum vs everything else
+- you know total sum → right sum = total − left − current (no second pass needed)
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "left sum equals right sum" | Running left sum + total |
+| "pivot" / "balance point" | Prefix sum thinking |
+| "split the array" | left_sum vs (total - left_sum - nums[i]) |
+
+**Why this pattern works:** Total sum is fixed. As you walk left to right, left_sum grows and right_sum shrinks — you check equality at each step in O(1).
+
+**How a strong solver thinks before coding:**
+1. *"Balance point → total sum first."*
+2. *"At index i: left = running sum, right = total - left - nums[i]."*
+3. *"No prefix array needed — running sum is enough."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **At each index, loop left to sum left half, loop right to sum right half** | O(n²) — two inner loops per position |
+| **Build full prefix array AND suffix array, then compare** | Works, but O(n) extra space when a running sum + total suffices |
+| **Sort or rearrange first** | Pivot index is about **position**, not value order — sorting destroys the problem |
+
+**The insight brute force misses:** The **total sum is fixed**. As you walk left to right, `left_sum` grows and `right_sum = total - left_sum - nums[i]` shrinks automatically. One subtraction per index — no second pass, no extra array.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Find Pivot Index #724](https://leetcode.com/problems/find-pivot-index/) | Return first balance index | Total + running left sum |
+| [Left and Right Sum Differences #2574](https://leetcode.com/problems/left-and-right-sum-differences/) | Return both sums at every index | Prefix/suffix split at each i |
+| [Range Sum Query #303](https://leetcode.com/problems/range-sum-query-immutable/) | Range query instead of balance | Full prefix array + subtraction |
+| [Find the Highest Altitude #1732](https://leetcode.com/problems/find-the-highest-altitude/) | Track max of running sum | Running cumulative total |
+
+The *question* changes (balance point vs range vs max altitude) — the **prefix thinking** does not.
+
+---
+
 ## 📖 Walkthrough
 
 Compute the total sum first. Then scan left to right, maintaining a running left sum. At each index, the right sum is `total - left_sum - nums[i]`.
@@ -106,6 +155,19 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+Before you opened your editor, these thoughts should have fired:
+
+- **"Left equals right"** → Prefix sum family. Think totals, not nested loops.
+- **"Compute total once"** → Then every index check is O(1) via subtraction.
+- **"Don't overbuild a prefix array"** → A running sum suffices — lighter than Range Sum Query.
+- **"Right sum shrinks as left sum grows"** → One forward pass; no backward scan needed.
+
+This is prefix sum **thinking** without the extra array. Next time: hear "balance point" or "equilibrium" → say "total minus running left" before writing code.
 
 > 🎯 **Pattern Unlocked:** Prefix sum thinking for balance-point problems. Compute the total, then use a running sum to split "left vs right" at each position.
 

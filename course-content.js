@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════
 //  COURSE CONTENT — Arrays & Strings Ascension
-//  Micro-lesson architecture: 25 E-Rank lessons + locked rank placeholders
+//  Micro-lesson architecture: E-Rank (25) + D-Rank (24) + locked C–S placeholders
 //  Topics aligned to approved 30-day progression plan
 //  Uses Vite ?raw imports for clean markdown embedding
 // ══════════════════════════════════════════════════════════
@@ -30,6 +30,30 @@ import test1_content from './course/micro/test-1-majority-element.md?raw';
 import test2_content from './course/micro/test-2-intersection-arrays.md?raw';
 import test3_content from './course/micro/test-3-product-except-self.md?raw';
 import completeContent from './course/micro/rank-e-complete.md?raw';
+import d6_1_content from './course/micro/06-1-converging-two-pointers.md?raw';
+import d6_2_content from './course/micro/06-2-quest-two-sum-ii.md?raw';
+import d6_3_content from './course/micro/06-3-quest-container-water.md?raw';
+import d6_4_content from './course/micro/06-4-checkpoint.md?raw';
+import d7_1_content from './course/micro/07-1-multi-pointer.md?raw';
+import d7_2_content from './course/micro/07-2-quest-three-sum.md?raw';
+import d7_3_content from './course/micro/07-3-quest-sort-colors.md?raw';
+import d7_4_content from './course/micro/07-4-checkpoint.md?raw';
+import d8_1_content from './course/micro/08-1-fast-slow-pointers.md?raw';
+import d8_2_content from './course/micro/08-2-quest-happy-number.md?raw';
+import d8_3_content from './course/micro/08-3-quest-find-duplicate.md?raw';
+import d8_4_content from './course/micro/08-4-checkpoint.md?raw';
+import d9_1_content from './course/micro/09-1-fixed-sliding-window.md?raw';
+import d9_2_content from './course/micro/09-2-quest-max-average.md?raw';
+import d9_3_content from './course/micro/09-3-quest-max-ones-iii.md?raw';
+import d9_4_content from './course/micro/09-4-checkpoint.md?raw';
+import d10_1_content from './course/micro/10-1-variable-sliding-window.md?raw';
+import d10_2_content from './course/micro/10-2-quest-min-subarray-sum.md?raw';
+import d10_3_content from './course/micro/10-3-quest-longest-substring.md?raw';
+import d10_4_content from './course/micro/10-4-checkpoint.md?raw';
+import dTest1_content from './course/micro/d-test-1-three-sum-closest.md?raw';
+import dTest2_content from './course/micro/d-test-2-permutation-in-string.md?raw';
+import dTest3_content from './course/micro/d-test-3-boats-save-people.md?raw';
+import dCompleteContent from './course/micro/rank-d-complete.md?raw';
 
 // ── Lesson data with metadata ──
 export const COURSE_LESSONS = [
@@ -324,19 +348,288 @@ export const COURSE_LESSONS = [
     content: completeContent,
   },
 
+  // ═══ D-RANK: DAY 6 — Opposite-End Two Pointers ═══
+  {
+    id: '6-1',
+    title: 'Converging Two Pointers',
+    rank: 'd',
+    day: 6,
+    dayTitle: 'Opposite-End Two Pointers',
+    type: 'concept',
+    icon: '📝',
+    xp: 10,
+    content: d6_1_content,
+  },
+  {
+    id: '6-2',
+    title: 'Quest: Two Sum II',
+    rank: 'd',
+    day: 6,
+    dayTitle: 'Opposite-End Two Pointers',
+    type: 'quest',
+    icon: '⚔',
+    xp: 15,
+    content: d6_2_content,
+  },
+  {
+    id: '6-3',
+    title: 'Quest: Container With Most Water',
+    rank: 'd',
+    day: 6,
+    dayTitle: 'Opposite-End Two Pointers',
+    type: 'quest',
+    icon: '⚔',
+    xp: 20,
+    content: d6_3_content,
+  },
+  {
+    id: '6-4',
+    title: 'Checkpoint & Practice',
+    rank: 'd',
+    day: 6,
+    dayTitle: 'Opposite-End Two Pointers',
+    type: 'checkpoint',
+    icon: '✅',
+    xp: 10,
+    content: d6_4_content,
+  },
+
+  // ═══ D-RANK: DAY 7 — Multi-Pointer Techniques ═══
+  {
+    id: '7-1',
+    title: 'Multi-Pointer Techniques',
+    rank: 'd',
+    day: 7,
+    dayTitle: 'Multi-Pointer Techniques',
+    type: 'concept',
+    icon: '📝',
+    xp: 10,
+    content: d7_1_content,
+  },
+  {
+    id: '7-2',
+    title: 'Quest: 3Sum',
+    rank: 'd',
+    day: 7,
+    dayTitle: 'Multi-Pointer Techniques',
+    type: 'quest',
+    icon: '⚔',
+    xp: 15,
+    content: d7_2_content,
+  },
+  {
+    id: '7-3',
+    title: 'Quest: Sort Colors',
+    rank: 'd',
+    day: 7,
+    dayTitle: 'Multi-Pointer Techniques',
+    type: 'quest',
+    icon: '⚔',
+    xp: 20,
+    content: d7_3_content,
+  },
+  {
+    id: '7-4',
+    title: 'Checkpoint & Practice',
+    rank: 'd',
+    day: 7,
+    dayTitle: 'Multi-Pointer Techniques',
+    type: 'checkpoint',
+    icon: '✅',
+    xp: 10,
+    content: d7_4_content,
+  },
+
+  // ═══ D-RANK: DAY 8 — Fast & Slow Pointers ═══
+  {
+    id: '8-1',
+    title: 'Fast & Slow Pointers',
+    rank: 'd',
+    day: 8,
+    dayTitle: 'Fast & Slow Pointers',
+    type: 'concept',
+    icon: '📝',
+    xp: 10,
+    content: d8_1_content,
+  },
+  {
+    id: '8-2',
+    title: 'Quest: Happy Number',
+    rank: 'd',
+    day: 8,
+    dayTitle: 'Fast & Slow Pointers',
+    type: 'quest',
+    icon: '⚔',
+    xp: 15,
+    content: d8_2_content,
+  },
+  {
+    id: '8-3',
+    title: 'Quest: Find the Duplicate Number',
+    rank: 'd',
+    day: 8,
+    dayTitle: 'Fast & Slow Pointers',
+    type: 'quest',
+    icon: '⚔',
+    xp: 20,
+    content: d8_3_content,
+  },
+  {
+    id: '8-4',
+    title: 'Checkpoint & Practice',
+    rank: 'd',
+    day: 8,
+    dayTitle: 'Fast & Slow Pointers',
+    type: 'checkpoint',
+    icon: '✅',
+    xp: 10,
+    content: d8_4_content,
+  },
+
+  // ═══ D-RANK: DAY 9 — Fixed-Size Sliding Window ═══
+  {
+    id: '9-1',
+    title: 'Fixed-Size Sliding Window',
+    rank: 'd',
+    day: 9,
+    dayTitle: 'Fixed-Size Sliding Window',
+    type: 'concept',
+    icon: '📝',
+    xp: 10,
+    content: d9_1_content,
+  },
+  {
+    id: '9-2',
+    title: 'Quest: Max Average Subarray I',
+    rank: 'd',
+    day: 9,
+    dayTitle: 'Fixed-Size Sliding Window',
+    type: 'quest',
+    icon: '⚔',
+    xp: 15,
+    content: d9_2_content,
+  },
+  {
+    id: '9-3',
+    title: 'Quest: Max Consecutive Ones III',
+    rank: 'd',
+    day: 9,
+    dayTitle: 'Fixed-Size Sliding Window',
+    type: 'quest',
+    icon: '⚔',
+    xp: 20,
+    content: d9_3_content,
+  },
+  {
+    id: '9-4',
+    title: 'Checkpoint & Practice',
+    rank: 'd',
+    day: 9,
+    dayTitle: 'Fixed-Size Sliding Window',
+    type: 'checkpoint',
+    icon: '✅',
+    xp: 10,
+    content: d9_4_content,
+  },
+
+  // ═══ D-RANK: DAY 10 — Variable-Size Sliding Window ═══
+  {
+    id: '10-1',
+    title: 'Variable-Size Sliding Window',
+    rank: 'd',
+    day: 10,
+    dayTitle: 'Variable-Size Sliding Window',
+    type: 'concept',
+    icon: '📝',
+    xp: 10,
+    content: d10_1_content,
+  },
+  {
+    id: '10-2',
+    title: 'Quest: Minimum Size Subarray Sum',
+    rank: 'd',
+    day: 10,
+    dayTitle: 'Variable-Size Sliding Window',
+    type: 'quest',
+    icon: '⚔',
+    xp: 15,
+    content: d10_2_content,
+  },
+  {
+    id: '10-3',
+    title: 'Quest: Longest Substring Without Repeating',
+    rank: 'd',
+    day: 10,
+    dayTitle: 'Variable-Size Sliding Window',
+    type: 'quest',
+    icon: '⚔',
+    xp: 20,
+    content: d10_3_content,
+  },
+  {
+    id: '10-4',
+    title: 'Checkpoint & Practice',
+    rank: 'd',
+    day: 10,
+    dayTitle: 'Variable-Size Sliding Window',
+    type: 'checkpoint',
+    icon: '✅',
+    xp: 10,
+    content: d10_4_content,
+  },
+
+  // ═══ D-RANK TEST ═══
+  {
+    id: 'd-test-1',
+    title: 'Test: 3Sum Closest',
+    rank: 'd',
+    day: 11,
+    dayTitle: 'D-Rank Test',
+    type: 'test',
+    icon: '⚔',
+    xp: 100,
+    content: dTest1_content,
+  },
+  {
+    id: 'd-test-2',
+    title: 'Test: Permutation in String',
+    rank: 'd',
+    day: 11,
+    dayTitle: 'D-Rank Test',
+    type: 'test',
+    icon: '⚔',
+    xp: 100,
+    content: dTest2_content,
+  },
+  {
+    id: 'd-test-3',
+    title: 'Test: Boats to Save People',
+    rank: 'd',
+    day: 11,
+    dayTitle: 'D-Rank Test',
+    type: 'test',
+    icon: '⚔',
+    xp: 100,
+    content: dTest3_content,
+  },
+
+  // ═══ D-RANK COMPLETE ═══
+  {
+    id: 'rank-d-complete',
+    title: 'D-Rank Complete',
+    rank: 'd',
+    day: 12,
+    dayTitle: 'Rank Up!',
+    type: 'complete',
+    icon: '🏆',
+    xp: 0,
+    content: dCompleteContent,
+  },
+
   // ═══════════════════════════════════════
-  //  LOCKED RANKS (D through S)
+  //  LOCKED RANKS (C through S)
   //  Topics aligned to approved progression plan
   // ═══════════════════════════════════════
-
-  // D-RANK — Builder: Two Pointers & Sliding Window (Days 6–10)
-  { id: 'day-06', title: 'Opposite-End Two Pointers', rank: 'd', day: 6, dayTitle: 'Two Pointers I', type: 'lesson', icon: '🔒', xp: 0, content: '' },
-  { id: 'day-07', title: 'Multi-Pointer Techniques', rank: 'd', day: 7, dayTitle: 'Multi-Pointer', type: 'lesson', icon: '🔒', xp: 0, content: '' },
-  { id: 'day-08', title: 'Fast & Slow Pointers', rank: 'd', day: 8, dayTitle: 'Fast & Slow', type: 'lesson', icon: '🔒', xp: 0, content: '' },
-  { id: 'day-09', title: 'Fixed-Size Sliding Window', rank: 'd', day: 9, dayTitle: 'Sliding Window I', type: 'lesson', icon: '🔒', xp: 0, content: '' },
-  { id: 'day-10', title: 'Variable-Size Sliding Window', rank: 'd', day: 10, dayTitle: 'Sliding Window II', type: 'lesson', icon: '🔒', xp: 0, content: '' },
-  { id: 'rank-d-test', title: 'D-Rank Test', rank: 'd', day: 11, dayTitle: 'D-Rank Test', type: 'test', icon: '🔒', xp: 0, content: '' },
-  { id: 'rank-d-complete', title: 'D-Rank Complete', rank: 'd', day: 12, dayTitle: 'Rank Up!', type: 'complete', icon: '🔒', xp: 0, content: '' },
 
   // C-RANK — Warrior: Windows, Kadane's & Sorting Strategy (Days 11–16)
   { id: 'day-11', title: 'Sliding Window + Hash Map', rank: 'c', day: 11, dayTitle: 'Window + Hash Map', type: 'lesson', icon: '🔒', xp: 0, content: '' },

@@ -36,6 +36,54 @@ In Pass 2, iterate the *string* (not the frequency array) to preserve positional
 
 ---
 
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Two-Pass Frequency Counting
+
+**How to identify this from the problem statement:**
+- "first non-repeating" → you need **position**, not just existence — order matters
+- "find the index" → count first, then scan the original string in order
+- one pass can't do both → you need Pass 1 (count) + Pass 2 (query in order)
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "first unique" / "non-repeating" | Two-pass frequency |
+| "return index" | Second pass must walk the string, not the freq array |
+| "appears only once" | freq[c] == 1 is the query |
+
+**Why this pattern works:** The frequency array knows *how many* but not *where*. The second pass through the original string preserves left-to-right order.
+
+**How a strong solver thinks before coding:**
+1. *"First unique → count everything, then scan string left to right."*
+2. *"Pass 2 iterates s, not freq — that's how 'first' is defined."*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **For each character, count occurrences with inner loop** | O(n²) — re-counts the entire string for every position |
+| **One pass: return first char you haven't seen** | Wrong — a char seen at index 0 may repeat later; you need full counts first |
+| **Iterate freq array a→z for first count == 1** | Returns alphabetically first, not **leftmost in the string** |
+| **Hash map only, no second pass** | Map doesn't preserve input order for "first" |
+
+**The insight brute force misses:** "First" is defined by **position in the original string**, not by character value. Count everything, then walk the string in order.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Valid Anagram #242](https://leetcode.com/problems/valid-anagram/) | Compare two strings by composition | Count then check all zeros |
+| [Find the Difference #389](https://leetcode.com/problems/find-the-difference/) | One extra char in longer string | Count then query |
+| [Majority Element #169](https://leetcode.com/problems/majority-element/) | Element appearing > n/2 times | Count then scan (or voting) |
+
+Same skeleton: **Pass 1 count → Pass 2 query in original order**.
+
+---
+
 ## 📖 Walkthrough
 
 **Pass 1:** Build frequency counts. **Pass 2:** Walk the string and return the first character with count = 1.
@@ -100,6 +148,16 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+- **"First"** → Order matters. You can't answer from the frequency array alone.
+- **"Unique"** → freq[c] == 1. Build counts in Pass 1.
+- **"Two-pass is OK"** → Still O(n). Don't overcomplicate with one-pass tricks at E-Rank.
+
+The pattern family is: **count → query in original order**. This appears in "first missing positive," "first repeated," and more.
 
 > 🎯 **Pattern Unlocked:** Two-pass frequency counting — build counts first, then query in order. The order of the second pass determines what "first" means.
 
