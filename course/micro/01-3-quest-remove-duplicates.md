@@ -1,0 +1,110 @@
+# ⚔ Quest: Remove Duplicates from Sorted Array
+
+> **Day 1** · LeetCode #26 · Easy · 10 min
+
+---
+
+## The Mission
+
+Given a sorted array `nums`, remove the duplicates **in-place** so that each element appears only once. Return the number of unique elements.
+
+```
+Input:  [1, 1, 2]
+Output: 2, nums = [1, 2, ...]
+
+Input:  [0, 0, 1, 1, 1, 2, 2, 3, 3, 4]
+Output: 5, nums = [0, 1, 2, 3, 4, ...]
+```
+
+> 🤔 **Before you scroll:** The array is already sorted, so duplicates are always adjacent. Which pattern from the concept lesson lets you filter elements in-place?
+
+---
+
+## Approach
+
+Use the **read-write pointer pattern** again — but this time, the write pointer advances only when we see a *new* value.
+
+```
+[0, 0, 1, 1, 1, 2, 2, 3, 3, 4]
+ w
+ r
+
+r=0: arr[0]=0, same as arr[w]=0 → skip
+r=1: arr[1]=0, same as arr[w]=0 → skip
+r=2: arr[2]=1, different! → w++, arr[w]=1
+     [0, 1, 1, 1, 1, 2, 2, 3, 3, 4]
+         w        r
+
+r=3: arr[3]=1, same → skip
+r=4: arr[4]=1, same → skip
+r=5: arr[5]=2, different! → w++, arr[w]=2
+     [0, 1, 2, 1, 1, 2, 2, 3, 3, 4]
+            w              r
+
+...continue until r reaches end
+
+Result: [0, 1, 2, 3, 4, ...], return w+1 = 5
+```
+
+> 💡 **The insight:** Because the array is sorted, we only need to compare `nums[read]` with `nums[write]`. If they differ, it's a new unique value.
+
+---
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        if (nums.empty()) return 0;
+        int write = 0;
+        for (int read = 1; read < nums.size(); read++) {
+            if (nums[read] != nums[write]) {
+                write++;
+                nums[write] = nums[read];
+            }
+        }
+        return write + 1;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def removeDuplicates(self, nums: list[int]) -> int:
+        if not nums:
+            return 0
+        write = 0
+        for read in range(1, len(nums)):
+            if nums[read] != nums[write]:
+                write += 1
+                nums[write] = nums[read]
+        return write + 1
+```
+
+### Java
+```java
+class Solution {
+    public int removeDuplicates(int[] nums) {
+        if (nums.length == 0) return 0;
+        int write = 0;
+        for (int read = 1; read < nums.length; read++) {
+            if (nums[read] != nums[write]) {
+                write++;
+                nums[write] = nums[read];
+            }
+        }
+        return write + 1;
+    }
+}
+```
+
+**Complexity:** O(n) time · O(1) space
+
+> 🎯 **Pattern Unlocked:** Read-write pointer with a condition check. The write pointer only advances when we find something worth keeping — the core idea behind all in-place filtering.
+
+---
+
+*Two quests complete! Time for your Day 1 checkpoint. →*
