@@ -1,0 +1,193 @@
+# ⚔ Quest: Sorted List to BST
+
+> **Day 26** · [Convert Sorted List to Binary Search Tree #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/) · Medium · 15 min · 30 XP
+
+---
+
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Convert Sorted List to Binary Search Tree on LeetCode](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/)**
+
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+
+---
+
+## The Problem
+
+See the full problem statement on LeetCode: **[Convert Sorted List to Binary Search Tree #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/)**
+
+Work through the examples on paper before reading further.
+
+---
+
+## 💡 Hints
+
+Which pattern from today's concept applies? Think about **Balanced BST Construction**.
+
+If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+
+---
+
+## 🔍 Pattern Recognition Breakdown
+
+**Pattern used:** Balanced BST Construction
+
+**How to identify this from the problem statement:**
+- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
+- Ask: does information flow **down** (carry state) or **up** (combine child results)?
+- Check if you need to compare two trees or build a new one
+
+| Keyword / phrase | What it signals |
+|---|---|
+| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
+| "path sum" / "root to leaf" | Top-down: carry running sum |
+| "same tree" / "symmetric" | Parallel recursion on two trees |
+| "level order" / "each level" | BFS with queue |
+| "construct from traversals" | Divide and conquer with traversal split |
+| "validate BST" | Range checking during DFS |
+
+**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+
+**How a strong solver thinks before coding:**
+1. *"What does my function return? What do my children return?"*
+2. *"What's the base case? (usually null)"*
+3. *"Draw a 3-node tree and trace by hand."*
+4. *"One pass or do I need a global variable?"*
+
+---
+
+## ❌ Why Brute Force Fails
+
+| Approach | Problem |
+|---|---|
+| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
+| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
+| **Iterating without recursion** | Loses natural subtree decomposition |
+| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+
+**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+
+---
+
+## 🔗 Same Pattern, Other Problems
+
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| Related tree problems | Different combine logic | Same recursive skeleton |
+| Same traversal order | Different processing per node | Same visit sequence |
+| Variant constraints | Extra state or early termination | Same flow direction |
+
+If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+
+---
+
+## 📖 Walkthrough
+
+Trace the pattern on a small tree before reading the code:
+
+```
+        3
+       / \
+      9    20
+          /  \
+         15   7
+
+Apply Balanced BST Construction step by step on this tree.
+Draw it. Mark the current node at each step.
+Watch what gets returned from leaves back to root.
+```
+
+> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+
+---
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    TreeNode* build(ListNode* head, ListNode* tail) {
+        if (!head) return nullptr;
+        if (head == tail) { ListNode* nxt = head->next; head->next = nullptr; return new TreeNode(head->val); }
+        ListNode* slow = head, *fast = head;
+        while (fast != tail) {
+            fast = fast->next;
+            if (fast != tail) { slow = slow->next; fast = fast->next; }
+        }
+        TreeNode* root = new TreeNode(slow->val);
+        ListNode* nxt = slow->next;
+        slow->next = nullptr;
+        root->left = build(head, slow);
+        root->right = build(nxt, tail);
+        return root;
+    }
+public:
+    TreeNode* sortedListToBST(ListNode* head) {
+        if (!head) return nullptr;
+        ListNode* tail = head;
+        while (tail->next) tail = tail->next;
+        return build(head, tail->next);
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def sortedListToBST(self, head: Optional[ListNode]) -> Optional[TreeNode]:
+        vals = []
+        while head:
+            vals.append(head.val)
+            head = head.next
+        def build(l, r):
+            if l > r:
+                return None
+            m = (l + r) // 2
+            node = TreeNode(vals[m])
+            node.left = build(l, m - 1)
+            node.right = build(m + 1, r)
+            return node
+        return build(0, len(vals) - 1)
+```
+
+### Java
+```java
+class Solution {
+    public TreeNode sortedListToBST(ListNode head) {
+        List<Integer> vals = new ArrayList<>();
+        for (; head != null; head = head.next) vals.add(head.val);
+        return build(vals, 0, vals.size() - 1);
+    }
+    TreeNode build(List<Integer> vals, int l, int r) {
+        if (l > r) return null;
+        int m = (l + r) / 2;
+        TreeNode root = new TreeNode(vals.get(m));
+        root.left = build(vals, l, m - 1);
+        root.right = build(vals, m + 1, r);
+        return root;
+    }
+}
+```
+
+**Complexity:** O(n) time · O(n) space
+
+---
+
+## 💭 What Should Have Clicked in Your Mind?
+
+Before writing code, a strong solver's internal monologue sounds like this:
+
+- **"This is a tree problem"** → Draw it. Don't start coding blind.
+- **"Balanced BST Construction"** → Name the pattern from the concept page.
+- **"What do my children return?"** → Define the return value first.
+- **"Null is my base case"** → Every recursive tree function starts here.
+
+If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+
+> 🎯 **Pattern Unlocked:** Balanced BST Construction
+
+---
+
+*Both quests complete. Head to the checkpoint. →*
