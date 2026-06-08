@@ -2247,3 +2247,200 @@ a.cr-lc-link:hover {
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   STARTER PATH PLACEHOLDER — LeetCode Starter Path onboarding
+   ══════════════════════════════════════════════════════════ */
+
+.starter-placeholder-body {
+  background: var(--bg-primary);
+}
+
+.starter-badge {
+  font-family: var(--font-sub);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #4AFF9E;
+  border: 1px solid rgba(74, 255, 158, 0.35);
+  background: rgba(74, 255, 158, 0.08);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.starter-placeholder-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.starter-hero {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.starter-icon {
+  font-size: 56px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.starter-title {
+  font-family: var(--font-heading);
+  font-size: clamp(42px, 8vw, 64px);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 8px 0 16px;
+}
+
+.starter-tagline {
+  color: #4AFF9E;
+  font-family: var(--font-sub);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.starter-description {
+  color: var(--text-secondary);
+  font-size: 17px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.starter-section {
+  margin-bottom: 48px;
+}
+
+.starter-section-title {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+}
+
+.starter-goals {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+}
+
+.starter-goals li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.starter-goal-check {
+  color: #4AFF9E;
+  flex-shrink: 0;
+}
+
+.starter-progression {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.starter-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.starter-phase-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(74, 255, 158, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.starter-phase-label {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #4AFF9E;
+  margin-bottom: 8px;
+}
+
+.starter-phase-name {
+  font-family: var(--font-sub);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.starter-phase-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.starter-completion-card {
+  background: linear-gradient(135deg, rgba(74, 255, 158, 0.08), rgba(74, 158, 255, 0.06));
+  border: 1px solid rgba(74, 255, 158, 0.25);
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.starter-completion-label {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #4AFF9E;
+  margin-bottom: 8px;
+}
+
+.starter-completion-headline {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.starter-completion-body {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.starter-notice {
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-bright);
+  border-radius: 12px;
+}
+
+.starter-notice-title {
+  font-family: var(--font-sub);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.starter-notice-text {
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 0 auto 20px;
+}
+
+.starter-back-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.starter-back-link:hover {
+  color: #4AFF9E;
+}
+

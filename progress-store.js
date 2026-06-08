@@ -18,6 +18,7 @@ export const PACK_IDS = Object.freeze({
   TREES: 'trees',
   DP: 'dynamic-programming',
   RECURSION: 'recursion',
+  STARTER: 'leetcode-starter',
 });
 
 /** Default pack for the live Arrays & Strings reader */
@@ -50,15 +51,24 @@ export const PACK_REGISTRY = Object.freeze({
     id: PACK_IDS.DP,
     title: 'Dynamic Programming Ascension',
     shortTitle: 'Dynamic Programming',
-    readerUrl: null,
-    available: false,
+    readerUrl: './dp-reader.html',
+    available: true,
   },
   [PACK_IDS.RECURSION]: {
     id: PACK_IDS.RECURSION,
-    title: 'Recursion Ascension',
-    shortTitle: 'Recursion',
-    readerUrl: null,
-    available: false,
+    title: 'Recursion & Backtracking Ascension',
+    shortTitle: 'Recursion & Backtracking',
+    readerUrl: './recursion-reader.html',
+    available: true,
+  },
+  [PACK_IDS.STARTER]: {
+    id: PACK_IDS.STARTER,
+    title: 'LeetCode Starter Path',
+    shortTitle: 'Starter Path',
+    readerUrl: './starter-reader.html',
+    available: true,
+    kind: 'onboarding',
+    durationDays: 15,
   },
 });
 

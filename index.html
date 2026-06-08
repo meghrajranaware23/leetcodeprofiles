@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="LeetCode Profiles — DSA Rank Packs. 30-day focused topic packs to take you from E-Rank to S-Rank. Master Recursion, Trees, Graphs, DP, and more.">
+  <meta name="description" content="LeetCode Profiles — Start with the 15-Day LeetCode Starter Path, then rank up with 30-day Ascension packs. Master Recursion, Trees, Graphs, DP, and more.">
   <title>LeetCode Profiles — DSA Rank Packs | Level Up Your Coding</title>
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -158,20 +158,20 @@
     <div class="section-header">
       <div class="section-overline">THE ARSENAL</div>
       <h2 class="section-title">CHOOSE YOUR BATTLEFIELD</h2>
-      <p class="section-subtitle">Pick your weak topic. Destroy it in 30 days. Move on.</p>
+      <p class="section-subtitle">Pick your weak topic. Destroy it in 30 days. New to LeetCode? Start with the 15-Day Starter Path.</p>
     </div>
     <div class="packs-grid">
-      <!-- Pack 1 -->
-      <div class="pack-card">
+      <!-- Pack 1 — Recursion & Backtracking Ascension (LIVE) -->
+      <div class="pack-card" style="border-color: var(--red-border);">
         <div class="pack-top">
           <span class="pack-icon">🔄</span>
-          <span class="pack-badge">30 DAYS</span>
+          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
         </div>
         <div class="pack-name">Recursion & Backtracking</div>
-        <p class="pack-desc">Master recursive thinking and backtracking patterns used in contests</p>
+        <p class="pack-desc">Visual-first recursive thinking — call stacks, backtracking, and pattern recognition</p>
         <hr class="pack-divider">
         <div class="pack-stats">
-          <span class="pack-stat">📋 30 Problems</span>
+          <span class="pack-stat">📋 30 Days</span>
           <span class="pack-stat">⚔ 6 Ranks</span>
           <span class="pack-stat">💻 3 Languages</span>
         </div>
@@ -182,7 +182,7 @@
         </div>
         <div class="pack-bottom">
           <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <button class="pack-btn">START PACK →</button>
+          <a href="./recursion-reader.html" class="pack-btn" id="recursion-start">START PACK →</a>
         </div>
       </div>
       <!-- Pack 2 — Trees Ascension (LIVE) -->
@@ -233,17 +233,17 @@
           <a href="./graphs-reader.html" class="pack-btn" id="graphs-start">START PACK →</a>
         </div>
       </div>
-      <!-- Pack 4 — DP -->
-      <div class="pack-card">
+      <!-- Pack 4 — DP (LIVE) -->
+      <div class="pack-card" style="border-color: var(--red-border);">
         <div class="pack-top">
           <span class="pack-icon">⚡</span>
-          <span class="pack-badge">40 DAYS</span>
+          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
         </div>
         <div class="pack-name">Dynamic Programming</div>
-        <p class="pack-desc">The hardest topic. 40 problems. Broken down so it clicks.</p>
+        <p class="pack-desc">Visual-first DP learning — state transitions, the DP pipeline, and pattern recognition</p>
         <hr class="pack-divider">
         <div class="pack-stats">
-          <span class="pack-stat">📋 40 Problems</span>
+          <span class="pack-stat">📋 30 Days</span>
           <span class="pack-stat">⚔ 6 Ranks</span>
           <span class="pack-stat">💻 3 Languages</span>
         </div>
@@ -253,8 +253,8 @@
           <span class="lang-pill">Java</span>
         </div>
         <div class="pack-bottom">
-          <div class="pack-price">$15 <span class="currency">USD</span></div>
-          <button class="pack-btn">START PACK →</button>
+          <div class="pack-price">$12 <span class="currency">USD</span></div>
+          <a href="./dp-reader.html" class="pack-btn" id="dp-start">START PACK →</a>
         </div>
       </div>
       <!-- Pack 5 — Arrays & Strings (LIVE) -->
@@ -290,28 +290,37 @@
           <a href="./course-reader.html" class="pack-btn" id="arrays-strings-start">START PACK →</a>
         </div>
       </div>
-      <!-- Pack 6 -->
-      <div class="pack-card">
+      <!-- Pack 6 — LeetCode Starter Path (onboarding) -->
+      <div class="pack-card" id="starter-pack-card">
         <div class="pack-top">
-          <span class="pack-icon">🎯</span>
-          <span class="pack-badge">30 DAYS</span>
+          <span class="pack-icon">🚀</span>
+          <span class="pack-badge">BEGINNER</span>
         </div>
-        <div class="pack-name">Binary Search</div>
-        <p class="pack-desc">The pattern most coders get wrong. Fixed in 20 days.</p>
+        <div class="pack-name">LeetCode Starter Path</div>
+        <p class="pack-desc">Beginner onboarding — set up your workflow, build daily habits, and earn your first accepted submissions in 15 days.</p>
         <hr class="pack-divider">
         <div class="pack-stats">
-          <span class="pack-stat">📋 30 Problems</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
+          <span class="pack-stat">📋 15 Days</span>
+          <span class="pack-stat">🎯 3 Phases</span>
+          <span class="pack-stat">🌱 Beginner</span>
         </div>
         <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
+          <span class="lang-pill">Setup</span>
+          <span class="lang-pill">First Wins</span>
+          <span class="lang-pill">Momentum</span>
+        </div>
+        <div class="pack-progress" id="starter-pack-progress" hidden>
+          <div class="pack-progress-header">
+            <span class="pack-progress-label">0/67 lessons</span>
+            <span class="pack-progress-xp">0 XP</span>
+          </div>
+          <div class="pack-progress-bar">
+            <div class="pack-progress-fill"></div>
+          </div>
         </div>
         <div class="pack-bottom">
           <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <button class="pack-btn">START PACK →</button>
+          <a href="./starter-reader.html" class="pack-btn" id="starter-start">START PATH →</a>
         </div>
       </div>
     </div>
@@ -467,7 +476,7 @@
         <div class="pricing-red-note">All future packs included free.</div>
         <hr class="pricing-divider">
         <ul class="pricing-features">
-          <li><span class="check">✓</span> All 6 current packs</li>
+          <li><span class="check">✓</span> All 6 current packs (incl. Starter Path)</li>
           <li><span class="check">✓</span> All future packs FREE</li>
           <li><span class="check">✓</span> 180+ daily problems</li>
           <li><span class="check">✓</span> C++, Python, Java</li>

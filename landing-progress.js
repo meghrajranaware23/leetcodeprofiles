@@ -1,16 +1,28 @@
 import {
-  loadProgress,
-  getProgressSummary,
-  getContinueUrl,
+  loadProgress as loadArraysProgress,
+  getProgressSummary as getArraysSummary,
+  getContinueUrl as getArraysContinueUrl,
 } from './course-progress.js';
+import {
+  loadProgress as loadStarterProgress,
+  getProgressSummary as getStarterSummary,
+  getContinueUrl as getStarterContinueUrl,
+} from './starter-progress.js';
+import { PACK_IDS } from './progress-store.js';
 
 function initLandingProgress() {
-  loadProgress();
-  const summary = getProgressSummary();
-  const continueUrl = getContinueUrl();
+  loadArraysProgress();
+  const arraysSummary = getArraysSummary();
+  const arraysContinueUrl = getArraysContinueUrl();
 
-  renderContinueBanner(summary, continueUrl);
-  renderPackProgress(summary, continueUrl);
+  renderContinueBanner(arraysSummary, arraysContinueUrl);
+  renderPackProgress('arrays-pack-progress', 'arrays-strings-start', arraysSummary, arraysContinueUrl, './course-reader.html', 'START PACK →');
+
+  loadStarterProgress(PACK_IDS.STARTER);
+  const starterSummary = getStarterSummary(PACK_IDS.STARTER);
+  const starterContinueUrl = getStarterContinueUrl(PACK_IDS.STARTER);
+
+  renderPackProgress('starter-pack-progress', 'starter-start', starterSummary, starterContinueUrl, './starter-reader.html', 'START PATH →');
 }
 
 function renderContinueBanner(summary, continueUrl) {
@@ -59,14 +71,14 @@ function renderContinueBanner(summary, continueUrl) {
   }
 }
 
-function renderPackProgress(summary, continueUrl) {
-  const progressEl = document.getElementById('arrays-pack-progress');
-  const startBtn = document.getElementById('arrays-strings-start');
+function renderPackProgress(progressId, startBtnId, summary, continueUrl, defaultUrl, defaultLabel) {
+  const progressEl = document.getElementById(progressId);
+  const startBtn = document.getElementById(startBtnId);
   if (!startBtn) return;
 
   if (!summary.hasProgress) {
-    startBtn.href = './course-reader.html';
-    startBtn.textContent = 'START PACK →';
+    startBtn.href = defaultUrl;
+    startBtn.textContent = defaultLabel;
     return;
   }
 
