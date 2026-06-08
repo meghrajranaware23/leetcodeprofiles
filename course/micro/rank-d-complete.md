@@ -84,9 +84,11 @@ C-Rank introduces **advanced windows, Kadane's, and sorting strategy** — the p
 
 ---
 
-## 🔒 C-Rank — Coming Soon
+## 🟢 C-Rank — Unlocked
 
-C-Rank content is being forged. When it's ready, you'll continue right where you left off.
+You've earned C-Rank. Continue from **Day 11: Sliding Window + Hash Map** in the sidebar — your state-control mastery journey begins now.
+
+> 💡 C-Rank teaches you to *control* complex state inside patterns: frequency maps in windows, Kadane's extend-or-restart, difference arrays, sort-first strategy, intervals, and greedy reasoning. This is where Hard problems become reachable.
 
 ---
 

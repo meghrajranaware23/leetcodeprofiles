@@ -40,9 +40,29 @@ export const DRANK_LESSONS = COURSE_LESSONS.filter(
 );
 export const DRANK_LESSON_IDS = new Set(DRANK_LESSONS.map(l => l.id));
 
-/** Lessons with live content on the learning path (intro + E + D) */
+export const CRANK_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && l.rank === 'c'
+);
+export const CRANK_LESSON_IDS = new Set(CRANK_LESSONS.map(l => l.id));
+
+export const BRANK_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && l.rank === 'b'
+);
+export const BRANK_LESSON_IDS = new Set(BRANK_LESSONS.map(l => l.id));
+
+export const ARANK_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && l.rank === 'a'
+);
+export const ARANK_LESSON_IDS = new Set(ARANK_LESSONS.map(l => l.id));
+
+export const SRANK_LESSONS = COURSE_LESSONS.filter(
+  l => l.content && l.rank === 's'
+);
+export const SRANK_LESSON_IDS = new Set(SRANK_LESSONS.map(l => l.id));
+
+/** Lessons with live content on the learning path (intro + E + D + C + B + A + S) */
 export const AVAILABLE_LESSONS = COURSE_LESSONS.filter(
-  l => l.content && (l.rank === 'intro' || l.rank === 'e' || l.rank === 'd')
+  l => l.content && (l.rank === 'intro' || l.rank === 'e' || l.rank === 'd' || l.rank === 'c' || l.rank === 'b' || l.rank === 'a' || l.rank === 's')
 );
 export const AVAILABLE_LESSON_IDS = new Set(AVAILABLE_LESSONS.map(l => l.id));
 
@@ -86,6 +106,32 @@ const ACHIEVEMENT_DEFS = {
   'window-opener': { title: 'Window Opener', icon: '🪟' },
   'pattern-combo': { title: 'First Pattern Combo', icon: '🔗' },
   'd-rank-complete': { title: 'D-Rank Builder', icon: '🏗️' },
+  'first-c-rank-concept': { title: 'First C-Rank Pattern', icon: '🟢' },
+  'window-master': { title: 'Window Master', icon: '🪟' },
+  'kadane-unlocked': { title: "Kadane's Unlocked", icon: '📈' },
+  'first-hard-solved': { title: 'First Hard Problem', icon: '💎' },
+  'interval-warrior': { title: 'Interval Warrior', icon: '📊' },
+  'c-rank-complete': { title: 'C-Rank Warrior', icon: '🗡️' },
+  'first-b-rank-concept': { title: 'First B-Rank Pattern', icon: '🟡' },
+  'stack-master': { title: 'Stack Master', icon: '📚' },
+  'grid-walker': { title: 'Grid Walker', icon: '🗺️' },
+  'dimension-upgrade': { title: 'Dimension Upgrade', icon: '📐' },
+  'key-forger': { title: 'Key Forger', icon: '🔑' },
+  'skyline-solver': { title: 'Skyline Solver', icon: '🏙️' },
+  'b-rank-complete': { title: 'B-Rank Commander', icon: '⭐' },
+  'first-a-rank-concept': { title: 'First A-Rank Pattern', icon: '🟠' },
+  'hash-roller': { title: 'Hash Roller', icon: '#️⃣' },
+  'kmp-master': { title: 'KMP Master', icon: '⚔️' },
+  'multi-window': { title: 'Multi-Window', icon: '🪟' },
+  'greedy-smith': { title: 'Greedy Smith', icon: '🔨' },
+  'pattern-combiner': { title: 'Pattern Combiner', icon: '🧩' },
+  'a-rank-complete': { title: 'A-Rank Elite', icon: '⭐' },
+  'first-s-rank-concept': { title: 'First S-Rank Strategy', icon: '🔴' },
+  'array-synthesizer': { title: 'Array Synthesizer', icon: '🧬' },
+  'string-synthesizer': { title: 'String Synthesizer', icon: '🧵' },
+  'ascension-master': { title: 'Ascension Master', icon: '⛰️' },
+  'final-test-cleared': { title: 'Final Test Cleared', icon: '💀' },
+  'legend': { title: 'Legend', icon: '👑' },
 };
 
 /* ─── In-memory state: root store + active pack slice ─── */
@@ -104,6 +150,22 @@ export function isDRankUnlocked() {
   return DRANK_LESSONS.length > 0;
 }
 
+export function isCRankUnlocked() {
+  return CRANK_LESSONS.length > 0;
+}
+
+export function isBRankUnlocked() {
+  return BRANK_LESSONS.length > 0;
+}
+
+export function isARankUnlocked() {
+  return ARANK_LESSONS.length > 0;
+}
+
+export function isSRankUnlocked() {
+  return SRANK_LESSONS.length > 0;
+}
+
 function buildRankSnapshot(completedIds) {
   const completed = new Set(completedIds);
   const ranks = {};
@@ -115,12 +177,16 @@ function buildRankSnapshot(completedIds) {
       completed: done,
       total,
       complete: total > 0 && done >= total,
-      unlocked: rank === 'intro' || rank === 'e' || rank === 'd' || done > 0,
+      unlocked: rank === 'intro' || rank === 'e' || rank === 'd' || rank === 'c' || rank === 'b' || rank === 'a' || rank === 's' || done > 0,
     };
   });
   ranks.e.unlocked = true;
   ranks.intro.unlocked = true;
   if (DRANK_LESSONS.length > 0) ranks.d.unlocked = true;
+  if (CRANK_LESSONS.length > 0) ranks.c.unlocked = true;
+  if (BRANK_LESSONS.length > 0) ranks.b.unlocked = true;
+  if (ARANK_LESSONS.length > 0) ranks.a.unlocked = true;
+  if (SRANK_LESSONS.length > 0) ranks.s.unlocked = true;
   return ranks;
 }
 
@@ -146,6 +212,10 @@ function persistActivePack() {
 function getLearningPathLessons() {
   const path = [...ERANK_LESSONS];
   if (isDRankUnlocked()) path.push(...DRANK_LESSONS);
+  if (isCRankUnlocked()) path.push(...CRANK_LESSONS);
+  if (isBRankUnlocked()) path.push(...BRANK_LESSONS);
+  if (isARankUnlocked()) path.push(...ARANK_LESSONS);
+  if (isSRankUnlocked()) path.push(...SRANK_LESSONS);
   return path;
 }
 
@@ -290,15 +360,30 @@ export function getRecommendedNext() {
 export function getCurrentRankLessons() {
   const eIncomplete = ERANK_LESSONS.some(l => !completedSet.has(l.id));
   if (eIncomplete) return ERANK_LESSONS;
-  if (isDRankUnlocked()) return DRANK_LESSONS;
-  return ERANK_LESSONS;
+  const dIncomplete = DRANK_LESSONS.some(l => !completedSet.has(l.id));
+  if (dIncomplete) return DRANK_LESSONS;
+  const cIncomplete = CRANK_LESSONS.some(l => !completedSet.has(l.id));
+  if (cIncomplete) return CRANK_LESSONS;
+  if (isBRankUnlocked()) {
+    const bIncomplete = BRANK_LESSONS.some(l => !completedSet.has(l.id));
+    if (bIncomplete) return BRANK_LESSONS;
+  }
+  if (isARankUnlocked()) {
+    const aIncomplete = ARANK_LESSONS.some(l => !completedSet.has(l.id));
+    if (aIncomplete) return ARANK_LESSONS;
+  }
+  if (isSRankUnlocked()) return SRANK_LESSONS;
+  return CRANK_LESSONS.length > 0 ? CRANK_LESSONS : DRANK_LESSONS.length > 0 ? DRANK_LESSONS : ERANK_LESSONS;
 }
 
 export function getCurrentRankLabel() {
   const lessons = getCurrentRankLessons();
-  if (lessons === DRANK_LESSONS || (lessons.length && lessons[0]?.rank === 'd')) {
-    return 'D-Rank';
-  }
+  const rank = lessons[0]?.rank;
+  if (rank === 's') return 'S-Rank';
+  if (rank === 'a') return 'A-Rank';
+  if (rank === 'b') return 'B-Rank';
+  if (rank === 'c') return 'C-Rank';
+  if (rank === 'd') return 'D-Rank';
   return 'E-Rank';
 }
 
@@ -402,12 +487,54 @@ export function recordLessonAchievements(lesson) {
   if (lesson.type === 'complete' && lesson.id === 'rank-d-complete') {
     recordAchievement('d-rank-complete');
   }
+  if (lesson.type === 'complete' && lesson.id === 'rank-c-complete') {
+    recordAchievement('c-rank-complete');
+  }
+  if (lesson.type === 'complete' && lesson.id === 'rank-b-complete') {
+    recordAchievement('b-rank-complete');
+  }
+  if (lesson.type === 'complete' && lesson.id === 'rank-a-complete') {
+    recordAchievement('a-rank-complete');
+  }
+  if (lesson.type === 'complete' && lesson.id === 'rank-s-complete') {
+    recordAchievement('legend');
+  }
   if (lesson.type === 'concept' && lesson.rank === 'd' && getCompletedByType('concept', 'd').length === 1) {
     recordAchievement('first-d-rank-concept');
+  }
+  if (lesson.type === 'concept' && lesson.rank === 'c' && getCompletedByType('concept', 'c').length === 1) {
+    recordAchievement('first-c-rank-concept');
+  }
+  if (lesson.type === 'concept' && lesson.rank === 'b' && getCompletedByType('concept', 'b').length === 1) {
+    recordAchievement('first-b-rank-concept');
+  }
+  if (lesson.type === 'concept' && lesson.rank === 'a' && getCompletedByType('concept', 'a').length === 1) {
+    recordAchievement('first-a-rank-concept');
+  }
+  if (lesson.type === 'concept' && lesson.rank === 's' && getCompletedByType('concept', 's').length === 1) {
+    recordAchievement('first-s-rank-concept');
   }
   if (lesson.id === '8-4') recordAchievement('pointer-master');
   if (lesson.id === '9-2') recordAchievement('window-opener');
   if (lesson.id === '10-3') recordAchievement('pattern-combo');
+  if (lesson.id === '11-4') recordAchievement('window-master');
+  if (lesson.id === '12-2') recordAchievement('kadane-unlocked');
+  if (lesson.id === '15-4') recordAchievement('interval-warrior');
+  if (lesson.id === 'c-test-3') recordAchievement('first-hard-solved');
+  if (lesson.id === '18-4') recordAchievement('stack-master');
+  if (lesson.id === '19-2') recordAchievement('grid-walker');
+  if (lesson.id === '20-2') recordAchievement('dimension-upgrade');
+  if (lesson.id === '21-4') recordAchievement('key-forger');
+  if (lesson.id === '22-3') recordAchievement('skyline-solver');
+  if (lesson.id === '23-3') recordAchievement('hash-roller');
+  if (lesson.id === '24-4') recordAchievement('kmp-master');
+  if (lesson.id === '25-2') recordAchievement('multi-window');
+  if (lesson.id === '26-4') recordAchievement('greedy-smith');
+  if (lesson.id === 'a-test-2') recordAchievement('pattern-combiner');
+  if (lesson.id === '28-3') recordAchievement('array-synthesizer');
+  if (lesson.id === '29-3') recordAchievement('string-synthesizer');
+  if (lesson.id === '30-4') recordAchievement('ascension-master');
+  if (lesson.id === 's-test-2') recordAchievement('final-test-cleared');
 }
 
 export function hasMilestoneShown(key) {
@@ -472,14 +599,32 @@ function buildProgressSummary(packId, pack, completed, steps) {
   }
 
   const rankProgress = buildRankSnapshot([...completed]);
-  const pathLessons = ERANK_LESSONS.concat(DRANK_LESSONS);
+  const pathLessons = ERANK_LESSONS.concat(DRANK_LESSONS, CRANK_LESSONS, BRANK_LESSONS, ARANK_LESSONS, SRANK_LESSONS);
   const currentRank = (() => {
     if (ERANK_LESSONS.some(l => !completed.has(l.id))) return 'e';
     if (DRANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 'd';
+    if (CRANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 'c';
+    if (BRANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 'b';
+    if (ARANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 'a';
+    if (SRANK_LESSONS.some(l => l.content && !completed.has(l.id))) return 's';
+    if (rankProgress.s?.complete) return 's';
+    if (rankProgress.a?.complete) return 'a';
+    if (rankProgress.b?.complete) return 'b';
+    if (rankProgress.c?.complete) return 'c';
     if (rankProgress.d?.complete) return 'd';
     return 'e';
   })();
-  const activeLessons = currentRank === 'd' ? DRANK_LESSONS : ERANK_LESSONS;
+  const activeLessons = currentRank === 's'
+    ? SRANK_LESSONS
+    : currentRank === 'a'
+      ? ARANK_LESSONS
+      : currentRank === 'b'
+        ? BRANK_LESSONS
+        : currentRank === 'c'
+          ? CRANK_LESSONS
+          : currentRank === 'd'
+            ? DRANK_LESSONS
+            : ERANK_LESSONS;
   const stats = {
     quests: activeLessons.filter(l => l.type === 'quest' && completed.has(l.id)).length,
     checkpoints: activeLessons.filter(l => l.type === 'checkpoint' && completed.has(l.id)).length,
@@ -492,7 +637,7 @@ function buildProgressSummary(packId, pack, completed, steps) {
 
   const xp = sumXpForLessons(AVAILABLE_LESSONS, completed);
 
-  const daysCompleted = ['e', 'd'].flatMap(rank => {
+  const daysCompleted = ['e', 'd', 'c', 'b', 'a', 's'].flatMap(rank => {
     const days = new Set(
       COURSE_LESSONS.filter(l => l.rank === rank && l.content && l.day > 0).map(l => l.day)
     );
@@ -504,7 +649,17 @@ function buildProgressSummary(packId, pack, completed, steps) {
       .map(day => ({ rank, day }));
   });
 
-  const rankLabel = currentRank === 'd' ? 'D-Rank' : 'E-Rank';
+  const rankLabel = currentRank === 's'
+    ? 'S-Rank'
+    : currentRank === 'a'
+      ? 'A-Rank'
+      : currentRank === 'b'
+        ? 'B-Rank'
+        : currentRank === 'c'
+          ? 'C-Rank'
+          : currentRank === 'd'
+            ? 'D-Rank'
+            : 'E-Rank';
   let currentRankStatus = 'Not Started';
   if (rankProgress[currentRank]?.complete) currentRankStatus = `${rankLabel} Complete`;
   else if (completedCount > 0) currentRankStatus = `${rankLabel} — In Progress`;
