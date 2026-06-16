@@ -1,151 +1,129 @@
+<!-- hand-authored -->
 # 📝 DP Synthesis I
 
 > **Day 28** · DP Synthesis I · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Advanced 2D DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Twenty-seven days of patterns. Day 28 combines two **advanced 2D-adjacent** skills that look unrelated until you name the state: **grid side-length DP** (#221) and **1D partition max-sum** (#1043). Today's concept is **not** interval `dp[i][j]` bracket notation — that arrives on Day 30. Here you extend grid neighbors and linear prefix decisions.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Advanced 2D DP (Two Flavors)
 
 ### 1. What is the pattern?
 
-**Advanced 2D DP** — the core technique you'll use in today's quests.
+**Advanced 2D DP** — two S-Rank templates:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+| Template | State | Fill order | Today's quest |
+|---|---|---|---|
+| **Grid side-length** | `dp[i][j]` = max square side ending at `(i,j)` | Row-major | #221 Maximal Square |
+| **1D partition lookback** | `dp[i]` = best sum for first `i` elements | Left-to-right | #1043 Partition Array |
 
-### 2. Simple explanation
+Both ask: *"If smaller subproblems are solved, what's the one-step extension?"*
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+### 2. Grid side-length — the visual (#221)
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+Each `'1'` cell asks: *"What's the largest square whose bottom-right corner is here?"*
 
 ```
-Interval DP — bracket notation:
+matrix (conceptual):          dp[i][j] = side length:
 
-dp[i][j] = optimal answer for subarray arr[i..j]
+  1 0 1 0 0                   1 0 1 0 0
+  1 0 1 1 1        →          1 0 1 1 2
+  1 1 1 1 1                   1 1 1 2 3  ← dp[3][3]=2 (2×2 square)
+  1 0 0 1 0                   1 0 0 1 0
 
-Split at every k where i ≤ k < j:
+At (i,j) with matrix[i-1][j-1]=='1':
+  dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1
+            └─ top ─┘ └─ left ─┘ └── diagonal ──┘
 
-dp[i][j] = min/max over k of:
-           dp[i][k] ⊕ dp[k+1][j] + cost(i, k, j)
-
-Dependency arrows:
-  ┌─────────────────────────────────────┐
-  │        dp[0][4]                     │
-  │       /    |    \                   │
-  │  dp[0][0] dp[0][1] dp[0][2] ...    │
-  │  dp[1][4] dp[2][4] dp[3][4] ...    │
-  │       \    |    /                   │
-  │    smaller intervals first          │
-  └─────────────────────────────────────┘
-
-Fill order: by interval length (len=1, len=2, ..., len=n)
-
-  for len in 1..n:
-    for i in 0..n-len:
-      j = i + len - 1
-      for k in i..j-1:
-        dp[i][j] = best(dp[i][k], dp[k+1][j])
+Why min? All three sides must support a square one cell larger.
+Answer: maxSide² (area), not just maxSide.
 ```
 
-### 4. The DP Pipeline
+**Not** a path-count grid (Day 7). **Not** LCS (Day 13). The cell stores **geometry** — side length of the largest square anchored here.
 
-Apply the five-step pipeline to today's pattern:
+### 3. 1D partition max-sum — the visual (#1043)
+
+Partition `arr[0..n-1]` into chunks of size ≤ `k`. Each chunk contributes `max(chunk) × length`.
+
+```
+arr = [1,15,7,9,2,5,10], k=3
+
+dp[i] = max sum partitioning arr[0..i-1]
+
+  i=0: dp[0]=0
+  i=3: try j=1,2,3 chunk ending at i
+       j=1: dp[2] + max(5)*1
+       j=2: dp[1] + max(9,5)*2
+       j=3: dp[0] + max(7,9,5)*3  ← best
+
+Fill left-to-right — dp[i] only needs dp[i-j] for j ≤ k:
+
+  dp: [0, 1, 16, 36, 45, ...]
+       ↑  ↑   ↑
+     base first two partitions
+
+NOT interval dp[i][j] on subarray — single index i, lookback j ∈ [1..min(i,k)].
+```
+
+### 4. Side-by-side recognition
+
+| Signal | Grid side-length | 1D partition |
+|---|---|---|
+| Input shape | 2D matrix of 0/1 | 1D array + chunk limit k |
+| State | `dp[i][j]` per cell | `dp[i]` prefix |
+| Transition | min of 3 neighbors + 1 | max over last j elements |
+| Optimize | Track global maxSide | Track running max in inner loop |
+| Wrong pattern | Unique paths (Day 7) | Interval burst (Day 30) |
+
+### 5. The DP Pipeline (S-Rank edition)
 
 ```
 Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+  → Grid: try every square size at every cell — O(m²n²)
+  → Partition: try every split — O(k^n)
 
 Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Advanced 2D DP" has overlapping subproblems because...
+  → Grid: same (i,j) recomputed when checking larger squares
+  → Partition: same prefix i solved many ways
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Step 3: MEMOIZE
+  → Grid: memo[i][j] = side length at cell
+  → Partition: memo[i] = best prefix sum
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+Step 4: TABULATE
+  → Grid: row-major, +1 padding for clean boundaries
+  → Partition: i from 1..n, inner j from 1..min(i,k)
 
 Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+  → Grid: can compress to two rows (side-length only)
+  → Partition: already O(n)
 ```
 
-### 5. State definition
+### 6. Common S-Rank mistakes
 
-**What does dp[i] represent?**
+| Mistake | Pattern | Fix |
+|---|---|---|
+| Return maxSide instead of area | #221 | Answer = maxSide **× maxSide** |
+| Use max instead of min of 3 neighbors | #221 | Square needs **all** sides — min binds |
+| Model #1043 as interval dp[i][j] | #1043 | Linear prefix `dp[i]`, lookback j ≤ k |
+| Forget +1 padding row/col | #221 | `dp[m+1][n+1]` avoids edge checks |
+| Greedy chunk sizes | #1043 | Must try all j ∈ [1..min(i,k)] |
 
-The hardest part of DP is naming the state correctly. For **Advanced 2D DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
+### 7. Recognition drill
 
-### 6. Transition logic
+Read each problem. Name state before coding:
 
-**How do we compute dp[i]?**
+> *"Largest square of 1s in a binary matrix."*
+>
+> → **Grid side-length.** `dp[i][j] = min(top, left, diag) + 1`. Answer = max².
 
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
-
-```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
-```
-
-### 7. Base cases & answer extraction
-
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
-
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
-
-### 9. Common DP mistakes
-
-| Mistake | Fix |
-|---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
-
-### 10. Recognition drill
-
-Read this problem aloud:
-
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
-
-Before coding, say:
-
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Partition array into subarrays of size ≤ k; maximize sum of (max × length)."*
+>
+> → **1D partition lookback.** `dp[i] = max(dp[i-j] + mx×j)` for j in 1..min(i,k).
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Grid geometry first, then linear partition. Quest 1: Maximal Square. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Combination Sum IV
 
 > **Day 22** · [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Combination Sum IV on LeetCode](https://leetcode.com/problems/combination-sum-iv/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** **Order matters** → **target outer**, nums inner. Opposite of Day 18 Coin Change II.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Order-Matters Counting**.
+**Pattern:** Order-Matters Counting.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+- `dp[i]` = number of **sequences** (ordered) that sum to `i`
+- `dp[0] = 1`
+- **`for i in 1..target: for num in nums: if num<=i: dp[i]+=dp[i-num]`**
+- Unlimited reuse — forward on `i`
+- **Amount outer** — distinguishes permutations from Day 18 combinations
 
 ---
 
@@ -37,26 +40,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Order-Matters Counting
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Count ways to reach target summing nums
+- **Different order = different way** (problem statement)
+- Unlimited reuse of each num
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "order matters" / "permutation" | Amount outer loop |
+| "combinations" / order ignored | **#518** coin outer |
+| "minimum coins" | **#322** min not count |
+| "unique BST" | **#96** Catalan |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Enumerate all sequences — exponential; overlap on `(remaining target)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[0]=1."*
+2. *"Outer i=1..target."*
+3. *"Inner nums: dp[i]+=dp[i-num]."*
+4. *"Not coin outer."*
 
 ---
 
@@ -64,61 +65,46 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Coin outer (#518 order)** | Undercounts — treats as combinations |
+| **Reverse 0/1 loop** | Wrong reuse semantics |
+| **Catalan recurrence** | Wrong problem family |
+| **Greedy** | Counting needs all sequences |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Loop order is the **only** difference from #518 for unlimited reuse.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums=[1,2,3], target=4
+Ordered: 1+1+2, 1+2+1, 2+1+1, 2+2, 1+3, 3+1 → 7 ways
+#518 would count 4 (combinations)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Coin Change II #518](https://leetcode.com/problems/coin-change-ii/) | Combinations | Day 18 — coin outer |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | Steps 1 or 2 | Amount outer cousin |
+| [Unique Binary Search Trees #96](https://leetcode.com/problems/unique-binary-search-trees/) | Catalan | Earlier today |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `nums = [1, 2, 3]`, `target = 4`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=1
+dp[1]=1  (1)
+dp[2]=2  (1+1, 2)
+dp[3]=4  (1+1+1, 1+2, 2+1, 3)
+dp[4]=7  (1+1+1+1, 1+1+2, 1+2+1, 1+3, 2+1+1, 2+2, 3+1)
+
+Answer: 7 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Same += recurrence as coins — **which loop is outer** encodes order.
 
 ---
 
@@ -167,19 +153,18 @@ class Solution {
 ```
 
 **Complexity:** O(n · target) time · O(target) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Order-Matters Counting"** → Name the DP pattern from the concept page.
+- **"Order matters → amount outer."** → Opposite of #518.
+- **"dp[0]=1."** → Empty sequence base.
+- **"Forward i, unlimited nums."** → Unbounded counting.
+- **"Order-Matters Counting"** → Day 18's loop mirror image.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you got 4 instead of 7 on `[1,2,3]` target 4, swap to **amount outer**.
 
 > 🎯 **Pattern Unlocked:** Order-Matters Counting
 

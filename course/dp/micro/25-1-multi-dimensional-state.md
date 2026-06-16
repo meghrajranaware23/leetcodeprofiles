@@ -1,145 +1,139 @@
+<!-- hand-authored -->
 # 📝 Multi-Dimensional State DP
 
 > **Day 25** · Multi-Dimensional State DP · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand 3+ State Dimensions visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 12 ran **LIS on numbers** (`dp[i]` = chain ending at i). Day 11 walked **2D grids** (paths, falling sum). Day 25 adds a **third dimension** when the subproblem needs more than index + index: **word chains after sorting by length**, and **grid position + remaining steps** for boundary escape counting.
+
+> **Preview contrast (Day 17 vs Day 25):** Day 17 knapsack = `(item, capacity)` with take/skip on **weights**. Day 25 **Longest String Chain** = sort words + LIS-style on **predecessor strings** (delete one char). **Out of Boundary** = `(row, col, stepsLeft)` — NOT a knapsack table.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**3+ State Dimensions** — the core technique you'll use in today's quests.
+**Multi-Dimensional State DP** — two flagship shapes:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**A. Sort + LIS on words (`dp[word]`)**
+- **Sort** words by length (shortest first)
+- **State** — `dp[w]` = longest chain ending at word `w`
+- **Transition** — for each `w`, try deleting one char → predecessor `pred`; if `pred` in map: `dp[w] = max(dp[w], dp[pred]+1)`
+- **Predecessor check** — `pred` must differ by exactly one insertion (length diff 1, subsequence match)
+
+**B. 3D boundary grid `(row, col, steps)`**
+- **State** — `dp[i][j]` = ways to reach `(i,j)` after `t` moves (implicit third dim = loop over moves)
+- **Transition** — from each in-bounds cell, spread to 4 neighbors; out-of-bounds adds to answer
+- **Base** — `dp[startRow][startColumn] = 1` before first move
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**String chain:** Process words from short to long. A word can extend a chain only if some **shorter word** becomes it by adding one letter. That's one deletion backward — generate all `pred` by removing each char once, look up in hash map.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Boundary paths:** You're on a grid with a move budget. After each step, track how many paths land on each cell. Any step that walks off the edge contributes to the answer immediately — you don't need a third array dimension if you loop moves outside and swap `dp`/`ndp`.
 
-### 3. Visual walkthrough
-
-```
-PATTERN DECISION TREE — classify any DP problem:
-
-1. Does it have overlapping subproblems?
-   NO → greedy / simple recursion
-   YES ↓
-2. Is the state 1D?
-   YES → linear DP (climbing stairs, house robber, decode ways)
-   NO ↓
-3. Is it a grid?
-   YES → grid DP (unique paths, min path sum, dungeon game)
-   NO ↓
-4. Two sequences?
-   YES → two-sequence DP (LCS, edit distance, interleaving)
-   NO ↓
-5. Capacity constraint?
-   YES → knapsack DP (subset sum, coin change, partition)
-   NO ↓
-6. Multiple states?
-   YES → state machine DP (stock problems, paint house, FSM)
-   NO → interval / tree DP or other advanced pattern
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Sort + LIS on words
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+words = ["a","b","ba","bca","bda","bdca"]
+sorted by length:
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "3+ State Dimensions" has overlapping subproblems because...
+  a → dp=1
+  b → dp=1
+  ba → pred "a" exists → dp=2
+  bca → pred "ca"? no. pred "ba" → dp=3
+  ...
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Chain: "a" → "ba" → "bca" → "bdca" (length 4)
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Same LIS *spirit* as Day 12 — but edge test is
+"pred differs by one char" not "nums[j] < nums[i]"
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **3+ State Dimensions**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — `(row, col, steps)` boundary memo
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+m=2, n=2, maxMove=2, start=(0,0)
+
+Move 0: dp[0][0]=1
+
+Move 1 from (0,0):
+  → (1,0): ndp[1][0]+=1
+  → (0,1): ndp[0][1]+=1
+  → up/left: out → ans+=1 each? (from (0,0) up and left exit)
+
+Move 2: spread from all in-bounds cells
+  out-of-bounds hits accumulate in ans
+
+Third dimension = move count (outer loop)
+NOT knapsack (no capacity, no take/skip)
 ```
 
-### 7. Base cases & answer extraction
+### 5. Day 12 vs Day 17 vs Day 25
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| | **Day 12 — LIS** | **Day 17 — Knapsack** | **Day 25 — Today** |
+|---|---|---|---|
+| State | `dp[i]` ending at i | `dp[i][w]` item + weight | `dp[word]` or `dp[r][c]` per step |
+| Prep | Sort values optional | Items + capacity | **Sort words by length** |
+| Transition | `nums[j]<nums[i]` | take or skip | pred by one-char delete |
+| Quest | #300 | #416, #494 | #1048, #576 |
 
-### 8. Pattern signals & recognition clues
+### 6. The universal templates
+
+```
+// Longest string chain
+sort(words by length)
+dp = map word → 1
+for w in words:
+  for i in 0..len(w)-1:
+    pred = w without char i
+    if pred in dp:
+      dp[w] = max(dp[w], dp[pred]+1)
+
+// Out of boundary (steps as outer dim)
+dp[start] = 1
+for move in 1..maxMove:
+  ndp = zeros
+  for each cell (i,j) with dp[i][j]:
+    for 4 dirs:
+      if in bounds: ndp[ni][nj] += dp[i][j]
+      else: ans += dp[i][j]
+  dp = ndp
+```
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "word chain" / "predecessor" / "one letter" | Sort by length + map lookup |
+| "out of boundary" / "maxMove steps" | Grid + step loop, count exits |
+| "knapsack" / "capacity" | **Day 17** — not today |
+| "longest increasing subsequence" on numbers | **Day 12** — simpler 1D |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `sort by length` · `pred` · `(row,col,steps)` · `ndp` · `MOD`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Knapsack template for string chain | No weights — predecessor string lookup |
+| Skip sorting words | Longer words must come after shorter |
+| O(n²) pairwise compare without length sort | Sort + hash map is O(n·L²) |
+| 3D array for boundary when 2D rolling works | Outer move loop replaces step dimension |
+| Forgetting mod on boundary paths | ans accumulates mod 10⁹+7 |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Find longest chain where each word is predecessor of next by adding one letter."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Sort by length. dp[w]=1. Remove each char → pred. If pred in map, extend chain. NOT knapsack."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*String chain first. Quest 1: Longest String Chain. →*

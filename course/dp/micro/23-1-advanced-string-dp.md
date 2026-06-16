@@ -1,145 +1,128 @@
+<!-- hand-authored -->
 # 📝 Advanced String DP
 
 > **Day 23** · Advanced String DP · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Multi-String Matching visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 21 transformed strings with **insert / delete / replace** (`#72`). Day 13 matched two sequences with **LCS `dp[i][j]`** (`#1143`). Day 23 combines those ideas: **three strings interleaved into one**, and **delete-only cost = keep the LCS, pay for the rest**. Same 2D prefix grid — different question at each cell.
+
+> **Preview contrast (Day 21 vs Day 23):** Day 21 **Edit Distance** = min operations to equalize. Day 23 **Interleaving** = boolean — can `s3` be built from `s1` + `s2` in order? **Delete Operation** = LCS disguise — not edit distance with replace.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Multi-String Matching** — the core technique you'll use in today's quests.
+**Advanced String DP** — two flagship shapes:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**A. Interleaving (`dp[i][j]`)**
+- **State** — `dp[i][j]` = can prefix `s1[0..i-1]` + prefix `s2[0..j-1]` form prefix `s3[0..i+j-1]`?
+- **Transition** — last char of `s3` must come from `s1[i-1]` or `s2[j-1]` (if chars match)
+- **Base** — `dp[0][0] = true`
+
+**B. Delete-only = LCS reduction**
+- Min deletions to make two strings equal = `(m + n) - 2 * LCS`
+- Fill standard LCS table from **Day 13** — match → diagonal +1, else `max(↑, ←)`
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Interleaving:** You weave two threads into one output. At cell `(i,j)`, you've consumed `i` chars from `s1` and `j` from `s2`, producing `i+j` chars of `s3`. The next char of `s3` must match the next unconsumed char from **either** source — OR logic, not max/min.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Delete operation:** You can only delete — no insert, no replace. Whatever survives in both strings must be a **common subsequence**. Maximize kept chars = LCS length. Everything else gets deleted once per side.
 
-### 3. Visual walkthrough
-
-```
-PATTERN DECISION TREE — classify any DP problem:
-
-1. Does it have overlapping subproblems?
-   NO → greedy / simple recursion
-   YES ↓
-2. Is the state 1D?
-   YES → linear DP (climbing stairs, house robber, decode ways)
-   NO ↓
-3. Is it a grid?
-   YES → grid DP (unique paths, min path sum, dungeon game)
-   NO ↓
-4. Two sequences?
-   YES → two-sequence DP (LCS, edit distance, interleaving)
-   NO ↓
-5. Capacity constraint?
-   YES → knapsack DP (subset sum, coin change, partition)
-   NO ↓
-6. Multiple states?
-   YES → state machine DP (stock problems, paint house, FSM)
-   NO → interval / tree DP or other advanced pattern
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Interleaving `dp[i][j]`
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+s1 = "aab",  s2 = "axy",  s3 = "aaxaby"
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Multi-String Matching" has overlapping subproblems because...
+      ""  a   x   y
+  "" [ T   F   F   F ]
+  a  [ T   T   F   F ]  ← s3[1]='a' from s1
+  a  [ T   T   T   F ]
+  b  [ F   F   F   T ]  ← s3[5]='b' from s1
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+dp[i][j] = (take from s1 if s1[i-1]==s3[i+j-1] && dp[i-1][j])
+        OR (take from s2 if s2[j-1]==s3[i+j-1] && dp[i][j-1])
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Answer: dp[3][3] = true
 ```
 
-### 5. State definition
+**Not** LCS max — it's **reachability** (boolean OR), like Word Break on two sources.
 
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Multi-String Matching**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Delete op = LCS (Day 13 bridge)
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+word1 = "sea",  word2 = "eat"
+
+      ""  e   a   t
+  "" [ 0   0   0   0 ]
+  s  [ 0   0   0   0 ]
+  e  [ 0   1↖  1   1 ]
+  a  [ 0   1   2↖  2 ]
+
+LCS = dp[3][3] = 2  ("ea")
+Min deletions = 3 + 3 - 2*2 = 2
+
+Day 13 table, Day 21 *delete-only* interpretation.
 ```
 
-### 7. Base cases & answer extraction
+### 5. Day 21 vs Day 13 vs Day 23
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| | **Day 13 — LCS** | **Day 21 — Edit Distance** | **Day 23 — Today** |
+|---|---|---|---|
+| Goal | Max common length | Min insert/delete/replace | Interleave OR delete-only |
+| Transition | match → +1; else max | match → 0 cost; else +1 min | Interleave: OR; Delete: LCS then formula |
+| Quest | #1143 | #72 | #97, #583 |
+| Key insight | ↖ on match | Three-way min on mismatch | Boolean weave vs LCS reduction |
 
-### 8. Pattern signals & recognition clues
+### 6. The universal templates
+
+```
+// Interleaving
+dp[0][0] = true
+for i in 0..m:
+  for j in 0..n:
+    if s1[i-1]==s3[i+j-1]: dp[i][j] |= dp[i-1][j]
+    if s2[j-1]==s3[i+j-1]: dp[i][j] |= dp[i][j-1]
+
+// Delete operation
+// Standard LCS fill (Day 13)
+return m + n - 2 * dp[m][n]
+```
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "interleaving" / "formed from two strings" | `dp[i][j]` boolean OR on s1/s2 |
+| "delete to make equal" / "minimum delete" | LCS → `m+n-2*LCS` |
+| "edit distance" with replace | **Day 21** — not today |
+| "longest common subsequence" | **Day 13** — building block for #583 |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `dp[i][j]` · `interleave` · `LCS` · `delete only` · `prefix`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using edit distance for #583 | Delete-only = LCS, no insert/replace |
+| max(↑) instead of OR for interleaving | #97 is reachability, not optimization |
+| Forgetting `m+n != len(s3)` early exit | Length check before DP |
+| Confusing interleaving with LCS | LCS picks matching subsequence; interleaving uses **all** chars in order |
+| Generic pattern decision tree | Use the **specific** 2D string grid from Day 13/21 |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Given s1, s2, s3, return true if s3 is formed by interleaving s1 and s2."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"dp[i][j] = can s1[:i] + s2[:j] build s3[:i+j]. OR from s1 or s2 if chars match. Not LCS max."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Interleaving first. Quest 1: Interleaving String. →*

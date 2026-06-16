@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Best Time to Buy and Sell Stock with Transaction Fee
 
 > **Day 20** · [Best Time to Buy and Sell Stock with Transaction Fee #714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Best Time to Buy and Sell Stock with Transaction Fee on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Two states — **cash** (not holding) and **hold**. Fee applies on **sell**. Simpler than cooldown's three states.
 
 ---
 
@@ -24,11 +25,16 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **State Machine with Cost**.
+**Pattern:** State Machine with Cost — **cash / hold**.
 
-What is the state? What does dp[i] represent for this problem?
+- `cash` — max profit ending today **not** holding stock
+- `hold` — max profit ending today **holding** stock
+- Sell: `cash = max(cash, hold + price - fee)`
+- Buy: `hold = max(hold, cash - price)` — use cash **before** today's sell update, or equivalent sequential form in solution
+- Init: `cash=0`, `hold=-prices[0]`
+- Answer: `cash` (don't end holding)
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+No cooldown — can buy day after sell if profitable after fee.
 
 ---
 
@@ -37,26 +43,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** State Machine with Cost
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Unlimited transactions
+- Fixed **fee** charged per sell (or per transaction)
+- Two-state machine suffices — no mandatory rest day
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "transaction fee" | Subtract on sell transition |
+| "cooldown" | **#309** three states |
+| "one transaction" | **E5** |
+| "at most k" | Add transaction count dimension |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Exponential trade sequences — overlap on `(day, holding?)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"cash and hold only."*
+2. *"Fee on sell edge."*
+3. *"Update cash then hold each day."*
+4. *"Return cash."*
 
 ---
 
@@ -64,61 +68,47 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **E5 single transaction** | Multiple trades needed |
+| **Forget fee on sell** | Overstates profit |
+| **Fee on buy and sell** | Read problem — usually sell only |
+| **Three-state cooldown** | Overkill — no rest day required |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Fee is a **cost on the sell transition** — still a 2-state machine.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+prices=[1,3,2,8,4,9], fee=2
+Buy 1 sell 8 (profit 7-fee), buy 4 sell 9 (profit 5-fee) → total 8
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Best Time to Buy and Sell Stock with Cooldown #309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) | Cooldown | HOLD/SOLD/REST |
+| [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | One trade | E5 |
+| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Unrelated | Don't confuse |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `prices = [1, 3, 2, 8, 4, 9]`, `fee = 2`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Init: cash=0, hold=-1
+
+i=1 p=3: cash=max(0,-1+3-2)=1, hold=max(-1,0-3)=-3
+i=2 p=2: cash=1, hold=max(-3,1-2)=-1
+i=3 p=8: cash=max(1,-1+8-2)=5, hold=max(-1,1-8)=-7
+i=4 p=4: cash=5, hold=max(-7,5-4)=1
+i=5 p=9: cash=max(5,1+9-2)=8, hold=...
+
+Answer cash=8 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Same state-machine muscle as cooldown — one fewer state, fee on sell edge.
 
 ---
 
@@ -165,19 +155,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"State Machine with Cost"** → Name the DP pattern from the concept page.
+- **"Fee → cheaper 2-state machine."** → cash/hold only.
+- **"Subtract fee when selling."** → Transition cost.
+- **"Return cash."** → Not holding at end.
+- **"State Machine with Cost"** → Cooldown's cousin without REST.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you used three states, ask whether a **mandatory wait** exists — here it doesn't.
 
 > 🎯 **Pattern Unlocked:** State Machine with Cost
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Out of Boundary Paths
 
 > **Day 25** · [Out of Boundary Paths #576](https://leetcode.com/problems/out-of-boundary-paths/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Out of Boundary Paths on LeetCode](https://leetcode.com/problems/out-of-boundary-paths/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** State is `(row, col)` per move step. `dp[i][j]` = paths at cell after t moves. Walk off grid → add to `ans`. NOT knapsack.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **3D State Grid DP**.
+Which DP pattern from today's concept applies? **3D State Grid DP** — third dimension is **move count** (outer loop).
 
-What is the state? What does dp[i] represent for this problem?
+Initialize `dp[startRow][startColumn] = 1`. For each of `maxMove` steps:
+- From every cell with paths, try 4 directions
+- In bounds → add to `ndp[ni][nj]`
+- Out of bounds → add to `ans` (mod 10⁹+7)
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+Swap `dp = ndp` each step. Return `ans` — **not** a cell value.
 
 ---
 
@@ -37,26 +41,25 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** 3D State Grid DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Grid with 4-direction moves
+- Fixed number of moves `maxMove`
+- Count paths that **exit** the grid (not stay inside)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "out of boundary" / "move off grid" | Accumulate exits in ans |
+| "maxMove" / "exactly N moves" | Outer loop over steps |
+| "number of paths" | Sum transitions, mod MOD |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 11 contrast:** Unique paths **stay inside** grid until destination. Here paths **leave** — exits count toward answer.
+
+**Day 17 contrast:** No items, no capacity — this is spatial + time counting.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[start]=1, ans=0."*
+2. *"Loop maxMove times."*
+3. *"4 dirs: in-bounds → ndp, else ans += dp[i][j]."*
+4. *"Return ans % MOD."*
 
 ---
 
@@ -64,61 +67,53 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **DFS all paths length maxMove** | Exponential branching |
+| **Return dp inside grid** | Question asks paths **leaving**, not staying |
+| **3D array dp[m][n][move]** | Works but 2D rolling per step saves space |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** After each step, only the **distribution of paths across cells** matters. Exits accumulate in `ans` — you never need to track paths that already left.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+m=2,n=2, maxMove=2, start=(0,0)
+
+After move 1: paths at (1,0) and (0,1); exits from (0,0) going up/left
+After move 2: more spread + more exits
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | Stay in grid to corner | Day 11 |
+| [Longest String Chain #1048](https://leetcode.com/problems/longest-string-chain/) | Sort + word chain | Today's other quest |
+| [Knight Probability in Chessboard #688](https://leetcode.com/problems/knight-probability-in-chessboard/) | Stay inside, probability | Inverse question |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**m=2, n=2, maxMove=2, startRow=0, startColumn=0**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Initial: dp[0][0]=1
+
+Move 1:
+  from (0,0): right→(0,1), down→(1,0), up→exit(+1), left→exit(+1)
+  ndp[0][1]=1, ndp[1][0]=1, ans=2
+
+Move 2:
+  from (0,1): down→exit, left→(0,0), ...
+  from (1,0): right→(1,1), up→(0,0), ...
+  accumulate exits + ndp
+
+Final ans = total exit paths mod 1e9+7
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+Third dimension = move index in outer loop.
+
+> 💡 **The insight:** `(row, col, steps)` memoized by rolling 2D layer each step — exits tracked separately.
 
 ---
 
@@ -205,19 +200,18 @@ class Solution {
 ```
 
 **Complexity:** O(N · m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"3D State Grid DP"** → Name the DP pattern from the concept page.
+- **"(row, col, steps)"** — steps = outer loop, not 3D array required.
+- **"Exits → ans"** — not dp inside grid.
+- **"ndp each move"** — fresh layer per step.
+- **"Not knapsack"** — no items or capacity.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **rolling 2D grid with exit accumulator**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** 3D State Grid DP
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Cost for Tickets
 
 > **Day 27** · [Minimum Cost for Tickets #983](https://leetcode.com/problems/minimum-cost-for-tickets/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Cost for Tickets on LeetCode](https://leetcode.com/problems/minimum-cost-for-tickets/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** `dp[d]` = min cost through calendar day d. Travel day → min of 3 passes. Non-travel → `dp[d]=dp[d-1]`.
 
 ---
 
@@ -24,11 +25,16 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Multi-Option Decision DP**.
+Which DP pattern from today's concept applies? **Multi-Option Decision DP** — `(day, passType)` collapsed into day-only dp.
 
-What is the state? What does dp[i] represent for this problem?
+Loop `d` from 1 to `lastDay` (= `days.back()`). Use a set for travel days.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+On travel day `d`:
+- 1-day pass: `dp[d-1] + costs[0]`
+- 7-day pass: `dp[max(0, d-7)] + costs[1]`
+- 30-day pass: `dp[max(0, d-30)] + costs[2]`
+
+Take min of three. Non-travel: `dp[d] = dp[d-1]`.
 
 ---
 
@@ -37,26 +43,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Multi-Option Decision DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Calendar days 1..365, sparse travel days
+- Three pass options with different durations/costs
+- Min total cost covering all travel days
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "7-day pass" / "30-day pass" | Look-back dp[d-7], dp[d-30] |
+| "days you travel" | Set membership check |
+| "minimum cost" | min over 3 pass choices |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**State machine view:** At each travel day, choose pass type — each option jumps back a different number of days.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"lastDay = days[-1], daySet = set(days)."*
+2. *"dp[0..lastDay], dp[0]=0."*
+3. *"Travel: min of 3 pass costs from look-back."*
+4. *"Return dp[lastDay]."*
 
 ---
 
@@ -64,61 +67,51 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all pass combinations per trip** | Exponential — passes overlap days |
+| **Greedy cheapest per trip** | Overlapping coverage — local choice fails |
+| **DP on trip index not calendar** | Misses pass overlap across trips |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** A 7-day pass bought on day 4 covers days 4–10. Calendar `dp[d]` naturally captures overlapping coverage via look-back.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+days = [1,4,6,7,8,20], costs = [2,7,15]
+
+Day 4: 7-day from dp[0]+7=7 beats three 1-day passes
+Day 20: new 7-day or 30-day from earlier dp
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Jump Game II #45](https://leetcode.com/problems/jump-game-ii/) | Greedy jumps | Today's other quest |
+| [Coin Change #322](https://leetcode.com/problems/coin-change/) | Min coins unbounded | Similar min over options |
+| [Painting a Grid With Three Different Colors #1931](https://leetcode.com/problems/painting-a-grid-with-three-different-colors/) | Hard state DP | Day 30 territory |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**days = [1,4,6,7,8,20], costs = [2,7,15]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+d=1 travel: dp[1]=min(0+2, 0+7, 0+15)=2
+d=2: dp[2]=2
+d=3: dp[3]=2
+d=4 travel: dp[4]=min(2+2, 0+7, 0+15)=7
+d=5: dp[5]=7
+d=6 travel: dp[6]=min(7+2, 2+7, 0+15)=7  (7-day still active)
+d=7 travel: dp[7]=7
+d=8 travel: dp[8]=7
+...
+d=20 travel: min(9+2, 7+7, 0+15)=11 or similar
+
+Answer: dp[20]=11
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Calendar dp with 3 look-backs — pass type is implicit in which dp offset you choose.
 
 ---
 
@@ -180,19 +173,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Multi-Option Decision DP"** → Name the DP pattern from the concept page.
+- **"dp[day] not dp[trip]"** — calendar handles pass overlap.
+- **"Three look-backs"** — 1, 7, 30 day pass options.
+- **"Non-travel inherit"** — dp[d]=dp[d-1].
+- **"max(0, d-7)"** — clamp look-back at day 0.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **`(day, passType)` min via calendar dp**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Multi-Option Decision DP
 

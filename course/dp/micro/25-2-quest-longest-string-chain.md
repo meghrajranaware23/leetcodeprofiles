@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest String Chain
 
 > **Day 25** · [Longest String Chain #1048](https://leetcode.com/problems/longest-string-chain/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest String Chain on LeetCode](https://leetcode.com/problems/longest-string-chain/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Sort by **word length**. LIS spirit: `dp[w]` = chain ending at w. Predecessor = delete one char from w — if in map, extend.
 
 ---
 
@@ -24,11 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Sort + Subsequence DP**.
+Which DP pattern from today's concept applies? **Sort + Subsequence DP** — NOT knapsack.
 
-What is the state? What does dp[i] represent for this problem?
+**Step 1:** Sort words by length ascending.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Step 2:** `dp[w] = 1` for each word.
+
+**Step 3:** For each char index in `w`, form `pred = w[:i] + w[i+1:]`. If `pred` in dp map: `dp[w] = max(dp[w], dp[pred]+1)`.
+
+Only words one char shorter can be predecessors — sorting by length ensures predecessors are processed first.
 
 ---
 
@@ -37,26 +42,25 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Sort + Subsequence DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Chain where each word adds exactly one letter to previous
+- Predecessor relation = subsequence with length diff 1
+- Maximize chain length
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "predecessor" / "add one letter" | Delete-one-char backward lookup |
+| "word chain" | Sort by length + hash map |
+| "longest chain" | LIS-style max over predecessors |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 12 bridge:** Same "extend from valid previous items" logic — but edge test is string predecessor, not `nums[j] < nums[i]`.
+
+**Day 17 contrast:** No capacity, no weights — don't use knapsack table.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Sort words by len(words[i])."*
+2. *"Hash map dp: word → chain length."*
+3. *"For each w, try all single-char deletions as pred."*
+4. *"Track global max."*
 
 ---
 
@@ -64,61 +68,52 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **O(n²) check every pair** | Works but misses sort optimization; still need correct predecessor test |
+| **Knapsack dp[i][w]** | Wrong model — no capacity dimension |
+| **Skip sorting** | May process long words before predecessors exist in map |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Sorting by length guarantees when you process `w`, every valid predecessor (one char shorter) is already in the map.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+words = ["a","b","ba","bca","bda","bdca"]
+
+"a": dp=1
+"ba": pred "a" → dp=2
+"bca": pred "ca" no, pred "ba" yes → dp=3
+"bdca": pred "bca" → dp=4
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | Numeric order | Day 12 |
+| [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) | Sort by end, greedy | Day 16 |
+| [Out of Boundary Paths #576](https://leetcode.com/problems/out-of-boundary-paths/) | 3D grid steps | Today's other quest |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**words = ["xbc","pcxbcf","xb","cxbc","pcxbc"]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Sorted by length: xb, xbc, cxbc, pcxbc, pcxbcf
+
+xb:   dp=1
+xbc:  pred xb → dp=2
+cxbc: pred cbc? no, pred xbc? no... pred cxbc delete c→xbc → dp=3
+pcxbc: extends cxbc or xbc chain → dp=4
+pcxbcf: extends pcxbc → dp=5
+
+Answer: 5
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+For each word, only check deletions — O(L) per word.
+
+> 💡 **The insight:** Sort + map = LIS on strings with O(1) predecessor lookup per deletion.
 
 ---
 
@@ -189,19 +184,18 @@ class Solution {
 ```
 
 **Complexity:** O(n · L²) time · O(n · L) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Sort + Subsequence DP"** → Name the DP pattern from the concept page.
+- **"Sort by length first"** — predecessors are always shorter.
+- **"Delete one char → pred"** — O(L) checks per word.
+- **"LIS on words, not numbers"** — map not array index.
+- **"Not knapsack"** — no capacity dimension.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **sort + predecessor hash map**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Sort + Subsequence DP
 

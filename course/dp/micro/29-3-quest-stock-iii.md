@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Best Time to Buy and Sell Stock III
 
 > **Day 29** · [Best Time to Buy and Sell Stock III #123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Best Time to Buy and Sell Stock III on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw four states: **buy1, sell1, buy2, sell2**. Process each price left-to-right. Second buy uses profit from first sell: `buy2 = min(buy2, p - sell1)`.
 
 ---
 
@@ -24,39 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **K-Transaction State Machine**.
+**Pattern:** **K-Transaction State Machine** with K=2.
 
-What is the state? What does dp[i] represent for this problem?
+Four scalars (O(1) space):
+- `buy1` — min cost after first purchase
+- `sell1` — max profit after first complete transaction
+- `buy2` — min effective cost for second hold (`price - sell1`)
+- `sell2` — max profit after second transaction → **answer**
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Update order each day: buy1 → sell1 → buy2 → sell2.
+
+Day 20 bridge: same machine as cooldown/fee, but K=2 adds the second pair.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** K-Transaction State Machine
-
-**How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+**Pattern used:** K-Transaction State Machine (K=2)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "at most two transactions" | K=2 → four states |
+| "buy and sell stock" | State machine, not array dp |
+| "maximum profit" | max over sell2 |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"One transaction = buy1/sell1 (Day 5)."*
+2. *"Second round reinvests sell1 profit."*
+3. *"buy2 tracks p - sell1, not raw p."*
+4. *"Return sell2 after all days."*
 
 ---
 
@@ -64,61 +61,40 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+| **Try all buy/sell quadruples** | O(n⁴) — unnecessary |
+| **Single buy1/sell1 only** | Misses second transaction |
+| **2D dp[day][k] without optimization** | Works but O(nK) space — four scalars suffice |
+| **`buy2 = min(buy2, p)` ignoring sell1** | Second buy must account for first profit |
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Stock IV #188](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/) | General K | K pairs of buy/sell |
+| [Stock with Cooldown #309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) | Cooldown state | Day 20 machine |
+| [Stock with Fee #714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) | Fee on sell | Day 20 variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**prices = [3,3,5,0,0,3,1,4]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Init: buy1=buy2=∞, sell1=sell2=0
+
+p=3: buy1=3, sell1=0, buy2=3, sell2=0
+p=5: buy1=3, sell1=2, buy2=3, sell2=2
+p=0: buy1=0, sell1=2, buy2=-2, sell2=2
+...
+p=4: sell2=6
+
+Answer = 6  (buy@0 sell@3, buy@1 sell@4)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Four variables encode entire K=2 history — no 2D table needed.
 
 ---
 
@@ -174,21 +150,16 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Four states, one pass"** — K=2 collapsed to scalars.
+- **"buy2 uses sell1"** — second buy is net of first profit.
+- **"sell2 is answer"** — best after ≤2 complete trades.
+- **"K-Transaction State Machine"** — Day 20 extended.
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"K-Transaction State Machine"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** K-Transaction State Machine
+> 🎯 **Pattern Unlocked:** K-Transaction State Machine — Stock III
 
 ---
 

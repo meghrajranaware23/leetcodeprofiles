@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Best Time to Buy and Sell Stock with Cooldown
 
 > **Day 20** · [Best Time to Buy and Sell Stock with Cooldown #309](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Best Time to Buy and Sell Stock with Cooldown on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw **HOLD → SOLD → REST → buy** before coding. E5's one-pass min won't work here.
 
 ---
 
@@ -24,11 +25,18 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **State Machine DP**.
+**Pattern:** State Machine DP — **HOLD / SOLD / REST**.
 
-What is the state? What does dp[i] represent for this problem?
+- **HOLD** — best profit ending today **owning** stock
+- **SOLD** — best profit ending today **just sold**
+- **REST** — best profit ending today **not holding**, free to buy tomorrow
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Transitions at price `p`:
+- `hold = max(hold, rest - p)` — keep or buy from rest only
+- `sold = prevHold + p` — sell what you held yesterday
+- `rest = max(rest, sold)` — stay idle or enter rest after sell
+
+Init: `hold=-prices[0]`, `sold=0`, `rest=0`. Answer: `max(sold, rest)`.
 
 ---
 
@@ -37,26 +45,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** State Machine DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Unlimited transactions allowed
+- **Mandatory cooldown** day after sell
+- Maximize profit — not counting transactions
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "cooldown" / "cannot buy next day" | SOLD → REST before buy |
+| "multiple transactions" | Not E5 single trade |
+| "fee per transaction" | **#714** two-state variant |
+| "at most k transactions" | Later — add dimension |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Exponential day-by-day buy/sell/skip choices — overlap on `(day, state)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Three states — diagram on paper."*
+2. *"Buy only from REST."*
+3. *"Save prevHold before updating hold."*
+4. *"Never answer with hold."*
 
 ---
 
@@ -64,61 +70,52 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **E5 running minimum** | Ignores cooldown — may buy day after sell |
+| **Greedy local max** | Cooldown blocks future buys |
+| **Knapsack dp[i][w]** | Wrong pattern family |
+| **Buy from SOLD** | Violates cooldown rule |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Profit depends on **legal state**, not just price history.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+prices = [1,2,0,3]
+Buy@1, sell@2, rest, buy@0, sell@3 → profit 4
+Trying E5-style misses cooldown gap
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | One trade | **E5** bridge |
+| [Best Time to Buy and Sell Stock with Transaction Fee #714](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/) | Fee | Today's second quest |
+| [Best Time to Buy and Sell Stock III #123](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/) | ≤2 trades | 2D state machine |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `prices = [1, 2, 3, 0, 2]`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Day0 p=1: hold=-1, sold=0, rest=0
+Day1 p=2: sold=1 (sell), hold=-1, rest=1
+Day2 p=3: sold=2, hold=max(-1,1-3)=-1, rest=2
+Day3 p=0: rest=2, hold=max(-1,2-0)=2, sold=-1+0=-1? prevHold was -1 → sold=-1
+  Recalc carefully with code order:
+  prevHold=-1 → sold=(-1)+3=2 at day2... trace with algorithm:
+
+i=1: prevH=-1, hold=max(-1,0-2)=-1, rest=1, sold=-1+2=1
+i=2: prevH=-1, hold=max(-1,1-3)=-1, rest=2, sold=2
+i=3: prevH=-1, hold=max(-1,2-0)=2, rest=2, sold=-1
+i=4: prevH=2, hold=2, rest=2, sold=2+2=4
+
+Answer max(4,2)=4 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** State machine replaces E5 when **rules between trades** matter.
 
 ---
 
@@ -171,22 +168,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"State Machine DP"** → Name the DP pattern from the concept page.
+- **"Cooldown → three states."** → Diagram first.
+- **"Buy from REST only."** → Not from SOLD.
+- **"prevHold for sold."** → Order of updates matters.
+- **"State Machine DP"** → Bridge from E5 when rules grow.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you reused Stock I, the breakthrough is naming **which state** you end each day in.
 
 > 🎯 **Pattern Unlocked:** State Machine DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: two-state fee variant. →*

@@ -1,145 +1,130 @@
+<!-- hand-authored -->
 # 📝 DP Pattern Synthesis
 
 > **Day 26** · DP Pattern Synthesis · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Cross-Pattern Recognition visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Days 1–25 built individual patterns. Day 26 asks you to **recognize which shape fits** when the problem looks unfamiliar — then execute the right recurrence. Today's quests: **count arithmetic slices by extending a running chain**, and **tile a row with domino/tromino pieces** using a multi-state recurrence.
+
+> **Preview contrast (Day 22 vs Day 26):** Day 22 counted **partition structures** (BSTs, combos). Day 26 counts **contiguous arithmetic subarrays** (#413) and **tiling configurations** (#790) — local pattern detection + structural recurrence.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Cross-Pattern Recognition** — the core technique you'll use in today's quests.
+**DP Pattern Synthesis** — two flagship shapes:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**A. Arithmetic slice centered count**
+- **State** — `dp` = length of current arithmetic run ending at `i` (count of slices **ending** at i with i as right end)
+- **Transition** — if `nums[i]-nums[i-1] == nums[i-1]-nums[i-2]`: `dp += 1`, then `ans += dp`
+- **Reset** — else `dp = 0`
+- **Insight** — when you extend a run by one, you add **all slices ending at i-1** plus the new 3-element slice
+
+**B. Domino/tromino tiling states**
+- **State** — `f(n)` = ways to tile 2×n board; auxiliary states track **partial row coverage** (P, L shapes)
+- **Recurrence** — `f(n) = 2*f(n-1) + f(n-3)` with rolling `(a,b,c)` = `(f(n-3), f(n-2), f(n-1))`
+- **Base** — f(1)=1, f(2)=2
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Arithmetic slices:** A slice needs ≥3 elements with constant gap. When index `i` continues the gap from `i-1` and `i-2`, every slice that ended at `i-1` extends by one element — plus the new minimal slice `(i-2, i-1, i)`. The inner `dp` counts extensions; `ans` accumulates.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Tiling:** Cover a 2×n rectangle with 1×2 dominoes and L-trominoes. Think about the **rightmost column** — either filled by vertical domino, two horizontals, or an L-piece leaving a notch. The recurrence encodes those cases in O(1) space with three rolling values.
 
-### 3. Visual walkthrough
-
-```
-PATTERN DECISION TREE — classify any DP problem:
-
-1. Does it have overlapping subproblems?
-   NO → greedy / simple recursion
-   YES ↓
-2. Is the state 1D?
-   YES → linear DP (climbing stairs, house robber, decode ways)
-   NO ↓
-3. Is it a grid?
-   YES → grid DP (unique paths, min path sum, dungeon game)
-   NO ↓
-4. Two sequences?
-   YES → two-sequence DP (LCS, edit distance, interleaving)
-   NO ↓
-5. Capacity constraint?
-   YES → knapsack DP (subset sum, coin change, partition)
-   NO ↓
-6. Multiple states?
-   YES → state machine DP (stock problems, paint house, FSM)
-   NO → interval / tree DP or other advanced pattern
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Arithmetic slice centered count
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+nums = [1, 2, 3, 4]
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Cross-Pattern Recognition" has overlapping subproblems because...
+i=2: 1,2,3 arithmetic → dp=1, ans=1  (slice [1,2,3])
+i=3: 2,3,4 continues → dp=2, ans=1+2=3
+  slices: [1,2,3], [2,3,4], [1,2,3,4]
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+dp at i = # of arithmetic slices ENDING at i (with i as right end)
+When gap continues: dp += 1; ans += dp
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Cross-Pattern Recognition**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Domino/tromino tiling states
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+2×n board, fill left to right:
+
+Case A: vertical domino at col n     → f(n-1)
+Case B: two horizontal dominos       → f(n-2)
+Case C: L-tromino + partial fill     → f(n-3)  (notch states)
+
+Recurrence: f(n) = 2·f(n-1) + f(n-3)
+
+n=1: 1 way   n=2: 2 ways   n=3: 5 ways
+  ▐█▌  ▐█▌     ▐██▌ ▐█▌    (domino + tromino combos)
+  ▐█▌  ▐█▌     ▐██▌ ▐█▌
 ```
 
-### 7. Base cases & answer extraction
+Rolling `(a,b,c)` tracks three consecutive f-values — O(n) time, O(1) space.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 5. When to use which synthesis cue
 
-### 8. Pattern signals & recognition clues
+| Signal | Pattern | Quest |
+|---|---|---|
+| "arithmetic slice" / constant difference | Centered run count | #413 |
+| "domino" / "tromino" / "tile 2×n" | Tiling recurrence | #790 |
+| "how many subarrays" with local property | Running dp at each index | #413 style |
+| "count tilings" mod 10⁹+7 | Multi-state rolling | #790 style |
+
+### 6. The universal templates
+
+```
+// Arithmetic slices
+dp = ans = 0
+for i in 2..n-1:
+  if nums[i]-nums[i-1] == nums[i-1]-nums[i-2]:
+    dp += 1
+    ans += dp
+  else:
+    dp = 0
+
+// Domino/tromino (n >= 3)
+a, b, c = 1, 1, 2
+for i in 3..n:
+  d = (2*c + a) % MOD
+  a, b, c = b, c, d
+return c
+```
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "arithmetic slice" / "difference" | Running dp, ans += dp |
+| "number of slices" (subarray) | Contiguous — check i-2,i-1,i |
+| "domino and tromino" | Tiling recurrence, mod MOD |
+| "2×n board" | Column-by-column states |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `centered count` · `running dp` · `f(n-3)` · `tiling states` · `MOD`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Count all triplets O(n³) | Running dp is O(n) |
+| ans += 1 only (not dp) | Must add **all extended slices** → ans += dp |
+| Fibonacci for tiling | Tromino adds f(n-3) term — not plain Fib |
+| Off-by-one on tiling base | f(1)=1, f(2)=2, loop from 3 |
+| Forget reset dp on break | Non-arithmetic gap → dp = 0 |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Return the number of arithmetic slices in nums."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Running dp = slices ending at i. If gap continues: dp++, ans+=dp. Else dp=0. O(n)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Arithmetic slices first. Quest 1: #413. →*

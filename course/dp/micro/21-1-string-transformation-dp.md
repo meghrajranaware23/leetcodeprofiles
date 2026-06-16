@@ -1,150 +1,142 @@
+<!-- hand-authored -->
 # 📝 String Transformation DP
 
 > **Day 21** · String Transformation DP · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Edit & Transform Operations visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 13 (**C13 LCS**) filled a 2D grid when characters **match or skip** — maximize common subsequence length. Day 21 uses the **same table shape** but different operations: **insert**, **delete**, **replace** to transform one string into another at minimum cost. Still `dp[i][j]` on prefixes — not a state machine, not knapsack.
+
+> **Preview contrast (C13 LCS vs Day 21):** C13 match → `dp[i-1][j-1]+1`; else `max(up, left)`. Day 21 match → `dp[i-1][j-1]`; else **`1 + min(up, left, diag)`** — three edit operations. **LCS grid visual lives on both days; transitions differ.**
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Edit & Transform Operations** — the core technique you'll use in today's quests.
+**Edit Distance / String Transformation DP** — `dp[i][j]` = min cost to transform `word1[0..i-1]` into `word2[0..j-1]`.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **Insert** — `dp[i][j-1] + 1` (insert char to match word2[j-1])
+- **Delete** — `dp[i-1][j] + 1` (remove word1[i-1])
+- **Replace** — `dp[i-1][j-1] + 1` when chars differ
+- **Match** — `dp[i-1][j-1]` when chars equal (free)
+- **Base** — `dp[i][0]=i`, `dp[0][j]=j` (delete all / insert all)
+
+**Variant (Minimum ASCII Delete Sum):** Only deletions allowed; cost = ASCII of deleted char. Match → diagonal free; mismatch → `min(delete from s1, delete from s2)` with char cost.
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Walk both prefixes. At cell `(i,j)` you're aligning `word1[i-1]` with `word2[j-1]`. If they match, inherit the cost from the smaller prefixes. If not, pay 1 (or ASCII) for the cheapest of: drop from s1, drop from s2, or swap one char (replace).
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+LCS asks *"how long can we match without editing?"* Edit distance asks *"how much to pay to make them equal?"*
 
-### 3. Visual walkthrough
-
-```
-State machine — Stock Buy/Sell with Cooldown:
-
-          buy          sell
-  ┌──────────────┐──────────────┐
-  │              ▼              │
-  │   ┌──────────────┐         │
-  │   │    HOLD      │─── sell ─┘
-  │   │  (own stock) │
-  │   └──────────────┘
-  │         ▲
-  │   buy   │
-  │         │
-  ┌──────────────┐    cooldown   ┌──────────────┐
-  │     REST     │◄──────────────│     SOLD     │
-  │  (no stock)  │               │  (just sold) │
-  │              │───── buy ────→│              │
-  └──────────────┘               └──────────────┘
-        │ hold                         │ wait
-        ▼                              ▼
-      REST                           SOLD
-
-Transitions:
-  HOLD[i] = max(HOLD[i-1], REST[i-1] - price[i])
-  SOLD[i] = HOLD[i-1] + price[i]
-  REST[i] = max(REST[i-1], SOLD[i-1])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — edit distance 2D grid
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+word1 = "horse", word2 = "ros"
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Edit & Transform Operations" has overlapping subproblems because...
+        ""   r   o   s
+    ""   0   1   2   3
+    h    1   1   2   3
+    o    2   2   1   2
+    r    3   2   2   2
+    s    4   3   3   2
+    e    5   4   4   3
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+dp[5][3] = 3  (replace h→r, delete r, delete e — or equivalent)
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+Mismatch at (i,j):
+  dp[i][j] = 1 + min( dp[i-1][j],    // delete word1[i-1]
+                       dp[i][j-1],    // insert word2[j-1]
+                       dp[i-1][j-1] ) // replace
 
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Match: dp[i][j] = dp[i-1][j-1]
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Edit & Transform Operations**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — LCS vs Edit Distance (same grid, different recurrence)
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Both use dp[i][j] on prefixes of s1, s2:
+
+LCS (C13):                    Edit Distance (Day 21):
+  match: diag + 1               match: diag (0 cost)
+  else: max(up, left)           else: 1 + min(up, left, diag)
+
+LCS maximizes kept chars       Edit minimizes paid ops
+No insert/delete cost          Each op costs 1 (or ASCII)
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Classic edit distance (#72):**
+```
+for i in 0..m: dp[i][0]=i
+for j in 0..n: dp[0][j]=j
+for i in 1..m:
+  for j in 1..n:
+    if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]
+    else dp[i][j]=1+min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+return dp[m][n]
+```
 
-### 8. Pattern signals & recognition clues
+**ASCII delete sum (#712):**
+```
+// base: dp[i][0]=sum s1[0..i-1], dp[0][j]=sum s2[0..j-1]
+if match: dp[i][j]=dp[i-1][j-1]
+else: dp[i][j]=min(dp[i-1][j]+ord(s1[i-1]), dp[i][j-1]+ord(s2[j-1]))
+```
+
+### 6. C13 LCS vs Day 21 — side by side
+
+| | **C13 LCS** | **Day 21 Edit Distance** |
+|---|---|---|
+| Goal | max length | min cost |
+| Match | diag + 1 | diag + 0 |
+| Mismatch | max(up, left) | 1 + min(up, left, diag) |
+| Operations | implicit skip | insert / delete / replace |
+| Grid | 2D prefix | Same 2D prefix |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "edit distance" / "one operation" | Classic 3-way min |
+| "insert delete replace" | #72 template |
+| "minimum deletions" / "ASCII sum" | Delete-only variant |
+| "longest common subsequence" | **C13** — max not min |
+| "stock cooldown" | **Day 20** — not string grid |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `dp[i][j]` · `insert delete replace` · `prefix` · `diag up left`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using LCS max on edit distance | Mismatch → **min** of three |
+| Forgetting base row/col | dp[i][0]=i, dp[0][j]=j |
+| Off-by-one on indices | dp[i] uses s1[i-1] |
+| Drawing stock state machine | String day — **2D grid only** |
+| Replace cost 0 on mismatch | Replace costs 1 in #72 |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Minimum operations to convert word1 to word2 — insert, delete, replace."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Edit distance: dp[i][j] on prefixes. Match=diag. Else 1+min(up,left,diag). Base row/col = indices."*
+
+Read this one:
+
+> *"Min ASCII sum of deleted chars to make two strings equal."*
+
+Before coding, say:
+
+> *"LCS-shaped grid, delete-only: match free, else min delete from s1 or s2 with ASCII cost."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Same grid as LCS, different transitions. First quest: classic edit distance. →*

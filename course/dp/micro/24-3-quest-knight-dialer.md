@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Knight Dialer
 
 > **Day 24** · [Knight Dialer #935](https://leetcode.com/problems/knight-dialer/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Knight Dialer on LeetCode](https://leetcode.com/problems/knight-dialer/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** 10 digit-states on the phone pad. `dp[d]` = paths ending at digit d. Each step: sum predecessors mod 10⁹+7.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **State Machine on Graph**.
+Which DP pattern from today's concept applies? **State Machine on Graph** — 10 nodes, knight-move edges.
 
-What is the state? What does dp[i] represent for this problem?
+Draw the pad. Digit **5** has **no incoming** knight moves — never visited after step 1.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Predecessors (who can jump TO this digit):
+- 0←{4,6}, 1←{6,8}, 2←{7,9}, 3←{4,8}, 4←{0,3,9}, 6←{0,1,7}, 7←{2,6}, 8←{1,3}, 9←{2,4}
+
+Start: all digits = 1 (length-1 sequences). After n-1 transitions, sum all `dp[d]`.
 
 ---
 
@@ -37,26 +41,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** State Machine on Graph
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Fixed finite states (10 phone keys)
+- Transition rules from graph structure (knight moves)
+- Count distinct paths of length n
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "knight move" / "chess knight" | Graph adjacency, not grid |
+| "phone pad" / "0-9" | 10-state machine |
+| "distinct phone numbers length n" | Sum dp after n-1 steps |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 20 contrast:** Stock FSM optimizes profit (max). Knight dialer **counts** paths (sum mod MOD).
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Build predecessor map for each digit 0-9."*
+2. *"dp[d]=1 initially (any starting digit)."*
+3. *"Repeat n-1 times: ndp[d] = sum dp[prev] for prev in preds[d]."*
+4. *"Return sum(dp) % MOD."*
 
 ---
 
@@ -64,61 +65,54 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **DFS all paths length n** | O(10^n) — n up to 5000 |
+| **Matrix without mod** | Integer overflow |
+| **Successor instead of predecessor loop** | Works either way — pick one direction consistently |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** After each step, only **10 values** matter — how many paths end at each digit. Transitions are fixed forever.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=2: start anywhere (10 choices)
+Step 1: from 1, can only go to 6 or 8
+  dp[6] gets paths from {0,1,7}
+  ...
+Total = sum of 10 dp values
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Number of Dice Rolls #1155](https://leetcode.com/problems/number-of-dice-rolls-with-target-sum/) | Sum states not digits | Today's other quest |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | 2 states (steps) | Simpler FSM |
+| [Paint House #256](https://leetcode.com/problems/paint-house/) | Min cost FSM | max vs sum |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**n = 3** (phone numbers of length 3)
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Initial: dp = [1,1,1,1,1,1,1,1,1,1]  (10 digits)
+
+After move 1 (paths of length 2):
+  ndp[0] = dp[4]+dp[6]
+  ndp[1] = dp[6]+dp[8]
+  ndp[5] = 0  (no predecessors)
+  ...
+
+After move 2 (paths of length 3):
+  repeat transition
+
+Answer = sum(ndp) % 1e9+7
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+Draw the pad once — the predecessor table never changes.
+
+> 💡 **The insight:** 10-state machine with fixed edges. Each step = matrix-vector multiply (mod MOD).
 
 ---
 
@@ -185,19 +179,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"State Machine on Graph"** → Name the DP pattern from the concept page.
+- **"10 digit states"** — not a 2D grid.
+- **"Predecessor sum"** — ndp[d] = Σ dp[prev].
+- **"Mod every add"** — mandatory for n up to 5000.
+- **"5 is dead"** — zero incoming knight moves.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **graph FSM with mod-10 transitions**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** State Machine on Graph
 

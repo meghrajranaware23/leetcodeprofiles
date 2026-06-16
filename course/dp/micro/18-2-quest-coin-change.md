@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Coin Change
 
 > **Day 18** · [Coin Change #322](https://leetcode.com/problems/coin-change/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Coin Change on LeetCode](https://leetcode.com/problems/coin-change/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Unlimited coins = **forward** amount loop. Trace `coins=[1,2,5], amount=11` before coding.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Minimize Coin Count**.
+**Pattern:** Minimize Coin Count — **unbounded knapsack**.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+- `dp[a]` = minimum coins to make amount `a`
+- `dp[0] = 0`, rest initialize to `INF` (or `amount+1` sentinel)
+- `for a in 1..amount: for c in coins: if c<=a: dp[a]=min(dp[a], dp[a-c]+1)`
+- **Forward** on `a` — same spirit as Day 10 perfect squares
+- Return `-1` if `dp[amount]` still infinite
 
 ---
 
@@ -37,26 +40,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Minimize Coin Count
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Unlimited use of each coin
+- Minimize count (not ways)
+- Amount outer loop is standard for min-coins
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "fewest coins" | Min DP, forward amount |
+| "unlimited coins" | Unbounded — not Day 17 reverse |
+| "amount cannot be made" | Return -1 |
+| "number of combinations" | **Coin Change II** — different loop order |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Try all multisets of coins — exponential; overlapping subproblems on amount.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[0]=0."*
+2. *"Amount 1..n outer, coins inner."*
+3. *"dp[a-c] already optimal for smaller amount — add one coin."*
+4. *"Check unreachable at end."*
 
 ---
 
@@ -64,61 +65,49 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Greedy (largest coin first)** | Fails on coins [1,3,4], amount 6 |
+| **BFS on amount** | Works but same DP idea |
+| **Day 17 reverse loop** | Treats as 0/1 — wrong |
+| **Try all subsets** | Exponential |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Optimal for amount `a` builds from optimal for `a-c` plus one coin — forward fill.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+coins=[1,3,4], amount=6
+Greedy: 4+1+1 = 3 coins
+DP: 3+3 = 2 coins ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Perfect Squares #279](https://leetcode.com/problems/perfect-squares/) | Squares as coins | Day 10 bridge |
+| [Coin Change II #518](https://leetcode.com/problems/coin-change-ii/) | Count combos | Coin outer |
+| [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) | Order matters | **Day 22** amount outer |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `coins = [1, 2, 5]`, `amount = 11`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=0
+a=1: 1
+a=2: 1 (2)
+a=3: 2 (1+2)
+a=5: 1 (5)
+a=6: 2 (5+1)
+a=10: 2 (5+5)
+a=11: 3 (5+5+1)
+
+Answer: 3
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Same recurrence as Day 10 — "items" are coin values, unlimited copies.
 
 ---
 
@@ -168,22 +157,21 @@ class Solution {
 ```
 
 **Complexity:** O(n · amount) time · O(amount) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Minimize Coin Count"** → Name the DP pattern from the concept page.
+- **"Unlimited → forward a loop."** → Opposite of Day 17.
+- **"dp[a-c]+1."** → One more coin of value c.
+- **"INF sentinel."** → Detect impossible.
+- **"Minimize Coin Count"** → Day 10 perfect squares cousin.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried greedy first, that's fine — arbitrary denominations need DP.
 
 > 🎯 **Pattern Unlocked:** Minimize Coin Count
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count combinations — watch loop order. →*

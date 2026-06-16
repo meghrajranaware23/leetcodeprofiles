@@ -1,150 +1,147 @@
+<!-- hand-authored -->
 # 📝 Counting & Structural DP
 
 > **Day 22** · Counting & Structural DP · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Counting Structures / Partition DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 18 counted **coin combinations** — order fixed by **coin-outer** loop. Day 22 covers **structural counting**: how many **BST shapes** (Catalan recurrence) and how many **ordered sums** (permutations matter). Same `dp[i] += dp[i-x]` spirit, but **loop order** and **recurrence shape** differ from both knapsack and coin combos.
+
+> **Preview contrast (Day 18 vs Day 22):** Day 18 #518 = **combinations**, coin outer. Day 22 #377 = **permutations**, **amount outer**. Day 22 #96 = **Catalan** — `dp[n] = sum dp[j-1]*dp[n-j]`, not amount DP at all.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Counting Structures / Partition DP** — the core technique you'll use in today's quests.
+**Structural / Counting DP** — count objects defined by recursive structure or ordered compositions.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**Branch A — Catalan (#96 Unique BSTs):**
+- `dp[n]` = number of structurally unique BSTs with nodes `1..n`
+- Pick root `j`: left subtree size `j-1`, right size `n-j`
+- **`dp[i] += dp[j-1] * dp[i-j]`** for `j = 1..i`
+- Base: `dp[0] = dp[1] = 1`
+
+**Branch B — Order-matters counting (#377 Combination Sum IV):**
+- `dp[target]` = ways to make `target` using nums (unlimited)
+- **`for i in 1..target: for num in nums: if num<=i: dp[i]+=dp[i-num]`**
+- Amount outer → `(1,2)` and `(2,1)` count separately
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**BSTs:** How many trees on `{1,2,3}`? Try each root: root 1 → left empty, right `{2,3}`; root 2 → left `{1}`, right `{3}`; etc. Subproblems multiply because left and right subtrees are **independent** choices.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Combination Sum IV:** Coins `[1,2,3]`, target 4 — sequences `1+1+2`, `1+2+1`, `2+1+1`, `2+2`, `1+3`, `3+1` all count. Fill `dp[i]` by "last step used num" → need **target outer** loop.
 
-### 3. Visual walkthrough
-
-```
-State machine — Stock Buy/Sell with Cooldown:
-
-          buy          sell
-  ┌──────────────┐──────────────┐
-  │              ▼              │
-  │   ┌──────────────┐         │
-  │   │    HOLD      │─── sell ─┘
-  │   │  (own stock) │
-  │   └──────────────┘
-  │         ▲
-  │   buy   │
-  │         │
-  ┌──────────────┐    cooldown   ┌──────────────┐
-  │     REST     │◄──────────────│     SOLD     │
-  │  (no stock)  │               │  (just sold) │
-  │              │───── buy ────→│              │
-  └──────────────┘               └──────────────┘
-        │ hold                         │ wait
-        ▼                              ▼
-      REST                           SOLD
-
-Transitions:
-  HOLD[i] = max(HOLD[i-1], REST[i-1] - price[i])
-  SOLD[i] = HOLD[i-1] + price[i]
-  REST[i] = max(REST[i-1], SOLD[i-1])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Catalan recurrence
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+n = 4 nodes → dp[4] = ?
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Counting Structures / Partition DP" has overlapping subproblems because...
+dp[0]=1, dp[1]=1, dp[2]=2, dp[3]=5
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+dp[4] = sum over root j=1..4 of dp[j-1]*dp[4-j]:
+  j=1: dp[0]*dp[3] = 1*5 = 5
+  j=2: dp[1]*dp[2] = 1*2 = 2
+  j=3: dp[2]*dp[1] = 2*1 = 2
+  j=4: dp[3]*dp[0] = 5*1 = 5
+  total = 14
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Not an amount table — index = tree size
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Counting Structures / Partition DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — order matters vs Day 18 combinations
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+nums=[1,2], target=3
+
+COMBINATIONS (#518, coin outer):
+  Only {1,2} and {2,1} as multiset → 1 way? Actually one 1+2 combo
+
+PERMUTATIONS (#377, amount outer):
+  dp[1]=1, dp[2]=2 (1+1, 2), dp[3]=3 (1+1+1, 1+2, 2+1)
+
+Same nums, same target — **loop order** changes the count
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Catalan BST count:**
+```
+dp[0]=dp[1]=1
+for i in 2..n:
+  for j in 1..i:
+    dp[i] += dp[j-1] * dp[i-j]
+return dp[n]
+```
 
-### 8. Pattern signals & recognition clues
+**Ordered sum (#377):**
+```
+dp[0]=1
+for i in 1..target:
+  for num in nums:
+    if num<=i: dp[i]+=dp[i-num]
+return dp[target]
+```
+
+**Combinations (#518 — Day 18 contrast):**
+```
+dp[0]=1
+for num in coins:
+  for i in num..target:
+    dp[i]+=dp[i-num]
+```
+
+### 6. Day 18 vs Day 22
+
+| | **#518 Combinations** | **#377 Permutations** | **#96 Catalan** |
+|---|---|---|---|
+| Loop | coin outer | **amount outer** | size i, root j |
+| Reuse | unlimited | unlimited | N/A |
+| Counts | multisets | **sequences** | tree structures |
+| Recurrence | += dp[i-num] | += dp[i-num] | += dp[j-1]*dp[i-j] |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "unique BSTs" / "structurally unique" | Catalan product recurrence |
+| "order matters" / "permutation" | Amount outer, += |
+| "combinations" / "order doesn't matter" | **Day 18** coin outer |
+| "how many ways to climb" | Often amount outer (ordered steps) |
+| "subset once each" | **Day 17** reverse |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `Catalan` · `dp[j-1]*dp[i-j]` · `amount outer` · `order matters`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Coin outer for #377 | Counts combinations — too few |
+| Amount outer for #518 | Counts permutations — too many |
+| Add instead of multiply in Catalan | Left × right independent |
+| Forgetting dp[0]=1 | Empty tree / empty sum base |
+| Using 0/1 reverse loop | Unlimited reuse — forward |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"How many structurally unique BSTs store 1..n?"*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Catalan: dp[i]+=dp[j-1]*dp[i-j] for each root j. dp[0]=dp[1]=1."*
+
+Read this one:
+
+> *"Count sequences of nums summing to target — order matters."*
+
+Before coding, say:
+
+> *"Amount outer, nums inner, dp[i]+=dp[i-num]. Not Day 18 coin outer."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Structure and order decide the recurrence. First quest: Catalan BST count. →*

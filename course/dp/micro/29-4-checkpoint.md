@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 29 Checkpoint
 
 > **DP Synthesis II** · 2 quests completed · ⭐ 170 XP earned
@@ -6,73 +7,58 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 29 = **2D subsequence count** + **K-transaction state machine**. **Not** interval-only visuals.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions | Overlapping subproblems with optimal substructure |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost | Overlapping subproblems with optimal substructure |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) | Overlapping subproblems with optimal substructure |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) | Overlapping subproblems with optimal substructure |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount | Overlapping subproblems with optimal substructure |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i | Overlapping subproblems with optimal substructure |
-| "longest common" / "two strings" | LCS — 2D DP on two sequences | Overlapping subproblems with optimal substructure |
-| "palindrome" / "reads same" | Palindrome DP — expand or dp[i][j] | Overlapping subproblems with optimal substructure |
-| "grid" / "path" / "top-left to bottom-right" | Grid DP — dp[i][j] from neighbors | Overlapping subproblems with optimal substructure |
-| "buy and sell" / "stock" / "transaction" | State Machine DP — hold/sold/rest states | Overlapping subproblems with optimal substructure |
-| "transform" / "edit distance" / "operations" | String DP — insert/delete/replace choices | Overlapping subproblems with optimal substructure |
-| "partition into" / "subset sum" / "target" | Subset Sum DP — include/exclude with capacity | Overlapping subproblems with optimal substructure |
+| "distinct subsequences" | Count on match, dp[0]=1 | #115 sum paths |
+| "how many ways" + two strings | 2D count or 1D row | Not LCS max |
+| "at most 2 transactions" | buy1,sell1,buy2,sell2 | #123 four scalars |
+| "at most K transactions" | K pairs buy/sell | Generalize Day 29 |
+| "burst balloons" | **Day 30** interval | Not Day 29 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. What's the state? What's the transition?
-
-1. *"Find the minimum cost to climb stairs, paying cost[i] per step"* → **State:** dp[i] = min cost to reach step i. **Transition:** dp[i] = cost[i] + min(dp[i-1], dp[i-2])
-2. *"Count the number of ways to make change for amount n"* → **State:** dp[i] = number of ways to make amount i. **Transition:** dp[i] += dp[i - coin] for each coin
-3. *"Find the longest common subsequence of two strings"* → **State:** dp[i][j] = LCS of s1[0..i] and s2[0..j]. **Transition:** match → dp[i-1][j-1]+1, else max(dp[i-1][j], dp[i][j-1])
-4. *"Given weights and values, maximize value within capacity W"* → **State:** dp[i][w] = max value using items 0..i with capacity w. **Transition:** dp[i][w] = max(skip, take if fits)
+1. *"Count distinct subsequences of t in s"* → **2D count.** Match: `dp[j]+=dp[j-1]`, j descending.
+2. *"Max profit, at most 2 stock trades"* → **K=2 machine.** `buy2=min(buy2,p-sell1)`.
+3. *"LCS length of two strings"* → **Day 13 max** — not sum.
+4. *"Stock with cooldown"* → **Day 20** hold/sold/rest — not K=2.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you define the state on problems you've never seen?
+**Scenario 1:** *"Count distinct subsequences of a single string (all non-empty)."*
 
-**Scenario 1:** *"Given an array, find the length of the longest increasing subsequence."*
+Which pattern? **Counting variant** — harder dedup; cousin of #115.
 
-What's the state? **dp[i] = length of LIS ending at index i.** Transition: dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i].
+**Scenario 2:** *"Max profit with at most 3 transactions."*
 
-**Scenario 2:** *"Find the minimum number of coins to make a given amount."*
+Which pattern? **K=3 machine** — six scalars or `dp[k][hold]`.
 
-What's the state? **dp[i] = min coins to make amount i.** Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
+**Scenario 3:** *"Is t a subsequence of s?"*
 
-**Scenario 3:** *"Count paths in a grid from top-left to bottom-right, moving only right or down."*
+Which pattern? **Boolean** — E-Rank #392; one path, not count.
 
-What's the state? **dp[i][j] = number of paths to reach cell (i,j).** Transition: dp[i][j] = dp[i-1][j] + dp[i][j-1].
-
-> **Answer key:** All three use DP patterns from this course. The *state and transition* change — the pipeline does not.
+> **Answer key:** Scenario 1 = counting extension. Scenario 2 = K-generalization. Scenario 3 = not #115.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Wrong state definition** — If your state doesn't capture enough information, the transition can't be correct.
-2. **Forgetting base cases** — dp[0] (and sometimes dp[1]) must be set before the loop starts.
-3. **Wrong fill order** — If dp[i] depends on dp[i+1], you must fill right-to-left, not left-to-right.
-4. **Off-by-one errors** — DP arrays are usually size n+1 to include the empty/zero case.
-5. **Returning the wrong cell** — The answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] depending on the state definition.
+1. **Max instead of sum on #115** — counting adds paths.
+2. **Fill dp[j] left-to-right on match** — overwrites same-row contributions.
+3. **Single buy/sell for Stock III** — need second pair.
+4. **`buy2 = min(buy2, p)` without sell1** — second buy is net of first profit.
+5. **Use LCS template for distinct subseq** — different aggregation.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+`s="babgbag"`, `t="bag"`. Before coding: is this counting or maximizing? What is dp[0]?
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Define the state in one sentence. Write the transition formula. Identify the base case. Then code.
-
-> 💡 **Hint:** Re-read the DP Pipeline from today's concept if stuck.
+> 💡 **Hint:** Counting. dp[0]=1 (empty target).
 
 ---
 
@@ -85,4 +71,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 29 complete! Tomorrow: the next level of your dynamic ascension. →*
+*Day 29 complete! Tomorrow: Dynamic Legend capstone + decision flowchart. →*

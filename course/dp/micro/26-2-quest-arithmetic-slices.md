@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Arithmetic Slices
 
 > **Day 26** · [Arithmetic Slices #413](https://leetcode.com/problems/arithmetic-slices/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Arithmetic Slices on LeetCode](https://leetcode.com/problems/arithmetic-slices/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** `dp` = slices **ending at i**. Gap continues → `dp += 1`, `ans += dp`. Break → `dp = 0`.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Counting Sequences DP**.
+Which DP pattern from today's concept applies? **Counting Sequences DP** — centered run count.
 
-What is the state? What does dp[i] represent for this problem?
+An arithmetic slice has **length ≥ 3** and constant step. At index `i`, check if `nums[i]-nums[i-1] == nums[i-1]-nums[i-2]`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If yes: the run extends. New slices ending at `i` = all slices that ended at `i-1` (extended) **plus one** new 3-element slice. That's `dp += 1`, then `ans += dp`.
+
+If no: reset `dp = 0`.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Counting Sequences DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Count **contiguous subarrays** (slices), not subsequences
+- Property: constant difference between consecutive elements
+- Minimum length 3
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "arithmetic slice" | diff(i,i-1) == diff(i-1,i-2) |
+| "number of slices" | Running count, ans += dp |
+| "subarray" / contiguous | Only check consecutive triples+ |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Brute force contrast:** O(n³) enumerates all subarrays. Running dp is O(n) because extension count is incremental.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp = slices ending at current index."*
+2. *"Check 3-element gap at i."*
+3. *"Continue: dp++, ans+=dp. Break: dp=0."*
+4. *"Return ans."*
 
 ---
 
@@ -64,61 +64,52 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **All subarrays O(n³)** | Slow on n=5000 |
+| **ans += 1 only on continue** | Misses extended longer slices |
+| **Subsequence instead of subarray** | Wrong — must be contiguous |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** When the run extends, each slice ending at `i-1` becomes a longer slice ending at `i` — that's exactly `dp` slices, plus one new length-3 slice → `dp += 1` then `ans += dp`.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+[1,2,3,4,5]:
+i=2: dp=1, ans=1     [1,2,3]
+i=3: dp=2, ans=3     +[2,3,4], +[1,2,3,4]
+i=4: dp=3, ans=6     +3 more
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Arithmetic Slices II #446](https://leetcode.com/problems/arithmetic-slices-ii-subsequence/) | Subsequence, any diff | Harder — map per index |
+| [Number of Smooth Descent Periods #2110](https://leetcode.com/problems/number-of-smooth-descent-periods-of-a-stock/) | Decreasing by 1 | Same running dp shape |
+| [Domino and Tromino Tiling #790](https://leetcode.com/problems/domino-and-tromino-tiling/) | Tiling not sequences | Today's other quest |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [1, 2, 3, 4]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i=2: 3-2==2-1 ✓ → dp=1, ans=1
+i=3: 4-3==3-2 ✓ → dp=2, ans=1+2=3
+
+Slices: [1,2,3], [2,3,4], [1,2,3,4] → 3 total ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+**nums = [1, 2, 3, 8, 9, 10]**
+
+```
+i=2: dp=1, ans=1
+i=3: 8-3≠3-2 → dp=0
+i=4: dp=1, ans=2
+i=5: dp=2, ans=4
+```
+
+> 💡 **The insight:** `ans += dp` captures all extensions in one line — centered count at each right endpoint.
 
 ---
 
@@ -168,19 +159,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Counting Sequences DP"** → Name the DP pattern from the concept page.
+- **"dp = slices ending at i"** — not total from scratch.
+- **"ans += dp on extend"** — captures all lengthened slices.
+- **"dp = 0 on break"** — gap changed.
+- **"Contiguous only"** — three consecutive indices.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **centered run counting**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Counting Sequences DP
 

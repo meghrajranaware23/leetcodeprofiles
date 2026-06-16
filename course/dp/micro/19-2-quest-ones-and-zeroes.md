@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Ones and Zeroes
 
 > **Day 19** · [Ones and Zeroes #474](https://leetcode.com/problems/ones-and-zeroes/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Ones and Zeroes on LeetCode](https://leetcode.com/problems/ones-and-zeroes/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Each string = item with **two weights** (0-count, 1-count). Draw `dp[m][n]` before coding.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Multi-Constraint Knapsack**.
+**Pattern:** Multi-Constraint Knapsack — **2D 0/1**.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+- `dp[i][j]` = max number of strings using at most `i` zeros and `j` ones
+- For each string: count `z` = zeros, `o` = ones in string
+- **Reverse both** `i` from m down to z, `j` from n down to o
+- `dp[i][j] = max(dp[i][j], dp[i-z][j-o] + 1)`
+- Answer: `dp[m][n]`
 
 ---
 
@@ -37,26 +40,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Multi-Constraint Knapsack
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Two simultaneous budgets (m zeros, n ones)
+- Each item used at most once
+- Maximize **count** of items (value 1 each)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "at most m 0s and n 1s" | 2D knapsack |
+| "maximize number of strings" | +1 on take |
+| "each string once" | Reverse both dimensions |
+| "single weight capacity" | **Day 17** 1D |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** 2^n subset of strings — overlap on `(remaining zeros, remaining ones)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Precompute (z,o) per string."*
+2. *"dp[m+1][n+1] initialized 0."*
+3. *"Double reverse per string."*
+4. *"Return dp[m][n]."*
 
 ---
 
@@ -64,61 +65,44 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all subsets** | O(2^n) |
+| **Greedy by length** | May violate 0/1 budgets |
+| **Forward i,j loops** | Reuses same string |
+| **1D knapsack only** | Two constraints need 2D |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Classic knapsack with weight vector `(z, o)` instead of scalar weight.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+m=3, n=3, pick "1","0","10" → 3 strings, uses 2 zeros 2 ones ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [0/1 Knapsack](https://leetcode.com/) | One weight | Day 17 |
+| [Last Stone Weight II #1049](https://leetcode.com/problems/last-stone-weight-ii/) | 1D min-diff | Today's second quest |
+| [Profitable Schemes](https://leetcode.com/problems/profitable-schemes/) | Profit + people | Hard 2D+ |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `strs = ["10","0001","111001","1","0"]`, `m=3`, `n=3`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Process strings, double reverse:
+
+"10" (z=1,o=1): enables dp[1][1]=1, dp[2][2]=1, ...
+"0001" (z=3,o=1): extends counts
+...
+
+Best dp[3][3] = 4 strings
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Same 0/1 DNA as Day 17 — one extra dimension in the table.
 
 ---
 
@@ -175,22 +159,21 @@ class Solution {
 ```
 
 **Complexity:** O(l · m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Multi-Constraint Knapsack"** → Name the DP pattern from the concept page.
+- **"Two budgets → dp[m][n]."** → 2D knapsack.
+- **"Reverse i and j."** → 0/1 per string.
+- **"+1 on take."** → Maximize count, not value sum.
+- **"Multi-Constraint Knapsack"** → Day 17 with two weights.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried bitmask subsets, the breakthrough is the **2D table fill**.
 
 > 🎯 **Pattern Unlocked:** Multi-Constraint Knapsack
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: partition min-diff in disguise. →*

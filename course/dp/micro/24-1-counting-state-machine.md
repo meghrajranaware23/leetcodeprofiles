@@ -1,145 +1,145 @@
+<!-- hand-authored -->
 # 📝 Counting & State Machine Mastery
 
 > **Day 24** · Counting & State Machine Mastery · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Counting with Constraints visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 22 counted **structures** (BSTs, combinations). Day 20 ran **state machines** on stocks. Day 24 merges both: **count ways under constraints** where the state tracks **progress toward a target** or **position on a graph**. Two shapes: dice rolls filling a sum table, and knight moves on a phone pad.
+
+> **Preview contrast (Day 20 vs Day 24):** Day 20 stock = **max profit** across hold/sold/rest. Day 24 = **count paths** — sum transitions, often mod 10⁹+7.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Counting with Constraints** — the core technique you'll use in today's quests.
+**Counting & State Machine Mastery** — two flagship shapes:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**A. Dice / target sum (`dp[d][s]`)**
+- **State** — after `d` dice rolled, how many ways to reach sum `s`?
+- **Transition** — for each face `f` in 1..k: `ndp[s] += dp[s-f]`
+- **Base** — `dp[0] = 1` (zero dice, sum zero = one way)
+
+**B. Graph state machine (Knight Dialer)**
+- **State** — `dp[digit]` = number of paths ending at that phone key after `t` moves
+- **Transition** — from each digit, sum paths from all **valid predecessor** digits (mod 10⁹+7)
+- **Base** — all 10 digits start with 1 path (length-1 sequences)
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Dice:** Each die adds 1..k to your running sum. The table asks: *"How many distinct sequences of dice faces hit exactly this sum?"* Roll one die at a time — copy the previous row forward by each face value.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Knight dialer:** The phone pad is a graph — not every digit connects to every other. A knight jump from `1` can only arrive from `6` or `8`. Each step, every digit's count = sum of counts from its legal predecessors.
 
-### 3. Visual walkthrough
-
-```
-PATTERN DECISION TREE — classify any DP problem:
-
-1. Does it have overlapping subproblems?
-   NO → greedy / simple recursion
-   YES ↓
-2. Is the state 1D?
-   YES → linear DP (climbing stairs, house robber, decode ways)
-   NO ↓
-3. Is it a grid?
-   YES → grid DP (unique paths, min path sum, dungeon game)
-   NO ↓
-4. Two sequences?
-   YES → two-sequence DP (LCS, edit distance, interleaving)
-   NO ↓
-5. Capacity constraint?
-   YES → knapsack DP (subset sum, coin change, partition)
-   NO ↓
-6. Multiple states?
-   YES → state machine DP (stock problems, paint house, FSM)
-   NO → interval / tree DP or other advanced pattern
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Dice `dp[d][s]`
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+n=2 dice, k=6 faces, target=7
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Counting with Constraints" has overlapping subproblems because...
+After 0 dice:  dp[0]=1
+After 1 die:  dp[1..6] = 1 each  (one way per face)
+After 2 dice:  dp[7] = dp[6]+dp[5]+dp[4]+dp[3]+dp[2]+dp[1]
+              = 1+1+1+1+1+1 = 6 ways
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+      sum:  0  1  2  3  4  5  6  7
+d=0:      1  0  0  0  0  0  0  0
+d=1:      0  1  1  1  1  1  1  0
+d=2:      0  0  1  2  3  4  5  6
+                              ↑ answer
 ```
 
-### 5. State definition
+Same spirit as coin change counting — but dice have **bounded face values** 1..k.
 
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Counting with Constraints**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Knight dialer mod-10 transitions
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Phone pad (knight moves):
+
+  1 ── 6 ── 7
+  │    │    │
+  4    0    8
+  │    │    │
+  3 ── 5* ── 9
+       │
+  (5 has no knight moves)
+
+Predecessors of digit 1: {6, 8}
+Predecessors of digit 4: {0, 3, 9}
+Predecessors of 5: {} (dead end for incoming)
+
+After t moves:
+  dp_new[1] = dp_old[6] + dp_old[8]  (mod 1e9+7)
+  dp_new[4] = dp_old[0] + dp_old[3] + dp_old[9]
+  ...
+  answer = sum(dp[0..9])
 ```
 
-### 7. Base cases & answer extraction
+**10 states, fixed transition graph** — not a 2D grid.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 5. Day 20 vs Day 24
 
-### 8. Pattern signals & recognition clues
+| | **Day 20 — Stock FSM** | **Day 24 — Counting FSM** |
+|---|---|---|
+| Goal | Max profit | Count paths |
+| Aggregation | max | sum (mod 10⁹+7) |
+| States | hold / sold / rest | phone digits 0-9 |
+| Quest | #309, #714 | #935, #1155 |
+| Transition | buy/sell/cooldown | knight jump graph |
+
+### 6. The universal templates
+
+```
+// Dice rolls to target
+dp[0] = 1
+for each die:
+  ndp = zeros
+  for s in 1..target:
+    for f in 1..min(k, s):
+      ndp[s] += dp[s - f]
+  dp = ndp
+return dp[target]
+
+// Knight dialer
+dp[d] = 1 for all digits
+for step in 1..n-1:
+  ndp[d] = sum(dp[prev] for prev in predecessors[d]) % MOD
+return sum(dp) % MOD
+```
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "number of dice rolls" / "target sum" | `dp[d][s]` counting |
+| "k faces" / "n dice" | Bounded add 1..k per step |
+| "knight move" / "phone pad" | Graph FSM, mod 10⁹+7 |
+| "how many distinct phone numbers" | Sum over 10 digit-states |
+| "mod 10^9+7" | Almost always counting DP |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `dp[d][s]` · `ndp` · `predecessors` · `MOD` · `count ways`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using max instead of sum | Counting = add transitions |
+| Forgetting mod on every add | Knight dialer overflows without `% MOD` |
+| Wrong predecessor list for knight | Draw the pad — 5 is unreachable |
+| Confusing dice with unbounded knapsack | Faces are 1..k, one die per iteration |
+| Single 1D dp without rolling row | Need fresh `ndp` each die to avoid reuse |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Return the number of distinct phone numbers of length n a knight can dial."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"10 digit states. dp[d] = paths ending at d. Each step: ndp[d] = sum of dp[predecessors]. Mod 1e9+7."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Dice first. Quest 1: Number of Dice Rolls with Target Sum. →*

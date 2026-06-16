@@ -1,151 +1,297 @@
+<!-- hand-authored -->
 # 📝 The Final Ascension
 
 > **Day 30** · The Final Ascension · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Multi-Pattern Synthesis visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Twenty-nine days. One decision tree. Today's concept is the **DP Pattern Decision Flowchart** — the capstone map that routes any new problem to the right template from Days 1–29. Today's quests are **matrix DFS memo** (#329 Longest Increasing Path) and **interval last-burst DP** (#312 Burst Balloons) — two capstone patterns that look unrelated until you run the tree.
+
+This is not new theory. It is **Dynamic Legend synthesis**.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — The Capstone Pattern Decision Flowchart
 
-### 1. What is the pattern?
+### 1. The master flowchart
 
-**Multi-Pattern Synthesis** — the core technique you'll use in today's quests.
-
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
-
-### 2. Simple explanation
-
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
-
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+When a new DP problem lands, run this tree **before** coding:
 
 ```
-Interval DP — bracket notation:
-
-dp[i][j] = optimal answer for subarray arr[i..j]
-
-Split at every k where i ≤ k < j:
-
-dp[i][j] = min/max over k of:
-           dp[i][k] ⊕ dp[k+1][j] + cost(i, k, j)
-
-Dependency arrows:
-  ┌─────────────────────────────────────┐
-  │        dp[0][4]                     │
-  │       /    |    \                   │
-  │  dp[0][0] dp[0][1] dp[0][2] ...    │
-  │  dp[1][4] dp[2][4] dp[3][4] ...    │
-  │       \    |    /                   │
-  │    smaller intervals first          │
-  └─────────────────────────────────────┘
-
-Fill order: by interval length (len=1, len=2, ..., len=n)
-
-  for len in 1..n:
-    for i in 0..n-len:
-      j = i + len - 1
-      for k in i..j-1:
-        dp[i][j] = best(dp[i][k], dp[k+1][j])
+                         NEW DP PROBLEM
+                                │
+              ┌─────────────────┴─────────────────┐
+              │ Overlapping subproblems + optimal │
+              │ substructure?                     │
+              └─────────────────┬─────────────────┘
+                           NO  │  YES
+                                ↓
+              ┌─────────────────────────────┐
+              │ Greedy / two pointers /     │
+              │ math — not DP (Days 0)      │
+              └─────────────────────────────┘
+                                │
+                           YES ─┤
+                                ↓
+              ┌─────────────────────────────┐
+              │ Input is a GRID / MATRIX?   │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ Path count  │   │ Min/max cost │   │ Side-length  │
+  │ / unique    │   │ path sum     │   │ or DFS memo  │
+  │ Days 7, 11  │   │ Days 8, 11   │   │ Days 28, 30  │
+  └─────────────┘   └──────────────┘   │ #221, #329   │
+         │                  │          └──────────────┘
+         ↓                  ↓                  │
+  ┌─────────────┐   ┌──────────────┐          │
+  │ 3D state    │   │ Obstacles /  │          │
+  │ (steps,k)   │   │ falling path │          │
+  │ Day 25      │   │ Day 11       │          │
+  └─────────────┘   └──────────────┘          │
+                            │                  │
+              (NO — sequence / array / string) ─┤
+                                                ↓
+              ┌─────────────────────────────┐
+              │ TWO sequences / strings?    │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ LCS max     │   │ Edit / delete│   │ Count subseq │
+  │ Day 13      │   │ Day 21, 23   │   │ Day 29 #115  │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ "How many ways" / counting? │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ Decode /    │   │ Coin combos  │   │ Dice / FSM   │
+  │ paths Day 7 │   │ Day 18, 22   │   │ Day 24       │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Capacity / subset / target? │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ 0/1 Knapsack│   │ Unbounded    │   │ Multi-dim    │
+  │ Day 17      │   │ Day 18       │   │ Day 19       │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Buy/sell / stock / states?  │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ 1 txn Day 5 │   │ Cooldown/fee │   │ K txn        │
+  │             │   │ Day 20       │   │ Day 29 #123  │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Palindrome / partition str? │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ Expand /    │   │ Word break   │   │ Min cuts     │
+  │ LPS Day 14  │   │ Day 15       │   │ S-Test #132  │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Subsequence on ONE array?   │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ LIS Day 12  │   │ Take/skip    │   │ Wiggle /     │
+  │             │   │ Day 6, 9     │   │ chain Day 16 │
+  └─────────────┘   └──────────────┘   └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Split array / interval?     │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ 1D partition│   │ Interval     │   │ Job schedule │
+  │ Day 28 #1043│   │ burst Day 30 │   │ S-Test #1335 │
+  └─────────────┘   │ #312         │   └──────────────┘
+                    └──────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Linear 1D — last resort     │
+              │ Days 1–5, 10, 27            │
+              │ (stairs, robber, Kadane)    │
+              └─────────────────────────────┘
 ```
 
-### 4. The DP Pipeline
+### 2. Route to the right day
 
-Apply the five-step pipeline to today's pattern:
+| Problem shape | Reach for | Example days |
+|---|---|---|
+| Fibonacci / recurrence | Linear 1D | 1–2 |
+| Memo vs tabulation | Pipeline | 2–3 |
+| State definition drill | Framework | 4 |
+| Running min / Kadane | Decision 1D | 5 |
+| Take or skip adjacent | House Robber | 6 |
+| Count ways / decode | Counting | 7 |
+| Grid min-cost path | Cost optimization | 8 |
+| Circular / dual state | Extended decision | 9 |
+| Multi-choice per index | Integer break | 10 |
+| Grid with obstacles | Grid foundations | 11 |
+| LIS / increasing subseq | Subsequence | 12 |
+| Two-string LCS | Two-sequence | 13 |
+| Palindrome substring | Expand / interval | 14 |
+| String partition | Word break | 15 |
+| Wiggle / pair chain | Sequence variants | 16 |
+| Subset sum / target | 0/1 Knapsack | 17 |
+| Unlimited coins | Unbounded | 18 |
+| Two constraints | Multi-dim knapsack | 19 |
+| Stock cooldown/fee | State machine | 20 |
+| Edit distance | String transform | 21 |
+| Catalan / order counts | Structural | 22 |
+| Interleaving / delete op | Advanced string | 23 |
+| Dice / knight dialer | Counting FSM | 24 |
+| 3D grid state | Multi-dimensional | 25 |
+| Cross-pattern mix | Synthesis | 26 |
+| Interview speed | Greedy+DP dual | 27 |
+| Grid side-length / 1D partition | Advanced 2D | 28 |
+| Distinct subseq / K stock | String + K-FSM | 29 |
+| Matrix DFS memo / interval burst | **Capstone** | 30 |
 
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+### 3. Today's two capstone patterns
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Multi-Pattern Synthesis" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Multi-Pattern Synthesis**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+**Longest Increasing Path in a Matrix #329** — **grid DFS + memo**:
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+DAG property: only move to STRICTLY larger cells → no cycles
+memo[i][j] = 1 + max DFS from increasing neighbors
+
+for each cell (i,j):
+  if memo[i][j]: return memo[i][j]
+  best = 1
+  for each neighbor with mat[ni][nj] > mat[i][j]:
+    best = max(best, 1 + dfs(ni,nj))
+  memo[i][j] = best
+
+Answer = max over all starts (not corner-only — any cell can start)
+Time O(m·n) — each cell computed once
 ```
 
-### 7. Base cases & answer extraction
+Top-down memo, not bottom-up tabulation — the graph is implicit from value order.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Burst Balloons #312** — **interval DP (last to burst)**:
 
-### 8. Pattern signals & recognition clues
+```
+Pad: a = [1] + nums + [1]
+dp[i][j] = max coins bursting all balloons in (i,j) exclusive
 
-| When the problem says… | Think… |
-|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+For interval length 1..n:
+  for i in 1..n-len+1, j = i+len-1:
+    for k in i..j:  ← k is LAST balloon burst in (i,j)
+      dp[i][j] = max(dp[i][j],
+        dp[i][k-1] + dp[k+1][j] + a[i-1]*a[k]*a[j+1])
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+Answer = dp[1][n]
+Key insight: pick LAST burst → left/right intervals independent
+```
 
-### 9. Common DP mistakes
+### 4. The Dynamic Legend workflow
 
-| Mistake | Fix |
-|---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+Every S-Rank interview problem:
 
-### 10. Recognition drill
+1. **State** — write `dp[...]` meaning in one sentence
+2. **Route** — run the decision tree → name the day/pattern
+3. **Trace** — fill one row/cell/interval on paper
+4. **Code** — template first, edge cases second
+5. **Prune** — can space drop to O(n) or O(1)?
 
-Read this problem aloud:
+> 💡 **The S-Rank skill:** Name the state first. Route through the tree second. Code third.
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+### 5. Full pack map — where you learned each branch
 
-Before coding, say:
+```
+Days  1–5:  mental model + memo/tabulation + 1D decisions
+Days  6–10: take/skip + counting + grid cost + circular + multi-option
+Days 11–16: grid + LIS + LCS + palindrome + string partition + sequences
+Days 17–22: knapsack family + state machine + edit + structural counting
+Days 23–27: advanced string + counting FSM + 3D state + synthesis + speed
+Days 28–29: grid side-length + 1D partition + distinct subseq + K stock
+Days 30:    matrix DFS memo + interval burst + THIS decision tree
+S-Test:     job partition #1335, parens #32, palindrome cuts #132
+```
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+### 6. Common capstone mistakes
+
+| Mistake | Pattern | Fix |
+|---|---|---|
+| LIP: BFS without increasing constraint | Day 30 | Only recurse to **strictly larger** neighbors |
+| LIP: tabulate without topo order | Day 30 | DFS memo — DAG from value order |
+| Burst: burst-first thinking | Day 30 | Think **last** balloon burst in interval |
+| Burst: forget padding `[1,...nums,1]` | Day 30 | Boundary balloons multiply cost |
+| Skip decision tree, guess template | All days | Route first — grid vs string vs interval |
+| Use interval DP for #1043 | Day 28 vs 30 | #1043 is 1D prefix; #312 is interval |
+
+### 7. Recognition drill — capstone edition
+
+Read each problem. Route through the tree:
+
+> *"Longest strictly increasing path in a matrix."*
+>
+> → **Grid DFS memo.** Day 30. `memo[i][j]` = 1 + max increasing neighbors.
+
+> *"Maximum coins bursting balloons optimally."*
+>
+> → **Interval DP last-burst.** Day 30. `dp[i][j]`, split at k last burst.
+
+> *"Minimum difficulty scheduling d job days."*
+>
+> → **2D partition DP.** S-Test #1335. `dp[day][job]` with segment max.
+
+> *"Longest valid parentheses substring."*
+>
+> → **Linear dp[i] length.** S-Test #32. Extend on `()` and `)(` patterns.
+
+> *"Minimum cuts to partition string into palindromes."*
+>
+> → **Linear partition + expand.** S-Test #132. `dp[i]` + center expansion.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You have the full decision tree. Quest 1: Longest Increasing Path — DFS memo on the matrix DAG. →*

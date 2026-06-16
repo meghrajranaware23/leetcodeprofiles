@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Interleaving String
 
 > **Day 23** · [Interleaving String #97](https://leetcode.com/problems/interleaving-string/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Interleaving String on LeetCode](https://leetcode.com/problems/interleaving-string/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw `dp[i][j]` — can prefixes of `s1` (i chars) and `s2` (j chars) form the first `i+j` chars of `s3`? Boolean OR, not LCS max.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Two-String Interleave DP**.
+Which DP pattern from today's concept applies? **Two-String Interleave DP** — `dp[i][j]` reachability.
 
-What is the state? What does dp[i] represent for this problem?
+If `m + n != len(s3)`, return false immediately. At `(i,j)`, the next char of `s3` is at index `i+j-1`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Two ways to arrive: last char from `s1[i-1]` (need `dp[i-1][j]`) or from `s2[j-1]` (need `dp[i][j-1]`). **OR**, not max.
+
+Space trick: only previous row needed — rolling 1D array of size `n+1`.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Two-String Interleave DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Three strings — output must use **all** of s1 and s2 in original order
+- Boolean answer — can/can't interleave
+- 2D state `(i,j)` = progress into s1 and s2
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "interleaving" / "formed from s1 and s2" | `dp[i][j]` boolean OR |
+| "while maintaining relative order" | No reordering — prefix DP |
+| "s3 consists of s1 and s2" | Must consume both fully → answer `dp[m][n]` |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 13 contrast:** LCS **skips** chars and **maximizes** matches. Interleaving **uses every char** from both strings — no skipping allowed.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Length check: m+n == len(s3)?"*
+2. *"dp[i][j] = can prefixes interleave to s3[:i+j]?"*
+3. *"Match s1[i-1] or s2[j-1] to s3[i+j-1], OR both paths."*
+4. *"Answer: dp[m][n]."*
 
 ---
 
@@ -64,61 +64,48 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all interleavings recursively** | O(C(m+n, m)) — exponential |
+| **LCS-style max match** | Wrong — can't skip chars in s1/s2 |
+| **Greedy pick s1 or s2** | Local choice doesn't guarantee global validity |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Only `(i,j)` pairs repeat — O(m·n) unique states. Each cell asks one question: *did the last char come from s1 or s2?*
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+s1="aabcc", s2="dbbca", s3="aadbbcbcac"
+
+dp[2][1] = can "aa"+"d" form "aad"?
+  s3[2]='d' from s2[0] → need dp[2][0] && s2[0]=='d' ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Distinct Subsequences #115](https://leetcode.com/problems/distinct-subsequences/) | Count ways s is subseq of t | 2D string, different transition |
+| [Edit Distance #72](https://leetcode.com/problems/edit-distance/) | Min operations | Day 21 — min not boolean |
+| [Longest Common Subsequence #1143](https://leetcode.com/problems/longest-common-subsequence/) | Max length, skip allowed | Day 13 |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Key cells:
+  dp[0][0] = T
+  dp[1][0]: s1[0]='a' == s3[0] → T
+  dp[2][0]: s1[1]='a' == s3[1] → T
+  dp[2][1]: s3[2]='d' from s2[0]='d', dp[2][0]=T → T
+  ...
+  dp[5][5] = T → valid interleaving
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+Fill row by row. At each `(i,j)`, check both sources for `s3[i+j-1]`.
+
+> 💡 **The insight:** Same 2D grid shape as LCS — but boolean OR replaces max(+1, ↑, ←).
 
 ---
 
@@ -185,19 +172,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Two-String Interleave DP"** → Name the DP pattern from the concept page.
+- **"State is `dp[i][j]`"** — prefixes of s1 and s2 form prefix of s3 of length i+j.
+- **"OR transition"** — last char from s1 or s2 if characters match s3[i+j-1].
+- **"Not LCS"** — must use all chars; boolean not max.
+- **"Day 13 grid shape"** — same 2D walk, different cell meaning.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **`dp[i][j]` as weave progress**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Two-String Interleave DP
 

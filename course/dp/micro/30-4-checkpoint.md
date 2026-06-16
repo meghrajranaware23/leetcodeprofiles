@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 30 Checkpoint
 
 > **The Final Ascension** · 2 quests completed · ⭐ 170 XP earned
@@ -6,73 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 30 is **Dynamic Legend capstone** — run the **Days 1–29 decision flowchart**, then execute.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions | Overlapping subproblems with optimal substructure |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost | Overlapping subproblems with optimal substructure |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) | Overlapping subproblems with optimal substructure |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) | Overlapping subproblems with optimal substructure |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount | Overlapping subproblems with optimal substructure |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i | Overlapping subproblems with optimal substructure |
-| "longest common" / "two strings" | LCS — 2D DP on two sequences | Overlapping subproblems with optimal substructure |
-| "palindrome" / "reads same" | Palindrome DP — expand or dp[i][j] | Overlapping subproblems with optimal substructure |
-| "grid" / "path" / "top-left to bottom-right" | Grid DP — dp[i][j] from neighbors | Overlapping subproblems with optimal substructure |
-| "buy and sell" / "stock" / "transaction" | State Machine DP — hold/sold/rest states | Overlapping subproblems with optimal substructure |
-| "transform" / "edit distance" / "operations" | String DP — insert/delete/replace choices | Overlapping subproblems with optimal substructure |
-| "partition into" / "subset sum" / "target" | Subset Sum DP — include/exclude with capacity | Overlapping subproblems with optimal substructure |
+| "longest increasing path" in matrix | DFS memo, strict `>` | DAG — #329 |
+| "burst / merge" with neighbor cost | Interval last-burst | #312 |
+| Any new DP problem | **Decision tree first** | Concept page flowchart |
+| Grid path count / min sum | Days 7–11 | Not DFS memo unless increasing |
+| 1D partition chunk ≤ k | Day 28 #1043 | Not interval |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. What's the state? What's the transition?
-
-1. *"Find the minimum cost to climb stairs, paying cost[i] per step"* → **State:** dp[i] = min cost to reach step i. **Transition:** dp[i] = cost[i] + min(dp[i-1], dp[i-2])
-2. *"Count the number of ways to make change for amount n"* → **State:** dp[i] = number of ways to make amount i. **Transition:** dp[i] += dp[i - coin] for each coin
-3. *"Find the longest common subsequence of two strings"* → **State:** dp[i][j] = LCS of s1[0..i] and s2[0..j]. **Transition:** match → dp[i-1][j-1]+1, else max(dp[i-1][j], dp[i][j-1])
-4. *"Given weights and values, maximize value within capacity W"* → **State:** dp[i][w] = max value using items 0..i with capacity w. **Transition:** dp[i][w] = max(skip, take if fits)
+1. *"Longest strictly increasing path in matrix"* → **DFS memo.** `memo[i][j]=1+max(neighbors)`.
+2. *"Max coins bursting all balloons"* → **Interval DP.** Last burst k; pad `[1,...nums,1]`.
+3. *"Maximal square of 1s"* → **Day 28** side-length — not Day 30.
+4. *"Minimum difficulty, d days, partition jobs"* → **S-Test #1335** — 2D partition.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you define the state on problems you've never seen?
+**Scenario 1:** *"Longest path in DAG defined by grid values."*
 
-**Scenario 1:** *"Given an array, find the length of the longest increasing subsequence."*
+Which pattern? **Same as #329** — DFS memo or topo + dp.
 
-What's the state? **dp[i] = length of LIS ending at index i.** Transition: dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i].
+**Scenario 2:** *"Minimum cost to merge stones into one pile."*
 
-**Scenario 2:** *"Find the minimum number of coins to make a given amount."*
+Which pattern? **Interval DP cousin** — often last-merge or prefix merge variant.
 
-What's the state? **dp[i] = min coins to make amount i.** Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
+**Scenario 3:** *"Can you reach last index?"*
 
-**Scenario 3:** *"Count paths in a grid from top-left to bottom-right, moving only right or down."*
+Which pattern? **Greedy/DP reachability** — D-Rank #55, not capstone.
 
-What's the state? **dp[i][j] = number of paths to reach cell (i,j).** Transition: dp[i][j] = dp[i-1][j] + dp[i][j-1].
-
-> **Answer key:** All three use DP patterns from this course. The *state and transition* change — the pipeline does not.
+> **Answer key:** Scenario 1 = Day 30. Scenario 2 = interval family. Scenario 3 = D-Rank.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Wrong state definition** — If your state doesn't capture enough information, the transition can't be correct.
-2. **Forgetting base cases** — dp[0] (and sometimes dp[1]) must be set before the loop starts.
-3. **Wrong fill order** — If dp[i] depends on dp[i+1], you must fill right-to-left, not left-to-right.
-4. **Off-by-one errors** — DP arrays are usually size n+1 to include the empty/zero case.
-5. **Returning the wrong cell** — The answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] depending on the state definition.
+1. **LIP: allow equal neighbors** — must be strictly increasing.
+2. **LIP: BFS without memo** — exponential without cache.
+3. **Burst: first-burst thinking** — pick **last** burst in interval.
+4. **Burst: no padding** — need virtual 1s at boundaries.
+5. **Skip decision tree on S-Tests** — name pattern in 30 seconds first.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+You are ready for **S-Rank tests**. Review the capstone map:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+| Test | Pattern | Day link |
+|---|---|---|
+| Job Schedule #1335 | 2D partition (days × jobs) | Day 28 + B partition |
+| Longest Valid Parens #32 | Linear dp[i] length | Day 14 string |
+| Palindrome Partition II #132 | dp[i] min cuts + expand | Day 14–15 |
 
-**Before you code:** Define the state in one sentence. Write the transition formula. Identify the base case. Then code.
-
-> 💡 **Hint:** Re-read the DP Pipeline from today's concept if stuck.
+**Before each test:** Run the decision flowchart. Say the day and pattern aloud.
 
 ---
 
@@ -85,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 30 complete! Tomorrow: the next level of your dynamic ascension. →*
+*Day 30 complete! S-Rank tests await — prove Dynamic Legend status. →*

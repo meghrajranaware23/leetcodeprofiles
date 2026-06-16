@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum ASCII Delete Sum for Two Strings
 
 > **Day 21** · [Minimum ASCII Delete Sum for Two Strings #712](https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum ASCII Delete Sum for Two Strings on LeetCode](https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Only **deletions** allowed — no insert/replace. Match = free diagonal; mismatch = delete cheaper side (pay ASCII).
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Cost-Weighted LCS Variant**.
+**Pattern:** Cost-Weighted LCS Variant.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+- `dp[i][j]` = min ASCII sum to make `s1[0..i-1]` and `s2[0..j-1]` equal using deletions only
+- Base: `dp[i][0] = sum ASCII s1[0..i-1]`, `dp[0][j] = sum ASCII s2[0..j-1]`
+- Match: `dp[i][j] = dp[i-1][j-1]`
+- Mismatch: `dp[i][j] = min(dp[i-1][j] + s1[i-1], dp[i][j-1] + s2[j-1])`
+- Same grid shape as LCS / edit distance — **two choices** on mismatch, not three
 
 ---
 
@@ -37,26 +40,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Cost-Weighted LCS Variant
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Equalize strings by **deleting** only
+- Cost = ASCII value of deleted character
+- Match characters for free (keep both)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "minimum delete sum" / "ASCII" | Weighted delete DP |
+| "make strings equal" | 2D prefix alignment |
+| "insert and replace allowed" | **#72** three-way |
+| "longest common subsequence" | **C13** — max length |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Choose which chars to delete — 2^(m+n) overlap on prefixes.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Build prefix sums for base row/col."*
+2. *"Match → diag."*
+3. *"Else min-cost delete from s1 or s2."*
+4. *"No replace shortcut."*
 
 ---
 
@@ -64,61 +65,44 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Edit distance with replace** | Replace not allowed |
+| **Unit cost deletes (#72)** | Need ASCII weights |
+| **LCS length only** | Need min **cost**, not max len |
+| **Zero base row** | Deleting all of s1 costs sum ASCII |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** LCS keeps matches; here deleting non-matches costs ASCII — still a 2D prefix walk.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+s1="sea", s2="eat"
+Keep 'a','e' via match; delete 's'(115)+'t'(116)=231? 
+Actual: delete 's' and 't' → 231 ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Edit Distance #72](https://leetcode.com/problems/edit-distance/) | + insert/replace | Earlier quest |
+| [Longest Common Subsequence #1143](https://leetcode.com/problems/longest-common-subsequence/) | Max len | C13 |
+| [Delete Operation for Two Strings #583](https://leetcode.com/problems/delete-operation-for-two-strings/) | Min delete **count** | m+n-2·LCS |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `s1 = "delete"`, `s2 = "leet"`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Fill dp with prefix delete costs on borders
+Match 'e','e' and 'e','e' on diagonals
+Mismatch cells pick cheaper ASCII delete
+
+dp[6][4] = minimum delete sum to align
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** C13 grid + weighted deletes — no third replace branch.
 
 ---
 
@@ -179,19 +163,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Cost-Weighted LCS Variant"** → Name the DP pattern from the concept page.
+- **"Delete only → two branches."** → Not edit distance three-way.
+- **"ASCII on border."** → Prefix delete sums.
+- **"Match free on diag."** → Same as LCS alignment.
+- **"Cost-Weighted LCS Variant"** → C13 shape, min cost.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you used `+1` costs, switch to **`ord(char)`** on delete edges.
 
 > 🎯 **Pattern Unlocked:** Cost-Weighted LCS Variant
 

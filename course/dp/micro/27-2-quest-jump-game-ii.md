@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Jump Game II
 
 > **Day 27** · [Jump Game II #45](https://leetcode.com/problems/jump-game-ii/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Jump Game II on LeetCode](https://leetcode.com/problems/jump-game-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Greedy **layers** — `curEnd` = frontier of current jump, `farthest` = max reach. When `i == curEnd`, jump++ and extend frontier.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Greedy/DP Dual Approach**.
+Which DP pattern from today's concept applies? **Greedy/DP Dual Approach** — greedy wins in interviews.
 
-What is the state? What does dp[i] represent for this problem?
+You **can** DP (`dp[i]` = min jumps to i), but greedy is O(n) one pass:
+- `farthest` = max index reachable from any position in current jump range
+- When index `i` hits `curEnd` (end of current jump range), increment `jumps` and set `curEnd = farthest`
+- Loop to `n-2` only (last index doesn't need another jump)
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Assumption: always reachable (unlike Jump Game I).
 
 ---
 
@@ -37,26 +41,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Greedy/DP Dual Approach
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Minimum jumps on array with variable jump length
+- Reach last index — optimization problem
+- Greedy optimal when always reachable
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "minimum jumps" | Layer BFS or greedy farthest |
+| "nums[i] max jump length" | Extend farthest in current layer |
+| "guaranteed reachable" | Greedy OK — no unreachable check |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Interview tip:** State greedy first. Mention DP exists but greedy is faster to code and explain.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"jumps=0, curEnd=0, farthest=0."*
+2. *"For i in 0..n-2: farthest=max(farthest, i+nums[i])."*
+3. *"If i==curEnd: jumps++, curEnd=farthest."*
+4. *"Return jumps."*
 
 ---
 
@@ -64,61 +65,51 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **BFS on all positions** | O(n²) or worse — works but slow |
+| **DP try all jump lengths** | O(n²) — acceptable but not interview-optimal |
+| **Greedy pick max jump always** | Wrong — need minimum jumps, not max reach per step |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Jumps come in **layers**. All positions reachable in k jumps form one layer. Track the boundary (`curEnd`) and the next boundary (`farthest`).
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums = [2,3,1,1,4]
+
+Layer 0→1: from 0 reach {1,2}, farthest=2
+Layer 1→2: from {1,2} reach up to 4, jumps=2
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Jump Game #55](https://leetcode.com/problems/jump-game/) | Can reach? boolean | farthest only |
+| [Minimum Cost for Tickets #983](https://leetcode.com/problems/minimum-cost-for-tickets/) | Day pass min cost | Today's other quest |
+| [Jump Game III #1306](https://leetcode.com/problems/jump-game-iii/) | Forward/backward | Graph BFS |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [2,3,1,1,4]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i=0: farthest=2
+     i==curEnd(0) → jumps=1, curEnd=2
+i=1: farthest=max(4,4)=4
+i=2: i==curEnd(2) → jumps=2, curEnd=4
+
+Answer: 2 jumps (0→1→4 or 0→2→4)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+**nums = [2,1,1,1,1]**
+
+```
+Careful layering still gives minimum — not always jump max distance.
+```
+
+> 💡 **The insight:** `curEnd` marks "must jump by here." `farthest` precomputes next layer boundary.
 
 ---
 
@@ -167,19 +158,18 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Greedy/DP Dual Approach"** → Name the DP pattern from the concept page.
+- **"Greedy layers, not DP table"** — interview speed.
+- **"curEnd = current jump boundary"** — when exhausted, jump++.
+- **"farthest = next boundary"** — track while scanning layer.
+- **"Loop to n-2"** — last index needs no outgoing jump.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried DP first, that's fine — the breakthrough is **layered farthest greedy**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Greedy/DP Dual Approach
 

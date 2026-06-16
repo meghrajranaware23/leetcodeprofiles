@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Edit Distance
 
 > **Day 21** · [Edit Distance #72](https://leetcode.com/problems/edit-distance/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Edit Distance on LeetCode](https://leetcode.com/problems/edit-distance/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same **2D prefix grid** as C13 LCS — but mismatch uses **min of three**, not max of two.
 
 ---
 
@@ -24,11 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Classic String Transformation DP**.
+**Pattern:** Classic String Transformation DP.
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[i][j]` = min ops to turn `word1[0..i-1]` → `word2[0..j-1]`
+- Base: `dp[i][0]=i`, `dp[0][j]=j`
+- Match (`word1[i-1]==word2[j-1]`): `dp[i][j]=dp[i-1][j-1]`
+- Else: `dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])`
+  - delete, insert, replace
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Fill row by row. Answer: `dp[m][n]`.
 
 ---
 
@@ -37,26 +42,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Classic String Transformation DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Two strings, minimum **operations**
+- Insert / delete / replace each cost 1
+- Prefix subproblems overlap
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "edit distance" / "word1 to word2" | 2D min grid |
+| "one operation" | Unit cost per edit |
+| "longest common" | **C13** max grid |
+| "delete only" / "ASCII" | **#712** variant |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Try all edit sequences — exponential; same `(i,j)` prefix recomputed.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Size (m+1)×(n+1)."*
+2. *"Fill first row/col."*
+3. *"Match → diag; else 1+min three."*
+4. *"Not LCS max."*
 
 ---
 
@@ -64,61 +67,42 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Recursive all edits** | O(3^max(m,n)) without memo |
+| **LCS then convert** | Overcomplicated — direct grid |
+| **Wrong base cases** | Empty string = all inserts/deletes |
+| **max instead of min** | LCS confusion |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Same table topology as LCS; only the recurrence changes on mismatch.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+"horse" → "ros": dp[5][3]=3
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Longest Common Subsequence #1143](https://leetcode.com/problems/longest-common-subsequence/) | Max match | **C13** bridge |
+| [Minimum ASCII Delete Sum #712](https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/) | Delete + cost | Today's second quest |
+| [Delete Operation for Two Strings #583](https://leetcode.com/problems/delete-operation-for-two-strings/) | Delete only, count ops | LCS length trick |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `word1 = "intention"`, `word2 = "execution"`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Fill grid — final cell dp[9][9] = 5
+
+Typical path: replace i→e, replace n→x, ... (5 edits total)
+Trace one mismatch cell:
+  dp[i][j] = 1 + min(delete, insert, replace neighbors)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** If you can fill LCS, you can fill edit distance — swap max for min-of-three.
 
 ---
 
@@ -179,22 +163,21 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Classic String Transformation DP"** → Name the DP pattern from the concept page.
+- **"Prefix grid dp[i][j]."** → Same scaffold as LCS.
+- **"Three operations on mismatch."** → min not max.
+- **"Base = index counts."** → Empty ↔ all edits.
+- **"Classic String Transformation DP"** → #72 canonical.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you wrote LCS first, change only the **mismatch branch**.
 
 > 🎯 **Pattern Unlocked:** Classic String Transformation DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: delete-only with ASCII costs. →*

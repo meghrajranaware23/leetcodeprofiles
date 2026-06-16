@@ -1,151 +1,111 @@
+<!-- hand-authored -->
 # 📝 DP Synthesis II
 
 > **Day 29** · DP Synthesis II · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Complex String & Interval DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 28 mastered grid geometry and 1D partition. Day 29 pairs **2D string counting** (#115 Distinct Subsequences) with **K-transaction state machines** (#123 Stock III, K=2). Today's visuals are a **counting table** and a **four-state profit machine** — not interval bracket notation (that's Day 30 Burst Balloons).
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Complex String & State Machine DP
 
 ### 1. What is the pattern?
 
-**Complex String & Interval DP** — the core technique you'll use in today's quests.
+Two hard templates that share one habit: **define exactly what each state remembers**.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+| Template | State | Aggregation | Today's quest |
+|---|---|---|---|
+| **2D subsequence count** | Ways to form `t[0..j]` from `s[0..i]` | Sum on match | #115 Distinct Subsequences |
+| **K-transaction stock** | Best profit after ≤ K complete trades | Max over states | #123 Stock III (K=2) |
 
-### 2. Simple explanation
+### 2. Distinct Subsequences — counting table visual (#115)
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
-
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+Count distinct subsequences of `t` inside `s`. Classic 2D definition:
 
 ```
-Interval DP — bracket notation:
+s = "rabbbit",  t = "rabbit"
 
-dp[i][j] = optimal answer for subarray arr[i..j]
+dp[i][j] = # ways to form t[0..j-1] using chars from s[0..i-1]
 
-Split at every k where i ≤ k < j:
+Base: dp[i][0] = 1  (empty t — one way: pick nothing)
 
-dp[i][j] = min/max over k of:
-           dp[i][k] ⊕ dp[k+1][j] + cost(i, k, j)
+Match s[i-1] == t[j-1]:
+  dp[i][j] += dp[i-1][j-1]   ← use this char (extend match)
+  (skip path already in dp[i-1][j] when tabulating row-wise)
 
-Dependency arrows:
-  ┌─────────────────────────────────────┐
-  │        dp[0][4]                     │
-  │       /    |    \                   │
-  │  dp[0][0] dp[0][1] dp[0][2] ...    │
-  │  dp[1][4] dp[2][4] dp[3][4] ...    │
-  │       \    |    /                   │
-  │    smaller intervals first          │
-  └─────────────────────────────────────┘
+Space-optimized 1D row (fill j right-to-left on match):
+  dp[j] += dp[j-1]  when s[i-1]==t[j-1]
 
-Fill order: by interval length (len=1, len=2, ..., len=n)
-
-  for len in 1..n:
-    for i in 0..n-len:
-      j = i + len - 1
-      for k in i..j-1:
-        dp[i][j] = best(dp[i][k], dp[k+1][j])
+        t:  r  a  b  b  i  t
+s:  ""  1  0  0  0  0  0  0
+    r   1  1  0  0  0  0  0
+    a   1  1  1  0  0  0  0
+    b   1  1  1  1  1  0  0
+    ...
+Answer: dp[m][n] = 3
 ```
 
-### 4. The DP Pipeline
+**Not** LCS max-length (Day 13) — here you **sum** paths, not maximize. **Not** edit distance (Day 21) — no insert/delete cost.
 
-Apply the five-step pipeline to today's pattern:
+### 3. Stock III — K=2 state machine visual (#123)
 
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Complex String & Interval DP" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Complex String & Interval DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+At most **two complete transactions**. Four rolling states beat a 2D table:
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+States per day (process price p left-to-right):
+
+  buy1  = min cost to hold after 1st buy
+  sell1 = max profit after 1st complete sell
+  buy2  = min effective cost for 2nd buy (p - sell1)
+  sell2 = max profit after 2nd complete sell  ← answer
+
+Transitions on each price p:
+  buy1  = min(buy1, p)
+  sell1 = max(sell1, p - buy1)
+  buy2  = min(buy2, p - sell1)    ← reinvest 1st profit
+  sell2 = max(sell2, p - buy2)
+
+Day 20 cousin (cooldown/fee) — same machine skeleton, K=2 adds buy2/sell2 pair.
+
+     REST ──buy──→ HOLD ──sell──→ (profit)
+                      ↑              │
+                      └── buy2 ←─────┘  (2nd round)
 ```
 
-### 7. Base cases & answer extraction
+General K-transaction: `dp[k][hold]` or expand to 2K scalars — Stock III is the K=2 canonical form.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 4. Pattern signals
 
-### 8. Pattern signals & recognition clues
+| When the problem says… | Think… | Day link |
+|---|---|---|
+| "distinct subsequences" / "count subseq" | 2D count, sum on match | #115, Day 13 cousin |
+| "how many ways" + two strings | Counting LCS variant | Today |
+| "at most K transactions" | K×2 state machine | #123, Day 20 |
+| "buy and sell stock" + number K | Expand buy/sell pairs | Day 5 → 20 → 29 |
+| "burst / merge interval" | **Day 30** interval DP | Not today |
 
-| When the problem says… | Think… |
-|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
-
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
-
-### 9. Common DP mistakes
+### 5. Common S-Rank mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Use max instead of sum for #115 | Counting — **add** matching paths |
+| Fill dp[j] left-to-right on match | Reverse j to avoid using same row twice |
+| One buy/sell pair for Stock III | Need **buy1/sell1/buy2/sell2** |
+| `buy2 = min(buy2, p)` without sell1 | Effective cost is `p - sell1` |
+| Model #115 as LCS length | LCS maximizes; distinct subseq **counts** |
 
-### 10. Recognition drill
+### 6. Recognition drill
 
-Read this problem aloud:
+> *"Count distinct subsequences of t in s."*
+>
+> → **2D count.** `dp[i][j]` += on match. Space: 1D row, j descending.
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
-
-Before coding, say:
-
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Max profit with at most 2 transactions."*
+>
+> → **K=2 state machine.** buy1, sell1, buy2, sell2 — O(n) scalars.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Counting table first, then the four-state machine. Quest 1: Distinct Subsequences. →*

@@ -1,150 +1,146 @@
+<!-- hand-authored -->
 # 📝 Unbounded Knapsack
 
 > **Day 18** · Unbounded Knapsack · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Unlimited Selection visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 17: each item **once**, inner loop **backwards**. Day 18 flips the rule — **unlimited copies** of each coin/denomination. The loop direction flips too: for amount `a`, you may add another coin of value `c`, so read **`dp[a - c]`** already updated this round → iterate **`a` forward**. Same table shape as Day 10 perfect squares; different "items."
+
+> **Preview contrast (Day 17 vs Day 18):** Day 17 = **0/1**, `j` **down** (don't reuse item). Day 18 = **unbounded**, `j` **up** (reuse allowed). Day 10 = min count with squares `{1,4,9,...}` — same forward loop as coin change.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Unlimited Selection** — the core technique you'll use in today's quests.
+**Unbounded Knapsack / Coin DP** — unlimited supply of each choice; optimize or count ways to reach amount `a`.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[a]` = min coins / max ways / best value to make amount `a`
+- **Transition (min coins)** — `dp[a] = min(dp[a], dp[a-c] + 1)` for each coin `c ≤ a`
+- **Transition (count combos)** — outer loop **coins**, inner **a forward**: `dp[a] += dp[a-c]` (order avoids permutations double-count in #518)
+- **0/1 vs unbounded** — only the **inner loop direction** and **outer loop order** change
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Building amount `a` penny by penny: *"What's the best way to make `a` if I just used coin `c`?"* Look at **`dp[a-c]`** — which already includes any number of coins. Forward fill means `dp[a-c]` may have used another `c` this pass — that's unlimited supply.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+Day 10 asked: *"Fewest perfect squares summing to n."* Squares `{1,4,9,...}` are unlimited "coins" — identical forward min loop.
 
-### 3. Visual walkthrough
-
-```
-State machine — Stock Buy/Sell with Cooldown:
-
-          buy          sell
-  ┌──────────────┐──────────────┐
-  │              ▼              │
-  │   ┌──────────────┐         │
-  │   │    HOLD      │─── sell ─┘
-  │   │  (own stock) │
-  │   └──────────────┘
-  │         ▲
-  │   buy   │
-  │         │
-  ┌──────────────┐    cooldown   ┌──────────────┐
-  │     REST     │◄──────────────│     SOLD     │
-  │  (no stock)  │               │  (just sold) │
-  │              │───── buy ────→│              │
-  └──────────────┘               └──────────────┘
-        │ hold                         │ wait
-        ▼                              ▼
-      REST                           SOLD
-
-Transitions:
-  HOLD[i] = max(HOLD[i-1], REST[i-1] - price[i])
-  SOLD[i] = HOLD[i-1] + price[i]
-  REST[i] = max(REST[i-1], SOLD[i-1])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — forward loop (unbounded coin change)
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+coins = [1, 2, 5], amount = 5
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Unlimited Selection" has overlapping subproblems because...
+dp[a] = min coins to make amount a
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Init: dp[0]=0, dp[1..5]=INF
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+for a = 1..5:
+  for c in coins:
+    if c <= a: dp[a] = min(dp[a], dp[a-c]+1)
 
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Trace:
+  a=1: dp[1]=1
+  a=2: dp[2]=1 (two 1s) or dp[1]+1=2 from coin 2 → 1
+  a=3: dp[3]=2 (1+2)
+  a=4: dp[4]=2 (2+2)
+  a=5: dp[5]=1 (5) beats dp[4]+1=3, dp[3]+1=3 → 1
+
+Answer: 1 coin
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Unlimited Selection**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Day 17 vs Day 18 loop direction
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Same dp[0..W], processing one "item type":
+
+0/1 (Day 17):          Unbounded (Day 18):
+for w = W down to wt     for a = wt up to W
+  dp[w] = max(...,         dp[a] = min(...,
+    dp[w-wt]+val)            dp[a-wt]+1)
+       ↑                          ↑
+  dp[w-wt] is OLD row        dp[a-wt] may include
+  (item not reused)          same item again
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Min coins (amount outer — #322 style):**
+```
+dp[0]=0, rest INF
+for a in 1..amount:
+  for c in coins:
+    if c<=a: dp[a]=min(dp[a], dp[a-c]+1)
+return dp[amount] if finite else -1
+```
 
-### 8. Pattern signals & recognition clues
+**Count combinations (coin outer — #518 style):**
+```
+dp[0]=1
+for c in coins:
+  for a in c..amount:
+    dp[a] += dp[a-c]
+return dp[amount]
+```
+
+**Perfect squares bridge (Day 10):**
+```
+for i in 1..n:
+  for s in 1..sqrt(i):
+    dp[i] = min(dp[i], dp[i-s*s]+1)
+```
+
+### 6. Day 17 vs Day 18 vs Day 10
+
+| | **Day 17 0/1** | **Day 18 Unbounded** | **Day 10 Squares** |
+|---|---|---|---|
+| Reuse | once | unlimited | unlimited |
+| Loop | j **down** | a **up** | i **up** |
+| Typical goal | max / bool / count | min coins / count combos | min count |
+| Items | array nums | coin denominations | s² for s=1..√i |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "minimum coins" / "fewest" | Forward min on amount |
+| "unlimited supply" / "infinite coins" | Unbounded — not reverse |
+| "how many **combinations**" | Coin outer, amount inner forward |
+| "each item once" | **Day 17** reverse |
+| "perfect squares sum to n" | **Day 10** — same forward min |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `forward loop` · `dp[a-c]` · `unlimited` · `coin outer` · `combinations not permutations`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Reverse loop from Day 17 | Unlimited needs **forward** |
+| Coin Change II: amount outer first | **Coin outer** for combinations |
+| Counting permutations in #518 | Order of loops matters — coin then amount |
+| Using 0/1 for "any number of coins" | Classic unbounded sign |
+| Greedy on arbitrary coins | Fails — need DP |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Fewest coins to make amount n; unlimited of each denomination."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Unbounded min: dp[a]=min(dp[a], dp[a-c]+1), a forward 1..n. Not reverse — that's 0/1."*
+
+Read this one:
+
+> *"Count combinations of coins summing to amount."*
+
+Before coding, say:
+
+> *"Coin outer, amount inner forward, dp[a]+=dp[a-c]. Combinations — order of loops."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Loop direction is the whole game. First quest: minimum coin count. →*

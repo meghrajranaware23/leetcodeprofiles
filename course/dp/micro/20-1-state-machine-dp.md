@@ -1,35 +1,40 @@
+<!-- hand-authored -->
 # 📝 State Machine DP
 
 > **Day 20** · State Machine DP · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Multi-State Transitions visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 5 (**E5 Stock I**) tracked one buy and one sell with a running minimum — a single scalar. Day 20 upgrades to **multiple transactions** with **rules**: cooldown day after sell, or fee per trade. You can't summarize with one number — you need **parallel states** at each day: what you're **allowed** to do next depends on whether you **hold**, just **sold**, or **rest** (cooldown).
+
+> **Preview contrast (E5 vs Day 20):** E5 = `minPrice` + `maxProfit` — one pass, one transaction. Day 20 = **HOLD / SOLD / REST** (cooldown) or **cash / hold** (fee) — update all states each day. **This is the canonical state-machine visual for B-Rank.**
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Multi-State Transitions** — the core technique you'll use in today's quests.
+**State Machine DP** — at each time step, track **best profit in each trading state**; transitions follow problem rules.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**Branch A — Cooldown (#309):**
+- **HOLD** — owning stock; can sell today
+- **SOLD** — sold today; must cooldown tomorrow
+- **REST** — not holding, can buy (includes cooldown days and idle days)
+
+**Branch B — Transaction fee (#714):**
+- **cash** — not holding, may buy
+- **hold** — holding stock, may sell (pay fee on sell)
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Each day you ask three questions (cooldown version): *"Best profit if I must end today **holding**? **Just sold**? **Free to buy**?"* Transitions wire yesterday's states into today's — sell moves HOLD→SOLD, buy moves REST→HOLD, cooldown forces SOLD→REST.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+E5 was simpler: *"Cheapest buy so far?"* — only one decision path. Cooldown adds **mandatory waiting** — greedy fails because selling early might block a better buy after rest.
 
-### 3. Visual walkthrough
+### 3. Visual — HOLD / SOLD / REST state machine (cooldown)
 
 ```
-State machine — Stock Buy/Sell with Cooldown:
-
           buy          sell
   ┌──────────────┐──────────────┐
   │              ▼              │
@@ -45,106 +50,104 @@ State machine — Stock Buy/Sell with Cooldown:
   │  (no stock)  │               │  (just sold) │
   │              │───── buy ────→│              │
   └──────────────┘               └──────────────┘
-        │ hold                         │ wait
-        ▼                              ▼
-      REST                           SOLD
 
-Transitions:
-  HOLD[i] = max(HOLD[i-1], REST[i-1] - price[i])
-  SOLD[i] = HOLD[i-1] + price[i]
-  REST[i] = max(REST[i-1], SOLD[i-1])
+Per day i (price = p):
+  HOLD[i] = max(HOLD[i-1],  REST[i-1] - p)    // keep holding or buy from rest
+  SOLD[i] = HOLD[i-1] + p                        // sell yesterday's hold
+  REST[i] = max(REST[i-1], SOLD[i-1])           // stay idle or finish cooldown
+
+Answer: max(SOLD[n-1], REST[n-1])  // never end holding for max profit
+Init day 0: HOLD=-p0, SOLD=0, REST=0
 ```
 
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 4. Visual — fee variant (two states)
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+  cash ←──────────────────┐
+   │  buy (-p)             │ sell (+p - fee)
+   ▼                       │
+  hold ────────────────────┘
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Multi-State Transitions" has overlapping subproblems because...
+Per day:
+  cash = max(cash, hold + p - fee)   // sell
+  hold = max(hold, cash - p)         // buy
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Answer: cash (end not holding)
+Init: cash=0, hold=-p0
 ```
 
-### 5. State definition
+### 5. Templates
 
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Multi-State Transitions**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
-
+**Cooldown (3 states, O(1) space):**
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+hold = -prices[0], sold = 0, rest = 0
+for i in 1..n-1:
+  prevHold = hold
+  hold = max(hold, rest - prices[i])
+  rest = max(rest, sold)
+  sold = prevHold + prices[i]
+return max(sold, rest)
 ```
 
-### 7. Base cases & answer extraction
+**Fee (2 states):**
+```
+cash = 0, hold = -prices[0]
+for i in 1..n-1:
+  cash = max(cash, hold + prices[i] - fee)
+  hold = max(hold, cash - prices[i])   // note: use updated cash or prev — code uses sequential update
+return cash
+```
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 6. E5 Stock I vs Day 20 — side by side
 
-### 8. Pattern signals & recognition clues
+| | **E5 Stock I** | **Day 20 Cooldown** | **Day 20 Fee** |
+|---|---|---|---|
+| Transactions | one | unlimited | unlimited |
+| States | 2 scalars (min, profit) | **3** (hold,sold,rest) | **2** (cash,hold) |
+| Constraint | buy before sell | 1-day cooldown after sell | fee on sell |
+| Answer | maxProfit | max(sold, rest) | cash |
+| Visual | running min | **state diagram above** | 2-state loop |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "cooldown one day after sell" | HOLD/SOLD/REST |
+| "transaction fee" | cash/hold, subtract fee on sell |
+| "at most one transaction" | **E5** — not state machine |
+| "at most k transactions" | Later rank — 2D by k |
+| "hold stock end of day" | State tracks ownership |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `hold sold rest` · `cash hold` · `state machine` · `cooldown` · `fee`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using E5 minPrice on cooldown | Cooldown needs **3 states** |
+| Buying from SOLD same day | Must REST first — buy from REST only |
+| Returning HOLD at end | End holding rarely optimal — max(sold, rest) or cash |
+| Wrong order of same-day updates | Save `prevHold` before overwriting for SOLD |
+| Applying knapsack table | Stock = **state machine**, not dp[i][w] |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Max profit, unlimited trades, must wait one day after each sell."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"State machine: HOLD, SOLD, REST. Buy from REST, sell from HOLD, REST absorbs cooldown. max(sold, rest) at end."*
+
+Read this one:
+
+> *"Unlimited trades with fee per sell."*
+
+Before coding, say:
+
+> *"Two states cash/hold. Sell: cash=max(cash, hold+p-fee). Buy: hold=max(hold, cash-p). Return cash."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Draw the diagram before you code. First quest: cooldown #309. →*

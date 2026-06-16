@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Unique Binary Search Trees
 
 > **Day 22** · [Unique Binary Search Trees #96](https://leetcode.com/problems/unique-binary-search-trees/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Unique Binary Search Trees on LeetCode](https://leetcode.com/problems/unique-binary-search-trees/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Pick each **root** j; left and right subtree counts **multiply**. This is **Catalan**, not coin DP.
 
 ---
 
@@ -24,11 +25,16 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Catalan Number DP**.
+**Pattern:** Catalan Number DP.
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[i]` = number of unique BSTs with exactly `i` nodes (values 1..i)
+- Try every root `j` from 1 to i:
+  - Left has `j-1` nodes, right has `i-j` nodes
+  - **`dp[i] += dp[j-1] * dp[i-j]`**
+- Base: `dp[0] = 1` (empty tree), `dp[1] = 1`
+- Answer: `dp[n]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Not amount summing — **multiply** independent subtree counts.
 
 ---
 
@@ -37,26 +43,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Catalan Number DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Count **structures** (trees), not sequences
+- BST order fixed by values 1..n
+- Optimal substructure on **size** parameter
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "unique BST" / "structurally unique" | Catalan recurrence |
+| "n nodes labeled 1..n" | Root split multiply |
+| "ways to sum to target" | **#377** amount DP |
+| "coin combinations" | **Day 18** |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Generate all trees — Catalan grows fast; overlap on `(size)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[0]=dp[1]=1."*
+2. *"For size i, try root j."*
+3. *"Multiply left and right counts."*
+4. *"Sum over j."*
 
 ---
 
@@ -64,61 +68,42 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Enumerate all binary trees** | Factorial/exponential |
+| **Add dp[j-1]+dp[i-j]** | Should **multiply** |
+| **Coin change loop** | Wrong recurrence family |
+| **n=0 edge** | dp[0]=1 for empty |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Independent left and right choices → product; root choices → sum.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=3: roots 1,2,3 → dp[3]=5 (Catalan)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Unique Binary Search Trees II #95](https://leetcode.com/problems/unique-binary-search-trees-ii/) | Generate all | Backtracking + Catalan |
+| [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) | Ordered sums | Today's second quest |
+| [Coin Change II #518](https://leetcode.com/problems/coin-change-ii/) | Combinations | Day 18 |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `n = 3`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=1, dp[1]=1
+dp[2] = dp[0]*dp[1] + dp[1]*dp[0] = 1+1 = 2
+dp[3] = dp[0]*dp[2] + dp[1]*dp[1] + dp[2]*dp[0] = 2+1+2 = 5
+
+5 unique BSTs on {1,2,3} ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Product of subproblems — signature of **structural** counting.
 
 ---
 
@@ -166,22 +151,21 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Catalan Number DP"** → Name the DP pattern from the concept page.
+- **"BST → pick root, split sizes."** → Catalan.
+- **"Multiply left×right."** → Independent subtrees.
+- **"dp[0]=1 empty tree."** → Base case.
+- **"Catalan Number DP"** → Not coin change.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you used `+= dp[i-num]`, you're on **#377**, not #96.
 
 > 🎯 **Pattern Unlocked:** Catalan Number DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: ordered sums — amount outer. →*

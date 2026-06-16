@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Partition Equal Subset Sum
 
 > **Day 17** · [Partition Equal Subset Sum #416](https://leetcode.com/problems/partition-equal-subset-sum/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Partition Equal Subset Sum on LeetCode](https://leetcode.com/problems/partition-equal-subset-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** "Two equal subsets" = "Can I pick items summing to **half** the total?" Draw the **1D boolean dp** before coding.
 
 ---
 
@@ -24,11 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Subset Sum = 0/1 Knapsack**.
+**Pattern:** Subset Sum = **0/1 Knapsack (boolean)**.
 
-What is the state? What does dp[i] represent for this problem?
+- `total = sum(nums)`. If odd → impossible.
+- `target = total / 2` — can we form a subset summing to target?
+- `dp[j]` = can we make sum `j` using items processed so far
+- For each `num`: `for j from target down to num: dp[j] |= dp[j - num]`
+- Answer: `dp[target]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Not max value — **reachability**. Same reverse loop as 0/1 knapsack.
 
 ---
 
@@ -37,26 +42,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Subset Sum = 0/1 Knapsack
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Partition into two **equal** groups → one group must sum to `total/2`
+- Each number used at most once
+- Return true/false, not optimal value
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "partition equal subset" | Boolean knapsack, target = sum/2 |
+| "split into two groups" | Subset sum |
+| "can you reach sum" | `dp[j]` boolean |
+| "how many ways" | **Target Sum** — counting variant |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Try all 2^n subsets — same subproblems repeat (can I make sum `s` with first `k` items?).
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Odd total → false immediately."*
+2. *"target = total/2."*
+3. *"dp[0]=true, reverse j per num."*
+4. *"Return dp[target]."*
 
 ---
 
@@ -64,61 +67,47 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **All 2^n subsets** | Exponential |
+| **Greedy by size** | [1,2,5] vs [1,2,3,3] — order fails |
+| **Forward loop on dp** | Same num used twice |
+| **Check sum without half target** | Two equal halves need exact half |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** Partition = **one knapsack** of capacity `total/2`. If you fill it, the rest is the other half.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums = [1, 5, 11, 5], total=22, target=11
+
+After processing, dp[11] = true → split {1,5,5} | {11}
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [Target Sum #494](https://leetcode.com/problems/target-sum/) | Count +/− ways | Same table, `+=` |
+| [Last Stone Weight II #1049](https://leetcode.com/problems/last-stone-weight-ii/) | Minimize difference | **Day 19** — best `dp[j]` near target |
+| [0/1 Knapsack classic](https://leetcode.com/) | Max value | `max` instead of `||` |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `nums = [1, 5, 11, 5]`, target = 11
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=T, rest F
+
+num=1:  dp[1]=T
+num=5:  dp[6], dp[5] become T
+num=11: dp[11]=T  ← done early if you want
+num=5:  dp[10], dp[11] stay T
+
+Answer: true
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** You never build both subsets — one knapsack of size `target` is enough.
 
 ---
 
@@ -177,22 +166,21 @@ class Solution {
 ```
 
 **Complexity:** O(n · sum) time · O(sum) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Subset Sum = 0/1 Knapsack"** → Name the DP pattern from the concept page.
+- **"Equal partition → subset sum target/2."** → One boolean knapsack.
+- **"Reverse j loop."** → 0/1 — each num once.
+- **"Odd sum → false."** → No integer half.
+- **"Subset Sum = 0/1 Knapsack"** → Same table as concept page, `||` not `max`.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is seeing **half the total as capacity**.
 
 > 🎯 **Pattern Unlocked:** Subset Sum = 0/1 Knapsack
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count ways with + and − signs. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Increasing Path in a Matrix
 
 > **Day 30** · [Longest Increasing Path in a Matrix #329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Increasing Path in a Matrix on LeetCode](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Only move to **strictly larger** cells → DAG, no cycles. `memo[i][j]` = 1 + best path from `(i,j)`. Run DFS from **every** cell; take global max.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Grid DFS + Memoization**.
+**Pattern:** **Grid DFS + Memoization** (Day 30 capstone #1).
 
-What is the state? What does dp[i] represent for this problem?
+- State: `memo[i][j]` = length of longest increasing path **starting** at `(i,j)`
+- Recurse to 4 neighbors where `mat[ni][nj] > mat[i][j]`
+- Base: no valid neighbor → length 1
+- Answer: `max(memo[i][j])` over all cells
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+Top-down memo — not bottom-up tabulation. Strict increase guarantees DAG.
 
 ---
 
@@ -36,27 +40,19 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 **Pattern used:** Grid DFS + Memoization
 
-**How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
-
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "longest path in matrix" | DFS from each cell |
+| "strictly increasing" | DAG — memo safe, no visited-in-path set |
+| "4-directionally" | Standard grid neighbors |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 28 contrast:** Maximal Square tabulates bottom-up; here values define implicit DAG → DFS memo.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Increasing only → no cycles."*
+2. *"memo[i][j] before recursing — each cell once."*
+3. *"Start from every cell — path need not include (0,0)."*
+4. *"Return 1 + max(neighbor paths)."*
 
 ---
 
@@ -64,61 +60,36 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+| **DFS without memo** | Exponential — same cell revisited in different paths |
+| **BFS by length** | Harder — DFS memo is natural for longest path on DAG |
+| **Allow equal or decreasing moves** | Infinite loops — need strict `>` |
+| **Only start from corners** | Optimal path may start mid-matrix |
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Pacific Atlantic #417](https://leetcode.com/problems/pacific-atlantic-water-flow/) | Multi-source DFS | Grid DFS |
+| [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | Graph topo | DAG longest path cousin |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**matrix = [[9,9,4],[6,6,8],[2,1,1]]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+From (2,0)=2: can go to (2,1)=1? NO (must increase)
+From (1,0)=6: → (0,0)=9 → length 3
+From (0,2)=4: → (1,2)=8 → (0,1)=9 → length 4
+
+memo fills on demand; each cell computed once.
+Answer = 4
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Matrix values impose a partial order — DFS + memo is longest path on a DAG.
 
 ---
 
@@ -197,22 +168,17 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Grid DFS + Memoization"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Strictly increasing → DAG"** — memo without cycle fear.
+- **"Start anywhere"** — outer double loop for global max.
+- **"1 + max neighbors"** — path length from this cell.
+- **"Grid DFS + Memoization"** — Day 30 capstone pattern #1.
 
 > 🎯 **Pattern Unlocked:** Grid DFS + Memoization
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Burst Balloons interval DP. →*

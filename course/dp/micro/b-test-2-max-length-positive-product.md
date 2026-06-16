@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ B-Rank Test — Problem 2
 
 > [Maximum Length of Subarray With Positive Product #1567](https://leetcode.com/problems/maximum-length-of-subarray-with-positive-product/) · Medium · 200 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Maximum Length of Subarray With Positive Product on LeetCode](https://leetcode.com/problems/maximum-length-of-subarray-with-positive-product/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Define the state. Write the transition. Fill the table by hand. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** Need **positive product** subarray — track both **pos** and **neg** ending lengths. Cousin of **Day 9 dual-state product**.
 
 ---
 
@@ -24,38 +25,50 @@ See the full problem statement on LeetCode: **[Maximum Length of Subarray With P
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the B-Rank curriculum. Define the state and transition before you code.
+> 🎯 **What's being tested:** **Dual-state product cousin** — like Day 9 `(maxProd, minProd)`, but track **lengths** not values.
 
-Revisit your rank's cheat sheet. Is this linear DP, grid DP, knapsack, or state machine?
+- `pos` = length of longest subarray ending here with **positive** product
+- `neg` = length of longest ending here with **negative** product (0 if no valid negative-ending subarray)
+- `x > 0`: extend both; `x < 0`: swap (neg×neg → positive length); `x == 0`: reset both
+- Answer = max `pos` over scan (positive product subarray)
+
+Not knapsack. Not stock state machine. **Two rolling scalars** at each index.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** Dual-State Length DP (Day 9 product cousin)
+
 **How to identify from the statement:**
-- What is the state? What information describes a subproblem?
-- What are the choices at each state?
-- What's the transition formula?
+- Contiguous subarray, sign of product matters
+- Zeros break the streak
+- Negative flip connects long `neg` ending to future positive length
 
 **How a strong solver thinks before coding:**
-1. *"What does dp[i] represent?"*
-2. *"What's the base case?"*
-3. *"Linear, grid, knapsack, or state machine?"*
-4. *"Can I optimize the space?"*
+1. *"Track posLen and negLen ending at i."*
+2. *"Negative x: swap extend logic."*
+3. *"Zero: reset both to 0."*
+4. *"ans = max(ans, pos)."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-DP problems have exponential recursion trees with massive overlap. Brute force means recomputing the same subproblems O(2^n) times. Define the state, cache it, and solve each subproblem exactly once.
+| Approach | Problem |
+|---|---|
+| **Only track positive length** | Misses neg×neg comeback |
+| **O(n²) all subarrays** | Too slow |
+| **Kadane on values** | Need sign tracking, not sum |
+| **Single state dp[i]** | Negative product history lost |
+
+**The insight:** Longest **positive** product subarray ending at `i` may come from previous **negative** length + one negative — dual state like Day 9.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you define the state without the problem name telling you the pattern?
-
-Read the statement once. Define dp[i] in one sentence. If you can write the transition in under 60 seconds, you're ready.
+*"Longest subarray with positive product"* → pos/neg length pair. Same sign-flip DNA as **Maximum Product Subarray #152** (Day 9) but optimize **length** not value.
 
 ---
 
@@ -122,10 +135,65 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a B-Rank test"** → Use patterns from this rank's training.
-- **"State first, code second"** → Define dp[i] before writing any code.
-- **"Name the pattern"** → The code is just the transition formula in syntax.
+- **"Positive product → track pos AND neg lengths."** → Day 9 cousin.
+- **"Swap on negative x."** → neg×neg → long positive.
+- **"Zero resets."** → Breaks contiguous sign chain.
+- **"Not knapsack / not stock."** → Dual rolling scalars.
 
 ---
 
 *2 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    int getMaxLen(vector<int>& nums) {
+        int pos = 0, neg = 0, ans = 0;
+        for (int x : nums) {
+            if (x > 0) { pos++; neg = neg > 0 ? neg + 1 : 0; }
+            else if (x < 0) { int t = pos; pos = neg > 0 ? neg + 1 : 0; neg = t + 1; }
+            else { pos = 0; neg = 0; }
+            ans = max(ans, pos);
+        }
+        return ans;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def getMaxLen(self, nums: list[int]) -> int:
+        pos = neg = ans = 0
+        for x in nums:
+            if x > 0:
+                pos += 1
+                neg = neg + 1 if neg > 0 else 0
+            elif x < 0:
+                pos, neg = (neg + 1 if neg > 0 else 0), pos + 1
+            else:
+                pos = neg = 0
+            ans = max(ans, pos)
+        return ans
+```
+
+### Java
+```java
+class Solution {
+    public int getMaxLen(int[] nums) {
+        int pos = 0, neg = 0, ans = 0;
+        for (int x : nums) {
+            if (x > 0) { pos++; neg = neg > 0 ? neg + 1 : 0; }
+            else if (x < 0) { int t = pos; pos = neg > 0 ? neg + 1 : 0; neg = t + 1; }
+            else { pos = 0; neg = 0; }
+            ans = Math.max(ans, pos);
+        }
+        return ans;
+    }
+}
+```
+
+**Complexity:** O(n) time · O(1) space

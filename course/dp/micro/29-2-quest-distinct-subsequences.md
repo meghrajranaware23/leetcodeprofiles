@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Distinct Subsequences
 
 > **Day 29** · [Distinct Subsequences #115](https://leetcode.com/problems/distinct-subsequences/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Distinct Subsequences on LeetCode](https://leetcode.com/problems/distinct-subsequences/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Count paths, don't maximize. When `s[i]==t[j]`, **add** ways from the shorter prefix. Fill `j` right-to-left if using 1D optimization.
 
 ---
 
@@ -24,39 +25,34 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Advanced String DP**.
+**Pattern:** **Advanced String DP** — 2D subsequence **counting**.
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[i][j]` = # ways to form `t[0..j-1]` from `s[0..i-1]`
+- Base: `dp[i][0] = 1` (empty target — one way)
+- Match `s[i-1]==t[j-1]`: `dp[i][j] += dp[i-1][j-1]`
+- Space trick: 1D `dp[j]`, iterate `j` **descending** on match
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Not LCS length (Day 13) — here you **sum** distinct paths.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Advanced String DP
-
-**How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+**Pattern used:** Advanced String DP — distinct subsequence count
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "distinct subsequences" | Counting 2D string DP |
+| "how many ways" + two strings | Sum on match, not max |
+| subsequence (not substring) | Skip chars in s freely |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 13 contrast:** LCS takes max of skip/match; here match **adds** `dp[j-1]` ways.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Empty t → 1 way for any s prefix."*
+2. *"Match extends: pick this char or skip (skip implicit in row)."*
+3. *"1D: update j from high to low on match."*
+4. *"Use unsigned long long / watch overflow on large inputs."*
 
 ---
 
@@ -64,61 +60,39 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+| **Generate all subsequences of s** | O(2^m) — exponential |
+| **LCS-style max** | Wrong aggregation — need count |
+| **Fill dp[j] left-to-right on match** | Double-counts same row |
+| **Forget dp[0]=1 base** | Empty target has one alignment |
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Distinct Subsequences II #940](https://leetcode.com/problems/distinct-subsequences-ii/) | All distinct subseq of one string | Counting with dedup |
+| [Is Subsequence #392](https://leetcode.com/problems/is-subsequence/) | Boolean only | E-Rank — one path exists? |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**s = "rabbbit", t = "rabbit"**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+1D dp[j] after processing each char of s:
+
+Start: dp = [1,0,0,0,0,0,0]  (base: 1 way for empty t)
+
+After 'r': dp[1] += dp[0] → 1 way for "r"
+After 'a': dp[2] += dp[1]
+After 'b': dp[3] += dp[2]
+... three 'b's create branching ...
+Answer dp[6] = 3
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Each matching char **multiplies choices** by adding prior ways — counting, not optimizing.
 
 ---
 
@@ -170,22 +144,17 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Count, not max"** — sum matching paths.
+- **"dp[0]=1"** — empty subsequence of t always reachable.
+- **"j descending"** — 1D space without overwrite bugs.
+- **"Advanced String DP"** — Day 13 cousin with different aggregation.
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Advanced String DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Advanced String DP
+> 🎯 **Pattern Unlocked:** Advanced String DP — distinct subsequence count
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: K=2 stock state machine. →*

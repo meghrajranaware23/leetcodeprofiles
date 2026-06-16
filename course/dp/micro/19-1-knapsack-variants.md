@@ -1,150 +1,136 @@
+<!-- hand-authored -->
 # 📝 Knapsack Variants
 
 > **Day 19** · Knapsack Variants · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Multi-Dimensional Knapsack visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 17 had **one** capacity dimension (weight or sum). Day 19 adds a **second constraint** — count of 0s and 1s in strings, or disguise partition as **minimize difference**. Still 0/1 take/skip per item; the table grows to **`dp[c0][c1]`** or you compress with **double reverse loops**.
+
+> **Preview contrast (Day 17 vs Day 19):** Day 17 = `dp[w]` one budget. Day 19 = **`dp[m][n]`** two budgets (zeros/ones), or subset sum where answer is **`total - 2·bestHalf`** — partition min-diff in disguise.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Multi-Dimensional Knapsack** — the core technique you'll use in today's quests.
+**Multi-Dimensional 0/1 Knapsack** — each item costs multiple resources; maximize count or minimize leftover.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **2D state** — `dp[i][j]` = best answer using at most `i` resource A and `j` resource B
+- **Transition** — for each string/item: skip, or take if `(zeros, ones)` fit: `dp[i][j] = max(dp[i][j], dp[i-z][j-o]+1)`
+- **Fill order** — both dimensions **reverse** when processing each item (0/1)
+- **Partition min-diff disguise** — smash stones = split into two piles closest to `total/2`; answer `total - 2·maxReachableHalf`
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Ones and Zeroes:** Each string is an item with "weight" `(count0, count1)` and value `1` (one more string in the knapsack). How many strings fit in budget `(m, n)`?
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Last Stone Weight II:** Every stone goes left or right pile. Difference after pairing is `|sumA - sumB|`. Minimize by making the smaller pile as large as possible — i.e. largest subset sum ≤ `total/2`. That's Day 17 boolean knapsack; answer transforms algebraically.
 
-### 3. Visual walkthrough
-
-```
-State machine — Stock Buy/Sell with Cooldown:
-
-          buy          sell
-  ┌──────────────┐──────────────┐
-  │              ▼              │
-  │   ┌──────────────┐         │
-  │   │    HOLD      │─── sell ─┘
-  │   │  (own stock) │
-  │   └──────────────┘
-  │         ▲
-  │   buy   │
-  │         │
-  ┌──────────────┐    cooldown   ┌──────────────┐
-  │     REST     │◄──────────────│     SOLD     │
-  │  (no stock)  │               │  (just sold) │
-  │              │───── buy ────→│              │
-  └──────────────┘               └──────────────┘
-        │ hold                         │ wait
-        ▼                              ▼
-      REST                           SOLD
-
-Transitions:
-  HOLD[i] = max(HOLD[i-1], REST[i-1] - price[i])
-  SOLD[i] = HOLD[i-1] + price[i]
-  REST[i] = max(REST[i-1], SOLD[i-1])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — 2D knapsack table (Ones and Zeroes)
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+strs = ["10","0001","111001","1","0"], m=3 zeros budget, n=3 ones budget
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Multi-Dimensional Knapsack" has overlapping subproblems because...
+dp[i][j] = max strings using i zeros and j ones
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Process each string (z=zeros, o=ones in string), reverse both i,j:
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+  Start dp[0][0]=0, rest 0
+  After all strings: dp[3][3] = 4  (pick "10","0001","1","0" etc.)
 
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Cell update:
+  SKIP: dp[i][j] unchanged
+  TAKE: dp[i][j] = max(dp[i][j], dp[i-z][j-o] + 1)  if i>=z, j>=o
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Multi-Dimensional Knapsack**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — partition min-diff disguise
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+stones = [2, 7, 4, 1, 8], total=22, target=11
+
+Boolean dp[j] = can make sum j?
+Reachable: 0,1,2,3,4,5,6,7,8,9,10,11...
+
+Largest j <= 11 reachable: e.g. 10 (2+8) or 11 (2+4+1+4)?
+
+Best half = 10 → answer = 22 - 2*10 = 2
+
+Intuition: piles 10 and 12 → smash to diff 2
+Same table as Partition #416 — different answer extraction
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**2D 0/1 (strings with two costs):**
+```
+dp = 2D zeros, fill 0
+for each item (z, o):
+  for i from m down to z:
+    for j from n down to o:
+      dp[i][j] = max(dp[i][j], dp[i-z][j-o] + 1)
+return dp[m][n]
+```
 
-### 8. Pattern signals & recognition clues
+**Min diff via subset sum:**
+```
+target = total/2
+boolean dp[0..target]
+// standard 0/1 fill
+for j from target down to 0:
+  if dp[j]: return total - 2*j
+```
+
+### 6. Day 17 vs Day 19
+
+| | **Day 17** | **Day 19** |
+|---|---|---|
+| Capacity | 1D `w` or sum | 2D `(m,n)` or sum + extract |
+| Item cost | weight / value | `(zeros, ones)` or stone weight |
+| Goal | max / bool / count | max count / min diff |
+| Loop | reverse 1D | reverse **both** dims |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "at most m zeros and n ones" | 2D knapsack |
+| "maximize number of items" | Value = 1 per item |
+| "minimize stone difference" | Subset sum to `total/2` |
+| "partition into two groups" | **Day 17** if equal; min-diff if optimize gap |
+| "unlimited supply" | **Day 18**, not 2D 0/1 |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `dp[m][n]` · `double reverse` · `total - 2*best` · `multi-constraint`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Forward loop on 2D | Same item twice — reverse both |
+| Last stone: return dp[target] bool | Return **`total - 2*max j`** where dp[j] |
+| Ones and Zeroes: count wrong | Precompute zeros/ones per string |
+| Using unbounded forward | Strings are 0/1 items |
+| 1D only for two constraints | Need 2D or iterate dimensions carefully |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Max strings you can pick with at most m 0s and n 1s total."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"2D 0/1 knapsack: dp[i][j]=max strings, item cost (z,o), reverse i and j per string."*
+
+Read this one:
+
+> *"Minimize leftover weight when smashing stones in pairs."*
+
+Before coding, say:
+
+> *"Partition min-diff: boolean dp to total/2, answer total-2*bestReachableHalf. Day 17 table, new extraction."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Two budgets or one disguised partition. First quest: 2D knapsack on bit counts. →*

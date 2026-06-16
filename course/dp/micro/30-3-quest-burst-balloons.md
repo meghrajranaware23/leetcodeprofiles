@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Burst Balloons
 
 > **Day 30** · [Burst Balloons #312](https://leetcode.com/problems/burst-balloons/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Burst Balloons on LeetCode](https://leetcode.com/problems/burst-balloons/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Think **last balloon burst** in each interval, not first. Pad `nums` with `[1, ...nums, 1]`. Fill `dp[i][j]` by increasing interval length.
 
 ---
 
@@ -24,11 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Interval DP**.
+**Pattern:** **Interval DP** — last-to-burst (Day 30 capstone #2).
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[i][j]` = max coins bursting all balloons in **open interval** `(i,j)` exclusive
+- Choose `k` as the **last** balloon burst in `(i,j)`:
+  `dp[i][j] = max(dp[i][k-1] + dp[k+1][j] + a[i-1]*a[k]*a[j+1])`
+- Fill by length `len = 1..n`, then `i`, then split `k`
+- Answer: `dp[1][n]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Padding `a[0]=a[n+1]=1` handles boundary multiplication.
 
 ---
 
@@ -36,27 +41,19 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 **Pattern used:** Interval DP
 
-**How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
-
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "burst balloons" / "merge stones" | Interval split — last action |
+| "coins from neighbors" | Cost uses outside boundaries of interval |
+| "maximum coins" | max over split k |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 28 contrast:** #1043 is 1D prefix lookback; here true `dp[i][j]` on subarray.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Last burst k splits into independent left/right."*
+2. *"Pad array — virtual balloons at edges."*
+3. *"Fill shorter intervals first (by length)."*
+4. *"dp[i][j] uses a[i-1] and a[j+1] as neighbors when k bursts last."*
 
 ---
 
@@ -64,61 +61,39 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+| **Simulate burst order greedily** | Locally optimal burst ≠ global max |
+| **First-burst thinking** | Left/right not independent until last burst |
+| **Forget padding 1s** | Boundary coins wrong at edges |
+| **Fill dp[i][j] before smaller intervals** | Depends on dp[i][k-1], dp[k+1][j] |
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Minimum Cost Tree From Leaf Values #1130](https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/) | A-Rank test | Interval merge max |
+| [Strange Printer #664](https://leetcode.com/problems/strange-printer/) | String interval | Same length-fill order |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [3,1,5,8] → a = [1,3,1,5,8,1]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+len=1 intervals: dp[1][1], dp[2][2], dp[3][3], dp[4][4]
+  dp[2][2]: k=2 → 1*1*5 = 5
+
+len=2: dp[1][2] — try k=1, k=2 as last burst
+...
+
+len=4: dp[1][4] = 167 (classic example)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+Fill order: length → start i → split k.
+
+> 💡 **The insight:** "Last burst" makes sub-intervals independent — the hallmark of interval DP.
 
 ---
 
@@ -180,21 +155,16 @@ class Solution {
 ```
 
 **Complexity:** O(n³) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Last burst k"** — left/right intervals independent.
+- **"Pad with 1s"** — boundary multiplication handled.
+- **"Fill by interval length"** — smaller intervals first.
+- **"Interval DP"** — Day 30 capstone pattern #2.
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Interval DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Interval DP
+> 🎯 **Pattern Unlocked:** Interval DP — burst balloons
 
 ---
 
