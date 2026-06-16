@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 12 Checkpoint
 
 > **Permutations** · 2 quests completed · ⭐ 80 XP earned
@@ -6,71 +7,57 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | vs Day 11 |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "all permutations" / "all arrangements" | `used[]` + push/pop | Day 11: start index |
+| "order matters" | Pick any unused element | Day 11: forward-only |
+| "unique permutations" + duplicates | Sort + `!used[i-1]` skip | Day 11: `j > start` skip |
+| "all subsets" / "combinations" | Start index (Day 11/13) | Not used[] |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"All permutations of [1,2,3]"* → **`used[]` tree.** Record at leaves. 3! = 6.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"All subsets of [1,2,3]"* → **Start index (Day 11).** Record at every node. 2³ = 8.
+
+3. *"Unique permutations of [1,1,2]"* → **Permutations II.** Sort + skip when `nums[i]==nums[i-1] && !used[i-1]`.
+
+4. *"Combine 4 numbers from 1..n"* → **Day 13 preview.** Start index + fixed count k.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Generate all anagrams of a string."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Permutation of characters — `used[]` or swap-based. Same tree.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Assign n people to n seats."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Bijection = permutation. Track which people/seats are used.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Pick k elements from n where order doesn't matter."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Combination (Day 13) — start index, **not** used[].
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Order matters → permutations. Order irrelevant → combinations/subsets.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Start index on permutations** — Misses half the orderings.
+2. **Only popping path, not unmarking used** — Element stuck as "used."
+3. **Subsets dedup on permutations** — Wrong guard; need `!used[i-1]`.
+4. **Recording partial paths** — Permutations are full-length only.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Without looking: write the permutation dfs signature and the twin-undo lines from memory.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then state the one-line dedup for Permutations II.
 
 ---
 
@@ -78,9 +65,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Permutations #46](https://leetcode.com/problems/permutations/) | Medium | Used-Array Permutations |
-| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Medium | Permutation with Dedup |
+| [Permutations #46](https://leetcode.com/problems/permutations/) | Medium | used[] push/pop |
+| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Medium | sort + !used[i-1] |
 
 ---
 
-*Day 12 complete! Tomorrow: the next descent of your ascension. →*
+*Day 12 complete. Tomorrow: combinations — start index returns, with a reuse twist. →*

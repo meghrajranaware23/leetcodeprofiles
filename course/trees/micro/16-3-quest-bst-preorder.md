@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: BST from Preorder
 
 > **Day 16** · [Construct Binary Search Tree from Preorder Traversal #1008](https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Construct Binary Search Tree from Preorder Traversal on LeetCode](https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Read preorder left-to-right; track upper bound. When val > bound, subtree ends. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST Construction**.
+Which pattern from today's concept applies? **Monotonic stack upper-bound** — recursive: if `preorder[i] > bound`, return null; left gets bound `node.val`, right keeps parent bound.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: no `#` markers needed — BST order tells you when a subtree stops. One index `i` advances through array.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BST Construction
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Construct BST from preorder" → single array, BST property
+- No inorder given — bounds replace the split index
+- O(n) one-pass expected
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "BST from preorder" | Upper-bound recursion |
+| "monotonically increasing stack" | Iterative equivalent |
+| "preorder traversal" | Read with index i |
+| "binary search tree" | Left < root < right globally |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Preorder gives roots before subtrees. BST bound tells you where each subtree ends — next value too large means return to parent level.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Global index i into preorder."*
+2. *"build(bound): if i>=n or pre[i]>bound → null."*
+3. *"node = pre[i++]; node.left = build(node.val); node.right = build(bound)."*
+4. *"Start with build(+∞)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Sort + construct like Day 8** | O(n log n) — miss O(n) bound trick |
+| **Insert one-by-one (#701 loop)** | O(n h) — worse than linear |
+| **Preorder + inorder split** | Needs inorder — not provided |
+| **Same bound for both children** | Left must cap at node.val |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Upper bound **is** the inorder split — values exceeding bound belong to ancestor's right path.
 
 ---
 
@@ -75,31 +74,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Serialize Deserialize #297](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/) | Today's other quest | Preorder decode — needs `#` |
+| [Validate BST #98](https://leetcode.com/problems/validate-binary-search-tree/) | Day 11 — check not build | Same bound idea |
+| [Construct from Preorder + Inorder #105](https://leetcode.com/problems/construct-binary-search-tree-from-preorder-and-inorder-traversal/) | Day 8 — two arrays | Split index vs upper bound |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same preorder consumption — BST property collapses encoding.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**preorder = [8, 5, 1, 7, 10, 12]:**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+build(∞):
+  8 → left build(8):
+    5 → left build(5): 1 ✓
+        right build(5): 7 ✓
+  8 → right build(∞):
+    10 → left build(10): null (12>10... wait 12>10 so left null)
+         right build(∞): 12 ✓
 
-Apply BST Construction step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Tree:
+      8
+     / \
+    5   10
+   / \    \
+  1   7   12
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** When `pre[i] > bound`, you've finished the current subtree — pop back to parent scope. Stack version pops while top > current.
 
 ---
 
@@ -108,17 +112,17 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    TreeNode* build(vector<int>& pre, int& i, int bound) {
-        if (i >= (int)pre.size() || pre[i] > bound) return nullptr;
-        TreeNode* root = new TreeNode(pre[i++]);
-        root->left = build(pre, i, root->val);
-        root->right = build(pre, i, bound);
-        return root;
+    int i = 0;
+    TreeNode* build(vector<int>& pre, int lo, int hi) {
+        if (i == (int)pre.size() || pre[i] < lo || pre[i] > hi) return nullptr;
+        TreeNode* node = new TreeNode(pre[i++]);
+        node->left  = build(pre, lo, node->val - 1);
+        node->right = build(pre, node->val + 1, hi);
+        return node;
     }
 public:
     TreeNode* bstFromPreorder(vector<int>& preorder) {
-        int i = 0;
-        return build(preorder, i, INT_MAX);
+        return build(preorder, INT_MIN, INT_MAX);
     }
 };
 ```
@@ -128,51 +132,49 @@ public:
 class Solution:
     def bstFromPreorder(self, preorder: List[int]) -> Optional[TreeNode]:
         self.i = 0
-        def build(bound):
-            if self.i == len(preorder) or preorder[self.i] > bound:
+        def build(lo, hi):
+            if self.i == len(preorder) or not (lo <= preorder[self.i] <= hi):
                 return None
-            val = preorder[self.i]
-            self.i += 1
+            val = preorder[self.i]; self.i += 1
             node = TreeNode(val)
-            node.left = build(val)
-            node.right = build(bound)
+            node.left  = build(lo, val - 1)
+            node.right = build(val + 1, hi)
             return node
-        return build(float('inf'))
+        return build(float('-inf'), float('inf'))
 ```
 
 ### Java
 ```java
 class Solution {
-    int i = 0;
+    private int i = 0;
     public TreeNode bstFromPreorder(int[] preorder) {
-        return build(preorder, Integer.MAX_VALUE);
+        return build(preorder, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
-    TreeNode build(int[] pre, int bound) {
-        if (i >= pre.length || pre[i] > bound) return null;
-        TreeNode root = new TreeNode(pre[i++]);
-        root.left = build(pre, root.val);
-        root.right = build(pre, bound);
-        return root;
+    private TreeNode build(int[] pre, int lo, int hi) {
+        if (i == pre.length || pre[i] < lo || pre[i] > hi) return null;
+        TreeNode node = new TreeNode(pre[i++]);
+        node.left  = build(pre, lo, node.val - 1);
+        node.right = build(pre, node.val + 1, hi);
+        return node;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST Construction"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"BST from preorder only"** → upper-bound build, not Day 8 split.
+- **"pre[i] > bound → null"** → subtree boundary test.
+- **"Left bound = node.val"** → all left values smaller.
+- **"No # markers"** → BST order encodes structure.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you used inorder array, simplify — bound recursion is the intended O(n) path.
 
-> 🎯 **Pattern Unlocked:** BST Construction
+> 🎯 **Pattern Unlocked:** BST Construction — monotonic upper-bound from preorder.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Invert Binary Tree
 
 > **Day 1** · [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) · Easy · 10 min
@@ -10,51 +11,64 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Invert Binary Tree on LeetCode](https://leetcode.com/problems/invert-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the tree. At each node, mark the swap. Trace which child becomes left vs right after inversion. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/)**
+Given the root of a binary tree, **invert** the tree (mirror it) and return its root.
 
-Work through the examples on paper before reading further.
+```
+Input:       4
+            / \
+           2   7
+          / \ / \
+         1  3 6  9
+
+Output:      4
+            / \
+           7   2
+          / \ / \
+         9  6 3  1
+```
+
+Every node's left and right children are swapped, recursively.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Recursive Tree Modification**.
+Which pattern from today's concept applies? **In-place DFS mutation** — null returns null; at each node, recurse both subtrees then **swap** left and right pointers.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: you don't build a new tree. Swap pointers on the existing nodes.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Recursive Tree Modification
+**Pattern used:** Recursive Tree Modification (swap at node)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Invert" / "mirror" → swap children at every node
+- Return modified root → in-place mutation, not a new tree
+- Binary tree + structural change → DFS on both subtrees
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "invert" / "mirror" | Swap `left` and `right` at each node |
+| "return the root" | Mutate in place; return same root pointer |
+| "flip" / "reverse left-right" | Same swap pattern |
+| "binary tree" + modify structure | DFS; null → null |
+| "recursively" | Trust subtrees, then local swap |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Inverting a tree = invert left subtree + invert right subtree + swap them at the current node. Each subproblem is identical, just smaller.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → return null."*
+2. *"Recurse left and right first (or swap first — both work)."*
+3. *"Swap node.left and node.right."*
+4. *"Return root."*
 
 ---
 
@@ -62,12 +76,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Build a new mirrored tree** | O(n) extra nodes — swap in place is O(1) per node |
+| **BFS + store values, rebuild** | Destroys structure; overkill for pointer swap |
+| **Swap only at root** | Subtrees stay un-inverted — wrong answer |
+| **Serialize → reverse string → deserialize** | O(n) string work when a swap suffices |
+| **Copy values into new positions** | Values move but original tree unchanged |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** The tree already has the nodes you need. Inverting is just rewiring pointers — no new memory required.
 
 ---
 
@@ -75,31 +90,49 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Compare mirror pairs instead of swapping | Mirror thinking |
+| [Flip Binary Tree Upside Down #156](https://leetcode.com/problems/flip-binary-tree-upside-down/) | Different pointer rewiring | In-place DFS mutate |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Baseline swap | Recurse + swap |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: visit node, mutate locally, trust recursion on children.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Postorder-style: trust children, swap at parent, return root.**
 
 ```
-        3
+        4
        / \
-      9    20
-          /  \
-         15   7
+      2   7
+     / \ / \
+    1  3 6  9
 
-Apply Recursive Tree Modification step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Step 1 — recurse to leaves:
+  invertTree(1): null children → return 1
+  invertTree(3): return 3
+  invertTree(6): return 6
+  invertTree(9): return 9
+
+Step 2 — node 2:
+  invertTree(2): recurse done → swap(1, 3) → 2 now has 3 left, 1 right
+
+Step 3 — node 7:
+  invertTree(7): swap(6, 9) → 7 now has 9 left, 6 right
+
+Step 4 — root 4:
+  invertTree(4): swap(2, 7) → 7 left, 2 right
+
+Final tree:
+        4
+       / \
+      7   2
+     / \ / \
+    9  6 3  1  ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Swap happens at **every** node, not just the root. One forgotten swap leaves a partially inverted tree.
 
 ---
 
@@ -125,9 +158,7 @@ class Solution:
     def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
         if not root:
             return None
-        root.left, root.right = root.right, root.left
-        self.invertTree(root.left)
-        self.invertTree(root.right)
+        root.left, root.right = self.invertTree(root.right), self.invertTree(root.left)
         return root
 ```
 
@@ -137,31 +168,28 @@ class Solution {
     public TreeNode invertTree(TreeNode root) {
         if (root == null) return null;
         TreeNode tmp = root.left;
-        root.left = root.right;
-        root.right = tmp;
-        invertTree(root.left);
-        invertTree(root.right);
+        root.left = invertTree(root.right);
+        root.right = invertTree(tmp);
         return root;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Recursive Tree Modification"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Invert"** → Swap left and right at every node — not just the root.
+- **"Return root"** → Mutate in place; same pointer comes back.
+- **"null → null"** → Empty subtree needs no swap.
+- **"Not depth"** → No `1 + max(...)` — this is modification, not aggregation.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried to collect nodes in a list and rebuild, compare to the swap — three lines of real work per node.
 
-> 🎯 **Pattern Unlocked:** Recursive Tree Modification
+> 🎯 **Pattern Unlocked:** Recursive invert — trust both subtrees, swap children, return root.
 
 ---
 

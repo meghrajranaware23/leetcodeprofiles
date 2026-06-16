@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Path with Maximum Gold
 
 > **Day 24** · [Path with Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/) · Medium · 15 min · 35 XP
@@ -10,51 +11,66 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Path with Maximum Gold on LeetCode](https://leetcode.com/problems/path-with-maximum-gold/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw a 3×3 grid with gold values. Trace one dfs path: write `take → 0 → explore → restore`. That's Day 16 mark/unmark.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Path with Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/)**
+In a gold mine grid `m × n`, each cell contains an amount of gold (0 means none). Every minute, you can move to an adjacent cell (up, down, left, right). **You cannot visit the same cell twice in one path.**
 
-Work through the examples on paper before reading further.
+Return the **maximum** gold you can collect starting from any cell with gold.
+
+```
+Input:  grid = [[0,6,0],[5,8,7],[0,9,0]]
+Output: 24
+Explanation: Path 9 → 8 → 7 (or similar) collects 24.
+
+Input:  grid = [[1,0,7],[2,0,6],[3,4,5],[0,3,0],[9,0,20]]
+Output: 28
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Grid Path Enumeration**.
+**Hint 1:** Outer loop — start `dfs` from **every** cell where `grid[i][j] > 0`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** `dfs(r, c, gold)`: if out of bounds or `grid[r][c] == 0`, return (dead end).
+
+**Hint 3:** Take gold: `take = grid[r][c]`, add to `gold`, update global `best = max(best, gold)`.
+
+**Hint 4:** **Mark:** `grid[r][c] = 0`. Explore 4 directions. **Unmark:** `grid[r][c] = take`.
+
+**Hint 5:** No fixed end cell — any dead end is a valid stopping point. Record `best` at every step, not only at leaves.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Grid Path Enumeration
+**Pattern used:** Grid Path Enumeration (Collect-and-Backtrack)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "maximum gold" + grid path | DFS exploring all paths, track max |
+| "cannot visit same cell twice" | Mark cell during path, restore after |
+| "start from any cell" | Outer double loop on gold cells |
+| Small grid, no overlapping states | Pure backtrack — no memo |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 16 (Word Search):**
+
+| Word Search | Path Max Gold |
+|---|---|
+| Match characters of a word | Accumulate numeric gold |
+| Mark with `'#'` | Mark with `0` |
+| Return true when word complete | Update global max continuously |
+| Existential search | Optimization over all paths |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Same as Word Search mark/unmark — but sum gold instead of match chars."*
+2. *"Try every gold cell as entry point."*
+3. *"best updates on every dfs call after taking cell."*
+4. *"Restore gold before returning to parent."*
 
 ---
 
@@ -62,38 +78,51 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Greedy: always go to largest neighbor** | Local max misses global best path |
+| **DFS without restoring cell** | `0` cells block all future paths from other starts |
+| **Single start at max gold cell** | Optimal path may start elsewhere and chain |
+| **BFS for max path** | Path length varies; need full DFS exploration with unmark |
+| **Memo on (r,c) only** | Grid state depends on which cells remain — not simple index memo |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Mark/unmark lets you explore every simple path from each start without copying the whole grid.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Day 16 — match word, early exit |
+| [Unique Paths III #980](https://leetcode.com/problems/unique-paths-iii/) | Today's next quest — count + visit all cells |
+| [Path Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/) | Today's problem |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`grid = [[0,6,0],[5,8,7],[0,9,0]]`:
 
 ```
-Apply Grid Path Enumeration step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Start dfs(1,1) with gold=8:
+  best = 8
+  mark (1,1)=0
+  → (0,1)=6: gold=14, best=14, mark, explore...
+  → (2,1)=9: gold=17, best=17, mark, explore...
+  → (1,2)=7: gold=15 from (1,1)→(1,2), etc.
+  restore each cell on backtrack
+
+Best path chains 9+8+7 or 6+8+7+... depending on grid
+Answer for this example: 24 (path through 9, 8, 7 or similar)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Mark/unmark trace at `(1,1)`:
+
+```
+ENTER (1,1): take=8, grid[1][1]=0
+  ENTER (2,1): take=9, grid[2][1]=0
+    dead ends → restore grid[2][1]=9
+  restore grid[1][1]=8
+```
 
 ---
 
@@ -168,22 +197,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n · 4^k) time · O(k) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Grid Path Enumeration"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Max on grid path, no reuse"** → mark/unmark DFS from Day 16.
+- **`grid[r][c] = 0`** → temporary visited mark (like `'#'`).
+- **Restore `take`** → unchoose before sibling branches.
+- **Every gold cell is a start** → outer double loop.
+- **Not Day 23 memo** → paths don't overlap on a simple index key.
 
 > 🎯 **Pattern Unlocked:** Grid Path Enumeration
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count paths that visit every empty cell — coverage backtracking. →*

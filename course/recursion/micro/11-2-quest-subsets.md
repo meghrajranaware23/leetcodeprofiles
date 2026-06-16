@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Subsets
 
 > **Day 11** · [Subsets #78](https://leetcode.com/problems/subsets/) · Medium · 15 min · 20 XP
@@ -10,51 +11,53 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Subsets on LeetCode](https://leetcode.com/problems/subsets/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the decision tree for `[1,2,3]`. Mark every `path.push` and `path.pop`. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Subsets #78](https://leetcode.com/problems/subsets/)**
+Given an integer array `nums` of **unique** elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [1, 2, 3]
+Output: [[], [1], [2], [1,2], [3], [1,3], [2,3], [1,2,3]]
+
+Input:  nums = [0]
+Output: [[], [0]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Subset Backtracking**.
+This is the **pure push/pop template** from today's concept — no dedup needed because elements are unique.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 1:** Maintain a `path` vector and a `start` index. At every call, **record the current path** (even if empty).
+
+**Hint 2:** Loop `j` from `start` to `n-1`. Push `nums[j]`, recurse with `start = j + 1` (only pick forward), then pop.
+
+**Hint 3:** The empty subset `[]` appears when you record at the root before any picks.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Subset Backtracking
+**Pattern used:** Start-Index Subset Backtracking (push/pop skeleton)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "all subsets" / "power set" | Record path at every node, not just leaves |
+| unique elements | No sort/dedup needed |
+| order within subset doesn't matter | Forward-only `start` index — never revisit earlier indices |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each recursive level picks the next element from a forward range. Push/pop ensures sibling branches don't share state.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"All subsets → backtracking, not return-value recursion."*
+2. *"Record path immediately on entry — empty subset counts."*
+3. *"Loop from start, recurse with j+1, pop after dfs."*
+4. *"Trace [1,2,3] on paper — 8 nodes, 8 subsets."*
 
 ---
 
@@ -62,12 +65,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Bitmask 0..2^n-1** | Works for subsets but doesn't teach the backtracking skeleton used in later days |
+| **Nested loops by subset size** | Ugly to code; hard to add constraints (sum, count, dedup) |
+| **Record only at leaves** | Misses `[]` and intermediate subsets |
+| **Forget path.pop()** | `[1]` leaks into the branch that should produce `[2]` |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Subsets is the **simplest push/pop loop**. Master it here — permutations, combinations, and partition all extend this skeleton.
 
 ---
 
@@ -75,25 +78,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Duplicates — add sort + skip | push → dfs → pop |
+| [Combinations #77](https://leetcode.com/problems/combinations/) | Fixed size k — record only when `path.size()==k` | start index loop |
+| [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | String index instead of array | push → dfs → pop |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+Trace `nums = [1, 2, 3]`:
 
 ```
-Apply Subset Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(start=0, path=[])
+  record []                          ← empty subset
+  j=0: push 1 → dfs(start=1, [1])
+         record [1]
+         j=1: push 2 → dfs(start=2, [1,2])
+                record [1,2]
+                j=2: push 3 → dfs(start=3, [1,2,3])
+                       record [1,2,3]
+                       (no j in range) → pop 3
+                pop 2
+         j=2: push 3 → dfs(start=3, [1,3])
+                record [1,3]
+                pop 3
+         pop 1
+  j=1: push 2 → ... produces [2], [2,3]
+  j=2: push 3 → ... produces [3]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Every `push` has a matching `pop`. Eight recorded paths → eight subsets.
+
+> 💡 **The insight:** The code is the paper trace. Three lines in the loop: push, dfs, pop.
 
 ---
 
@@ -153,22 +169,17 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"All subsets"** → Record path at every node, not just leaves.
+- **"push → dfs → pop"** → The C-Rank backtracking skeleton starts here.
+- **"start index"** → Only pick forward — `[2,1]` never appears.
+- **No dedup needed** → Elements are unique; Subsets II adds sort + skip tomorrow in the same day.
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Subset Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Subset Backtracking
+> 🎯 **Pattern Unlocked:** Start-Index Subset Backtracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: duplicates enter the picture. →*

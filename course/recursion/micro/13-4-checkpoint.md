@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 13 Checkpoint
 
 > **Combinations** · 2 quests completed · ⭐ 80 XP earned
@@ -6,71 +7,55 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Index on include |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "k numbers from 1..n" | Start index, record at size k | `i + 1` |
+| "combination sum" + reuse | Include/exclude branches | **`i` (reuse)** |
+| "each candidate once" | Day 15 — always `i+1` | `i + 1` |
+| "all permutations" | Day 12 — used[] | N/A |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Combine 4 choose 2"* → **Combinations #77.** Start index, record at k.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Sum to 7, reuse candidates"* → **Combination Sum #39.** Include→`i`, exclude→`i+1`.
+
+3. *"Sum to 7, each candidate once, may have dupes"* → **Day 15 #40.** Sort + skip + only `i+1`.
+
+4. *"All permutations"* → **Day 12.** Not start index.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Coin change: list all combos of coins summing to amount, unlimited coins."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Combination Sum template — include stays at coin index.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Pick 3 numbers from 1-9 that sum to 15."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Combination Sum III (Day 15) — fixed k + target + start index.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"How many ways to make change (order matters)?"*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
-
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+**Not** this pattern — that's DP / permutation count (#377).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **`i+1` on include when reuse allowed** — Breaks Combination Sum.
+2. **used[] for combos** — Unnecessary; start index is cleaner.
+3. **Recording partial paths in Combinations** — Only size k counts.
+4. **Confusing combo sum with combo sum IV** — Order matters vs doesn't.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+State aloud the two recursive calls for Combination Sum at index `i`.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> **Answer:** `dfs(i, rem - c[i])` after push, then `dfs(i+1, rem)` for exclude.
 
 ---
 
@@ -78,9 +63,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Combinations #77](https://leetcode.com/problems/combinations/) | Medium | Start-Index Combinations |
-| [Combination Sum #39](https://leetcode.com/problems/combination-sum/) | Medium | Unlimited Reuse Combinations |
+| [Combinations #77](https://leetcode.com/problems/combinations/) | Medium | start index, size k |
+| [Combination Sum #39](https://leetcode.com/problems/combination-sum/) | Medium | include→i, exclude→i+1 |
 
 ---
 
-*Day 13 complete! Tomorrow: the next descent of your ascension. →*
+*Day 13 complete. Tomorrow: partition strings into valid segments. →*

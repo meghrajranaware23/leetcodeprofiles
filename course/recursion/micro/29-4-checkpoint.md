@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 29 Checkpoint
 
 > **Recursive Synthesis II** · 2 quests completed · ⭐ 170 XP earned
@@ -6,71 +7,66 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 29 is the **hardest case analysis in the pack**. Lock in the diff:
 
-| When you see... | Think... | Why |
+| When you see... | Think... | Star check |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "regex" / `.` and `x*` | `dp(i,j)` memo | `p[j+1]=='*'`, act on `p[j]` |
+| "wildcard" / `?` and `*` | same memo skeleton | `p[j]=='*'` directly |
+| full string match | base `j==n → i==m` | both must be consumed |
+| overlapping subproblems | `(i,j)` cache | mandatory — not optional |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Match with `.` and `a*`*" → **Regex #10. Zero: `dp(i,j+2)`. Eat: `match && dp(i+1,j)`.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Match with `?` and `*`*" → **Wildcard #44. Zero: `dp(i,j+1)`. Eat: `i<m && dp(i+1,j)`.**
+
+3. *"Same cell reached twice"* → **Memo — star branches overlap.**
+
+4. *"Check p[j]=='*' for regex"* → **Wrong — check p[j+1] for regex, p[j] for wildcard.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Is interleaving string?"*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+2D memo on `(i,j)` for two source strings — same table idea, different transition.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Regex with + or ? modifiers"*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Extend case matrix — still `(i,j)` dp with more branches per pattern char.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Wildcard — can `*` match empty at end?"*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Yes — `dp(i,j+1)` zero branch handles star eating nothing.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Both quests share one skeleton. Only the **star branch** differs.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Regex: check `p[j]=='*'`** — star is always at `j+1`.
+2. **Forget zero-match branch** — star can match empty.
+3. **Regex consume: `dp(i+1,j+2)`** — stay at `j`, not skip star.
+4. **No memo on (i,j)** — TLE on stress tests.
+5. **Confuse wildcard `*` with regex `x*`** — different consume guards.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Draw both star branch diagrams from memory:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+```
+Regex x* at (i,j):          Wildcard * at (i,j):
+     /    \                       /    \
+dp(i,j+2)  dp(i+1,j)         dp(i,j+1)  dp(i+1,j)
+```
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then write the 4-case `dp(i,j)` pseudocode for regex in 8 lines.
 
 ---
 
@@ -78,9 +74,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/) | Hard | Recursive Pattern Matching |
-| [Wildcard Matching #44](https://leetcode.com/problems/wildcard-matching/) | Hard | Memoized String Matching |
+| [Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/) | Hard | regex star at j+1 |
+| [Wildcard Matching #44](https://leetcode.com/problems/wildcard-matching/) | Hard | wildcard star at j |
+| [Wildcard Matching #44](https://leetcode.com/problems/wildcard-matching/) | Hard | S-Rank test #3 |
 
 ---
 
-*Day 29 complete! Tomorrow: the next descent of your ascension. →*
+*Day 29 complete. Tomorrow: the Final Ascension — capstone decision tree. →*

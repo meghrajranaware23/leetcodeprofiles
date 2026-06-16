@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Search
 
-> **Day 16** · [Word Search #79](https://leetcode.com/problems/word-search/) · Medium · 15 min · 25 XP
+> **Day 16** · [Word Search #79](https://leetcode.com/problems/word-search/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,53 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Search on LeetCode](https://leetcode.com/problems/word-search/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace one path on paper. Mark cells with `#` when entered — erase the mark when backing out. That's backtracking on a grid.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Word Search #79](https://leetcode.com/problems/word-search/)**
+Given an `m × n` board of characters and a string `word`, return `true` if `word` exists in the grid.
 
-Work through the examples on paper before reading further.
+The word must be constructed from letters of sequentially adjacent cells (horizontal or vertical). **Same cell may not be used twice in one path.**
+
+```
+Input:  board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"
+Output: true
+
+Input:  board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "SEE"
+Output: true
+
+Input:  board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCB"
+Output: false
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Grid DFS Backtracking**.
+**Hint 1:** `dfs(i, j, k)` — cell `(i,j)` must match `word[k]`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** Before exploring neighbors: save `board[i][j]`, set to `'#'`. After all 4 directions: restore saved char.
+
+**Hint 3:** Outer loop: try starting dfs from **every** cell with `k=0`. Return true on first success.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Grid DFS Backtracking
+**Pattern used:** Grid DFS Backtracking (mark/unmark)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| "adjacent cells" / "path in grid" | 4-direction DFS |
+| "cannot reuse cell" | In-place mark |
+| find existence (not all paths) | Return true early — still must unmark on failure |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Match word[k] at each step — k is path length."*
+2. *"Mark before recurse, unmark after — even when returning false."*
+3. *"Try every starting cell."*
 
 ---
 
@@ -62,38 +65,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **DFS without unmarking** | `'#'` cells block valid paths through other routes |
+| **Global visited[][] not cleared per path** | Must unmark when backtracking, not only at end |
+| **8-direction movement** | Problem specifies 4-direction only |
+| **Single start at (0,0)** | Word may start anywhere |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Twist |
+|---|---|
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Single word, existence |
+| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | Multiple words + Trie (Day 30) |
+| [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | Today's quest 2 — index not grid |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+Partial trace for `"SEE"` on the example board:
 
 ```
-Apply Grid DFS Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Start (1,3): 'S' k=0 ✓ → mark
+  (1,2): 'E' k=1 ✓ → mark
+    (2,2): 'E' k=2 ✓ → mark
+      k=3 == len → return true ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+For `"ABCB"`: path would need to revisit `B` at (0,1) — mark prevents reuse → false.
 
 ---
 
@@ -160,22 +160,16 @@ class Solution {
 ```
 
 **Complexity:** O(m · n · 4^L) time · O(L) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Grid DFS Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Mark/unmark** → Grid version of push/pop.
+- **k indexes word** → Path length without storing coordinates.
+- **Unmark on false paths too** → Siblings need clean board.
 
 > 🎯 **Pattern Unlocked:** Grid DFS Backtracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: binary branches on a string. →*

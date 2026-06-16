@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: House Robber
 
 > **Day 23** · [House Robber #198](https://leetcode.com/problems/house-robber/) · Medium · 15 min · 30 XP
@@ -10,51 +11,71 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open House Robber on LeetCode](https://leetcode.com/problems/house-robber/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace `rob(i)` on paper for `[2,7,9,3,1]`. Label `memo[i]` at each index before you write code.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[House Robber #198](https://leetcode.com/problems/house-robber/)**
+You are a professional robber planning to rob houses along a street. Each house has a non-negative integer amount of money. **Adjacent houses have security systems connected** — robbing two adjacent houses triggers an alarm.
 
-Work through the examples on paper before reading further.
+Given an integer array `nums` representing money in each house, return the **maximum** amount you can rob **without alerting the police**.
+
+```
+Input:  nums = [1,2,3,1]
+Output: 4
+Explanation: Rob house 0 (1) + house 2 (3) = 4.
+
+Input:  nums = [2,7,9,3,1]
+Output: 12
+Explanation: Rob 0 (2) + 2 (9) + 4 (1) = 12.
+
+Input:  nums = [2,1,1,2]
+Output: 4
+Explanation: Rob 0 and 3, or 1 and 3 — both give 4.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Linear Memoization**.
+**Hint 1:** Define `rob(i)` — *maximum loot from houses `i..n-1`*.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** At house `i`, two choices: **rob it** → `nums[i] + rob(i+2)`; **skip it** → `rob(i+1)`.
+
+**Hint 3:** Base case: `i >= len(nums)` → return `0` (no houses left).
+
+**Hint 4:** Memoize on `i`. The same index is reached from different rob/skip histories — overlap like Fibonacci.
+
+**Hint 5:** Answer is `rob(0)`, not a greedy pick of the largest `nums[i]`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Linear Memoization
+**Pattern used:** Linear Index Memoization (Optimization)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "maximum" + sequential houses | Take-or-skip at each index |
+| "cannot rob two adjacent" | Robbing `i` forbids `i+1` → jump to `i+2` |
+| Same suffix from different prefixes | Memo key = start index `i` |
+| Not "count ways" | Use `max`, not `+` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 21 (Word Break):**
+
+| Word Break I | House Robber |
+|---|---|
+| Loop over cut lengths | Fixed two branches: rob or skip |
+| Return bool | Return max int |
+| Dict check on substring | No external validation |
+| Same index memo idea | Same index memo idea |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"State = index i. What's the best from here?"*
+2. *"Two branches: rob (i+2) or skip (i+1)."*
+3. *"Base: past end of array → 0."*
+4. *"Memo[i] before recursing — Fibonacci overlap."*
 
 ---
 
@@ -62,38 +83,48 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Try all 2^n rob/skip subsets** | Correct logic, exponential without memo |
+| **Greedy: always rob larger of neighbors** | Fails on `[2,1,1,2]` — need non-local choice |
+| **Rob every other house from index 0** | Optimal path may start by skipping house 0 |
+| **DP without recognizing recurrence** | Works bottom-up, but top-down needs memo on `i` |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Many rob/skip paths converge on the same suffix starting at `i`. Compute `rob(i)` once.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [House Robber II #213](https://leetcode.com/problems/house-robber-ii/) | Circle — run `rob` on `[0..n-2]` and `[1..n-1]` |
+| [Delete and Earn #740](https://leetcode.com/problems/delete-and-earn/) | Same take/skip on value buckets |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Today's next quest — count instead of max |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [2, 7, 9, 3, 1]`:
 
 ```
-Apply Linear Memoization step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+rob(0) = max(2 + rob(2), rob(1))
+rob(2) = max(9 + rob(4), rob(3))
+rob(4) = max(1 + rob(6), rob(5)) = max(1 + 0, 0) = 1
+rob(3) = max(3 + 0, 0) = 3
+rob(2) = max(9 + 1, 3) = 10
+rob(1) = max(7 + rob(3), rob(2)) = max(7 + 3, 10) = 10
+rob(0) = max(2 + 10, 10) = 12 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Overlap: both `rob(0)` skip-branch and `rob(1)` eventually need `rob(3)` and `rob(4)` — memo stores them once.
+
+Greedy trap on `[2,1,1,2]`:
+
+```
+Greedy "rob bigger neighbor" → wrong
+rob(0)=2, skip 1, rob 2? can't — adjacent to robbed 0
+Optimal: rob index 1 and 3 → 1+2=4, or rob 0 and 3 → 2+2=4
+```
 
 ---
 
@@ -147,22 +178,17 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Linear Memoization"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Max on sequential take/skip"** → `rob(i)` with two branches.
+- **"Can't take neighbors"** → robbing `i` jumps to `i+2`, not `i+1`.
+- **`memo[i]`** → best loot from suffix `i..` — computed once.
+- **Not greedy** → optimal path depends on full suffix, not local max.
 
 > 🎯 **Pattern Unlocked:** Linear Memoization
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count decodings — same index memo, plus the `'0'` guard. →*

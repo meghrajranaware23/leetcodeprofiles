@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Add and Search Words
 
 > **Day 24** · [Design Add and Search Words Data Structure #211](https://leetcode.com/problems/design-add-and-search-words-data-structure/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Design Add and Search Words Data Structure on LeetCode](https://leetcode.com/problems/design-add-and-search-words-data-structure/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** `addWord` is Day 19 insert. `search` with `'.'` = DFS branching at each dot. Trace `search(".a")` on a small trie before coding. Hints are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Trie + Wildcard DFS**.
+Which pattern from today's concept applies? **Trie + wildcard DFS** — letter moves to one child; `'.'` tries every existing child recursively.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: base case `i == len(word)` → return `node.isEnd`. Null node → false.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Trie + Wildcard DFS
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Add word" + "search word" → design class with trie backend
+- `'.'` matches any letter → branching, not single path
+- Lowercase a-z only → 26-array or hash children
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "add and search" | Insert + query on same structure |
+| "'.' can match any letter" | DFS multi-branch at dot |
+| "data structure design" | Separate addWord (path) from search (DFS) |
+| Exact letters otherwise | Single-child descent |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Trie encodes all words sharing prefixes. Wildcard at position i asks "does **any** stored word match word[i+1:] from here?" — exactly one DFS level per character.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"addWord = Day 19 insert to isEnd."*
+2. *"search(word, i, node) recursive helper."*
+3. *"c != '.': one child. c == '.': loop children."*
+4. *"Return true on first successful branch."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Store all words in list, regex each search** | O(n × m) per query — no prefix sharing |
+| **Wildcard: pick random child** | Must try all — one miss doesn't mean fail |
+| **Build new trie per search** | Wasteful — persist one trie |
+| **BFS instead of DFS on '.'** | Works but DFS is natural for word index walk |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Trie prunes wildcard branches — only existing edges are explored, not all 26^k strings.
 
 ---
 
@@ -75,31 +74,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Implement Trie #208](https://leetcode.com/problems/implement-trie-prefix-tree/) | Day 19 — no wildcard | Same insert |
+| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | Grid + trie | DFS on both |
+| [Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/) | Full regex | Harder — today's '.' is one char |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: trie node + conditional DFS.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**After addWord("bad"), addWord("dad"), addWord("mad"):**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
-
-Apply Trie + Wildcard DFS step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+search("pad")  → 'p' no child → false
+search("bad")  → b→a→d→isEnd → true
+search(".ad")  → dot at root → try b,d,m → each reaches a→d→end → true
+search("b..")  → b→a→ dot at d leaf? only d child, dot at end → check isEnd
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Dot = OR over children. Letter = AND with single path.
 
 ---
 
@@ -108,32 +102,32 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class WordDictionary {
-    Trie* child[26]{};
-    bool end = false;
+    struct Node {
+        Node* ch[26] = {};
+        bool end = false;
+    };
+    Node* root;
+    bool search(const string& w, int i, Node* node) {
+        if (!node) return false;
+        if (i == (int)w.size()) return node->end;
+        char c = w[i];
+        if (c != '.') return search(w, i+1, node->ch[c-'a']);
+        for (auto child : node->ch)
+            if (search(w, i+1, child)) return true;
+        return false;
+    }
 public:
-    WordDictionary() {}
+    WordDictionary() : root(new Node()) {}
     void addWord(string word) {
-        WordDictionary* node = this;
+        Node* cur = root;
         for (char c : word) {
             int i = c - 'a';
-            if (!node->child[i]) node->child[i] = new WordDictionary();
-            node = node->child[i];
+            if (!cur->ch[i]) cur->ch[i] = new Node();
+            cur = cur->ch[i];
         }
-        node->end = true;
+        cur->end = true;
     }
-    bool search(string word) {
-        return dfs(word, 0, this);
-    }
-    bool dfs(const string& word, int i, WordDictionary* node) {
-        if (!node) return false;
-        if (i == (int)word.size()) return node->end;
-        if (word[i] == '.') {
-            for (int j = 0; j < 26; ++j)
-                if (dfs(word, i + 1, node->child[j])) return true;
-            return false;
-        }
-        return dfs(word, i + 1, node->child[word[i] - 'a']);
-    }
+    bool search(string word) { return search(word, 0, root); }
 };
 ```
 
@@ -141,74 +135,69 @@ public:
 ```python
 class WordDictionary:
     def __init__(self):
-        self.children = {}
-        self.end = False
+        self.root = {}
+
     def addWord(self, word: str) -> None:
-        node = self
+        node = self.root
         for c in word:
-            node = node.children.setdefault(c, WordDictionary())
-        node.end = True
+            node = node.setdefault(c, {})
+        node['#'] = True
+
     def search(self, word: str) -> bool:
-        def dfs(i, node):
-            if not node:
-                return False
-            if i == len(word):
-                return node.end
-            if word[i] == '.':
-                return any(dfs(i + 1, ch) for ch in node.children.values())
-            if word[i] not in node.children:
-                return False
-            return dfs(i + 1, node.children[word[i]])
-        return dfs(0, self)
+        def dfs(node, i):
+            if i == len(word): return '#' in node
+            c = word[i]
+            if c != '.':
+                return c in node and dfs(node[c], i+1)
+            return any(dfs(node[k], i+1) for k in node if k != '#')
+        return dfs(self.root, 0)
 ```
 
 ### Java
 ```java
 class WordDictionary {
-    WordDictionary[] child = new WordDictionary[26];
-    boolean end;
+    private WordDictionary[] ch = new WordDictionary[26];
+    private boolean isEnd = false;
     public void addWord(String word) {
-        WordDictionary node = this;
+        WordDictionary cur = this;
         for (char c : word.toCharArray()) {
             int i = c - 'a';
-            if (node.child[i] == null) node.child[i] = new WordDictionary();
-            node = node.child[i];
+            if (cur.ch[i] == null) cur.ch[i] = new WordDictionary();
+            cur = cur.ch[i];
         }
-        node.end = true;
+        cur.isEnd = true;
     }
-    public boolean search(String word) {
-        return dfs(word, 0, this);
-    }
-    boolean dfs(String word, int i, WordDictionary node) {
-        if (node == null) return false;
-        if (i == word.length()) return node.end;
-        if (word.charAt(i) == '.') {
-            for (WordDictionary c : node.child)
-                if (c != null && dfs(word, i + 1, c)) return true;
-            return false;
+    public boolean search(String word) { return search(word, 0); }
+    private boolean search(String word, int idx) {
+        if (idx == word.length()) return isEnd;
+        char c = word.charAt(idx);
+        if (c != '.') {
+            int i = c - 'a';
+            return ch[i] != null && ch[i].search(word, idx+1);
         }
-        return dfs(word, i + 1, node.child[word.charAt(i) - 'a']);
+        for (WordDictionary child : ch)
+            if (child != null && child.search(word, idx+1)) return true;
+        return false;
     }
 }
 ```
 
-**Complexity:** O(m) add · O(26^m) search worst · O(n·m) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Trie + Wildcard DFS"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Word Dictionary"** → Day 19 trie + dot DFS.
+- **"'.' at index i"** → try every non-null child for word[i+1:].
+- **"addWord unchanged"** → standard insert.
+- **"Return on first true branch"** → short-circuit OR.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you linear-scanned a word list for search, refactor to trie + DFS.
 
-> 🎯 **Pattern Unlocked:** Trie + Wildcard DFS
+> 🎯 **Pattern Unlocked:** Trie + wildcard DFS — dot branches, letter descends.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: greedy prefix replace. →*

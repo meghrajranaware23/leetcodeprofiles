@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 13 Checkpoint
 
 > **Lowest Common Ancestor** · 2 quests completed · ⭐ 65 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 13 is **LCA** — where two node paths diverge.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "LCA" + general binary tree | Split detection post-order | `l && r` → return root |
+| "LCA" + BST | Range/straddle walk | Both same side → continue |
+| "both p and q in tree" | Anchor return when node==p or q | Bubble partner from subtree |
+| "parent pointers" variant | Two-pointer ascend | Different pattern — not core Day 13 |
+| "search one value in BST" | **Day 11** — single target | Not LCA |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"LCA of two nodes in binary tree"* → **Split detection** — post-order, both children non-null
+2. *"LCA in BST"* → **Straddle walk** — O(h), stop when sides differ
+3. *"LCA when one node is ancestor of other"* → **Anchor case** — ancestor returned when hit
+4. *"Are two nodes cousins?"* → **D-Rank** — same depth, different parent (LCA at depth 2)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"LCA with parent pointers only (no root)."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Ascend from p with depth equalization** — not today's tree dfs, but same LCA definition.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Find LCA of deepest leaves (Smallest Subtree with All Deepest)."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Bubble-up variant** — return depth + candidate node; merge at parent like split detection.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"LCA in BST where nodes are referenced by value not pointer."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Same straddle walk** — compare values; find nodes first if needed.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 2 closest to Day 13 bubble-up. Scenario 1 is parent-pointer technique.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **BST walk on general tree** — Ordering required for straddle shortcut.
+2. **Returning parent on single non-null child** — Bubble the child result; LCA may be deeper.
+3. **Missing anchor case** — When node==p or q, return immediately.
+4. **Path arrays as first choice** — Works but split detection is cleaner one-pass.
+5. **Confusing "split" with "root"** — LCA isn't always root — only when paths diverge there.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Smallest Subtree with All the Deepest Nodes #865](https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try on LeetCode](https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Bubble-up variant — both subtrees report depth; parent merges like LCA split logic.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Trace a tree with two deepest leaves in different subtrees. Where does merge happen?
+
+> 💡 **Hint:** Return `(depth, node)` pairs; if left depth == right depth, current node is answer candidate.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 13 complete! Tomorrow: the next branch of your ascension. →*
+*Day 13 complete! Tomorrow: path problems — prefix sums and univalue chains. →*

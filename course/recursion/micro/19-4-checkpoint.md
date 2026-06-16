@@ -1,76 +1,67 @@
+<!-- hand-authored -->
 # ✅ Day 19 Checkpoint
 
-> **Partition Problems** · 2 quests completed · ⭐ 120 XP earned
+> **Partition Problems** · 2 quests completed · ⭐ 70 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "form a square" / "four equal sides" | 4-bucket partition | k=4, target = sum/4 |
+| "partition into k equal subsets" | General k-bucket | Same dfs, k parameter |
+| "assign each element to a group" | Bucket loop at index i | Not include/exclude |
+| "equal sum" + use all elements | Pre-check sum % k | target = sum/k |
+| Day 17 #698 revisit | Same code again | Recognition, not re-derivation |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Matchsticks to square"* → **4-bucket dfs.** Sort desc. Skip `sides[j]==sides[j-1]`. Overflow prune.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Partition array into 3 equal-sum subsets"* → **k=3 bucket assignment.** Identical skeleton.
+
+3. *"Generate all subsets of an array"* → **Day 11 — wrong tool.** Include/exclude, not bucket assign.
+
+4. *"Target sum with + and - signs"* → **Day 17 sign-choice.** Two branches per index, not k buckets.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Can you split an array into two groups with equal sum?"*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **k=2 bucket partition** (or DP subset-sum #416). Same target = sum/2 check. Bucket dfs works; DP is O(n·sum) alternative.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Distribute cookies into k jars, minimize the maximum cookies any child gets."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Bucket assignment family (#2305).** Same loop over jars; optimize max load instead of boolean all-equal.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Partition string into palindrome substrings."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Day 14 string partition — not today.** Cut string segments, not assign numbers to buckets.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 → bucket assignment. Scenario 3 → string backtracking.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Subset include/exclude on partition problems** — Every element must land in a bucket.
+2. **Forgetting duplicate-bucket skip** — Symmetric partitions explored k! times.
+3. **Ascending sort on sticks/nums** — Descending sort fails fast on large values.
+4. **Skipping sum % k guard** — Wastes full DFS when partition is impossible.
+5. **Treating buckets as labeled** — Bucket 0 and bucket 1 are interchangeable when sums match.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+From memory, write the bucket dfs loop (5 lines) for Matchsticks #473. Then change `4` to `k` for #698.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Say aloud: *"overflow prune, duplicate skip, add, recurse, undo."*
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Self-check:** Does your loop have `if j > 0 && sides[j] == sides[j-1]: continue`?
 
 ---
 
@@ -78,9 +69,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Matchsticks to Square #473](https://leetcode.com/problems/matchsticks-to-square/) | Medium | 4-Bucket Partition |
-| [Partition to K Equal Sum Subsets #698](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/) | Medium | Sorted Pruning Partition |
+| [Matchsticks to Square #473](https://leetcode.com/problems/matchsticks-to-square/) | Medium | 4-bucket partition |
+| [Partition to K Equal Sum Subsets #698](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/) | Medium | General k-bucket |
+| [Fair Distribution of Cookies #2305](https://leetcode.com/problems/fair-distribution-of-cookies/) | Medium | Bucket assign + minimize max |
 
 ---
 
-*Day 19 complete! Tomorrow: the next descent of your ascension. →*
+*Day 19 complete. Tomorrow: insert operators into digit strings — the multiply carry trick. →*

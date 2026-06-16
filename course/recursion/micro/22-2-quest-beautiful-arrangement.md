@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Beautiful Arrangement
 
 > **Day 22** · [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) · Medium · 15 min · 35 XP
@@ -10,23 +11,40 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Beautiful Arrangement on LeetCode](https://leetcode.com/problems/beautiful-arrangement/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace `n=3` on paper. At each `pos`, list which unused numbers pass the divisibility test before you recurse.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/)**
+Suppose you have `n` integers labeled `1` through `n`. A permutation of those integers `perm` (1-indexed) is called a **beautiful arrangement** if:
 
-Work through the examples on paper before reading further.
+- For every `i` where `1 <= i <= n`, **either** `perm[i] % i == 0` **or** `i % perm[i] == 0`.
+
+Given `n`, return the **number** of beautiful arrangements.
+
+```
+Input:  n = 2
+Output: 2
+Explanation: [1,2] and [2,1] both valid
+
+Input:  n = 1
+Output: 1
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Divisibility Constraint Permutation**.
+**Hint 1:** Fill positions `pos = 1, 2, ..., n` in order. At each level, try every unused number `i`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** **Constraint before choose:** skip `i` if `i % pos != 0` **and** `pos % i != 0`.
+
+**Hint 3:** Use `used[i]` (Day 12 permutation style). Base: `pos > n` → increment global counter.
+
+**Hint 4:** No need to store the path — only count. `used[]` push/pop is enough.
+
+**Hint 5:** `n <= 15` — full backtrack with in-loop pruning is fast enough.
 
 ---
 
@@ -34,27 +52,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 **Pattern used:** Divisibility Constraint Permutation
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "permutation of 1..n" | `used[]` backtracking |
+| rule ties **value to position** | Check `(i, pos)` before placing |
+| "count" valid arrangements | Global `ans++` at leaf, no result vector |
+| small n (≤ 15) | Prune in loop; no memo needed |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 12 Permutations:**
+
+| Permutations #46 | Beautiful Arrangement |
+|---|---|
+| Any unused number at each level | Only numbers passing divisibility rule |
+| Record full path at leaf | Count only |
+| No positional constraint | `i % pos == 0 OR pos % i == 0` |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"pos is 1-indexed — loop pos from 1 to n."*
+2. *"For each unused i, divisibility check first."*
+3. *"used[i] true → dfs(pos+1) → used[i] false."*
+4. *"pos > n → ans++."*
 
 ---
 
@@ -62,38 +79,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all n! permutations, then filter** | Correct but explores huge dead subtrees |
+| **0-indexed pos without adjusting rule** | Off-by-one on divisibility check |
+| **Check constraint after placement** | Wastes dfs calls on invalid branches |
+| **Store every path in a vector** | Unnecessary — count only |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** The constraint eliminates most `(pos, i)` pairs **at the loop** — same skeleton as permutations, tighter branch factor.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Variant |
+|---|---|
+| [Permutations #46](https://leetcode.com/problems/permutations/) | Day 12 — no positional constraint |
+| [Beautiful Arrangement II](https://leetcode.com/problems/beautiful-arrangement-ii/) | Construct one arrangement, not count |
+| [N-Queens #51](https://leetcode.com/problems/n-queens/) | Board constraint at each row — same "check before choose" |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`n = 3`:
 
 ```
-Apply Divisibility Constraint Permutation step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
-```
+dfs(pos=1, used=[])
+  i=1: 1%1✓ → used[1]=T
+    dfs(pos=2)
+      i=2: 2%2✓ → used[2]=T
+        dfs(pos=3)
+          i=3: 3%3✓ → [1,2,3] ✓ ans++
+      i=1: used, skip
+      i=3: 3%2✗ and 2%3✗ → skip
+  i=2: 2%1✓ → ...
+  i=3: 3%1✓ → ...
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Also [2,1,3], [3,2,1], etc. — total 3 arrangements for n=3
+```
 
 ---
 
@@ -157,22 +179,17 @@ class Solution {
 ```
 
 **Complexity:** O(n!) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Divisibility Constraint Permutation"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Permutation + extra guard** — Day 12 skeleton, one `if` in the loop.
+- **1-indexed positions** — `pos` starts at 1; divisibility uses `i` and `pos` directly.
+- **Prune before choose** — invalid numbers never touch `used[]`.
+- **Count at leaf** — no path vector needed.
 
 > 🎯 **Pattern Unlocked:** Divisibility Constraint Permutation
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: build a binary string column by column — Cantor diagonal style. →*

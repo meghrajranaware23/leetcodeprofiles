@@ -1,124 +1,135 @@
-# 📝 Recursion on Arrays & Linked Lists
+<!-- hand-authored -->
+# 📝 Index-Based Recursion on Linked Lists
 
-> **Day 3** · Recursion on Linear Structures · ★★☆☆☆ · 10 XP · 10 min read
-
----
-
-Your mission today: **understand Index-Based Recursion visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+> **Day 3** · Index-Based Recursion · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-## Part 1 — Why Does This Work?
+Days 1–2 taught you recursion on **indices** — shrink an array by moving `i` forward. Today the same idea moves to **linked lists**: shrink the problem by advancing to `node.next`.
+
+The list has no `length` and no random access. Your "index" is simply **how many nodes remain** in the current sublist. Each recursive call owns one node and trusts the call on the tail.
+
+---
+
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Index-Based Recursion** — the core technique you'll use in today's quests.
+**Index-based recursion on linked lists** — treat the head as "position 0" and recurse on the rest of the list.
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Every call answers one local question, then delegates the tail:
+
+- **Base case** — empty list (`null` / `None`) or a single node
+- **Recursive case** — do your one step on the current head, call on `head.next`, combine
+- **Trust** — assume `solve(tail)` is correct; you only wire your node to that result
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+Imagine a chain of people holding hands. You stand at the front. You make **one decision** (pick the smaller value, or rewire one pointer), then shout: *"Someone handle everyone behind me."* When they return the finished tail, you connect your node and hand the answer back.
 
-The call stack is just a line of friends waiting for the next friend to finish.
+You never simulate the whole list — only the current node and what the sub-call returns.
 
-### 3. Visual walkthrough
+### 3. Visual walkthrough — shrinking the list
 
 ```
-factorial(3):
+mergeTwoLists(1→4→5, 1→3→4):
 
-CALL STACK (grows downward):
-┌─────────────────┐
-│ factorial(3)    │  waiting for factorial(2)
-│   n = 3         │
-├─────────────────┤
-│ factorial(2)    │  waiting for factorial(1)
-│   n = 2         │
-├─────────────────┤
-│ factorial(1)    │  BASE CASE → returns 1
-│   n = 1         │
-└─────────────────┘
+CALL STACK (list shrinks left to right):
+┌──────────────────────────────┐
+│ merge(1→4→5, 1→3→4)          │  pick min head: 1 from l1
+│   l1=1, l2=1                   │  recurse on l1.next
+├──────────────────────────────┤
+│ merge(4→5, 1→3→4)             │  pick 1 from l2
+│   l1=4, l2=1                   │
+├──────────────────────────────┤
+│ merge(4→5, 3→4)                │  pick 3 from l2
+├──────────────────────────────┤
+│ merge(4→5, 4)                  │  pick 4 from l1
+├──────────────────────────────┤
+│ merge(5, 4)                    │  pick 4 from l2
+├──────────────────────────────┤
+│ merge(5, null)                 │  BASE → return 5→
+└──────────────────────────────┘
 
-RETURNS (bubble upward):
-factorial(1) → 1
-factorial(2) → 2 × 1 = 2
-factorial(3) → 3 × 2 = 6
+RETURNS (rewire as we unwind):
+merge(5, null) → 5→
+merge(5, 4)    → 4→5→
+merge(4→5, 4)  → 4→4→5→
+...
+final          → 1→1→3→4→4→5→
 ```
 
 ### 4. How the pattern works
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+function solve(head):
+    if head is null:
+        return base_answer
+    tail_result = solve(head.next)   // trust this
+    return combine(head, tail_result)
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Two flavors you'll use today:
+
+| Flavor | Your job on current node | Sub-call handles |
+|---|---|---|
+| **Pick & link** (merge) | Choose smaller head, set `.next` | Sorted merge of remainders |
+| **Rewire** (reverse) | Point `next.next` back to you | Reversed tail + new head |
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
+| Problem family | How index-based list recursion helps |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| Merge sorted lists | One comparison per node; tail is already merged |
+| Reverse linked list | Tail returns new head; you fix one backward link |
+| Add two numbers (lists) | Carry propagates up from shorter tail |
+| Palindrome list (with helper) | Compare front vs returned-from-tail |
 
-### 6. Why brute force / iteration fails
+### 6. Why brute force fails here
 
 | Brute force | Problem |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| Copy list to array, recurse on indices | O(n) extra space; misses pointer skill |
+| Iterative merge with dummy node only | Works, but hides the recursive structure you'll need on trees |
+| Reverse by building a new list | O(n) space; in-place rewire is one line per frame |
+| Loop without clear base case on `null` | Null pointer crashes or infinite recursion |
 
 ### 7. The key observation
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+**The recursive "index" on a linked list is `head.next`.** Each frame removes exactly one node from the subproblem. Empty list is the universal base case — same as `i == n` on an array.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "merge two sorted linked lists" | Pick min head, recurse on rest |
+| "reverse linked list" | Recurse to tail, rewire one pointer on return |
+| "linked list" + "recursion" | Shrink by `head.next`, base = `null` |
+| "in-place" on a list | Combine step mutates pointers, not values |
+| "return the head of…" | Return value may bubble from deep in the list |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `ListNode` · `head.next` · `null` base · `return head`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Forgetting `null` base case | Always handle empty list first |
+| Losing the returned head (reverse) | Save `newHead = reverse(head.next)` before rewiring |
+| Creating cycles when reversing | Set `head.next = null` after `next.next = head` |
+| Comparing after advancing wrong pointer | Pick winner first, then recurse on *that* list's `.next` |
+| Assuming O(1) space | Recursion uses O(n) call stack — still valid for E-Rank |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Merge two sorted linked lists into one sorted list."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Base: either list empty → return the other. Recursive: compare heads, attach smaller to merge(rest). Trust the sub-call returns a sorted tail."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You understand shrinking a list by one node. Your first quest: pick the minimum head at every step. →*

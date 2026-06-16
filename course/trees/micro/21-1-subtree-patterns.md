@@ -1,120 +1,159 @@
+<!-- hand-authored -->
 # 📝 Subtree Patterns: Sum, Count, Compare
 
 > **Day 21** · Subtree Patterns · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Subtree Aggregation visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Some problems need **every subtree's aggregate** (sum, count, frequency). Others need **root-to-node state** (max so far on the path). Today pairs **postorder subtree sum + hashmap** with **top-down max tracking** — the same tree, opposite information flow.
+
+> **Link (Day 6):** [Top-Down DFS](../06-1-top-down-dfs.md) carried remainder and path lists downward. Good nodes uses the same engine with **max-so-far** instead of sum.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Subtree Aggregation** — the core technique you'll use in today's quests.
+**Postorder subtree aggregate + top-down path max** — dual toolkit:
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Direction | Returns / carries | Side effect |
+|---|---|---|
+| **Postorder sum** | Subtree sum upward | Hashmap frequency count |
+| **Top-down max** | `maxSoFar` parameter down | Count good nodes |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+**Most Frequent Subtree Sum:** Each node computes `sum = val + leftSum + rightSum`, records it in a frequency map, returns sum to parent. After one DFS, find sum(s) with highest count.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+**Good Nodes:** A node is "good" if `val >= maxSoFar` on the path from root. Carry `maxSoFar = max(maxSoFar, val)` down; count nodes that qualify.
 
-### 3. Visual walkthrough
+### 3. Visual — Postorder subtree sum + frequency map
 
 ```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
+Tree:     5
+         / \
+        2  -3
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+POSTORDER bubble:
+
+dfs(2):  sum=2,  map{2:1}
+dfs(-3): sum=-3, map{2:1, -3:1}
+dfs(5):  sum=5+2+(-3)=4, map{2:1, -3:1, 4:1}
+
+If another subtree also sums to 4, increment map[4].
+
+At each node AFTER children return:
+  sum = node.val + leftSum + rightSum
+  freq[sum]++
+  return sum
+
+Then scan map for max frequency → return all keys tied.
 ```
 
-### 4. How the pattern works
+### 4. Visual — Top-down max-so-far (Day 6 link)
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Tree:     3
+         / \
+        1   4
+       /   / \
+      3   1   5
+
+dfs(3, max=-∞): good ✓ (3>=-∞), maxSoFar=3
+  dfs(1, 3): not good (1<3), max=3
+    dfs(3, 3): good ✓ (3>=3)
+  dfs(4, 3): good ✓, max=4
+    dfs(1, 4): not good
+    dfs(5, 4): good ✓
+
+Good count = 4
+
+STATE DOWN (Day 6 family):
+  maxSoFar tightens as larger values appear on path
+  no backtrack needed — just count
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 5. The universal template
 
-### 5. What problem does this solve?
+**Subtree sum + frequency:**
+```
+map freq
+function dfs(node):
+    if null: return 0
+    s = node.val + dfs(left) + dfs(right)
+    freq[s]++
+    return s
+// after dfs(root): keys with freq == max(freq.values())
+```
 
-| Problem family | How this pattern helps |
-|---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+**Top-down good nodes:**
+```
+function dfs(node, maxSoFar):
+    if null: return 0
+    good = node.val >= maxSoFar ? 1 : 0
+    maxSoFar = max(maxSoFar, node.val)
+    return good + dfs(left, maxSoFar) + dfs(right, maxSoFar)
+```
+
+| Problem | Flow | Key |
+|---|---|---|
+| Most Frequent Subtree Sum #508 | Postorder + map | Return sum, count freq |
+| Count Good Nodes #1448 | Top-down | maxSoFar from Day 6 |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| Recompute subtree sum per node from scratch | O(n²) — postorder O(n) |
+| Store all subtree sums in array, sort | O(n log n) unnecessary |
+| Good nodes: check all ancestors per node | O(n·h) — one path param O(h) |
+| BFS for subtree sums | DFS postorder is natural |
+| Good nodes bottom-up | Need path-from-root max, not subtree |
 
-### 7. The key observation
+### 7. Day 21 vs Day 6 — when to use which
 
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+| | **Day 6 Top-Down** | **Day 21 Postorder Map** |
+|---|---|---|
+| Question | "On path from root…?" | "Whole subtree total?" |
+| State | Parameter down | Return up |
+| Example | Path sum, good nodes | Subtree sum frequency |
+| Backtrack | Often (path lists) | Never |
+
+Good nodes = Day 6 without backtrack — just count + max param.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "subtree sum" / "sum of all nodes in subtree" | Postorder return sum |
+| "most frequent" / "count occurrences" | Hashmap on return |
+| "good if no smaller on path to root" | Top-down maxSoFar |
+| "max on path from root" | Day 6 parameter |
+| "each subtree" | Postorder aggregate |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `return sum` · `freq[s]++` · `maxSoFar` · `path from root`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Updating map before children return | Postorder — children first |
+| Good nodes: compare to parent only | Compare to **maxSoFar** on full path |
+| Forgetting INT_MIN / -inf start | Root always good |
+| Returning freq from dfs instead of sum | Return sum; map is side effect |
+| Good nodes bottom-up | Max on path requires top-down |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Return all subtree sums that appear most frequently."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Postorder: return subtree sum, increment freq[sum]. After traversal, collect keys at max freq."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Subtrees aggregate up; path max flows down. First quest: subtree sum frequency. →*

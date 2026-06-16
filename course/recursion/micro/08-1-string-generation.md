@@ -1,117 +1,123 @@
+<!-- hand-authored -->
 # 📝 String Recursion & Generation
 
-> **Day 8** · String Recursion & Generation · ★★★☆☆ · 15 XP · 15 min read
+> **Day 8** · Choose · Extend · Backtrack · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Choose and Extend visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **build strings one character at a time** along a decision tree. Each recursive call **chooses** a next character, **extends** the path, explores deeper, then **undoes** the choice. Parentheses add open/close constraints; phone digits branch into 3–4 letters per digit.
+
+> **Foreshadow:** This is the spine of **backtracking** (Days 11+). Today you generate all valid strings; later you'll prune harder and collect subsets, permutations, and grid paths with the same choose → explore → unchoose rhythm.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Choose and Extend
 
-### 1. What is the pattern?
+### 1. What is string generation recursion?
 
-**Choose and Extend** — the core technique you'll use in today's quests.
+**Choose and extend** — maintain a **path** (current string or list). At each step:
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+1. **Choose** — append one valid option
+2. **Explore** — recurse on the next index / smaller state
+3. **Unchoose** — remove the append (pop) so sibling branches see a clean path
+
+Base case: path length equals target (or index reaches end) → record path in results.
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+You're typing on a phone keypad. For `"23"`, at digit `2` you branch into `a`, `b`, or `c`. Each branch continues to digit `3` with `d`, `e`, `f`. The recursion tree **is** the set of outputs.
 
-The call stack is just a line of friends waiting for the next friend to finish.
+For parentheses, you don't branch freely — you only append `(` when opens remain, and `)` only when closes can balance opens.
 
-### 3. Visual walkthrough
-
-```
-pow(2, 10) — binary recursion:
-
-              pow(2,10)
-             /        \
-        pow(2,5)      (cached half)
-        /     \
-   pow(2,2)  pow(2,3)
-    /   \
-pow(2,1) pow(2,1)
-
-Each level halves the problem → O(log n) calls instead of O(n)
-```
-
-### 4. How the pattern works
+### 3. Visual — parentheses open/close tree (n=2)
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+                        ""  open=2 close=0
+                       /
+                     "("  open=1 close=0
+                    /         \
+                 "(("         "()"  ← can add ) when open>close
+               open=0         open=0 close=1
+                  |              |
+               "(())"          "()()"  ← BASE length=4 ✓
+               "(()"           (done)
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Valid branches only:
+- Add `(` if `open > 0`
+- Add `)` if `open > close` (more opens placed than closes)
 
-### 5. What problem does this solve?
+### 4. Visual — phone pad branching (`"23"`)
 
-| Problem family | How this pattern helps |
+```
+index=0 digit='2' → branch a,b,c
+  "a" → index=1 digit='3' → ad, ae, af
+  "b" → bd, be, bf
+  "c" → cd, ce, cf
+
+6 leaves = 3 × 2 choices per digit
+```
+
+Each digit fans out to `len(KEYS[digit])` children — **multi-branch** generation.
+
+### 5. The universal template
+
+```
+function dfs(state, path):
+    if done(state):
+        results.add(copy(path))
+        return
+    for each valid choice c:
+        path.append(c)           // CHOOSE
+        dfs(next_state, path)    // EXPLORE
+        path.pop()               // UNCHOOSE
+```
+
+Parentheses: `state = (open, close)`. Phone: `state = index i`.
+
+### 6. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **Generate all binary strings, filter valid** | `(2n)` candidates — wastes work on invalid `")("`-style strings |
+| **Nested loops per position** | Hard to generalize variable branch count (3 vs 4 letters) |
+| **Append without pop** | Sibling branches inherit wrong prefix — wrong answers |
+| **BFS without path copy** | Need snapshot of path at base case |
 
-### 6. Why brute force / iteration fails
+**The insight brute force misses:** **Prune at generation** — never place `)` when `close >= open`. Same tree shape as backtracking later.
 
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals for Day 8
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "generate all" / "all combinations of" | DFS generation tree |
+| "parentheses" / "balanced" | open/close counters, prune invalid `)` |
+| "phone keypad" / "letter combinations" | Multi-branch per digit |
+| "append and remove" / "backtrack" | Pop after recurse |
+| "path length == n" | Base case at target size |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `choose` · `extend` · `backtrack` · `path` · `open` · `close` · `dfs`
 
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Forget `path.pop()` | Unchoose after each explore |
+| Add `)` whenever `close < n` | Need `open > close` |
+| Store path reference, not copy | `''.join(path)` or `path.toString()` at base |
+| Empty digits input | Return `[]` immediately |
+| Confuse with Day 6 pow | Generation **branches**; pow **halves** |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Generate all combinations of well-formed parentheses for n pairs."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"DFS(open=n, close=0). Base: len==2n. Choose '(' if open>0. Choose ')' if open>close. Pop after each branch."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see the generation tree. First quest: parentheses. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Step-by-Step Directions
 
 > **Day 27** · [Step-by-Step Directions from a Binary Tree Node to Another #2096](https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Step-by-Step Directions from a Binary Tree Node to Another on LeetCode](https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Get path strings from root to start and dest (L/R only). Strip common prefix = path through LCA. Answer = U×(remaining start) + dest suffix. Bridges Day 13 LCA. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **LCA + Path Construction**.
+Which pattern from today's concept applies? **LCA + path construction** — two DFS path finds with backtracking; longest common prefix of L/R strings locates LCA; ups then dest remainder.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: you don't need to name the LCA node — prefix length `i` is enough.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** LCA + Path Construction
+**Pattern used:** LCA + Path Construction (U/L/R)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Unique values — find by `startValue` / `destValue`
+- Moves: L, R from parent to child; U to parent
+- Shortest path in tree = up to LCA, down to dest
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "directions from node to node" | Path via LCA |
+| "U" move to parent | Start path suffix becomes U's |
+| "L" / "R" moves | Record during root→target DFS |
+| Unique node values | Search by val not pointer |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Root→start and root→dest paths share prefix exactly through LCA. Divergence after prefix: ascend from start (`U`), descend along dest suffix (`L`/`R`).
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"find(root, start, sp) with backtrack L/R."*
+2. *"find(root, dest, dp)."*
+3. *"i = common prefix length."*
+4. *"return 'U'*(len(sp)-i) + dp[i:]."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Explicit LCA then three path segments** | More code — prefix trick is shorter |
+| **BFS for shortest path** | Works but heavier than two DFS strings |
+| **No backtracking in path DFS** | Wrong L/R string on failed branches |
+| **Parent map + BFS from start** | Works but path-string method is direct |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Day 13 LCA split is implicit in **longest common prefix** of two root-path strings.
 
 ---
 
@@ -75,31 +74,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [LCA #236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) | Day 13 — return node | Prefix encodes same split |
+| [Binary Tree Paths #257](https://leetcode.com/problems/binary-tree-paths/) | Root to leaf strings | Same DFS append |
+| [Distance K #863](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/) | Different goal | Parent map alternative |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: paths from root encode tree geometry.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree: `[5,1,2,3,null,6,4]`, start=3, dest=6**
 
 ```
-        3
+        5
        / \
-      9    20
-          /  \
-         15   7
+      1   2
+     /   / \
+    3   6   4
 
-Apply LCA + Path Construction step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+root→3: "LL"
+root→6: "RL"
+
+Common prefix "L" → LCA is 1? 
+  sp="LL", dp="RL" — first char L vs R → i=0
+  Answer: "UU" + "RL" = "UURL"? 
+
+Trace: 3→5 (UU) then 5→2→6 (RL) = UURL ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Common prefix length = steps from root to LCA on both paths.
 
 ---
 
@@ -108,21 +112,25 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    bool path(TreeNode* node, int target, string& p) {
+    bool find(TreeNode* node, int target, string& path) {
         if (!node) return false;
         if (node->val == target) return true;
-        if (path(node->left, target, p)) { p += 'L'; return true; }
-        if (path(node->right, target, p)) { p += 'R'; return true; }
+        path += 'L';
+        if (find(node->left, target, path)) return true;
+        path.pop_back();
+        path += 'R';
+        if (find(node->right, target, path)) return true;
+        path.pop_back();
         return false;
     }
 public:
     string getDirections(TreeNode* root, int startValue, int destValue) {
-        string a, b;
-        path(root, startValue, a);
-        path(root, destValue, b);
+        string sp, dp;
+        find(root, startValue, sp);
+        find(root, destValue, dp);
         int i = 0;
-        while (i < (int)a.size() && i < (int)b.size() && a[a.size() - 1 - i] == b[b.size() - 1 - i]) ++i;
-        return string(a.size() - i, 'U') + b.substr(b.size() - i);
+        while (i < (int)sp.size() && i < (int)dp.size() && sp[i] == dp[i]) i++;
+        return string(sp.size() - i, 'U') + dp.substr(i);
     }
 };
 ```
@@ -131,62 +139,65 @@ public:
 ```python
 class Solution:
     def getDirections(self, root: Optional[TreeNode], startValue: int, destValue: int) -> str:
-        def path(node, target):
-            if not node:
-                return None
-            if node.val == target:
-                return ''
-            l = path(node.left, target)
-            if l is not None:
-                return 'L' + l
-            r = path(node.right, target)
-            if r is not None:
-                return 'R' + r
-            return None
-        a, b = path(root, startValue), path(root, destValue)
+        def find(node, target, path):
+            if not node: return False
+            if node.val == target: return True
+            path.append('L')
+            if find(node.left, target, path): return True
+            path.pop()
+            path.append('R')
+            if find(node.right, target, path): return True
+            path.pop()
+            return False
+        sp, dp = [], []
+        find(root, startValue, sp)
+        find(root, destValue, dp)
         i = 0
-        while i < len(a) and i < len(b) and a[~i] == b[~i]:
+        while i < len(sp) and i < len(dp) and sp[i] == dp[i]:
             i += 1
-        return 'U' * (len(a) - i) + b[len(b) - i:]
+        return 'U' * (len(sp) - i) + ''.join(dp[i:])
 ```
 
 ### Java
 ```java
 class Solution {
     public String getDirections(TreeNode root, int startValue, int destValue) {
-        String a = path(root, startValue), b = path(root, destValue);
+        StringBuilder sp = new StringBuilder(), dp = new StringBuilder();
+        find(root, startValue, sp);
+        find(root, destValue, dp);
         int i = 0;
-        while (i < a.length() && i < b.length() && a.charAt(a.length() - 1 - i) == b.charAt(b.length() - 1 - i)) i++;
-        return "U".repeat(a.length() - i) + b.substring(b.length() - i);
+        while (i < sp.length() && i < dp.length() && sp.charAt(i) == dp.charAt(i)) i++;
+        return "U".repeat(sp.length() - i) + dp.substring(i);
     }
-    String path(TreeNode node, int target) {
-        if (node == null) return null;
-        if (node.val == target) return "";
-        String l = path(node.left, target);
-        if (l != null) return "L" + l;
-        String r = path(node.right, target);
-        if (r != null) return "R" + r;
-        return null;
+    private boolean find(TreeNode node, int target, StringBuilder path) {
+        if (node == null) return false;
+        if (node.val == target) return true;
+        path.append('L');
+        if (find(node.left, target, path)) return true;
+        path.deleteCharAt(path.length()-1);
+        path.append('R');
+        if (find(node.right, target, path)) return true;
+        path.deleteCharAt(path.length()-1);
+        return false;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"LCA + Path Construction"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Directions A to B"** → LCA path = common prefix of root-paths.
+- **"Ups then downs"** → U×len(start suffix) + dest suffix.
+- **"Day 13 LCA"** → split without naming node.
+- **"Backtrack DFS"** → pop on failed L/R branch.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you computed LCA node explicitly, the prefix method is equivalent and often shorter.
 
-> 🎯 **Pattern Unlocked:** LCA + Path Construction
+> 🎯 **Pattern Unlocked:** LCA + path construction — U/L/R via common prefix strip.
 
 ---
 

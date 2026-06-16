@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Palindrome Partitioning
 
-> **Day 14** · [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) · Medium · 15 min · 25 XP
+> **Day 14** · [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,48 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Palindrome Partitioning on LeetCode](https://leetcode.com/problems/palindrome-partitioning/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw cut lines on `"aab"`. Every cut must land on a palindrome segment. push/pop each segment choice.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/)**
+Given a string `s`, partition it such that every substring of the partition is a **palindrome**. Return all possible palindrome partitioning schemes.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = "aab"
+Output: [["a","a","b"], ["aa","b"]]
+
+Input:  s = "a"
+Output: [["a"]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Partition Backtracking**.
+**Hint 1:** `dfs(i, path)` — try every end index `j >= i`. If `s[i..j]` is palindrome, push it and recurse from `j+1`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** Base case: `i == len(s)` → record path (all characters consumed).
+
+**Hint 3:** Palindrome check: two pointers `l = i, r = j` moving inward. Or precompute with DP — optional optimization.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Partition Backtracking
+**Pattern used:** String Partition Backtracking + Palindrome Validator
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| "partition" + "palindrome" | Cut loop + pal check |
+| variable number of parts | Base case: index reaches end |
+| all valid partitions | Generate all, don't stop at first |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Cut string from index i — same push/pop as array backtracking."*
+2. *"Only recurse on palindrome segments — prune early."*
+3. *"Record when i==n — entire string consumed."*
 
 ---
 
@@ -62,38 +60,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Generate all splits, then filter palindromes** | Same complexity but no early prune on bad cuts |
+| **Recurse from i instead of j+1** | Infinite loop / stuck index |
+| **Check palindrome by reversing string every time** | Fine for Medium; just know it's O(n) per check |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Validator change |
+|---|---|
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Octet 0–255 (today's quest 2) |
+| [Palindrome Partitioning II #132](https://leetcode.com/problems/palindrome-partitioning-ii/) | Min cuts — DP, not generate-all |
+| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Dictionary membership (Day 21) |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`s = "aab"`:
 
 ```
-Apply Partition Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, [])
+  j=0: "a" pal → dfs(1, ["a"])
+    j=1: "a" pal → dfs(2, ["a","a"])
+      j=2: "b" pal → dfs(3, ["a","a","b"]) → i==3 → record ✓
+    j=2: "ab" not pal → skip
+  j=1: "aa" pal → dfs(2, ["aa"])
+    j=2: "b" pal → dfs(3, ["aa","b"]) → record ✓
+  j=2: "aab" not pal → skip
 ```
-
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
 
 ---
 
@@ -167,22 +163,16 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Partition Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Cut loop from i** → Same backtracking rhythm as Day 11.
+- **Validator before push** → Prune non-palindrome cuts early.
+- **Advance to j+1** → Segment consumed; recurse on suffix.
 
 > 🎯 **Pattern Unlocked:** Partition Backtracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: exactly four numeric segments. →*

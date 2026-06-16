@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Vertical Order Traversal II
 
 > **Day 17** · [Binary Tree Vertical Order Traversal #314](https://leetcode.com/problems/binary-tree-vertical-order-traversal/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Binary Tree Vertical Order Traversal on LeetCode](https://leetcode.com/problems/binary-tree-vertical-order-traversal/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Label columns: root = 0, left = −1, right = +1. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Column BFS**.
+Which pattern from today's concept applies? **Column BFS map** — queue `(node, col)`; append `node.val` to `colMap[col]`; output columns sorted by key left-to-right.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: this is **#314**, not C-Rank #987 — no `(row, val)` sort. BFS visit order within each column is correct.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Column BFS
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Vertical order" → group by column index
+- No mention of row tie-break or value sort → #314 variant
+- Return list of columns from leftmost to rightmost
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "vertical order traversal" | `map[col] → values` |
+| "top to bottom" within column | BFS order (shallower first) |
+| "left to right" across columns | Sort column keys |
+| "binary tree" | col−1 on left, col+1 on right |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Column index is fixed by path from root. BFS ensures top-to-bottom within a column. Emit columns in ascending col order.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Root at col 0."*
+2. *"Queue pairs (node, col)."*
+3. *"colMap[col].push(val) on each visit."*
+4. *"Return sorted column keys — TreeMap or sorted()."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Level-order BFS (#102)** | Groups by depth, not column |
+| **#987 row+value sort on #314** | Over-engineering — not required |
+| **DFS without caring about order** | May break top-to-bottom within column |
+| **Unsorted column output** | Must go left column to right |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** #314 is the simpler sibling of C-Rank #987 — same column tagging, no multiset tie-break.
 
 ---
 
@@ -75,31 +74,37 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Vertical Order #987](https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree/) | C-Rank — sort by `(row, val)` | Same col tagging |
+| [Find Bottom Left #513](https://leetcode.com/problems/find-bottom-left-tree-value/) | Today's first quest | Level-end vs column map |
+| [Top View of Binary Tree](https://leetcode.com/problems/) | First/last per column by row | Column index same |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
         3
        / \
-      9    20
-          /  \
-         15   7
+      9   20
+         /  \
+        15   7
 
-Apply Column BFS step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Column lines:
+  -1: 9
+   0: 3, 15
+   1: 20
+   2: 7
+
+BFS (node, col):
+  (3,0) → (9,-1) (20,1) → (15,0) (7,2)
+
+colMap after BFS:
+  -1:[9]  0:[3,15]  1:[20]  2:[7]
+
+Output: [[9], [3,15], [20], [7]]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** #314 = column bucket + BFS order. #987 adds row/value sort when nodes share a column at different depths.
 
 ---
 
@@ -111,17 +116,17 @@ class Solution {
 public:
     vector<vector<int>> verticalOrder(TreeNode* root) {
         if (!root) return {};
-        map<int, vector<int>> cols;
+        map<int, vector<int>> colMap;
         queue<pair<TreeNode*, int>> q;
         q.push({root, 0});
         while (!q.empty()) {
             auto [node, col] = q.front(); q.pop();
-            cols[col].push_back(node->val);
-            if (node->left) q.push({node->left, col - 1});
+            colMap[col].push_back(node->val);
+            if (node->left)  q.push({node->left,  col - 1});
             if (node->right) q.push({node->right, col + 1});
         }
         vector<vector<int>> res;
-        for (auto& [c, v] : cols) res.push_back(v);
+        for (auto& [col, vals] : colMap) res.push_back(vals);
         return res;
     }
 };
@@ -129,20 +134,18 @@ public:
 
 ### Python
 ```python
+from collections import defaultdict, deque
 class Solution:
     def verticalOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
-        if not root:
-            return []
-        cols = defaultdict(list)
+        if not root: return []
+        col_map = defaultdict(list)
         q = deque([(root, 0)])
         while q:
             node, col = q.popleft()
-            cols[col].append(node.val)
-            if node.left:
-                q.append((node.left, col - 1))
-            if node.right:
-                q.append((node.right, col + 1))
-        return [cols[c] for c in sorted(cols)]
+            col_map[col].append(node.val)
+            if node.left:  q.append((node.left,  col - 1))
+            if node.right: q.append((node.right, col + 1))
+        return [col_map[c] for c in sorted(col_map)]
 ```
 
 ### Java
@@ -151,37 +154,31 @@ class Solution {
     public List<List<Integer>> verticalOrder(TreeNode root) {
         List<List<Integer>> res = new ArrayList<>();
         if (root == null) return res;
-        Map<Integer, List<Integer>> cols = new TreeMap<>();
-        Queue<TreeNode> q = new ArrayDeque<>();
-        Queue<Integer> cq = new ArrayDeque<>();
-        q.offer(root); cq.offer(0);
-        while (!q.isEmpty()) {
-            TreeNode node = q.poll();
-            int col = cq.poll();
-            cols.computeIfAbsent(col, k -> new ArrayList<>()).add(node.val);
-            if (node.left != null) { q.offer(node.left); cq.offer(col - 1); }
-            if (node.right != null) { q.offer(node.right); cq.offer(col + 1); }
+        TreeMap<Integer, List<Integer>> colMap = new TreeMap<>();
+        Queue<int[]> idxQ = new LinkedList<>();
+        Queue<TreeNode> nodeQ = new LinkedList<>();
+        nodeQ.offer(root); idxQ.offer(new int[]{0});
+        while (!nodeQ.isEmpty()) {
+            TreeNode node = nodeQ.poll();
+            int col = idxQ.poll()[0];
+            colMap.computeIfAbsent(col, k -> new ArrayList<>()).add(node.val);
+            if (node.left != null)  { nodeQ.offer(node.left);  idxQ.offer(new int[]{col-1}); }
+            if (node.right != null) { nodeQ.offer(node.right); idxQ.offer(new int[]{col+1}); }
         }
-        res.addAll(cols.values());
-        return res;
+        return new ArrayList<>(colMap.values());
     }
 }
 ```
 
-**Complexity:** O(n log n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Column BFS"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Vertical order" without row tie-break** → #314, not #987.
+- **"(node, col) in queue"** → column map fills in BFS order.
+- **"Sorted column keys"** → left-to-right output.
+- **"C-Rank Day 15 bridge"** → same col rule, simpler aggregation.
 
 > 🎯 **Pattern Unlocked:** Column BFS
 

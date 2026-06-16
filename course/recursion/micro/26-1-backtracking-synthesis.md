@@ -1,118 +1,132 @@
+<!-- hand-authored -->
 # 📝 Backtracking Synthesis I
 
 > **Day 26** · Backtracking Synthesis I · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Pattern Composition visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Day 8 taught **choose → explore → unchoose** on two generation trees: phone-pad letters (#17) and balanced parentheses (#22). You already know both templates. Today is **synthesis** — not a re-lesson. You revisit those two problems side-by-side and learn to **name which tree you're in** before you write a single line of code.
+
+Your mission: see the **same skeleton, different constraints** — multi-branch vs pruned binary — and code both from memory.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Day 8 Revisit: Two Trees, One Template
 
-### 1. What is the pattern?
+### 1. What you already know
 
-**Pattern Composition** — the core technique you'll use in today's quests.
-
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+Both problems from Day 8 share the backtracking rhythm:
 
 ```
-fib(5) WITH memoization:
-
-        fib(5)
-       /      \
-    fib(4)    fib(3) ← already computed!
-    /    \
- fib(3) fib(2)
-  /   \
-fib(2) fib(1)
-
-Memo cache: { fib(3): 2, fib(2): 1, ... }
-Duplicate subtrees skipped → O(n) instead of O(2^n)
+function dfs(state, path):
+    if done(state):
+        results.add(copy(path))
+        return
+    for each valid choice c:
+        path.append(c)           // CHOOSE
+        dfs(next_state, path)    // EXPLORE
+        path.pop()               // UNCHOOSE
 ```
 
-### 4. How the pattern works
+**What changes between problems is not the rhythm — it's the state and the branch rule.**
+
+| | Letter Combinations #17 | Generate Parentheses #22 |
+|---|---|---|
+| **State** | index `i` into `digits` | `(open, close)` counters |
+| **Branch rule** | Every letter on current digit | `(` if `open > 0`; `)` if `open > close` |
+| **Branch count** | 3–4 per level (variable) | At most 2 (pruned) |
+| **Base case** | `i == len(digits)` | `len(path) == 2n` |
+| **Constraint type** | None — all branches valid | Balance — invalid `)` pruned |
+
+You solved both on Day 8. Today you prove you can **switch trees instantly**.
+
+### 2. Side-by-side — phone pad vs open/close
+
+**Phone pad (`digits = "23"`)** — unconstrained multi-branch:
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+                    dfs(i=0, path="")
+                   /    |    \
+                  a     b     c          ← 3 branches (digit '2')
+                 /      |      \
+           dfs(i=1)  dfs(i=1)  dfs(i=1)
+            /|\      /|\      /|\
+          ad ae af  bd be bf  cd ce cf   ← 3 branches each (digit '3')
+
+9 leaves = 3 × 3. Every branch is valid. No pruning.
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**Parentheses (`n = 2`)** — constrained binary tree:
 
-### 5. What problem does this solve?
+```
+                        ""  open=2 close=0
+                       /
+                     "("  open=1 close=0
+                    /         \
+                 "(("         "()"  ← ')' only when open > close
+               open=0         open=0 close=1
+                  |              |
+               "(())" ✓        "()()" ✓
 
-| Problem family | How this pattern helps |
+Invalid branches like ")(" never exist — pruned at generation.
+```
+
+**The synthesis insight:** Same push/dfs/pop. Phone pad fans out freely; parentheses gates each branch behind `open`/`close`.
+
+### 3. Recognition in 10 seconds
+
+Before coding, say one sentence:
+
+| Problem signal | Your one-liner |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| "phone keypad" / "letter combinations" / digits 2–9 | *"Index DFS — loop all letters on digit `i`, recurse `i+1`, pop."* |
+| "well-formed parentheses" / "n pairs" / balanced | *"Open/close counters — `(` if opens remain, `)` if `open > close`, base at length `2n`."* |
 
-### 6. Why brute force / iteration fails
+If you reach for nested loops on phone pad or generate-all-strings-then-filter on parentheses, you've forgotten Day 8. **Draw the tree first.**
 
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+### 4. What differs in the revisit quests
 
-### 7. The key observation
+Today's quests are the **same LeetCode problems** (#17 and #22). The skill being tested:
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+1. **Recall** — implement from the template without re-reading Day 8 notes
+2. **Contrast** — explain why phone pad needs no pruning but parentheses does
+3. **Transfer** — spot "multi-branch index" vs "constrained counter" on unseen problems
 
-### 8. Pattern signals & recognition clues
+This is not new material. It's **muscle memory** for A-Rank interviews.
 
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+### 5. Common synthesis mistakes (Day 8 déjà vu)
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+| Mistake | Which tree? | Fix |
+|---|---|---|
+| Append without pop | Both | Sibling branches inherit wrong prefix |
+| Nested loops per digit length | Phone pad | Index `i` generalizes to any length |
+| Generate all `(` `)` strings, filter | Parentheses | Prune with `open > close` during DFS |
+| `close < n` instead of `open > close` | Parentheses | Allows invalid prefixes like `())` |
+| Skip empty `digits` check | Phone pad | Return `[]`, not `[""]` |
 
-### 9. Common beginner mistakes
+### 6. Pattern signals — synthesis drill
 
-| Mistake | Fix |
-|---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| When the problem says… | Tree type | State |
+|---|---|---|
+| "letter combinations" / "keypad" / digits → letters | Multi-branch index | `i`, path |
+| "generate parentheses" / "balanced" / n pairs | Constrained binary | `open`, `close`, path |
+| "generate all" + **no constraint** | Multi-branch | varies |
+| "generate all" + **validity rule on prefix** | Constrained | counters or bounds |
 
-### 10. Recognition drill
+**Keywords:** `synthesis` · `revisit` · `choose` · `explore` · `unchoose` · `open` · `close` · `index`
 
-Read this problem aloud:
+### 7. Recognition drill
 
-> *"Given an array, generate all possible subsets."*
+Read each problem aloud. Name the tree **before** the template:
 
-Before coding, say:
+> *"Given digits on a phone, return all letter combinations."*
+>
+> → **Multi-branch index tree.** Base `i == n`. Loop `KEYS[digit[i]]`, dfs(`i+1`), pop.
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Given n, generate all well-formed parenthesis strings."*
+>
+> → **Constrained open/close tree.** Base `len == 2n`. `(` if `open > 0`; `)` if `open > close`; pop both.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You know both trees. Quest 1 revisits phone pad — code it cold. →*

@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ✅ Day 4 Checkpoint
 
-> **Recursion with Return Values** · 2 quests completed · ⭐ 40 XP earned
+> **Bottom-Up Returns** · 2 quests completed · ⭐ 40 XP earned
 
 ---
 
@@ -10,67 +11,74 @@ Before you move on, practice **hearing the signal** in each phrase below:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "maximum / minimum depth" | `1 + max/min(left, right)` | Child depths aggregate upward |
+| "same tree" / "identical structure" | Parallel recursion + `&&` | Both subtrees must agree |
+| "count nodes / leaves" | `1 + left + right` | Sum bubbles up |
+| "balanced?" / "height" | Bottom-up height + compare | Parent decides from child reports |
+| "return int/bool from subtree" | Bottom-up (Day 4) | Answer built **after** child calls |
 
 ### 🧠 Quick Recognition Test
 
 Read each mini-problem. Which pattern fires first?
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Maximum depth of a binary tree"* → **Bottom-up** — `1 + max(children)`
+2. *"Check if two trees are identical"* → **Parallel bottom-up** — `&&` on aligned pairs
+3. *"Does any root-to-leaf path sum to target?"* → **Not Day 4** — pass **remaining sum down** (Day 5)
+4. *"Sum all nodes in BST range [L, R]"* → **Not pure bottom-up** — prune with **bounds down** (Day 5)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've studied depth and same-tree. Can you recognize bottom-up returns on unseen problems?
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+**Scenario 1:** *"Return the number of leaf nodes in a binary tree."*
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+Which pattern? **Bottom-up sum.** Base: null → 0. Leaf → 1. Internal → `left + right`.
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+**Scenario 2:** *"Determine if a binary tree is height-balanced (heights of subtrees differ by at most 1)."*
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+Which pattern? **Bottom-up height with sentinel.** Return -1 if unbalanced; else `1 + max(leftH, rightH)`.
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+**Scenario 3:** *"Find if a tree has a root-to-leaf path with sum equal to target."*
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
+Which pattern? **Day 5 — top-down.** Pass `target - node.val` to children; check at leaves. Returns alone don't know the path prefix.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = bottom-up (returns up). Scenario 3 = state down — preview of tomorrow.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **`null → 0` forgotten for depth** — Empty subtree has depth 0; current node adds the level.
+
+2. **Using sum instead of max for depth** — Depth follows one branch, not both added together.
+
+3. **Same tree: comparing cross subtrees** — `(p.left, q.right)` checks symmetry, not equality.
+
+4. **Mixing Day 4 and Day 5** — If the problem needs a **running remainder** or **search bounds**, pass parameters down; don't force bottom-up.
+
+5. **Global flag instead of return** — Works for same-tree, but returning bool teaches cleaner composition.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Same Tree #100](https://leetcode.com/problems/same-tree/) — parallel trace
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Trace on paper (no code):
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+```
+p:    1           q:    1
+     /                   \
+    2                     2
+```
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+List each `(p node, q node)` pair visited. Where does the answer become false?
+
+**Before you code:** Say *"both null true, one null false, vals match then parallel &&"* out loud.
+
+> 💡 **Hint:** Root values match, but `isSame(2, null)` on the left-right pair fails.
 
 ---
 
@@ -78,9 +86,11 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Easy | Bottom-Up Return |
-| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Easy | Parallel Recursion |
+| [Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Easy | Bottom-up depth bubble |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Easy | Parallel `&&` |
+| [Minimum Depth of Binary Tree #111](https://leetcode.com/problems/minimum-depth-of-binary-tree/) | Easy | Bottom-up with `min` |
+| [Balanced Binary Tree #110](https://leetcode.com/problems/balanced-binary-tree/) | Easy | Bottom-up height check |
 
 ---
 
-*Day 4 complete! Tomorrow: the next descent of your ascension. →*
+*Day 4 complete! Tomorrow: **state travels down** the tree — returns up vs parameters down. →*

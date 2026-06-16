@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 27 Checkpoint
 
 > **Tree + Graph Hybrid** · 2 quests completed · ⭐ 100 XP earned
@@ -6,67 +7,72 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 27 treats trees as **graphs** when upward movement matters. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "infection" / "spread from node X" | Parent-map BFS | #2385 |
+| "distance K from target" | C-Rank #863 parent BFS | Same graph build |
+| "directions between two nodes" | L/R paths + U prefix strip | #2096 |
+| "LCA" (Day 13) | Split node OR common path prefix | Two views |
+| "minutes until all visited" | BFS level count | Infection quest |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 27 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Time to infect entire tree from start node"* → **Parent-map multi-source BFS**
+2. *"Shortest path directions using U/L/R"* → **LCA + path string construction**
+3. *"All nodes distance K from target"* → **C-Rank #863** — BFS stop at k
+4. *"LCA of two nodes in binary tree"* → **Day 13 split detection**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Infection and Step Directions. Can you extend **tree-as-graph**?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Find node closest to both start and dest (meeting point)."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **LCA** — explicit or via path prefix on root paths.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Burn tree from multiple fire sources simultaneously."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Multi-source BFS** — all sources in queue at time 0.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Serialize tree with parent pointers for deserialization."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Parent map inverse** — different goal, same adjacency thinking.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 27 = **add parent edges when tree DFS isn't enough** + **path strings encode LCA**.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **BFS without visited** on undirected tree graph — infinite loop.
+
+2. **Path DFS without backtracking** — wrong L/R strings.
+
+3. **Confusing minutes index** — track whether start counts as minute 0.
+
+4. **Explicit LCA when prefix suffices** — over-engineering #2096.
+
+5. **Downward-only BFS from non-root start** — misses ancestors.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [All Nodes Distance K in Binary Tree #863](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Distance K on LeetCode](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+C-Rank test — same parent-map BFS as infection, but collect values at distance k.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Compare graph build to today's infection quest — identical preprocessing.
+
+> 💡 **Hint:** C-test-2 — bridge from Day 27 concept.
 
 ---
 
@@ -79,4 +85,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 27 complete! Tomorrow: the next branch of your ascension. →*
+*Day 27 complete! A-Rank tests ahead — serialize, count complete, delete forest. →*

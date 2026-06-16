@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 24 Checkpoint
 
 > **Advanced Trie** · 2 quests completed · ⭐ 100 XP earned
@@ -6,67 +7,72 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 24 extends **Day 19 trie** with new walk rules. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "search with '.' wildcard" | Trie + DFS all children at dot | Branching not single path |
+| "add and search words" | Insert + wildcard search helper | Design #211 |
+| "replace with root" / "shortest prefix" | Greedy trie walk, first marker | #648 |
+| "implement trie" (Day 19) | Exact insert/search | Base structure unchanged |
+| "prefix tree" + dictionary batch | Insert all, then query many | Amortized build |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 24 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Search word with '.' matching any letter"* → **Wildcard DFS** on trie
+2. *"Replace each word with shortest dictionary root"* → **Prefix replace greedy**
+3. *"Check if prefix exists"* → **Day 19** — walk without isEnd requirement |
+4. *"Find all words on board matching trie"* → **Grid DFS + trie prune** (B-Rank Word Search II)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Word Dictionary and Replace Words. Can you extend **trie walks**?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Longest word in dictionary that can be built one char at a time from prefix set."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **Trie insert all + DFS/BFS** — only descend if every prefix on path is in dictionary.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Map sum of keys with given prefix."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Trie with value at nodes** — walk prefix, sum stored weights in subtree.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Search pattern with '*' matching any sequence."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Harder wildcard** — not Day 24's single-char dot; may need DP + trie combo.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 24 = **same trie node, different traversal rule** — branch on dot, stop on first root.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Wildcard: single child on '.'** — must try all non-null children.
+
+2. **Replace: not breaking insert when shorter root exists** — longer words break shortest-root guarantee.
+
+3. **Replace: continuing walk after finding marker** — greedy requires immediate stop.
+
+4. **Confusing prefix search with word search** — replace needs stored word at marker, not just isEnd flag without value.
+
+5. **Using list scan instead of trie** — correct but misses O(m) per token target.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Implement Trie (Prefix Tree) #208](https://leetcode.com/problems/implement-trie-prefix-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Implement Trie on LeetCode](https://leetcode.com/problems/implement-trie-prefix-tree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Re-implement insert, search, startsWith without looking at Day 19 notes.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Verify your insert works for both today's quests — addWord and dictionary build use the same path.
+
+> 💡 **Hint:** Day 19 foundation — Day 24 only changes search/replace logic.
 
 ---
 
@@ -79,4 +85,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 24 complete! Tomorrow: the next branch of your ascension. →*
+*Day 24 complete! Tomorrow: tree distance and re-rooting. →*

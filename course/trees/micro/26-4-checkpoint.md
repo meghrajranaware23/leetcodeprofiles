@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 26 Checkpoint
 
 > **Morris Traversal** · 2 quests completed · ⭐ 100 XP earned
@@ -6,67 +7,70 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 26 pushes **inorder** to space-optimal and structural extremes. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "O(1) space inorder" | Morris thread create/visit/remove | No stack |
+| "recover BST" / "two swapped" | Inorder dip: first=prev | C-Rank #99 + Morris option |
+| "sorted list to balanced BST" | Slow/fast bisect on range | #109 |
+| "inorder successor" (Day 23) | Stack or Morris | Same sorted walk |
+| "threaded tree" | Temporary right links | Must remove after visit |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 26 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Recover BST after two nodes swapped"* → **Inorder anomaly detection**
+2. *"Convert sorted linked list to height-balanced BST"* → **List bisect build**
+3. *"Inorder traversal O(1) space"* → **Morris traversal**
+4. *"Kth smallest BST"* → **Day 12 stack** — Morris alternative for O(1)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Recover BST and Sorted List to BST. Can you extend **space-optimal inorder**?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Flatten BST to sorted doubly linked list in-place."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **Morris or reverse-inorder** — thread or swap child pointers during walk.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Find kth smallest with O(1) space follow-up."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Morris inorder with counter** — visit count instead of full collect.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Convert sorted array to BST (#108)."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Mid index bisect** — array mid instead of slow/fast.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 26 = **inorder is the spine** — violations, construction, and O(1) threading all walk it.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Morris: not removing thread** — corrupts tree; must set predecessor.right=null.
+
+2. **Recover: first = node on dip** — should be prev on first violation.
+
+3. **List bisect: inclusive tail** — use half-open `[head, tail)` — head==tail is empty.
+
+4. **Slow/fast stopping too early/late** — stop when `fast.next == tail`.
+
+5. **Rebuild tree on recover** — swap two values only.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Recover Binary Search Tree #99](https://leetcode.com/problems/recover-binary-search-tree/) — Morris follow-up
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+After solving with recursive inorder, attempt **Morris O(1) space** from today's concept page.
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+**Before you code:** Trace create → visit → remove on a 3-node tree.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Same dip detection during Morris visit steps.
 
 ---
 
@@ -79,4 +83,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 26 complete! Tomorrow: the next branch of your ascension. →*
+*Day 26 complete! Tomorrow: tree-graph hybrid — parent maps and path strings. →*

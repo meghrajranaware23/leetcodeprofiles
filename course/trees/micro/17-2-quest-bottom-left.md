@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Bottom Left Tree Value
 
 > **Day 17** · [Find Bottom Left Tree Value #513](https://leetcode.com/problems/find-bottom-left-tree-value/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find Bottom Left Tree Value on LeetCode](https://leetcode.com/problems/find-bottom-left-tree-value/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace BFS level-by-level. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS Level-End Tracking**.
+Which pattern from today's concept applies? **BFS level-end first-node tracking** — at the start of each level batch, the first dequeued node is the leftmost at that depth. Overwrite `res` each level; the last overwrite is the answer.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: use the Day 3 inner loop `for sz = q.size()`. When `i == 0`, that's the leftmost node of this wave.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS Level-End Tracking
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Last row" + "leftmost" → BFS reaches deepest level last
+- Leftmost at a level = first enqueued = first dequeued in that batch
+- Single integer answer — no path list
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "bottom-left" / "last row leftmost" | BFS, first node per level |
+| "deepest level" | Last BFS wave |
+| "if last level has only right child" | Still first of that level |
+| "binary tree" | Standard left-before-right enqueue |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** BFS processes shallow before deep. Within each level, left children enqueue before right — first out = leftmost. Track first per level; deepest level's first wins.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"BFS with level-size loop — Day 3 template."*
+2. *"At i==0 in inner loop, res = node.val."*
+3. *"After loop ends, res is bottom-left."*
+4. *"Don't DFS — preorder doesn't guarantee deepest-left."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **DFS inorder / preorder** | Deepest-left ≠ leftmost leaf in DFS order |
+| **Store all levels in array, pick last[0]** | Works but wastes space — track `res` inline |
+| **Max depth DFS + left bias** | Misses when deepest level has nodes only on right subtree |
+| **BFS without level separation** | Can't identify "first of deepest level" |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** One variable updated at each level start — O(1) extra space beyond the queue.
 
 ---
 
@@ -75,31 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Deepest Leaves Sum #1302](https://leetcode.com/problems/deepest-leaves-sum/) | Sum all nodes at last level | Same level-end BFS |
+| [Binary Tree Right Side View #199](https://leetcode.com/problems/binary-tree-right-side-view/) | **Day 9** — last node per level | Same inner loop, opposite end |
+| [Level Order Traversal #102](https://leetcode.com/problems/binary-tree-level-order-traversal/) | Collect full level lists | Same BFS skeleton |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+First vs last node per wave — same engine, different index.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+     /   / \
+    4   5   6
 
-Apply BFS Level-End Tracking step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Level 0:  dequeue 1        → res = 1
+Level 1:  dequeue 2 (i=0)  → res = 2
+          dequeue 3
+Level 2:  dequeue 4 (i=0)  → res = 4  ✓ answer
+
+Left child enqueued before right at every node —
+first out at deepest wave = bottom-left.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You don't need to store levels. Overwrite `res` when `i == 0` each batch.
 
 ---
 
@@ -112,75 +113,70 @@ public:
     int findBottomLeftValue(TreeNode* root) {
         queue<TreeNode*> q;
         q.push(root);
-        int ans = root->val;
+        int res = root->val;
         while (!q.empty()) {
             int sz = q.size();
-            for (int i = 0; i < sz; ++i) {
+            for (int i = 0; i < sz; i++) {
                 TreeNode* node = q.front(); q.pop();
-                ans = node->val;
-                if (node->left) q.push(node->left);
+                if (i == 0) res = node->val;
+                if (node->left)  q.push(node->left);
                 if (node->right) q.push(node->right);
             }
         }
-        return ans;
+        return res;
     }
 };
 ```
 
 ### Python
 ```python
+from collections import deque
 class Solution:
     def findBottomLeftValue(self, root: Optional[TreeNode]) -> int:
-        q, ans = deque([root]), root.val
+        q = deque([root])
+        res = root.val
         while q:
+            res = q[0].val
             for _ in range(len(q)):
                 node = q.popleft()
-                ans = node.val
-                if node.left:
-                    q.append(node.left)
-                if node.right:
-                    q.append(node.right)
-        return ans
+                if node.left:  q.append(node.left)
+                if node.right: q.append(node.right)
+        return res
 ```
 
 ### Java
 ```java
 class Solution {
     public int findBottomLeftValue(TreeNode root) {
-        Queue<TreeNode> q = new ArrayDeque<>();
+        Queue<TreeNode> q = new LinkedList<>();
         q.offer(root);
-        int ans = root.val;
+        int res = root.val;
         while (!q.isEmpty()) {
             int sz = q.size();
             for (int i = 0; i < sz; i++) {
                 TreeNode node = q.poll();
-                ans = node.val;
-                if (node.left != null) q.offer(node.left);
+                if (i == 0) res = node.val;
+                if (node.left != null)  q.offer(node.left);
                 if (node.right != null) q.offer(node.right);
             }
         }
-        return ans;
+        return res;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BFS Level-End Tracking"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Bottom-left"** → BFS, not DFS.
+- **"First of each level"** → `i == 0` in inner loop (or `res = q[0].val` before draining).
+- **"Last overwrite wins"** → deepest level processed last.
+- **"Day 3 skeleton"** → `while q` + `for sz`.
 
 > 🎯 **Pattern Unlocked:** BFS Level-End Tracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: column BFS map — simpler cousin of C-Rank #987. →*

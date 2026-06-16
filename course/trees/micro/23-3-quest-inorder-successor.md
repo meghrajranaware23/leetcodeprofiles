@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Inorder Successor in BST
 
 > **Day 23** · [Inorder Successor in BST #285](https://leetcode.com/problems/inorder-successor-in-bst/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Inorder Successor in BST on LeetCode](https://leetcode.com/problems/inorder-successor-in-bst/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Split into two cases before coding — does `p` have a right subtree? If not, which ancestor is the answer? Trace both on paper. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST Successor Logic**.
+Which pattern from today's concept applies? **Successor case split** — Case A: leftmost of right subtree. Case B: lowest ancestor where `p` is in the left subtree.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+The iterative one-pass walk unifies Case B: when `p.val < root.val`, record `root` as candidate and go left; else go right.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** BST Successor Logic
+**Pattern used:** Inorder Successor — Case Split
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Successor" + BST → next node in inorder sequence after `p`
+- `p` exists in tree — guaranteed answer (unless `p` is max, then null)
+- O(h) expected — no full inorder
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "inorder successor" | Next larger in sorted order |
+| "node p" given as reference | May not pass root separately in follow-ups |
+| "BST" | Structure guides O(h) walk |
+| "predecessor" (variant) | Mirror: rightmost of left OR ancestor from right walk |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Inorder = sorted order. Successor is either the smallest value **above** `p` in the right subtree, or the first ancestor **above** `p` when you last turned left during search.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Does p have right child? → leftmost(right)."*
+2. *"No right? → walk from root: if p < node, res=node, left; else right."*
+3. *"res holds lowest ancestor with p in left subtree."*
+4. *"Connects to Day 12 delete Case 2 successor."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Full inorder, find p, return next** | O(n) time — O(h) walk exists |
+| **Store inorder array** | O(n) space |
+| **Always go to parent pointer** | Problem may not give parent — root walk works |
+| **Case A logic when no right child** | Returns wrong node — need Case B |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** The search path **to** `p` already encodes the successor when `p` has no right subtree — just track the last node where you went left.
 
 ---
 
@@ -75,31 +74,37 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Inorder Successor in BST II #510](https://leetcode.com/problems/inorder-successor-in-bst-ii/) | Parent pointers given | Walk up instead of root walk |
+| [Delete Node in BST #450](https://leetcode.com/problems/delete-node-in-a-bst/) | Day 12 — uses successor value | Same leftmost-of-right |
+| [Binary Search Tree Iterator #173](https://leetcode.com/problems/binary-search-tree-iterator/) | Stream all successors | Stack inorder |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: inorder order = BST navigation.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree: `[15,6,18,3,7,17,20]`, p = 6 (has right subtree 7)**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
-
-Apply BST Successor Logic step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Case A: leftmost of right subtree
+  Start at 7 → no left → successor = 7 ✓
+  Inorder: 3,6,7,... → 7 follows 6
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Same tree, p = 7 (no right child)**
+
+```
+Case B: unified walk from root
+  15: 7<15 → res=15, left
+   6: 7>6  → right
+   7: 7==7 → right (not less)
+  return res=15? 
+
+  Inorder: ...,6,7,15,... → successor of 7 is 15 ✓
+```
+
+> 💡 **The insight:** Case B = "where would I insert p+1?" — last node that routed left because p was smaller.
 
 ---
 
@@ -110,12 +115,12 @@ Watch what gets returned from leaves back to root.
 class Solution {
 public:
     TreeNode* inorderSuccessor(TreeNode* root, TreeNode* p) {
-        TreeNode* succ = nullptr;
+        TreeNode* res = nullptr;
         while (root) {
-            if (p->val < root->val) { succ = root; root = root->left; }
+            if (p->val < root->val) { res = root; root = root->left; }
             else root = root->right;
         }
-        return succ;
+        return res;
     }
 };
 ```
@@ -124,46 +129,45 @@ public:
 ```python
 class Solution:
     def inorderSuccessor(self, root: TreeNode, p: TreeNode) -> Optional[TreeNode]:
-        succ = None
+        res = None
         while root:
             if p.val < root.val:
-                succ = root
+                res  = root
                 root = root.left
             else:
                 root = root.right
-        return succ
+        return res
 ```
 
 ### Java
 ```java
 class Solution {
     public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
-        TreeNode succ = null;
+        TreeNode res = null;
         while (root != null) {
-            if (p.val < root.val) { succ = root; root = root.left; }
+            if (p.val < root.val) { res = root; root = root.left; }
             else root = root.right;
         }
-        return succ;
+        return res;
     }
 }
 ```
 
-**Complexity:** O(h) time · O(1) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST Successor Logic"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Successor"** → Case A (right subtree min) or Case B (ancestor).
+- **"Unified loop"** → `p < root` means root could be successor — save and go left.
+- **"Day 12 delete"** → successor = same leftmost-of-right for two-child delete.
+- **"Not full inorder"** → O(h) root walk.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you only handled Case A, add Case B via the search-path `res` trick.
 
-> 🎯 **Pattern Unlocked:** BST Successor Logic
+> 🎯 **Pattern Unlocked:** Inorder successor — case split collapsed into one downward walk.
 
 ---
 

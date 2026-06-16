@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 6 Checkpoint
 
 > **Top-Down DFS** · 2 quests completed · ⭐ 50 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 6 is **state down the tree** — root-to-leaf threads, not subtree aggregation.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "root-to-leaf path" | Top-down DFS | Prefix only known on descent |
+| "all paths" / "return list of paths" | Top-down + backtrack | push → recurse → pop |
+| "path sum equals target" | Remainder downward | `rem -= val` at each step |
+| "digits form a number" | `cur * 10 + val` | Accumulate top-down |
+| "diameter" / "max path anywhere" | **Day 7** — not today | Paths bend — need bottom-up global |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Find all root-to-leaf paths summing to target"* → **Top-down + backtrack** (Path Sum II)
+2. *"Sum all root-to-leaf numbers formed by digits"* → **Top-down accumulation** (×10 + val)
+3. *"Maximum depth of binary tree"* → **Day 4 bottom-up** — not Day 6
+4. *"Does any root-to-leaf path equal target?"* → **Top-down remainder** (Day 5) — no backtrack unless collecting
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Given a binary tree, return all root-to-leaf paths as strings like '1->2->3'."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Top-down accumulation + leaf record.** Build string or pass prefix down; save at leaves. D-Rank test #257.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Count root-to-leaf paths where sum equals k."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Top-down remainder.** Same as Path Sum but count instead of collect — no backtrack if passing count up, or top-down with counter.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Find the longest path between any two nodes (diameter)."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Day 7 bottom-up global** — NOT Day 6. Path doesn't have to start at root.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = state down. Scenario 3 = returns up + global — the Day 6 vs Day 7 split.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Forgetting `path.pop()` after recursion** — Sibling branches inherit wrong prefix.
+2. **Saving path reference without copy** — Use `path[:]` or `new ArrayList<>(path)`.
+3. **Checking target at internal nodes** — Leaf-only for exact root-to-leaf sum.
+4. **Using bottom-up `max(left, right)` for path problems** — Wrong direction for root-to-leaf.
+5. **Confusing accumulation with backtrack** — Only need pop when sharing a mutable path list.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Path Sum III #437](https://leetcode.com/problems/path-sum-iii/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Path Sum III on LeetCode](https://leetcode.com/problems/path-sum-iii/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Count paths with sum k — paths may start **anywhere** (not just root). Harder than Day 6 — needs prefix map, not pure top-down from root only.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Say why pure Day 6 top-down from root isn't enough. (Hint: path can start at internal nodes.)
+
+> 💡 **Hint:** Day 6 template + prefix-sum map — stretch goal for after D-Rank test.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 6 complete! Tomorrow: the next branch of your ascension. →*
+*Day 6 complete! Tomorrow: returns bubble up — and globals capture bent paths. →*

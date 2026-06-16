@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Univalue Path
 
 > **Day 14** · [Longest Univalue Path #687](https://leetcode.com/problems/longest-univalue-path/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Univalue Path on LeetCode](https://leetcode.com/problems/longest-univalue-path/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node, label left-arm and right-arm lengths (same-value edges). Global = left + right. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bottom-Up Path Length**.
+Which pattern from today's concept applies? **Bottom-up path length** — return `(leftArm, rightArm)`; global `max(left + right)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: arm length = child's offered arm + 1 **only if** child.val == node.val; else 0. Answer counts **edges**, not nodes.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Bottom-Up Path Length
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Longest path" where all nodes share same value
+- Path can start/end anywhere — cross-subtree through current node
+- Return edge count — dual-role like Day 7 diameter
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "longest univalue path" | Bottom-up arms + global |
+| "same value" | Conditional extend — break on mismatch |
+| "number of edges" | left + right arms = edge count through node |
+| "any node start/end" | Global cross combine — Day 7 family |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Longest univalue path through a node = best same-value chain from left + best from right. Children report arm lengths upward; parent merges.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Return pair (leftArm, rightArm) — not single height."*
+2. *"Arm extends only if child.val == node.val."*
+3. *"ans = max(ans, left + right) before return."*
+4. *"Return (left, right) — parent uses lr from left, rl from right."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Try every node as path center O(n²)** | Bottom-up O(n) suffices |
+| **Return single max height** | Need separate left/right arms for cross path |
+| **Top-down carry value** | Can't see cross-subtree winner at internal node |
+| **Count nodes instead of edges** | Off-by-one — problem asks for edges |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Same dual-role as diameter — **global** for cross-path through node, **return** one arm upward for parent's use.
 
 ---
 
@@ -75,31 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Diameter of Binary Tree #543](https://leetcode.com/problems/diameter-of-binary-tree/) | Day 7 — any path, not same value | Global l+r, return height |
+| [Binary Tree Maximum Path Sum #124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) | Weighted values, max(0) clamp | Same dual-role |
+| [Path Sum III #437](https://leetcode.com/problems/path-sum-iii/) | Today's other quest — prefix map | Different path family |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: children report, parent combines cross + return one side.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree of all 5s — three nodes in line:**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+    5
+     \
+      5
+       \
+        5
 
-Apply Bottom-Up Path Length step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+At bottom 5: (0,0) → global 0
+At middle 5: right child matches → right=1, global=max(0,1)=1, return (0,1)
+At top 5: right arm=2, global=max(1,2)=2 ✓
+
+2 edges — path through all three 5s.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `(leftArm, rightArm)` naming matches **which child edge** the arm comes from — parent reads `lr` from left child, `rl` from right.
 
 ---
 
@@ -109,17 +110,16 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
     int ans = 0;
-    pair<int,int> dfs(TreeNode* node) {
-        if (!node) return {0, 0};
-        auto l = dfs(node->left), r = dfs(node->right);
-        int left = (node->left && node->left->val == node->val) ? l.second + 1 : 0;
-        int right = (node->right && node->right->val == node->val) ? r.first + 1 : 0;
-        ans = max(ans, left + right);
-        return {left, right};
+    int dfs(TreeNode* node, int parentVal) {
+        if (!node) return 0;
+        int l = dfs(node->left,  node->val);
+        int r = dfs(node->right, node->val);
+        ans = max(ans, l + r);
+        return node->val == parentVal ? max(l, r) + 1 : 0;
     }
 public:
     int longestUnivaluePath(TreeNode* root) {
-        dfs(root);
+        dfs(root, -1);
         return ans;
     }
 };
@@ -130,54 +130,49 @@ public:
 class Solution:
     def longestUnivaluePath(self, root: Optional[TreeNode]) -> int:
         self.ans = 0
-        def dfs(node):
-            if not node:
-                return 0, 0
-            ll, lr = dfs(node.left)
-            rl, rr = dfs(node.right)
-            left = lr + 1 if node.left and node.left.val == node.val else 0
-            right = rl + 1 if node.right and node.right.val == node.val else 0
-            self.ans = max(self.ans, left + right)
-            return (left, right)
-        dfs(root)
+        def dfs(node, parent_val):
+            if not node: return 0
+            l = dfs(node.left,  node.val)
+            r = dfs(node.right, node.val)
+            self.ans = max(self.ans, l + r)
+            return max(l, r) + 1 if node.val == parent_val else 0
+        dfs(root, None)
         return self.ans
 ```
 
 ### Java
 ```java
 class Solution {
-    int ans = 0;
+    private int ans = 0;
     public int longestUnivaluePath(TreeNode root) {
-        dfs(root);
+        dfs(root, -1001);
         return ans;
     }
-    int[] dfs(TreeNode node) {
-        if (node == null) return new int[]{0, 0};
-        int[] l = dfs(node.left), r = dfs(node.right);
-        int left = (node.left != null && node.left.val == node.val) ? l[1] + 1 : 0;
-        int right = (node.right != null && node.right.val == node.val) ? r[0] + 1 : 0;
-        ans = Math.max(ans, left + right);
-        return new int[]{left, right};
+    private int dfs(TreeNode node, int parentVal) {
+        if (node == null) return 0;
+        int l = dfs(node.left,  node.val);
+        int r = dfs(node.right, node.val);
+        ans = Math.max(ans, l + r);
+        return node.val == parentVal ? Math.max(l, r) + 1 : 0;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Bottom-Up Path Length"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Longest same-value path"** → bottom-up arms, Day 7 cousin.
+- **"left + right = global"** → cross through current node.
+- **"Return pair"** → parent extends one arm only.
+- **"Edges not nodes"** → arms already count edges.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you used prefix sums here, wrong tool — value equality needs conditional arm extend.
 
-> 🎯 **Pattern Unlocked:** Bottom-Up Path Length
+> 🎯 **Pattern Unlocked:** Bottom-Up Path Length — univalue arms + global combine.
 
 ---
 

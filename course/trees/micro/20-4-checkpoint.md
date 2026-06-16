@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 20 Checkpoint
 
 > **Tree DP** · 2 quests completed · ⭐ 130 XP earned
@@ -6,67 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 20 is **postorder state pairs** and **direction tracking**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "rob tree" / no adjacent robbed | `(rob, skip)` postorder | #337 |
+| "cannot rob parent and child" | Rob uses child skip branches | Tree adjacency |
+| "zigzag" / alternate direction | `(l, r)` state down | #1372 |
+| "house robber" linear array | **Recursion #198** | Not tree — rolling vars |
+| "max path sum any route" | **Day 7** global | No alternation |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Max loot on tree, no parent-child both robbed"* → **Rob/skip pairs**
+2. *"Longest alternating left-right path"* → **Direction state**
+3. *"House robber on street (array)"* → **#198** — index DP
+4. *"Camera coverage min count"* → **B-Rank test** — 3-state postorder
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Paint tree nodes — parent/child cannot same color, maximize value."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Multi-state postorder** — similar to rob/skip with color dimension.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Longest path with at most one direction change."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Extended direction state** — more than binary zigzag.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Rob only leaf nodes on tree."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Different constraint** — not standard #337 pairs.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 1 closest to Day 20 postorder; 2 extends direction DP.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Rob/skip: robbing child when parent robbed** — Use child's **skip** only.
+2. **Returning single int from dfs on #337** — Need pair.
+3. **Zigzag: not resetting opposite direction** — `(r+1, 0)` on left go.
+4. **Confusing edges vs nodes count** — #1372 counts edges.
+5. **Applying #198 formula directly on tree** — Need postorder pairs.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+On a 5-node tree, compute `(rob, skip)` at every node by hand. Then trace longest zigzag on the same tree with `(l,r)` updates.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before coding:** State the #198 vs #337 difference in one sentence.
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** #198 = linear index; #337 = tree postorder pairs.
 
 ---
 
@@ -79,4 +73,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 20 complete! Tomorrow: the next branch of your ascension. →*
+*Day 20 complete! Tomorrow: subtree aggregation patterns. →*

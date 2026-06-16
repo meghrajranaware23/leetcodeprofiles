@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Sudoku Solver
 
 > **Day 18** · [Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/) · Medium · 15 min · 35 XP
@@ -10,51 +11,73 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Sudoku Solver on LeetCode](https://leetcode.com/problems/sudoku-solver/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Linearize the board 0–80. On the first empty cell, list which digits 1–9 pass row, column, and box checks before writing any code.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/)**
+Write a program to solve a **Sudoku** puzzle by filling the empty cells.
 
-Work through the examples on paper before reading further.
+A Sudoku solution must satisfy all of the following rules:
+
+1. Each of the digits `1-9` must occur exactly once in each **row**.
+2. Each of the digits `1-9` must occur exactly once in each **column**.
+3. Each of the digits `1-9` must occur exactly once in each of the nine **3×3** sub-boxes.
+
+The `.` character indicates empty cells. You must solve the puzzle **in place**.
+
+```
+Input:
+[["5","3",".",".","7",".",".",".","."],
+ ["6",".",".","1","9","5",".",".","."],
+ [".","9","8",".",".",".",".","6","."],
+ ...
+Output: solved board (same grid structure, no '.' remaining)
+```
+
+**Constraints:** `board.length == 9`, only digits `1-9` and `'.'`. Guaranteed at least one solution.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Cell Assignment Backtracking**.
+**Hint 1:** Walk cells with linear index `idx` from 0 to 80. Convert: `r = idx/9`, `c = idx%9`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** If `board[r][c] != '.'`, skip — recurse `dfs(idx+1)` (given cell).
+
+**Hint 3:** For empty cells, try digits `'1'` through `'9'`. Call `valid(r, c, d)` checking row, column, and 3×3 box.
+
+**Hint 4:** Assign `board[r][c] = d`, if `dfs(idx+1)` returns true → solved. Else reset `board[r][c] = '.'`.
+
+**Hint 5:** Base case `idx == 81` → return true. This is **fill-board**, not count-all — return on first success.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Cell Assignment Backtracking
+**Pattern used:** Cell Assignment Backtracking (Fill-Board)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Fill empty cells" / "solve in place" → mutate board, return true on success
+- Row + column + box uniqueness → triple constraint check per digit
+- Fixed 9×9 structure → linear index traversal, skip givens
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "solve sudoku" / "fill empty cells" | Idx dfs, try 1–9 |
+| "each row/column/box" | valid() scans row, col, 3×3 |
+| "in place" / modify board | Choose digit, unchoose with `'.'` |
+| "." empty cell | Skip or assign |
+| guaranteed solution | Return true immediately — no need to count |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each empty cell tries at most 9 digits with O(9) validation — constraints eliminate most branches early. First complete assignment wins.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Linear idx 0..80, skip givens."*
+2. *"Empty cell → loop d='1'..'9'."*
+3. *"valid checks row AND col AND box."*
+4. *"Assign, dfs(idx+1), if true return; else '.' undo."*
 
 ---
 
@@ -62,12 +85,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Try 9^81 all assignments** | No constraint check until end — astronomical |
+| **Check only row when validating** | Column/box duplicates slip through |
+| **Overwrite given cells** | Must skip prefilled positions |
+| **No undo on failed branch** | Board stays wrong for sibling digits |
+| **Search all solutions when one suffices** | Wastes time — return true on first complete fill |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Validate **before** recursing. Undo with `'.'` so the next digit attempt starts clean — same push/pop rhythm as N-Queens constraint marks.
 
 ---
 
@@ -75,25 +99,53 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/) | Fill one board | Idx dfs + row/col/box |
+| [Valid Sudoku #36](https://leetcode.com/problems/valid-sudoku/) | Check only, no fill | Same constraint logic, no backtrack |
+| [N-Queens II #52](https://leetcode.com/problems/n-queens-ii/) | Count queen placements | Constraint sets (previous quest) |
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Path in letter grid | Day 16 — mark path cells, not digit fill |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you recognized Sudoku, you understand **fill-board CSP** — contrast with N-Queens II's **count-only** goal.
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+Fragment of a board — first empty at `(0,2)` after skipping givens:
 
 ```
-Apply Cell Assignment Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Row 0:  5  3  .  |  .  7  .  |  .  .  .
+              ↑ idx=2, empty
+
+valid(0, 2, '1'): row has 5,3,7 — col has 6,9,... — box top-left has 5,3,6,9,8
+Try '1': col conflict? scan col 2... if ok, box ok → assign
+
+board[0][2] = '1'
+  dfs(idx=3): board[0][3] is '.' ...
+  ... deeper ...
+  dead end → return false
+
+board[0][2] = '.'   ← UNCHOOSE
+Try '2': ...
+Eventually '4' (example) → dfs continues → ... → idx=81 → return true
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Box anchor for cell `(r,c)`:
+
+```
+box_row = (r / 3) * 3
+box_col = (c / 3) * 3
+Scan 3×3 cells starting at (box_row, box_col)
+```
+
+Skip given cell:
+
+```
+idx=0: board[0][0]='5' → dfs(1)   (no branch, no undo)
+idx=1: board[0][1]='3' → dfs(2)
+idx=2: board[0][2]='.' → try digits
+```
+
+> 💡 **The insight:** N-Queens marks constraint **sets**; Sudoku writes to the **board** and validates by scanning row/col/box. Both undo before the next sibling choice.
 
 ---
 
@@ -182,21 +234,21 @@ class Solution {
 ```
 
 **Complexity:** O(9^m) time · O(9) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Cell Assignment Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Solve in place"** → Fill-board backtracking — return true when idx hits 81.
+- **"Three rules: row, column, box"** → valid() must check all three before assigning.
+- **"Skip givens"** → Don't overwrite `'5'` — just dfs(idx+1).
+- **"Not Word Search"** → No 4-direction walk; fixed cell order with digit trials.
+- **"Undo with '.'"** → Same unchoose as N-Queens unmark, but on the board cell.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried nested loops over all 9^81 assignments, that's fine — the breakthrough is **validate-then-recurse with explicit undo on failure**.
 
-> 🎯 **Pattern Unlocked:** Cell Assignment Backtracking
+> 🎯 **Pattern Unlocked:** Cell assignment CSP — try 1–9, triple constraint check, fill until idx==81.
 
 ---
 

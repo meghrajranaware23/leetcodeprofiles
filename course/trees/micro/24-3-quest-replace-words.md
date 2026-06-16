@@ -1,6 +1,7 @@
-# ⚔ Quest: Replace Words
+<!-- hand-authored -->
+# ⚔ Quest: Replace Word
 
-> **Day 24** · [Replace Words #648](https://leetcode.com/problems/replace-words/) · Medium · 15 min · 30 XP
+> **Day 24** · [Replace Word #648](https://leetcode.com/problems/replace-words/) · Medium · 15 min · 30 XP
 
 ---
 
@@ -8,15 +9,15 @@
 
 Open the problem on LeetCode and attempt it **before** reading hints or solutions.
 
-**[→ Open Replace Words on LeetCode](https://leetcode.com/problems/replace-words/)**
+**[→ Open Replace Word on LeetCode](https://leetcode.com/problems/replace-words/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Insert dictionary words into a trie. When inserting, **stop** if a shorter root already marked the path. When replacing, **stop at the first word marker** on the walk. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Replace Words #648](https://leetcode.com/problems/replace-words/)**
+See the full problem statement on LeetCode: **[Replace Word #648](https://leetcode.com/problems/replace-words/)**
 
 Work through the examples on paper before reading further.
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Trie Prefix Matching**.
+Which pattern from today's concept applies? **Trie prefix replace greedy** — shortest matching root wins because you halt at the first `isEnd`/stored word during the sentence walk.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: on insert, `if node.isEnd: break` before extending longer words through an existing root.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Trie Prefix Matching
+**Pattern used:** Trie Prefix Matching (Greedy Shortest Root)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Replace words with roots" → dictionary words are prefixes
+- "Shortest root" / "minimum prefix" → first marker on trie path
+- Sentence of space-separated words → process each token independently
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "replace with root" | Trie walk, stop at first complete word |
+| "dictionary of roots" | Batch insert before query |
+| "shortest prefix" | Break insert if shorter root exists |
+| "sentence" | Split by space, join results |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Trie paths encode all prefixes. Walking "cattle" hits `cat` marker before you'd need longer paths — greedy first-marker = shortest root by construction (if insert breaks on existing markers).
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Build trie from dictionary."*
+2. *"Insert: if marker exists mid-path, stop extending."*
+3. *"For each sentence word: walk trie char by char."*
+4. *"If marker at node: replace with stored root, break."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **For each word, scan all dictionary prefixes** | O(dict × words × len) — slow |
+| **Sort dictionary by length, check each prefix** | Repeated work per token |
+| **Insert all words fully without early break** | Longer word may overwrite shortest root logic |
+| **Hash set of roots only** | Can't walk prefix char-by-char efficiently |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** One trie insert + one walk per token. First end-marker on path **is** the shortest matching root.
 
 ---
 
@@ -75,31 +74,37 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Implement Trie #208](https://leetcode.com/problems/implement-trie-prefix-tree/) | Day 19 base | Same node structure |
+| [Longest Word in Dictionary #720](https://leetcode.com/problems/longest-word-in-dictionary/) | Longest not shortest | Trie + end check |
+| [Map Sum Pairs #677](https://leetcode.com/problems/map-sum-pairs/) | Prefix sums on trie | Walk with aggregation |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: insert dictionary, walk query.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Dictionary: `["cat","bat","rat"]`, sentence: `"the cattle was rattled by the battery"`**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+Trie: c→a→t[#], b→a→t[#], r→a→t[#]
 
-Apply Trie Prefix Matching step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+"cattle"  → c,a,t,[#] → "cat"
+"rattled" → r,a,t,[#] → "rat"
+"battery" → b,a,t,[#] → "bat"
+
+Output: "the cat was rat by the bat"
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Dictionary order matters for insert: `["a","aa"]`**
+
+```
+Insert "a": a[#]
+Insert "aa": reach a[#] → break (don't extend to second 'a')
+Word "aaa" → walk finds a[#] → replace with "a" ✓
+```
+
+> 💡 **The insight:** Greedy = stop walking the moment a root is recognized.
 
 ---
 
@@ -108,31 +113,35 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    struct TrieNode { unordered_map<char, TrieNode*> next; string word; };
+    struct TrieNode {
+        TrieNode* ch[26] = {};
+        string word;
+    };
     TrieNode* root = new TrieNode();
-    void insert(const string& w) {
-        TrieNode* node = root;
-        for (char c : w) {
-            if (!node->next.count(c)) node->next[c] = new TrieNode();
-            node = node->next[c];
-        }
-        node->word = w;
-    }
 public:
     string replaceWords(vector<string>& dictionary, string sentence) {
-        for (auto& w : dictionary) insert(w);
-        stringstream ss(sentence);
-        string tok, res;
-        while (ss >> tok) {
-            TrieNode* node = root;
-            string prefix;
-            for (char c : tok) {
-                if (!node->next.count(c)) break;
-                node = node->next[c];
-                if (!node->word.empty()) { prefix = node->word; break; }
+        for (auto& w : dictionary) {
+            TrieNode* cur = root;
+            for (char c : w) {
+                int i = c - 'a';
+                if (!cur->ch[i]) cur->ch[i] = new TrieNode();
+                cur = cur->ch[i];
+                if (!cur->word.empty()) break;
             }
+            cur->word = w;
+        }
+        istringstream iss(sentence);
+        string word, res;
+        while (iss >> word) {
             if (!res.empty()) res += ' ';
-            res += prefix.empty() ? tok : prefix;
+            TrieNode* cur = root;
+            for (char c : word) {
+                int i = c - 'a';
+                if (!cur->ch[i]) break;
+                cur = cur->ch[i];
+                if (!cur->word.empty()) { word = cur->word; break; }
+            }
+            res += word;
         }
         return res;
     }
@@ -148,64 +157,64 @@ class Solution:
             node = root
             for c in w:
                 node = node.setdefault(c, {})
+                if '#' in node: break
             node['#'] = w
-        def prefix(word):
-            node, path = root, ''
+        def replace(word):
+            node = root
             for c in word:
-                if c not in node:
-                    return word
-                path += c
+                if c not in node: break
                 node = node[c]
-                if '#' in node:
-                    return node['#']
+                if '#' in node: return node['#']
             return word
-        return ' '.join(prefix(w) for w in sentence.split())
+        return ' '.join(replace(w) for w in sentence.split())
 ```
 
 ### Java
 ```java
 class Solution {
-    static class Trie { Map<Character, Trie> next = new HashMap<>(); String word; }
-    public String replaceWords(List<String> dict, String sentence) {
-        Trie root = new Trie();
-        for (String w : dict) {
-            Trie node = root;
-            for (char c : w.toCharArray()) node = node.next.computeIfAbsent(c, k -> new Trie());
-            node.word = w;
+    public String replaceWords(List<String> dictionary, String sentence) {
+        Map<String,Object> trie = new HashMap<>();
+        for (String w : dictionary) {
+            Map<String,Object> node = trie;
+            for (char c : w.toCharArray()) {
+                node = (Map<String,Object>) node.computeIfAbsent(String.valueOf(c), k -> new HashMap<>());
+                if (node.containsKey("#")) break;
+            }
+            node.put("#", w);
         }
         StringBuilder res = new StringBuilder();
-        for (String tok : sentence.split(" ")) {
+        for (String word : sentence.split(" ")) {
             if (res.length() > 0) res.append(' ');
-            Trie node = root;
-            String pref = null;
-            for (char c : tok.toCharArray()) {
-                if (!node.next.containsKey(c)) break;
-                node = node.next.get(c);
-                if (node.word != null) { pref = node.word; break; }
+            Map<String,Object> node = trie;
+            String found = word;
+            for (char c : word.toCharArray()) {
+                String key = String.valueOf(c);
+                if (!node.containsKey(key)) break;
+                node = (Map<String,Object>) node.get(key);
+                if (node.containsKey("#")) { found = (String) node.get("#"); break; }
             }
-            res.append(pref == null ? tok : pref);
+            res.append(found);
         }
         return res.toString();
     }
 }
 ```
 
-**Complexity:** O(n·L + m) time · O(n·L) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Trie Prefix Matching"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Replace with shortest root"** → trie + first marker wins.
+- **"Break insert on existing marker"** → shorter dictionary word blocks longer paths.
+- **"Per-token walk"** → same as prefix search until `#`/word stored.
+- **"Day 19 trie"** → extended insert and query rules only.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you compared every dictionary word as prefix to every sentence word, refactor to trie greedy walk.
 
-> 🎯 **Pattern Unlocked:** Trie Prefix Matching
+> 🎯 **Pattern Unlocked:** Trie prefix replace — greedy stop at shortest root marker.
 
 ---
 

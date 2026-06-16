@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Flatten Binary Tree
 
 > **Day 10** · [Flatten Binary Tree to Linked List #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) · Medium · 15 min · 20 XP
@@ -10,23 +11,34 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Flatten Binary Tree to Linked List on LeetCode](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace `prev` on the 5-node example. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Flatten Binary Tree to Linked List #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/)**
+Given the `root` of a binary tree, flatten the tree into a **linked list** in-place:
 
-Work through the examples on paper before reading further.
+- Use `TreeNode.right` as the next pointer; set all `left` to `null`
+- Order must follow **preorder**: root, then left subtree, then right subtree
+
+```
+Input:     1
+          / \
+         2   5
+        / \
+       3   4
+
+Output: 1 → 2 → 3 → 4 → 5 (via right pointers, all left null)
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Postorder Rewiring**.
+Which pattern from today's concept applies? **Postorder rewiring** — visit right, then left, then stitch `node.right = prev`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: `prev` tracks the next node in the flattened list. Process subtrees before current node.
 
 ---
 
@@ -35,26 +47,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Postorder Rewiring
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Flatten to linked list" → rewire pointers, not new nodes
+- "Preorder traversal order" → process node **after** children with right-first postorder
+- "left child null" → clear `left` at each stitch
+- Needs **external `prev`** → helper / class field
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "flatten" / "linked list" | Rewire `right` pointers |
+| "preorder" order | Right-left-node visit order + prev |
+| "in-place" | `prev` helper, no new list |
+| "all left null" | `node.left = null` each step |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Last processed node in postorder (right-first) is the next node in preorder flattened sequence.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"`prev = null` in wrapper."*
+2. *"dfs(right), dfs(left), then node.right = prev."*
+3. *"node.left = null; prev = node."*
+4. *"Day 9 postorder cousin — modify pointers not swap."*
 
 ---
 
@@ -62,12 +73,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Collect preorder in array, rebuild links** | O(n) extra space — misses in-place rewire |
+| **Preorder dfs: node then stitch** | Hard to find where left subtree ends |
+| **Left then right then node** | Wrong order for prev stitching |
+| **Forget clear left** | Invalid flattened structure |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Reverse postorder (right, left, node) + `prev` **is** reverse preorder stitching.
 
 ---
 
@@ -75,25 +86,55 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Flatten Binary Tree #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) | Preorder flatten | Postorder rewire + prev |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Swap children | Day 9 postorder modify |
+| [Populating Next Right Pointers #116](https://leetcode.com/problems/populating-next-right-pointers-in-each-node/) | Level links | Different wiring |
+| [Binary Tree Upside Down #156](https://leetcode.com/problems/binary-tree-upside-down/) | Parent flip | Postorder rewire variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Tree: `1 → (2 → 3,4), 5`
 
 ```
-Apply Postorder Rewiring step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+RIGHT-FIRST POSTORDER + prev:
+
+Step 0: prev = null
+
+dfs(5):  right/left null
+  5.right = null (prev)
+  5.left = null
+  prev = 5
+
+dfs(4):
+  4.right = 5 (prev)
+  4.left = null
+  prev = 4
+
+dfs(3):
+  3.right = 4
+  prev = 3
+
+dfs(2): after children
+  2.right = 3 (prev chain 3→4→5)
+  prev = 2
+
+dfs(1):
+  1.right = 2
+  prev = 1
+
+Final right chain: 1→2→3→4→5 ✓
+All left = null ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Pointer diagram after full dfs:
+
+```
+1.right → 2.right → 3.right → 4.right → 5.right → null
+```
+
+> 💡 **The insight:** `prev` is the helper state (like BST's lo/hi) — carries forward the tail of the list being built backward.
 
 ---
 
@@ -151,21 +192,20 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Postorder Rewiring"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Flatten to preorder linked list"** → Rewire in place with `prev` helper.
+- **"Right, left, node"** → Not standard postorder — reversed child order for preorder output.
+- **"node.right = prev"** → Stitch current after already-processed subtrees.
+- **"Helper state like Day 10 BST"** → `prev` travels like `lo/hi` — different meaning, same design.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried collecting nodes first, the breakthrough is **one pass postorder rewire**.
 
-> 🎯 **Pattern Unlocked:** Postorder Rewiring
+> 🎯 **Pattern Unlocked:** Postorder rewiring — right-left-node visit with prev pointer helper.
 
 ---
 

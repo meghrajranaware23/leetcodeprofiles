@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Validate BST
 
 > **Day 10** · [Validate Binary Search Tree #98](https://leetcode.com/problems/validate-binary-search-tree/) · Medium · 15 min · 20 XP
@@ -10,23 +11,38 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Validate Binary Search Tree on LeetCode](https://leetcode.com/problems/validate-binary-search-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Why does parent-only check fail on `5,3,6`? The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Validate Binary Search Tree #98](https://leetcode.com/problems/validate-binary-search-tree/)**
+Given the `root` of a binary tree, determine if it is a **valid binary search tree** (BST).
 
-Work through the examples on paper before reading further.
+A BST is defined as: for every node, all values in its **left subtree** are **less than** the node's value, and all values in its **right subtree** are **greater than** the node's value. Subtrees must also be valid BSTs.
+
+```
+Input:    2
+         / \
+        1   3
+Output: true
+
+Input:    5
+         / \
+        1   4
+           / \
+          3   6
+Output: false
+Explanation: root 5, but 4 is in right subtree with left child 3 < 5.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Range-Bounded Helper**.
+Which pattern from today's concept applies? **Range-bounded helper** — `validate(node, lo, hi)` with strict open interval.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: left child inherits `hi = node.val`; right child inherits `lo = node.val`. Tie to Day 5 range pruning.
 
 ---
 
@@ -35,26 +51,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Range-Bounded Helper
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Validate BST" → every node must fall in **ancestor-defined range**
+- "All left subtree less" → not just parent — full `(lo, hi)` interval
+- "Distinct values" / strict inequality → `lo < val < hi`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "validate BST" | Helper with min/max bounds |
+| "all nodes in left subtree" | Bounds from ancestors, not parent only |
+| strict less / greater | Open interval `(lo, hi)` |
+| "return true/false" | Boolean DFS like Day 4 |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each node tightens the allowable range for descendants. Violation anywhere fails the `&&` chain.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Wrapper: validate(root, -∞, +∞)."*
+2. *"Fail if val <= lo or val >= hi."*
+3. *"Left: same lo, hi = node.val. Right: lo = node.val, same hi."*
+4. *"Day 5 cousin — state down, not sum accumulation."*
 
 ---
 
@@ -62,12 +76,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Only compare node to parent** | Fails when deep node violates ancestor |
+| **Inorder: check strictly increasing** | Valid O(n) — but misses helper design lesson |
+| **Integer bounds: use `INT_MIN/MAX` directly** | Node value may equal `INT_MIN` — use `long` or infinity |
+| **Allow `<=` on bounds** | Duplicates break strict BST definition on LC |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** BST property is **global within subtree bounds**, encoded as shrinking `(lo, hi)`.
 
 ---
 
@@ -75,25 +89,48 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Validate BST #98](https://leetcode.com/problems/validate-binary-search-tree/) | Open interval | Bounded helper |
+| [Range Sum of BST #938](https://leetcode.com/problems/range-sum-of-bst/) | Day 5 — sum in range | Prune with bounds |
+| [Convert Sorted Array to BST #108](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/) | Build valid BST | Inverse of validate |
+| [Kth Smallest in BST #230](https://leetcode.com/problems/kth-smallest-element-in-a-bst/) | Inorder | Alternative BST tool |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Invalid tree `5 / 1, 4 / 3, 6`:
 
 ```
-Apply Range-Bounded Helper step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+validate(5, -∞, +∞): 5 in (-∞,+∞) ✓
+  validate(1, -∞, 5): 1 < 5 ✓
+  validate(4, 5, +∞): 4 < 5? FAIL → false
+
+Even if we only checked parent 5>4, we'd miss that 3 is under left of 4
+but 3 < 5 ancestor — caught when validate(3, 5, 4) runs:
+  3 < 5 ✓ but need 3 < 4 and 3 > 5? lo=5 → 3 > 5 false ✓ caught at 4 node first
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Valid tree `2 / 1, 3`:
+
+```
+validate(2, -∞, +∞) ✓
+  validate(1, -∞, 2): 1 < 2 ✓, null children ✓
+  validate(3, 2, +∞): 3 > 2 ✓ ✓
+→ true
+```
+
+Call stack on valid tree:
+
+```
+┌──────────────────────────────┐
+│ validate(2, -∞, +∞)          │
+│   validate(1, -∞, 2) → true  │
+│   validate(3, 2, +∞) → true  │
+│ return true                  │
+└──────────────────────────────┘
+```
+
+> 💡 **The insight:** Helper carries **ancestor constraints** — same bounded DFS DNA as Day 5 Range Sum BST.
 
 ---
 
@@ -141,22 +178,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Range-Bounded Helper"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Validate BST"** → Not parent check — **range helper**.
+- **"lo < node.val < hi"** → Strict open interval; tighten per child.
+- **"Day 5 bounded DFS"** → State travels down; here it's lo/hi not target sum.
+- **"Use long / infinity"** → Edge values at INT boundaries.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you only compared to parent, the `5,3,6` pattern is the classic failure — bounds fix it.
 
-> 🎯 **Pattern Unlocked:** Range-Bounded Helper
+> 🎯 **Pattern Unlocked:** Range-bounded helper — carry (lo, hi), tighten at each node.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: postorder rewire with prev pointer. →*

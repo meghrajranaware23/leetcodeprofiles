@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Smallest Missing Genetic Value
 
 > **Day 30** · [Smallest Missing Genetic Value in Each Subtree #2003](https://leetcode.com/problems/smallest-missing-genetic-value-in-each-subtree/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Smallest Missing Genetic Value in Each Subtree on LeetCode](https://leetcode.com/problems/smallest-missing-genetic-value-in-each-subtree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Find the node with value 1. Walk up to root, aggregating gene sets at each step. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,36 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Subtree Set Aggregation**.
+Which pattern from today's capstone applies? **Subtree gene-set aggregation** — collect all `nums` values in the subtree into a set; MEX = smallest positive integer not in set.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: if no node has value `1`, every answer is `1`. Otherwise only ancestors of the `1`-node need real computation — walk `cur = node_with_1`, then `cur = parent[cur]` up to root.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Subtree Set Aggregation
+**Pattern used:** Subtree Set Aggregation (path-to-root optimization)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"Smallest missing genetic value" / MEX** → need set of all values in subtree
+- **"Each subtree"** → naive O(n²) — optimize via ancestry structure
+- **Values are permutations of 1..n** → at most one node with value `1`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "smallest missing" / MEX | Scan 1, 2, 3… until not in set |
+| "each subtree" | DFS collect values per subtree |
+| "parents array" | Build children adjacency list |
+| "permutation of 1..n" | Unique `1` unlocks path optimization |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** MEX > 1 for node `u` requires value `1` in `u`'s subtree. Only ancestors of the unique `1`-node can have MEX > 1. All other nodes answer `1` immediately.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Build children from parents."*
+2. *"Find node_with_1; if none → return all 1s."*
+3. *"Global visited + vals sets; cur = node_with_1."*
+4. *"While cur valid: DFS-collect unvisited subtree nodes into vals."*
+5. *"Advance mex while in vals; ans[cur] = mex; cur = parent[cur]."*
 
 ---
 
@@ -62,12 +62,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Fresh DFS from every node** | O(n²) — TLE on large trees |
+| **Recompute set from scratch per ancestor** | Overlapping subtrees — reuse global visited |
+| **Ignore the unique-1 property** | Wastes work on nodes whose subtree lacks 1 |
+| **MEX scan from scratch each node** | Increment global `mex` — sets only grow up the path |
+| **Return set from every dfs call** | Heavy copying — global visited + vals is lighter |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Subtrees along the path from `1`-node to root are **nested**. One global visited set accumulates values once; `mex` only increases.
 
 ---
 
@@ -75,31 +76,49 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Average of Subtree #2265](https://leetcode.com/problems/count-nodes-equal-to-average-of-subtree/) | Sum+count tuple, not set | Bottom-up aggregation (S-Test) |
+| [Maximum Sum BST #1373](https://leetcode.com/problems/maximum-sum-bst-in-binary-tree/) | Validity tuple | Day 28 multi-value return |
+| [Collect Coins in Tree #2607](https://leetcode.com/problems/find-the-substring-with-max-cost/) | Different domain | Tree path aggregation |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Set aggregation is the capstone when the question asks about **all values in subtree**.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Only ancestors of node-with-1 matter.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+parents = [-1, 0, 0, 2, 2, 0, 2]
+nums    = [4, 6, 1, 5, 2, 3, 7]
 
-Apply Subtree Set Aggregation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Tree:          node_with_1 = index 2
+
+       0(4)
+     /  |  \
+   1(6) 5(3) (none)
+   /
+  2(1)
+ / \
+3(5) 4(2)
+      \
+      6(7)
+
+Walk cur from 2 → 0:
+  cur=2: collect subtree {1,5,2,7} → vals={1,2,5,7} → mex=3 → ans[2]=3
+  cur=0: collect {4,6,3,...} → vals grows → mex=8 → ans[0]=8
+
+Nodes not on path (1, 3, 4, 5, 6): ans stays 1 (no 1 in their subtrees)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Why others stay 1:**
+
+```
+Node 1's subtree = {6} — no value 1 → MEX is always 1
+Node 5's subtree = {3} — no value 1 → MEX is always 1
+```
+
+> 💡 **The insight:** Gene set **aggregates** as you walk up — visited prevents re-DFS of shared subtrees.
 
 ---
 
@@ -108,30 +127,33 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    vector<vector<int>> g;
-    vector<int> nums, ans;
-    set<int> dfs(int u, int p) {
-        set<int> seen;
-        if (nums[u] == 1) seen.insert(1);
-        for (int v : g[u]) if (v != p) {
-            set<int> child = dfs(v, u);
-            if (child.size() > seen.size()) seen.swap(child);
-            seen.insert(child.begin(), child.end());
-        }
-        int mex = 1;
-        while (seen.count(mex)) ++mex;
-        ans[u] = mex;
-        return seen;
-    }
 public:
-    vector<int> smallestMissingValueSubtree(vector<int>& parents, vector<int>& nums_) {
+    vector<int> smallestMissingValueSubtree(vector<int>& parents, vector<int>& nums) {
         int n = parents.size();
-        nums = nums_;
-        ans.assign(n, 1);
-        if (!count(nums.begin(), nums.end(), 1)) return ans;
-        g.assign(n, {});
-        for (int i = 1; i < n; ++i) { g[i].push_back(parents[i]); g[parents[i]].push_back(i); }
-        dfs(0, -1);
+        vector<vector<int>> children(n);
+        for (int i = 1; i < n; i++) children[parents[i]].push_back(i);
+        vector<int> ans(n, 1);
+        int nodeWith1 = -1;
+        for (int i = 0; i < n; i++) if (nums[i] == 1) { nodeWith1 = i; break; }
+        if (nodeWith1 == -1) return ans;
+        unordered_set<int> visited, vals;
+        int mex = 1;
+        int cur = nodeWith1;
+        while (cur != -1) {
+            stack<int> st;
+            st.push(cur);
+            while (!st.empty()) {
+                int v = st.top(); st.pop();
+                if (visited.count(v)) continue;
+                visited.insert(v);
+                vals.insert(nums[v]);
+                for (int child : children[v])
+                    if (!visited.count(child)) st.push(child);
+            }
+            while (vals.count(mex)) mex++;
+            ans[cur] = mex;
+            cur = cur == 0 ? -1 : parents[cur];
+        }
         return ans;
     }
 };
@@ -139,84 +161,82 @@ public:
 
 ### Python
 ```python
+from collections import defaultdict
 class Solution:
     def smallestMissingValueSubtree(self, parents: List[int], nums: List[int]) -> List[int]:
         n = len(parents)
-        if 1 not in nums:
-            return [1] * n
-        g = [[] for _ in range(n)]
+        children = defaultdict(list)
         for i in range(1, n):
-            g[i].append(parents[i])
-            g[parents[i]].append(i)
+            children[parents[i]].append(i)
         ans = [1] * n
-        def dfs(u, p):
-            seen = set()
-            if nums[u] == 1:
-                seen.add(1)
-            for v in g[u]:
-                if v != p:
-                    child = dfs(v, u)
-                    if len(seen) < len(child):
-                        seen, child = child, seen
-                    seen |= child
-            mex = 1
-            while mex in seen:
-                mex += 1
-            ans[u] = mex
-            return seen
-        dfs(0, -1)
+        node_with_1 = next((i for i in range(n) if nums[i] == 1), -1)
+        if node_with_1 == -1: return ans
+        visited, vals, mex = set(), set(), 1
+        cur = node_with_1
+        while cur != -1:
+            stack = [cur]
+            while stack:
+                v = stack.pop()
+                if v in visited: continue
+                visited.add(v)
+                vals.add(nums[v])
+                for child in children[v]:
+                    if child not in visited: stack.append(child)
+            while mex in vals: mex += 1
+            ans[cur] = mex
+            cur = parents[cur] if cur != 0 else -1
         return ans
 ```
 
 ### Java
 ```java
 class Solution {
-    List<Integer>[] g;
-    int[] nums, ans;
     public int[] smallestMissingValueSubtree(int[] parents, int[] nums) {
         int n = parents.length;
-        this.nums = nums; ans = new int[n];
+        List<List<Integer>> children = new ArrayList<>();
+        for (int i = 0; i < n; i++) children.add(new ArrayList<>());
+        for (int i = 1; i < n; i++) children.get(parents[i]).add(i);
+        int[] ans = new int[n];
         Arrays.fill(ans, 1);
-        boolean hasOne = false;
-        for (int x : nums) if (x == 1) hasOne = true;
-        if (!hasOne) return ans;
-        g = new List[n];
-        for (int i = 0; i < n; i++) g[i] = new ArrayList<>();
-        for (int i = 1; i < n; i++) { g[i].add(parents[i]); g[parents[i]].add(i); }
-        dfs(0, -1, new HashSet<>());
-        return ans;
-    }
-    Set<Integer> dfs(int u, int p, Set<Integer> seen) {
-        if (nums[u] == 1) seen.add(1);
-        for (int v : g[u]) if (v != p) {
-            Set<Integer> child = dfs(v, u, new HashSet<>());
-            if (child.size() > seen.size()) { Set<Integer> tmp = seen; seen = child; child = tmp; }
-            seen.addAll(child);
+        int nodeWith1 = -1;
+        for (int i = 0; i < n; i++) if (nums[i] == 1) { nodeWith1 = i; break; }
+        if (nodeWith1 == -1) return ans;
+        Set<Integer> visited = new HashSet<>(), vals = new HashSet<>();
+        int mex = 1, cur = nodeWith1;
+        while (cur != -1) {
+            Deque<Integer> stack = new ArrayDeque<>();
+            stack.push(cur);
+            while (!stack.isEmpty()) {
+                int v = stack.pop();
+                if (visited.contains(v)) continue;
+                visited.add(v); vals.add(nums[v]);
+                for (int child : children.get(v))
+                    if (!visited.contains(child)) stack.push(child);
+            }
+            while (vals.contains(mex)) mex++;
+            ans[cur] = mex;
+            cur = cur == 0 ? -1 : parents[cur];
         }
-        int mex = 1;
-        while (seen.contains(mex)) mex++;
-        ans[u] = mex;
-        return seen;
+        return ans;
     }
 }
 ```
 
-**Complexity:** O(n·k) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Subtree Set Aggregation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"MEX in subtree"** → need set of all values — aggregation pattern.
+- **"Unique 1 in permutation"** → only path to root needs work.
+- **"Global visited"** → nested subtrees share nodes — don't re-collect.
+- **"mex only increases"** → scan forward as set grows.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you DFS'd from every node, the capstone fix is the **ancestry shortcut** via node-with-1.
 
-> 🎯 **Pattern Unlocked:** Subtree Set Aggregation
+> 🎯 **Pattern Unlocked:** Subtree Set Aggregation — gene MEX on path to root.
 
 ---
 

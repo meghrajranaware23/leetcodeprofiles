@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: N-ary Tree Depth
 
 > **Day 19** · [Maximum Depth of N-ary Tree #559](https://leetcode.com/problems/maximum-depth-of-n-ary-tree/) · Easy · 10 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Depth of N-ary Tree on LeetCode](https://leetcode.com/problems/maximum-depth-of-n-ary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw an N-ary tree (children list — **no left/right**). Bubble max depth from leaves up. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **N-ary Recursion**.
+Which pattern from today's concept applies? **N-ary recursion** — `for child in node.children: best = max(best, dfs(child))`; return `best + 1`. Empty/null → 0.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: this is Day 4 max depth with **one loop** replacing left/right calls. No binary DFS visual applies.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** N-ary Recursion
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- `Node` has `children: List[Node]` — not binary
+- "Maximum depth" → bottom-up from all children
+- Single node with no children → depth 1
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "N-ary tree" / "children array" | Loop children |
+| "maximum depth" | 1 + max child depth |
+| "Node with val and children" | `#559` API |
+| "general tree" | Not `.left` / `.right` |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Depth = longest path to any leaf. Each child reports its subtree depth; parent takes max over **all** siblings in the list.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → 0."*
+2. *"best = 0; for each child: best = max(best, dfs(child))."*
+3. *"return best + 1."*
+4. *"Empty children → return 1 (leaf)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Hardcode left/right on N-ary node** | Wrong API — compile error |
+| **Sum children depths** | Want max, not sum |
+| **BFS without need** | Works but postorder loop is simpler |
+| **Return 0 for leaf** | Leaf node itself counts — depth 1 |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Binary template becomes a for-loop — same bubble-up logic.
 
 ---
 
@@ -75,31 +74,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Max Depth Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Day 4 — two children | max(left,right)+1 |
+| [N-ary Tree Level Order #429](https://leetcode.com/problems/n-ary-tree-level-order-traversal/) | BFS collect levels | Same `children` list |
+| [Diameter of N-ary Tree](https://leetcode.com/problems/) | Global combine | Loop + max |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+N-ary tree:
 
-Apply N-ary Recursion step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+           1
+        /  |  \
+       3   2   4
+          /
+         5
+        / \
+       6   7
+
+Bubble returns upward:
+
+  6 → 1    7 → 1
+  5 → max(1,1)+1 = 2
+  3 → 1    2 → 1    4 → 1
+  1 → max(1,1,1,2)+1 = 3  ✓
+
+Loop all children — not left/right branches.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Replace `max(dfs(left), dfs(right))` with `max over children loop`.
 
 ---
 
@@ -108,16 +112,13 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    int dfs(Node* node) {
-        if (!node) return 0;
-        int best = 0;
-        for (Node* child : node->children)
-            best = max(best, dfs(child));
-        return 1 + best;
-    }
 public:
     int maxDepth(Node* root) {
-        return dfs(root);
+        if (!root) return 0;
+        int best = 0;
+        for (Node* child : root->children)
+            best = max(best, maxDepth(child));
+        return best + 1;
     }
 };
 ```
@@ -125,10 +126,9 @@ public:
 ### Python
 ```python
 class Solution:
-    def maxDepth(self, root: Optional[Node]) -> int:
-        if not root:
-            return 0
-        return 1 + max(self.maxDepth(c) for c in root.children) if root.children else 1
+    def maxDepth(self, root: 'Node') -> int:
+        if not root: return 0
+        return 1 + max((self.maxDepth(c) for c in root.children), default=0)
 ```
 
 ### Java
@@ -139,25 +139,20 @@ class Solution {
         int best = 0;
         for (Node child : root.children)
             best = Math.max(best, maxDepth(child));
-        return 1 + best;
+        return best + 1;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"N-ary Recursion"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"children list"** → for-loop, not left/right.
+- **"max + 1 bubble"** → same as Day 4 binary depth.
+- **"default=0 on empty children"** → leaf returns 1.
+- **"N-ary ≠ binary diagram"** → star-shaped nodes.
 
 > 🎯 **Pattern Unlocked:** N-ary Recursion
 

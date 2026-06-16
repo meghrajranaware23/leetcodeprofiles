@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: House Robber III
 
 > **Day 20** · [House Robber III #337](https://leetcode.com/problems/house-robber-iii/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open House Robber III on LeetCode](https://leetcode.com/problems/house-robber-iii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw a small tree. For each node, write `(rob, skip)` after children return. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Tree DP Rob/Skip**.
+Which pattern from today's concept applies? **Tree DP rob/skip** — postorder returns `(with, without)`. Rob current → add `left.without + right.without`. Skip → `max(left) + max(right)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: same spirit as Recursion pack **#198 array** robber, but pairs bubble from children on a tree.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Tree DP Rob/Skip
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Maximize sum with tree adjacency constraint
+- Parent-child = cannot both rob
+- Binary tree structure
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "house robber" + tree | Postorder (rob, skip) |
+| "no two directly linked" | Rob forces children skipped |
+| "maximum amount" | max(root pair) |
+| "return non-negative" | Standard combine |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Subtree optimal depends only on child `(rob, skip)` — classic optimal substructure. Postorder ensures children resolved first.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → (0, 0)."*
+2. *"Get (lr, ls), (rr, rs) from children."*
+3. *"rob = val + ls + rs."*
+4. *"skip = max(lr,ls) + max(rr,rs)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Enumerate all subsets** | O(2^n) |
+| **Greedy by value** | High node may sit above another high node |
+| **Single return value** | Need both rob and skip states |
+| **Top-down without child answers** | Can't decide parent before subtree |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Two numbers per node capture all downstream choices — O(n) postorder.
 
 ---
 
@@ -75,31 +74,29 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | Recursion pack — array | Rob/skip intuition |
+| [House Robber II #213](https://leetcode.com/problems/house-robber-ii/) | Circular array | Two linear passes |
+| [Binary Tree Cameras #968](https://leetcode.com/problems/binary-tree-cameras/) | B-Rank test — 3-state | Postorder states |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
         3
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+       \   \
+        3   1
 
-Apply Tree DP Rob/Skip step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Leaves: (2,0), (3,0), (1,0)
+Node 2 (right child 3): rob=2+0=2, skip=3 → (2,3)
+Node 3 (right child 1): rob=3+0=3, skip=1 → (3,1)
+Root 3: rob=3+0+0=3, skip=max(2,3)+max(3,1)=4+4=8? 
+Trace carefully on paper — answer max(rob, skip) at root.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Robbing node `v` forces using each child's **skip** branch only.
 
 ---
 
@@ -110,10 +107,11 @@ Watch what gets returned from leaves back to root.
 class Solution {
     pair<int,int> dfs(TreeNode* node) {
         if (!node) return {0, 0};
-        auto l = dfs(node->left), r = dfs(node->right);
-        int rob = node->val + l.second + r.second;
-        int skip = max(l.first, l.second) + max(r.first, r.second);
-        return {rob, skip};
+        auto [ll, lr] = dfs(node->left);
+        auto [rl, rr] = dfs(node->right);
+        int rob    = node->val + ll + rl;
+        int no_rob = max(ll, lr) + max(rl, rr);
+        return {rob, no_rob};
     }
 public:
     int rob(TreeNode* root) {
@@ -128,11 +126,11 @@ public:
 class Solution:
     def rob(self, root: Optional[TreeNode]) -> int:
         def dfs(node):
-            if not node:
-                return 0, 0
-            lr, ls = dfs(node.left)
-            rr, rs = dfs(node.right)
-            return node.val + ls + rs, max(lr, ls) + max(rr, rs)
+            # returns (rob_this, skip_this)
+            if not node: return 0, 0
+            ll, lr = dfs(node.left)
+            rl, rr = dfs(node.right)
+            return node.val + ll + rl, max(ll, lr) + max(rl, rr)
         return max(dfs(root))
 ```
 
@@ -143,33 +141,28 @@ class Solution {
         int[] res = dfs(root);
         return Math.max(res[0], res[1]);
     }
-    int[] dfs(TreeNode node) {
+    private int[] dfs(TreeNode node) {
         if (node == null) return new int[]{0, 0};
         int[] l = dfs(node.left), r = dfs(node.right);
-        int rob = node.val + l[1] + r[1];
-        int skip = Math.max(l[0], l[1]) + Math.max(r[0], r[1]);
-        return new int[]{rob, skip};
+        int rob   = node.val + l[0] + r[0];
+        int noRob = Math.max(l[0], l[1]) + Math.max(r[0], r[1]);
+        return new int[]{rob, noRob};
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Tree DP Rob/Skip"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"House robber on tree"** → postorder pair.
+- **"Rob → children skip"** → `val + l[skip] + r[skip]`.
+- **"#198 on a tree"** → same rob/skip, different topology.
+- **"max of root pair"** → final answer.
 
 > 🎯 **Pattern Unlocked:** Tree DP Rob/Skip
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: zigzag with direction state. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 11 Checkpoint
 
 > **The Backtracking Template** · 2 quests completed · ⭐ 75 XP earned
@@ -6,71 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "all subsets" / "power set" | Start-index backtracking | Record path at every node; push/pop |
+| "duplicates" in subset/combo problems | Sort + skip same at level | `j > start && nums[j]==nums[j-1]` |
+| "generate all" + forward-only picks | push → dfs → pop | Never reuse earlier indices |
+| linear "factorial" / "reverse" | **Not** backtracking | Return-value recursion — no shared path |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Return all subsets of a unique array"* → **Start-index subset backtracking.** Record every node. Loop from `start`, recurse `j+1`, pop.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Return all subsets — array may have duplicates"* → **Same + sort + skip.** One guard in the loop.
+
+3. *"Compute n factorial recursively"* → **Linear recursion.** No path, no pop. (Day 1–10 territory.)
+
+4. *"Return all permutations"* → **Not today's pattern** — tomorrow (Day 12): `used[]` tree, pick any unused element.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Given nums, find all subsets whose sum equals target."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Subset backtracking + pruning.** Same push/pop loop; skip branches when running sum exceeds target. Record at leaves only (when sum == target).
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Given nums with duplicates, list all unique subsets."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Subsets II template exactly.** Sort, skip duplicate siblings.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Given a string, generate all permutations of its characters."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Day 12 preview — permutation backtracking.** Pick unused chars with `used[]`; don't use start index.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 → Day 11 family. Scenario 3 → Day 12 (order matters → no start index).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Using return-value recursion** — Backtracking mutates `path`; combine happens by recording, not returning.
+2. **Forgetting `path.pop()`** — Sibling branches inherit stale choices.
+3. **Recording only at leaves (subsets)** — Empty subset `[]` lives at the root recording.
+4. **`j > 0` instead of `j > start` for dedup** — Prunes valid deeper picks.
+5. **Skipping sort before dedup** — Adjacent duplicate check fails.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Re-solve Subsets (#78) from memory in under 5 minutes. Say aloud at each line: *choose, explore, unchoose*.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Then modify mentally: *what one line do you add for duplicates?*
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Answer:** `sort(nums)` + `if (j > i && nums[j] == nums[j-1]) continue;`
 
 ---
 
@@ -78,9 +68,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Subsets #78](https://leetcode.com/problems/subsets/) | Medium | Subset Backtracking |
-| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Medium | Subset with Dedup |
+| [Subsets #78](https://leetcode.com/problems/subsets/) | Medium | push/pop, start index |
+| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Medium | sort + skip dedup |
 
 ---
 
-*Day 11 complete! Tomorrow: the next descent of your ascension. →*
+*Day 11 complete. Tomorrow: order matters — permutations and the `used[]` tree. →*

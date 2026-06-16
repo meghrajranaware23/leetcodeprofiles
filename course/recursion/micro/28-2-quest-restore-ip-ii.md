@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Restore IP Addresses (Revisited)
 
 > **Day 28** · [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) · Medium · 15 min · 50 XP
@@ -10,51 +11,56 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Restore IP Addresses on LeetCode](https://leetcode.com/problems/restore-ip-addresses/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same Day 14 cut loop — but add **length pruning** before every dfs. Trace `"25525511135"` and count how many branches die early.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/)**
+Given a string `s` containing only digits, return all possible valid IP addresses formed by inserting dots. You cannot reorder or drop digits.
 
-Work through the examples on paper before reading further.
+A valid IP has exactly four integers (0–255) separated by dots, with no leading zeros except `"0"` itself.
+
+```
+Input:  s = "25525511135"
+Output: ["255.255.11.135", "255.255.111.35"]
+
+Input:  s = "0000"
+Output: ["0.0.0.0"]
+
+Input:  s = "101023"
+Output: ["1.0.10.23", "1.0.102.3", "10.1.0.23", "10.10.2.3", "101.0.2.3"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Partition Backtracking**.
+**Hint 1:** Day 14 template unchanged: `dfs(i, parts, path)` — try cuts `s[i..j]` for `j` in `[i, min(i+2, n-1)]`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** `valid(seg)`: non-empty, len ≤ 3, no leading zero (unless `"0"`), `int(seg) ≤ 255`.
+
+**Hint 3 (S-Rank):** Before the cut loop, check remaining length: with `rem_parts = 4 - parts` and `rem_chars = n - i`, require `rem_parts ≤ rem_chars ≤ 3 * rem_parts`. Otherwise return immediately.
+
+**Hint 4:** Success only when `parts == 4 && i == len(s)`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Partition Backtracking
+**Pattern used:** Fixed-Segment Partition + Length Pruning (Day 14 revisit)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| "restore IP" / insert dots | 4-part string partition |
+| digits only, use all | `i == n` at leaf |
+| max 3 chars per segment | bounded cut width |
+| S-Rank revisit | add remaining-length bounds prune |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Day 14 skeleton — 4 parts, octet validator."*
+2. *"Length prune: not enough / too many digits for remaining octets."*
+3. *"Trace `25525511135` — only two valid splits exist."*
 
 ---
 
@@ -62,38 +68,52 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Three nested loops for dot positions** | Doesn't generalize; misses early length prune |
+| **No length bounds check** | Explores cuts that can't finish in 4 octets |
+| **Accept leading zeros** | `"01.2.3.4"` invalid |
+| **Record when parts==4 but i≠n** | Leftover digits |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** With `k` octets left, you need at least `k` digits and at most `3k`. Check that **before** trying any cut.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Segment rule |
+|---|---|
+| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Palindrome + `isPal` precompute (today's quest 2) |
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | 4 octets + length prune |
+| [Split Array into Fibonacci Sequence #842](https://leetcode.com/problems/split-array-into-fibonacci-sequence/) | C-Rank test — Fibonacci constraint |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`s = "25525511135"` — full prune trace:
 
 ```
-Apply Partition Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, parts=0, rem_chars=11, rem_parts=4)
+  bounds: 4≤11≤12 ✓
+  j=0..2 cuts:
+    "2" valid → dfs(1,1) ...
+    "25" valid → dfs(2,1) ...
+    "255" valid → dfs(3,1, ["255"])
+      rem_chars=8, rem_parts=3 → 3≤8≤9 ✓
+      "255" valid → dfs(6,2, ["255","255"])
+        rem_chars=5, rem_parts=2 → 2≤5≤6 ✓
+        "11" valid → dfs(8,3, [..,"11"])
+          rem_chars=3, rem_parts=1 → 1≤3≤3 ✓
+          "135" valid → dfs(11,4) → i==11 ✓ → "255.255.11.135"
+        "111" valid → dfs(9,3, [..,"111"])
+          "35" valid → "255.255.111.35" ✓
+        "1113" len=4 → skip (Layer A)
+      "2551" → 2551>255 → skip
+    "2552" → leading? value? ...
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Only **two** leaves survive — both famous answers.
+
+Length prune example: at `i=0, parts=0`, cut `"255255"` (6 chars) leaves 5 chars for 3 octets — max 9, min 3, OK. But cut `"2552551"` leaves 4 chars for 3 octets — need min 3, max 9, OK... until validity fails on octet value. The prune shines deeper in the tree when `rem_chars < rem_parts`.
 
 ---
 
@@ -178,22 +198,21 @@ class Solution {
 ```
 
 **Complexity:** O(1) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Partition Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Day 14 revisit — same push/pop cut loop."** → Don't reinvent the template.
+- **"Length prune before cuts."** → `rem_parts ≤ rem_chars ≤ 3*rem_parts`.
+- **"Two answers for `25525511135`."** → If you found more, check octet validation.
+- **"parts==4 && i==n."** → Must consume every digit.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **naming the prune layer**, not memorizing one solution.
 
-> 🎯 **Pattern Unlocked:** Partition Backtracking
+> 🎯 **Pattern Unlocked:** Fixed-Segment Partition + Length Pruning
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Palindrome Partition with `isPal` precompute. →*

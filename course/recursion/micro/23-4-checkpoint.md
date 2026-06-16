@@ -1,76 +1,73 @@
+<!-- hand-authored -->
 # ✅ Day 23 Checkpoint
 
-> **Recursion + Memoization** · 2 quests completed · ⭐ 105 XP earned
+> **Top-Down DP** · 2 quests completed · ⭐ 105 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "maximum" + take/skip along array | `rob(i)` linear memo | `max(a+b, c)` at each index |
+| "how many ways" + process string left-to-right | `decode(i)` count memo | Sum branches; memo on `i` |
+| Leading `'0'` in decode / digit string | Early return 0 | Before any recursive branch |
+| Two-digit decode 10–26 | Optional second branch | Rejects `01`–`09` |
+| Same suffix from different paths | Index memo (Day 21 bridge) | Cache at `memo[i]` |
+| Word Break bool (Day 21) | Same skeleton | Different return: max or count |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Max money robbing non-adjacent houses"* → **`rob(i) = max(nums[i]+rob(i+2), rob(i+1))`**. Memo on `i`.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Count string decodings A=1..Z=26"* → **`decode(i)`**. Guard `'0'`. Base `i==n→1`. Sum 1-digit + 2-digit.
+
+3. *"Can string be segmented by dictionary?"* → **Day 21 bool memo.** Not today's combine — but same index key.
+
+4. *"Climbing stairs — how many ways?"* → **Fibonacci-style count memo.** Like decode without the `'0'` guard.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Delete and Earn — pick numbers, can't pick adjacent values in the sorted unique array."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **`rob(i)` on compressed value buckets.** Same take/skip recurrence after grouping equal values.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Count ways to tile a 2×n board with 1×2 dominoes."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Count memo on width index.** `ways(i) = ways(i-1) + ways(i-2)` — Fibonacci, not decode branches.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Minimum cost to climb stairs — pay nums[i] to step from i."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Min memo, not max.** `min(nums[i]+climb(i+1), nums[i]+climb(i+2))` — same index skeleton, different combine.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1 and 3 → linear index memo (max/min). Scenario 2 → count memo with Fibonacci recurrence.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **House Robber greedy** — Local max fails; need full suffix `rob(i)`.
+2. **Decode base `i==n` returns 0** — Empty suffix = 1 valid completion.
+3. **Missing `'0'` guard** — Lets invalid paths contribute to count.
+4. **Two-digit check only `<= 26`** — Must also require `>= 10`.
+5. **No memo lookup at start of dfs** — Overlap recomputation → TLE.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Write from memory:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+```
+rob(i):   base, two branches, max combine, memo
+decode(i): base, '0' guard, 1-digit + 2-digit, sum combine, memo
+```
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Trace `decode(0)` on `"12"` — should get 2 paths. Trace `rob(0)` on `[1,2,3,1]` — should get 4.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Self-check:** Does your decode function return 0 for `"0"` and `"06"` before recursing?
 
 ---
 
@@ -78,9 +75,16 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [House Robber #198](https://leetcode.com/problems/house-robber/) | Medium | Linear Memoization |
-| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Medium | String Memoization |
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | Medium | Linear memo — max |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Medium | Linear memo — count + `'0'` guard |
+| [House Robber II #213](https://leetcode.com/problems/house-robber-ii/) | Medium | Two linear runs (circle) |
 
 ---
 
-*Day 23 complete! Tomorrow: the next descent of your ascension. →*
+## 🔭 A-Rank Preview
+
+Day 24 looks like DFS on a grid again — but the problems hide **backtracking** inside optimization and counting. Path Max Gold collects loot then unmarks; Unique Paths III counts Hamiltonian-style walks. Same mark/unmark rhythm as Day 16, new success conditions.
+
+---
+
+*Day 23 complete. Tomorrow: backtracking in disguise on the grid. →*

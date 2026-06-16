@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 25 Checkpoint
 
 > **Tree Distance** · 2 quests completed · ⭐ 130 XP earned
@@ -6,67 +7,72 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 25 combines **graph-view trees** with **Day 7 diameter** extensions. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "sum of distances from each node" | Re-root Pass 1 + Pass 2 | #834 — O(n) not O(n²) |
+| "reroot" / "answer for all roots" | ans[v] = ans[u] - cnt[v] + (n-cnt[v]) | Local edge adjustment |
+| "parent array" tree | Build children adjacency | N-ary representation |
+| "longest path" + letter constraint | Top-two + skip same s[child] | #2246 |
+| "diameter" binary (Day 7) | top1 + top2, return height | Binary special case |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 25 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Return sum of distances from every node to all others"* → **Re-rooting two-pass**
+2. *"Longest path where adjacent nodes have different chars"* → **N-ary diameter + letter filter**
+3. *"Diameter of binary tree"* → **Day 7** — left/right top-two
+4. *"Count nodes in each subtree"* → **Pass 1 only** — cnt array from reroot Pass 1
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Sum of Distances and Longest Path Different Chars. Can you extend **tree DP on graphs**?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Find the minimum height of all root choices (centroids)."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **Leaf trimming / topological** — not reroot, but same "all roots" theme. Two passes or peel leaves.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Maximum score splitting tree at one edge."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Subtree counts from Pass 1** — score = cnt[v] × (n - cnt[v]) for edge parent-v.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Longest path in N-ary tree without constraints."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Same top-two** as #2246 but no letter skip — pure Day 7 on children list.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 25 = **subtree counts unlock global metrics** + **filtered top-two combine**.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **BFS from every node for #834** — O(n²); use reroot formula.
+
+2. **Wrong reroot sign** — subtract cnt[child], add (n - cnt[child]).
+
+3. **Directed edges only in graph build** — undirected tree needs both directions.
+
+4. **N-ary: binary left/right** — loop all children from parent array.
+
+5. **Forgetting letter filter in top-two** — same char child must not contribute.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Diameter of N-Ary Tree #1245](https://leetcode.com/problems/tree-diameter/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Tree Diameter on LeetCode](https://leetcode.com/problems/tree-diameter/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Find longest path in an undirected tree (edge list, not parent array).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Two BFS from farthest node, OR two-pass height like today's N-ary DFS without letter filter.
+
+> 💡 **Hint:** Same top-two intuition as #2246 — constraint removed.
 
 ---
 
@@ -79,4 +85,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 25 complete! Tomorrow: the next branch of your ascension. →*
+*Day 25 complete! Tomorrow: Morris traversal and O(1)-space inorder. →*

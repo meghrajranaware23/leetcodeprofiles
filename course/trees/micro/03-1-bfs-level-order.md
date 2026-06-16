@@ -1,120 +1,143 @@
+<!-- hand-authored -->
 # 📝 BFS: Level-Order Traversal
 
 > **Day 3** · BFS Level-Order · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand BFS Level-Order visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Your mission today: **learn breadth-first search on trees** — the first time this pack goes **wide before deep**. No DFS descent. No inorder/preorder. Just a **queue** that processes one **level** at a time.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Queue Processes Levels
 
-### 1. What is the pattern?
+### 1. What is BFS on a tree?
 
-**BFS Level-Order** — the core technique you'll use in today's quests.
+**Breadth-first search** visits nodes **level by level**: all nodes at depth `d` before any node at depth `d+1`.
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+Tool: a **FIFO queue**.
+- Enqueue children left-to-right
+- Dequeue from the front
+- Snapshot queue size to know where one level ends
 
-### 2. Simple explanation
+This is the **↔ Across** compass direction from Day 1 — information spreads level by level, not up from leaves or down a single spine.
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+### 2. Visual — queue levels (no DFS)
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
-
-### 3. Visual walkthrough
+Same tree for all of Day 3:
 
 ```
-        1
+        3
        / \
-      2    3
-     / \    \
-    4    5    6
-
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+      9  20
+        /  \
+       15   7
 ```
 
-### 4. How the pattern works
+**Queue state after each level batch:**
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Start:     queue = [3]
+
+Level 0:   process [3]           → output level 0: [3]
+           enqueue children       → queue = [9, 20]
+
+Level 1:   process [9, 20]       → output level 1: [9, 20]
+           enqueue children       → queue = [15, 7]
+
+Level 2:   process [15, 7]       → output level 2: [15, 7]
+           no children            → queue = []
+
+Full level-order: [[3], [9, 20], [15, 7]]
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+**Read it as:** `[3] → [9, 20] → [15, 7]`
 
-### 5. What problem does this solve?
+Each bracket is one queue snapshot at the **start** of a level loop. That is the BFS mental model — not recursion down a branch.
 
-| Problem family | How this pattern helps |
+### 3. The level-loop skeleton
+
+```python
+queue = [root]
+while queue:
+    level_size = len(queue)      # freeze level boundary
+    level = []
+    for _ in range(level_size):
+        node = queue.pop_front()
+        level.append(node.val)
+        if node.left:  queue.push(node.left)
+        if node.right: queue.push(node.right)
+    record(level)
+```
+
+**Why `level_size = len(queue)`?** Newly enqueued children belong to the **next** level — don't process them in the current loop.
+
+### 4. BFS vs DFS — when to pick BFS
+
+| Signal in problem | Pick |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| "level order" / "each level" / "by row" | **BFS** |
+| "right side view" / "average of levels" | **BFS** |
+| "minimum depth to leaf" (sometimes) | BFS finds nearest leaf first |
+| "inorder" / "preorder" / named DFS order | DFS (Day 2) |
+| "max depth" / combine from children | ↑ Bottom-up DFS (Day 1, 4) |
+
+Day 3 owns **anything about levels as horizontal slices**.
+
+### 5. Pattern signals — Day 3 only
+
+| When the problem says… | Think… |
+|---|---|
+| "level order traversal" | BFS queue + level batch |
+| "return nodes row by row" | `for _ in range(len(q))` |
+| "average of each level" | BFS + sum/count per level |
+| "nodes at depth k" | BFS until level k |
+| "rightmost node per level" | BFS; last in batch |
+| "zigzag level order" (preview) | BFS + alternate direction |
+| "shortest path in unweighted tree" | BFS finds closest first |
+| "across" / "horizontal" | Queue, not recursion down |
+
+**Keywords:** `queue` · `level` · `BFS` · `len(q)` · `level order` · `breadth-first`
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| DFS + track depth manually | Works but error-prone; BFS is natural |
+| Process queue without level_size | Mixes levels — wrong grouping |
+| Recursion pretending to be BFS | Harder to batch by level |
+| Stack (LIFO) instead of queue | Becomes DFS, not level-order |
+| Store entire tree then group by depth | O(n) extra pass when one BFS pass suffices |
 
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
-
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
-
-### 9. Common beginner mistakes
+### 7. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| No `level_size` snapshot | Children enqueued mid-loop bleed into current level |
+| Empty tree crash | `if not root: return []` |
+| Using DFS for "each level" | Read the level signal — use queue |
+| Forgetting to enqueue null-safe | Only push non-null children |
+| Confusing BFS depth with max depth | BFS **finds** levels; Day 1 **combines** depth from below |
 
-### 10. Recognition drill
+### 8. Bridge from Day 2
 
-Read this problem aloud:
+Day 2: **when** you record during DFS (inorder/preorder).  
+Day 3: **which nodes** you batch together — all nodes at the same depth in one queue generation.
 
-> *"Given a binary tree, find its maximum depth."*
+Same tree `[3,9,20,15,7]`:
+- Preorder DFS: `[3, 9, 20, 15, 7]` (one flat list, depth-first)
+- BFS levels: `[[3], [9, 20], [15, 7]]` (grouped by depth)
 
-Before coding, say:
+Different question → different tool.
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+### 9. Recognition drill — today's quests
+
+**Quest 1 — Level Order #102:**
+> *"BFS queue. Snapshot `len(q)` per level. Output `[[3], [9,20], [15,7]]`."*
+
+**Quest 2 — Average of Levels #637:**
+> *"Same BFS skeleton. Sum values in each batch, divide by batch size."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see the queue levels. Quest 1 collects them into a 2D list. →*

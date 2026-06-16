@@ -1,120 +1,171 @@
+<!-- hand-authored -->
 # 📝 Advanced BFS: Tree as Graph
 
 > **Day 22** · Advanced BFS · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Tree-as-Graph BFS visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Day 3 BFS tracked **level waves**. Day 17 tracked **first node per level** or **columns**. Today BFS carries **relationship metadata** — `(node, parent, depth)` — to answer cousin queries and **deepest level sums**. Parent pointers are explicit in the queue; that's new versus Day 17's view-only tagging.
+
+> **Link (Day 3 / Day 9):** Same FIFO engine from [BFS Level-Order](../03-1-bfs-level-order.md) and [Level-Order Patterns](../09-1-bfs-variations.md). Today adds **parent + depth** fields to each queue entry.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Tree-as-Graph BFS** — the core technique you'll use in today's quests.
+**BFS with (node, parent, depth) metadata** — enrich queue entries:
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Problem | Queue entry | Answer logic |
+|---|---|---|
+| **Cousins #993** | `(node, parent, depth)` | Same depth, different parent |
+| **Deepest Leaves Sum #1302** | Standard BFS levels | Sum last level entirely |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+**Cousins:** Two nodes are cousins if they share the **same depth** but **different parents**. BFS naturally assigns depth level-by-level. Store parent when enqueueing children so you can compare `(depth, parent)` for targets x and y.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+**Deepest sum:** Same level-end loop as Day 17 — but instead of one first node, **add every value** in the final wave.
 
-### 3. Visual walkthrough
+### 3. Visual — BFS queue with (node, parent, depth)
+
+```
+Tree:        1
+            / \
+           2   3
+          / \
+         4   5
+
+Find if 4 and 5 are cousins? (No — same parent 2)
+
+BFS queue entries:
+
+Start: (1, null, 0)
+
+Level 1 enqueue:
+  (2, 1, 1)   (3, 1, 1)
+
+Level 2 enqueue:
+  (4, 2, 2)   (5, 2, 2)
+
+When node.val == x: record (parent=2, depth=2)
+When node.val == y: record (parent=2, depth=2)
+
+Same depth ✓ but same parent ✗ → siblings, not cousins
+
+COUSINS = same depth AND parent different
+```
+
+**Alternative:** DFS passing `(parent, depth)` — equivalent; B-Rank concept emphasizes queue form.
+
+### 4. Visual — Deepest level sum (Day 9 / Day 17 link)
 
 ```
         1
        / \
-      2    3
-     / \    \
-    4    5    6
+      2   3
+     / \   \
+    4   5   6
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+Level sums during BFS:
+
+Level 0: sum = 1
+Level 1: sum = 2+3 = 5
+Level 2: sum = 4+5+6 = 15  ← answer
+
+Each level batch:
+  level_sum = 0
+  for each node in wave: level_sum += val
+  overwrite res = level_sum
+Last res = deepest level total
 ```
 
-### 4. How the pattern works
+Same inner loop as [Right Side View Day 9](../09-2-quest-right-side-view.md) — aggregate whole level instead of last node.
 
+### 5. The universal template
+
+**BFS parent + depth:**
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+q.push({root, nullptr, 0})
+while q not empty:
+    for sz = q.size():
+        (node, par, d) = q.pop()
+        if node.val == x: save (par, d)
+        if node.val == y: save (par, d)
+        if node.left:  q.push({left,  node, d+1})
+        if node.right: q.push({right, node, d+1})
+return xDepth==yDepth && xPar != yPar
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+**Deepest level sum:**
+```
+while q not empty:
+    level_sum = 0
+    for sz = q.size():
+        node = q.pop()
+        level_sum += node.val
+        enqueue children
+    res = level_sum
+return res
+```
 
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
-|---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| Problem | Pattern | vs Day 17 |
+|---|---|---|
+| Cousins #993 | Parent + depth tracking | **NEW** parent in queue |
+| Deepest Leaves Sum #1302 | Level sum accumulation | Like bottom-left but sum all |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| Compare depth via DFS without parent | Siblings vs cousins confusion |
+| Store full ancestor lists | O(h) per node wasteful |
+| Deepest sum: DFS max depth then re-walk | Two passes — one BFS suffices |
+| Cousins: only compare depth | Must also check different parent |
+| Ignore parent when depth matches | Siblings at same depth aren't cousins |
 
-### 7. The key observation
+### 7. Day 22 vs Day 17 — what's new
 
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+| | **Day 17** | **Day 22** |
+|---|---|---|
+| Queue carries | `(node, col)` or node only | `(node, parent, depth)` |
+| Question | View / projection | Relationship / level aggregate |
+| Parent info | Not needed | **Required** for cousins |
+| Deepest level | First node only (#513) | Sum all nodes (#1302) |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "cousins" / "same depth" + "different parent" | BFS/DFS with parent track |
+| "deepest leaf" / "deepest level sum" | BFS level accumulation |
+| "distance from root" per node | Depth in queue |
+| "siblings vs cousins" | Parent comparison |
+| "last level" aggregate | Day 9 level loop |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `(node, parent, depth)` · `level_sum` · `same depth` · `different parent`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Cousins: depth only | Also require different parent |
+| Forgetting root's parent = null | Root has no parent — not cousin with depth-1 nodes incorrectly |
+| Deepest sum: not resetting sum each level | `level_sum = 0` at batch start |
+| Confusing siblings with cousins | Same parent → siblings |
+| Using Day 17 first-node for sum | Sum **all** nodes in last wave |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Two nodes are cousins if they are at the same depth but have different parents."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"BFS (node, parent, depth). Record parent+depth for x and y. Answer: same depth, different parent."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Parent-aware BFS and deepest level sums. First quest: cousins. →*

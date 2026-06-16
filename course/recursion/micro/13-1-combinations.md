@@ -1,118 +1,143 @@
+<!-- hand-authored -->
 # 📝 Combination Generation
 
 > **Day 13** · Combinations · ★★★☆☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Combination Backtracking visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Day 11 generated **all subset sizes**. Day 12 filled **all orderings**. Today you pick **exactly k elements** from a range — order still doesn't matter, so we're back to the **start index** from Day 11.
+
+The new twist in Combination Sum (#39): sometimes you **reuse the same index** instead of advancing.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
-### 1. What is the pattern?
+### 1. Combinations vs subsets vs permutations
 
-**Combination Backtracking** — the core technique you'll use in today's quests.
+| Pattern | Record when | Index rule |
+|---|---|---|
+| Subsets (Day 11) | Every node | Forward: `j+1` |
+| Permutations (Day 12) | Leaf only (`path.size()==n`) | Any unused: `used[]` |
+| **Combinations (Day 13)** | Leaf only (`path.size()==k`) | Forward: `j+1` |
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Combinations #77 is subsets with a **size filter**: only record when `path.size() == k`.
 
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+### 2. Start index — why it prevents duplicates
 
 ```
-subsets([1,2,3]) — decision tree:
+combine(n=4, k=2) → pairs from {1,2,3,4}
 
-                    []
-           /                  \
-        [1]                  []
-       /   \                /   \
-    [1,2]  [1]           [2]     []
-    /  \   / \          / \    / \
-  ...  ... ... ...     ... ... ... ...
+start=1: pick 1 → start=2: pick 2→[1,2], pick 3→[1,3], pick 4→[1,4]
+         pick 2 → start=3: pick 3→[2,3], pick 4→[2,4]
+         pick 3 → start=4: pick 4→[3,4]
 
-At each index: INCLUDE element or EXCLUDE element
-Backtrack = undo the choice and try the other branch
+[2,1] never appears — we never go backward
 ```
 
-### 4. How the pattern works
+Same push/pop skeleton as Day 11:
+
+```cpp
+void dfs(int n, int k, int start, vector<int>& path, vector<vector<int>>& res) {
+    if (path.size() == k) { res.push_back(path); return; }
+    for (int i = start; i <= n; i++) {
+        path.push_back(i);
+        dfs(n, k, i + 1, path, res);   // always forward
+        path.pop_back();
+    }
+}
+```
+
+### 3. Combination Sum — reuse the same index
+
+Combination Sum (#39): candidates may be **reused unlimited times**, but `[2,2,3]` and `[2,3,2]` are the same combo — still no reordering.
+
+**Two branches at each index `i`:**
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+INCLUDE nums[i]:  dfs(i, rem - nums[i])    ← same i, reuse allowed
+EXCLUDE nums[i]:  dfs(i + 1, rem)          ← move on
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+```cpp
+void dfs(vector<int>& c, int i, int rem, vector<int>& path, vector<vector<int>>& res) {
+    if (rem == 0) { res.push_back(path); return; }
+    if (i == c.size() || rem < 0) return;
+    path.push_back(c[i]);
+    dfs(c, i, rem - c[i], path, res);      // REUSE: stay at i
+    path.pop_back();
+    dfs(c, i + 1, rem, path, res);         // SKIP: advance
+}
+```
 
-### 5. What problem does this solve?
+The include branch keeps `i`; the exclude branch uses `i+1`. This generates combinations with repetition without permutations.
 
-| Problem family | How this pattern helps |
-|---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+### 4. Visual — candidates = [2,3,6], target = 7
 
-### 6. Why brute force / iteration fails
+```
+dfs(i=0, rem=7, [])
+  include 2: dfs(i=0, rem=5, [2])
+    include 2: dfs(i=0, rem=3, [2,2])
+      include 2: rem=1 — dead
+      skip 2: dfs(i=1, rem=3, [2,2])
+        include 3: rem=0 → record [2,2,3] ✓
+    skip 2: dfs(i=1, rem=5, [2])
+      include 3: ... → [2,3,2] never — start index prevents reorder
+  skip 2: dfs(i=1, rem=7, [])
+    ...
+```
+
+### 5. What problem does this pattern solve?
+
+- **Combinations C(n,k)** — fixed count, no reuse (#77)
+- **Combination Sum** — target, unlimited reuse (#39)
+- **Combination Sum II/III** — add single-use or fixed digit constraints (Days 15–16)
+
+### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| Permutation + filter by sum | Generates `[3,2,2]` and `[2,2,3]` — duplicate combos |
+| Nested loops for each combo size | Doesn't extend to reuse or target pruning |
+| Always `i+1` on include (Combination Sum) | Can't reuse — misses `[2,2,3]` |
 
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "combine k numbers from 1..n" | Start index, record at size k |
+| "combination sum" + "reuse unlimited" | Include stays at `i`, exclude goes `i+1` |
+| "order doesn't matter" | Start index — never backward |
+| "each number used once" | Always `i+1` after include (Day 15) |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| `used[]` on combinations | Overkill — start index suffices |
+| `i+1` on include for Combination Sum | Use `i` to allow reuse |
+| Recording at every node (Combinations) | Only record when `path.size()==k` |
+| No early exit when `rem < 0` | Prune dead branches |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
-Read this problem aloud:
+> *"Return all k-combinations of 1..n."*
 
-> *"Given an array, generate all possible subsets."*
+Say: *"Start index like Day 11. Record only when path.size()==k. push → dfs(i+1) → pop."*
 
-Before coding, say:
+> *"Find combos that sum to target, elements reusable."*
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+Say: *"Include: dfs(i, rem-c[i]). Exclude: dfs(i+1, rem). push/pop on include only."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+## Part 2 — What's Next
+
+1. **Combinations #77** — pure start index, fixed k
+2. **Combination Sum #39** — same family + reuse via staying at `i`
+
+Day 11's push/pop returns. The only new idea is **when to advance the index**.
+
+---
+
+*Combinations = filtered subsets. Combination Sum = subsets with reuse. First quest →*

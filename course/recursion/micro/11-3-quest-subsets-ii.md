@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Subsets II
 
 > **Day 11** · [Subsets II #90](https://leetcode.com/problems/subsets-ii/) · Medium · 15 min · 20 XP
@@ -10,51 +11,54 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Subsets II on LeetCode](https://leetcode.com/problems/subsets-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Run Subsets (#78) first mentally, then ask: *where would duplicates create twin branches?* The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Subsets II #90](https://leetcode.com/problems/subsets-ii/)**
+Given an integer array `nums` that **may contain duplicates**, return all possible subsets. The solution set must **not** contain duplicate subsets. Each element may appear at most once in a subset.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [1, 2, 2]
+Output: [[], [1], [1,2], [1,2,2], [2], [2,2]]
+
+Input:  nums = [0]
+Output: [[], [0]]
+```
+
+Without dedup, `[1,2,2]` would produce two copies of `[2]` — one from each `2`.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Subset with Dedup**.
+Same push/pop skeleton as Subsets (#78). Two additions:
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 1:** **Sort** `nums` first so duplicates are adjacent.
+
+**Hint 2:** In the loop, skip index `j` when `j > i && nums[j] == nums[j-1]`. The first `2` at each level is valid; the second `2` at the **same level** duplicates a subtree already explored.
+
+**Hint 3:** Draw the tree for `[1,2,2]` sorted. Mark which branches are pruned by the skip.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Subset with Dedup
+**Pattern used:** Subset Backtracking + Sort-and-Skip Dedup
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "may contain duplicates" | Sort + skip same value at same level |
+| "must not contain duplicate subsets" | Dedup at generation time, not filter after |
+| same as subsets otherwise | Identical push/pop skeleton |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why `j > i` (not `j > 0`):** At depth with `start=i`, siblings are indices `i, i+1, ...`. Skipping `nums[j]==nums[j-1]` when `j>i` removes duplicate **sibling** picks. When recursion goes deeper (`start=j+1`), the second `2` is the only option — still valid.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Subsets II = Subsets + sort + one if-statement."*
+2. *"Skip duplicate siblings — not duplicate values globally."*
+3. *"Trace [1,2,2]: second 2 at root level is skipped; second 2 under [1] is valid."*
 
 ---
 
@@ -62,38 +66,42 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all subsets, dedup with a set** | Works but explores duplicate branches wastefully |
+| **`j > 0` skip condition** | Also skips valid picks at deeper levels — wrong answer |
+| **No sort before skip** | `nums[j]==nums[j-1]` never triggers for scattered duplicates |
+| **Use a visited set per level** | Overcomplicated — sort+skip is O(1) per check |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** After sorting, duplicate subtrees are always caused by picking the **same value twice at the same tree level**. One line prunes them all.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
+| Problem | What changes | Dedup rule |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Subsets + duplicates | `j > start && nums[j]==nums[j-1]` |
+| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Target sum, single-use | Same skip between include/skip branches (Day 15) |
+| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Order matters, used[] | `!used[i-1]` variant (Day 12) |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Memorize **sort + skip-same at same level** today — you'll reuse it throughout C-Rank.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [1, 2, 2]` after sorting:
 
 ```
-Apply Subset with Dedup step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, path=[])
+  record []
+  j=0: pick 1 → [1] → ... → [1,2], [1,2,2]
+  j=1: pick 2 → [2] → ... → [2,2]
+  j=2: SKIP (2==2 and j>0)     ← duplicate sibling pruned
+
+Without skip at j=2: [2] would be recorded twice
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Dedup is not a separate algorithm — it's one guard in the same push/pop loop.
 
 ---
 
@@ -159,21 +167,15 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Same skeleton as Subsets"** → Sort + one skip line is the only delta.
+- **`j > i && nums[j]==nums[j-1]`** → Skip duplicate siblings, not all duplicate values.
+- **Dedup at source** → Cheaper than generate-then-filter.
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Subset with Dedup"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Subset with Dedup
+> 🎯 **Pattern Unlocked:** Sort-and-Skip Dedup
 
 ---
 

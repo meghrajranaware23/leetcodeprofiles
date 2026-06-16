@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 16 Checkpoint
 
 > **Serialization** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 16 is **tree ↔ string** — shape encoding and BST decode.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "serialize/deserialize binary tree" | Preorder + `#` | General tree needs null markers |
+| "construct BST from preorder" | Upper-bound recursion | No inorder — bound replaces split |
+| "codec" design | Paired encode/decode | Same traversal both ways |
+| "construct from preorder + inorder" | **Day 8** | Two arrays — not Day 16 |
+| "validate BST" | **Day 11** range descent | Check vs build |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Serialize null binary tree"* → **"#"** or empty — decode returns null
+2. *"BST preorder [5,2,6] — build"* → **Upper bound** — 2<5 left, 6<∞ right of 5
+3. *"String 1,2,#,#,#,3,#,#"* → **Decode preorder** — node 1, left 2, right 3
+4. *"Clone tree with random pointers"* → **Not Day 16** — hash map clone |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Serialize BST without null markers (full tree)."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Preorder alone suffices** — decode with upper-bound like #1008.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Find duplicate subtrees — hash subtree serializations."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Same `#` preorder** on each node as subproblem key.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Deserialize JSON nested list tree representation."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Different format** — recursive on list structure, not comma `#`.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 16 encoding family.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **General serialize without `#`** — Ambiguous leaf vs missing child.
+2. **Deserialize: right before left finished** — Left subtree consumes tokens first.
+3. **BST build: same bound both sides** — Left capped at `node.val`.
+4. **#1008 with inorder split** — Overkill — upper-bound is O(n).
+5. **Token split on multi-digit negatives** — Use proper split/queue.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### Encode then decode by hand
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Draw a 4-node tree. Write preorder-`#` string. Decode token-by-token without code. Then erase `#` and ask: would BST upper-bound still work on same values?
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+**Before coding:** If tree isn't BST, why does removing `#` break decode?
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Non-BST preorder without shape markers is ambiguous — multiple trees share same value preorder.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 16 complete! Tomorrow: the next branch of your ascension. →*
+*Day 16 complete! C-Rank test next — iterator, distance K, recover BST. →*

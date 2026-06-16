@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Invert Binary Tree
 
 > **Day 9** · [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) · Easy · 10 min
@@ -10,23 +11,35 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Invert Binary Tree on LeetCode](https://leetcode.com/problems/invert-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace swap order on the 4-node example. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/)**
+Given the `root` of a binary tree, invert the tree (mirror it horizontally) and return its root.
 
-Work through the examples on paper before reading further.
+```
+Input:     4
+          / \
+         2   7
+        / \ / \
+       1  3 6  9
+
+Output:    4
+          / \
+         7   2
+        / \ / \
+       9  6 3  1
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Postorder Modification**.
+Which pattern from today's concept applies? **Postorder modification** — recurse subtrees, then swap children at current node.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: base `null`. Swap after children are inverted (C++). Or assign inverted right to left (Python one-liner).
 
 ---
 
@@ -35,26 +48,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Postorder Modification
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Invert" / "mirror horizontally" → swap `left` and `right` at every node
+- "Return root" → mutate in place, return same root
+- Tree structure → recursive DFS on children
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "invert" / "mirror" tree | Swap left ↔ right recursively |
+| "binary tree" | Two child calls per node |
+| "return root" | Void-style modify with root return |
+| postorder local work | Swap **after** child processing |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Inverting a subtree = invert left + invert right + swap at root. Children independent — classic tree recursion.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: null → null."*
+2. *"Invert left subtree, invert right subtree."*
+3. *"Swap pointers at current node."*
+4. *"Same family as Day 4 depth — but modify instead of max+1."*
 
 ---
 
@@ -62,12 +73,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Copy tree with reversed structure** | O(n) extra space — invert in place |
+| **Swap before recursing** | Still works if careful, but postorder is clearer |
+| **BFS queue swap only top level** | Must swap at **every** node |
+| **Forget to return root** | Caller needs mutated tree reference |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** One swap per node after subtrees are correct — postorder discipline.
 
 ---
 
@@ -75,25 +86,48 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Swap children | Postorder modify |
+| [Maximum Depth #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Aggregate depth | Day 4 bottom-up |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Compare pairs | Paired recursion |
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Mirror check | Cross-child compare |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Tree: `4 → (2 → 1,3), (7 → 6,9)`
 
 ```
-Apply Postorder Modification step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+POSTORDER TRACE (C++ style: recurse left, recurse right, swap):
+
+invert(4):
+  invert(2):
+    invert(1): null,null → swap nothing → return 1
+    invert(3): → return 3
+    swap(2.left, 2.right): 1↔3
+    2 now: (3, 1)
+  invert(7):
+    invert(6), invert(9)
+    swap: 7 now (9, 6)
+  swap(4.left, 4.right): 2↔7
+  4 now: (7, 2) with inverted children ✓
+
+CALL STACK growth on invert(4):
+
+┌─────────────────────────┐
+│ invert(4)               │
+│   invert(2)...          │
+│     invert(1) BASE      │
+│     invert(3) BASE      │
+│   swap 2's children     │
+│   invert(7)...          │
+│   swap 4's children     │
+└─────────────────────────┘
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Python one-liner equivalent: `root.left, root.right = invert(right), invert(left)` — recurses right first, assigns inverted subtrees.
+
+> 💡 **The insight:** Every node does one local swap. Subtrees already inverted when swap runs (postorder).
 
 ---
 
@@ -136,22 +170,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Postorder Modification"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Invert tree"** → Swap left and right at every node.
+- **"Postorder"** → Children first, swap at current (C++ explicit order).
+- **"Day 4 cousin"** → Same tree DFS skeleton; combine step is swap not `1+max`.
+- **"Return root"** → Mutate in place; base returns `null`.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you compared only root's children once, extend to **full tree DFS**.
 
-> 🎯 **Pattern Unlocked:** Postorder Modification
+> 🎯 **Pattern Unlocked:** Postorder tree modification — recurse subtrees, swap at node.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: mirror-pair symmetry check. →*

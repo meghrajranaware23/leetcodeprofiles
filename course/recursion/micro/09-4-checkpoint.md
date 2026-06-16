@@ -1,76 +1,88 @@
+<!-- hand-authored -->
 # ✅ Day 9 Checkpoint
 
-> **Recursion on Trees** · 2 quests completed · ⭐ 55 XP earned
+> **Tree Recursion** · 2 quests completed · ⭐ 55 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 9 **consolidates tree DFS** — modify structure (invert) or paired compare (symmetric). Links to E-Rank Days 4–5.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "invert" / "mirror" tree | Postorder swap | Swap left↔right after child calls |
+| "symmetric" / mirror of self | `mirror(a,b)` helper | Cross-child pairing |
+| "swap children" | Local modify at node | After subtrees processed |
+| `a.left` vs `b.right` | Mirror wiring | Not parallel Same-Tree compare |
+| null node base | Return null / true | Stops recursion |
+| "binary tree" structural | Tree DFS | Not index/array recursion |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Invert binary tree"* → **Postorder swap** — recurse, then swap
+2. *"Is tree symmetric?"* → **Mirror helper** — cross pairs
+3. *"Same tree?" (Day 4)* → **Parallel pairs** — `a.left,b.left`
+4. *"Max depth?" (Day 4)* → **Bottom-up** — `1+max(left,right)`
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Check if two trees are mirrors of each other."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Mirror helper** — same as Symmetric but `mirror(root1, root2)` on two roots. Cross wiring.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Flip a binary tree upside down (parent becomes child)."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Postorder rewire** — local pointer surgery after children (like Flatten Tree Day 10).
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Diameter of binary tree — longest path between any two nodes."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Day 4 bottom-up** — combine left depth + right depth at each node. Not Day 9 modify.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 use **paired or postorder tree recursion** from today. Scenario 3 is Day 4 aggregate.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Symmetric: compare left with left** — Cross: `a.left` with `b.right`.
+
+2. **Invert: swap only root's children** — Must visit every node.
+
+3. **Forget null base** — `invert(null)` → null; `mirror(null,null)` → true.
+
+4. **Symmetric: OR instead of AND** — Both cross pairs must hold.
+
+5. **Confuse invert with symmetric** — Invert mutates; symmetric only checks.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Same Tree #100](https://leetcode.com/problems/same-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Same Tree on LeetCode](https://leetcode.com/problems/same-tree/)**
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Given two binary trees, check if they are the same.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  p = [1,2,3], q = [1,2,3]
+Output: true
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "same structure and values" | Paired recursion on two nodes |
+| compare two trees | Helper `same(a,b)` — parallel not cross |
+| Day 4 bottom-up boolean | `&&` on both child pairs |
+
+**Before you code:** Contrast with Symmetric — here `same(a.left,b.left)` and `same(a.right,b.right)`.
+
+> 💡 **Hint:** Day 4 pattern — mirror helper is the cross-wired cousin of Same Tree.
 
 ---
 
@@ -78,9 +90,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Easy | Postorder Modification |
-| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Easy | Mirror Recursion |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Easy | Postorder modification |
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Easy | Mirror recursion |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Easy | Paired parallel compare |
 
 ---
 
-*Day 9 complete! Tomorrow: the next descent of your ascension. →*
+*Day 9 complete! Tomorrow: helper functions with bounds and postorder rewiring. →*

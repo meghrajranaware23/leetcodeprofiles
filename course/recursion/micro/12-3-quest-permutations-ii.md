@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Permutations II
 
-> **Day 12** · [Permutations II #47](https://leetcode.com/problems/permutations-ii/) · Medium · 15 min · 25 XP
+> **Day 12** · [Permutations II #47](https://leetcode.com/problems/permutations-ii/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,54 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Permutations II on LeetCode](https://leetcode.com/problems/permutations-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Solve Permutations (#46) mentally, then ask: *where would `[1,1,2]` and `[1,1,2]` duplicate?* Dedup from Day 11 adapts — but the guard changes.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Permutations II #47](https://leetcode.com/problems/permutations-ii/)**
+Given a collection of numbers that **might contain duplicates**, return all possible **unique** permutations.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [1, 1, 2]
+Output: [[1,1,2], [1,2,1], [2,1,1]]
+
+Input:  nums = [1, 2, 3]
+Output: [[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]]
+```
+
+Without dedup, two identical `[1,1,2]` permutations would appear — swapping which `1` came first doesn't create a new arrangement.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Permutation with Dedup**.
+**Hint 1:** **Sort** `nums` so duplicates are adjacent (same as Subsets II, Day 11).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** In the loop, skip index `i` when:
+```
+i > 0 && nums[i] == nums[i-1] && !used[i-1]
+```
+
+**Hint 3:** Read the guard aloud: *"Skip this duplicate if its left twin hasn't been used yet at this level."* That means the earlier identical choice wasn't taken — using this one repeats a sibling subtree.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Permutation with Dedup
+**Pattern used:** Permutation Backtracking + Used-Aware Dedup
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Dedup context | Skip rule |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| Subsets II (Day 11) | `j > start && nums[j] == nums[j-1]` |
+| Permutations II (Day 12) | `i > 0 && nums[i]==nums[i-1] && !used[i-1]` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+Why different? Subsets track **position in array** (start index). Permutations track **which slots are filled** (used[]). The `!used[i-1]` condition ensures we only use the second `1` after the first `1` is already in the path — preventing duplicate orderings at the same tree level.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Permutations II = Permutations + sort + one skip."*
+2. *"NOT the subsets skip — need !used[i-1]."*
+3. *"Trace [1,1,2]: second 1 at level 0 is skipped; under path [1,...] the second 1 is valid."*
 
 ---
 
@@ -62,38 +66,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Generate all, dedup with set** | Works but explores duplicate branches |
+| **Subsets II skip (`j > start`)** | Wrong guard — permutations don't use start index |
+| **`nums[i]==nums[i-1]` without `!used[i-1]`** | Over-prunes — kills valid permutations |
+| **No sort** | Duplicate values not adjacent — skip never fires |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| Problem | Dedup variant |
+|---|---|
+| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | `!used[i-1]` |
+| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | `j > start` (Day 11) |
+| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | while-loop skip (Day 15) |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+**Dedup family cheat sheet:** always **sort first**, then skip duplicate **siblings** — the exact guard depends on whether you use start index or used[].
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [1, 1, 2]` sorted:
 
 ```
-Apply Permutation with Dedup step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Level 0 choices:
+  i=0: pick nums[0]=1  → explore ...
+  i=1: nums[1]==nums[0] AND !used[0]? used[0]=false → SKIP ✓
+  (If we didn't skip: two identical root branches)
+
+Under path [1]:
+  i=1: pick second 1 → valid → [1,1,2], [1,2,1]
+
+Under path [2]:
+  i=0, i=1: pick either 1 → [2,1,1]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Three unique permutations — not six.
 
 ---
 
@@ -163,19 +172,13 @@ class Solution {
 ```
 
 **Complexity:** O(n · n!) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Permutation with Dedup"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Same skeleton as #46** → Sort + one guard.
+- **`!used[i-1]`** → The permutation-specific dedup — not the subsets skip.
+- **Day 11 dedup philosophy** → Sort, skip duplicate siblings — guard adapts to state model.
 
 > 🎯 **Pattern Unlocked:** Permutation with Dedup
 

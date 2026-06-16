@@ -1,124 +1,133 @@
-# 📝 Recursion with Return Values
+<!-- hand-authored -->
+# 📝 Bottom-Up Return Recursion
 
-> **Day 4** · Recursion with Return Values · ★★☆☆☆ · 10 XP · 10 min read
-
----
-
-Your mission today: **understand Bottom-Up Return Recursion visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+> **Day 4** · Bottom-Up Returns · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-## Part 1 — Why Does This Work?
+Days 1–3 shrunk a structure and combined results. Today the combine step has a specific direction: **answers flow upward from the leaves**.
+
+You recurse **down** to children you can't simplify further. Each frame **waits**. When both sub-calls return, you **aggregate** their answers into one value and pass it to your parent. Nothing important is decided on the way down — the work happens on the way **up**.
+
+> **Preview contrast (Day 5):** Today = *returns bubble up*. Tomorrow = *state travels down* (remaining target, valid range bounds). Same tree, opposite data flow.
+
+---
+
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Bottom-Up Return Recursion** — the core technique you'll use in today's quests.
+**Bottom-up return recursion** — the recursive call produces the answer; the current frame only combines child results.
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+- **Base case** — leaf or empty subtree → return a direct value (`0`, `true`, a single node)
+- **Recursive case** — `leftAns = solve(left)`, `rightAns = solve(right)`, return `combine(leftAns, rightAns)`
+- **Trust** — you don't pass a running total down; children return everything you need
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+You're the manager of a small team (left and right subtree). You don't do the front-line work. You ask each report: *"What's your number?"* When both reply, you add or compare and report **your** number upward.
 
-The call stack is just a line of friends waiting for the next friend to finish.
+The CEO (root caller) gets the final answer only after the whole tree has reported bottom-up.
 
-### 3. Visual walkthrough
+### 3. Visual walkthrough — depth bubbling up
 
 ```
-factorial(3):
+Tree:     3
+         / \
+        9   20
+           /  \
+          15   7
 
-CALL STACK (grows downward):
-┌─────────────────┐
-│ factorial(3)    │  waiting for factorial(2)
-│   n = 3         │
-├─────────────────┤
-│ factorial(2)    │  waiting for factorial(1)
-│   n = 2         │
-├─────────────────┤
-│ factorial(1)    │  BASE CASE → returns 1
-│   n = 1         │
-└─────────────────┘
+maxDepth(3):
+  wait for maxDepth(9)  and  maxDepth(20)
+
+maxDepth(9):  no children → return 1
+maxDepth(20):
+  wait for maxDepth(15)=1, maxDepth(7)=1
+  return 1 + max(1,1) = 2
+
+Back at root:
+  return 1 + max(1, 2) = 3  ✓
 
 RETURNS (bubble upward):
-factorial(1) → 1
-factorial(2) → 2 × 1 = 2
-factorial(3) → 3 × 2 = 6
+  leaves → 1
+  node 20 → 2
+  node 9  → 1
+  root 3  → 3
 ```
 
 ### 4. How the pattern works
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+function solve(node):
+    if node is null:
+        return base_value          // empty → 0 depth, true for "same empty"
+    left  = solve(node.left)
+    right = solve(node.right)
+    return combine(node, left, right)
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**Parallel recursion** (two trees): same shape, recurse both sides in lockstep — `isSame(p.left,q.left) && isSame(p.right,q.right)`.
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
+| Problem family | Combine step on return |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| Max / min depth | `1 + max(left, right)` |
+| Same tree | `&&` of left and right boolean results |
+| Balanced tree | `abs(leftH - rightH) <= 1` |
+| Diameter / max path | `max` of child contributions |
+| Count nodes | `1 + leftCount + rightCount` |
 
-### 6. Why brute force / iteration fails
+### 6. Why bottom-up beats top-down here
 
-| Brute force | Problem |
+| Top-down attempt | Problem |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| Pass `currentDepth` down for max depth | Works, but you track redundant state — depth is defined by returns |
+| Global variable updated in DFS | Hidden state; harder to reason about |
+| BFS level count | Valid iterative approach, but misses the recursive aggregation template |
+| Check same tree by comparing values only at root | Misses subtrees — need parallel recursion |
+
+For **max depth** and **same tree**, the question is *"What do my subtrees tell me?"* — not *"What do I carry downward?"*
 
 ### 7. The key observation
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+**If the problem asks for a property of the whole tree expressible from child properties, think bottom-up.** The root's answer is a pure function of child answers (plus maybe the current node).
+
+Day 5 flips this: when the question is *"Does any downward path satisfy X?"* or *"Sum nodes in range [L,H]"*, you **push constraints down** instead.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "maximum / minimum depth" | `1 + max/min` of child depths |
+| "same tree" / "symmetric" | Parallel recursion, `&&` |
+| "height of tree" | Bottom-up height bubble |
+| "count nodes / leaves" | Sum counts from children |
+| "return int/bool from tree" | Likely bottom-up unless path needs remainder state |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `return` · `left` · `right` · `max(` · `&&` · `null → 0 or true`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Forgetting `null → 0` for depth | Empty subtree contributes 0, not 1 |
+| Using `+` instead of `max` for depth | Depth is longest path, not sum of branches |
+| Checking only root values (same tree) | Must recurse **both** children in parallel |
+| Passing depth counter down (when returns suffice) | Prefer bottom-up for aggregate tree metrics |
+| Confusing with Day 5 path problems | Path sum needs **remaining target** down — not today's pattern |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Given two binary trees, check if they are the same."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Bottom-up bool. Base: both null → true; one null or val mismatch → false. Else return isSame(left-left) && isSame(right-right)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Returns bubble up from the leaves. First quest: how deep does the tree go? →*

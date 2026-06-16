@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ B-Rank Test — Problem 3
 
 > [Binary Tree Cameras #968](https://leetcode.com/problems/binary-tree-cameras/) · Hard · 200 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Binary Tree Cameras on LeetCode](https://leetcode.com/problems/binary-tree-cameras/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Bottom-up state DP: each node reports coverage status to parent. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,50 @@ See the full problem statement on LeetCode: **[Binary Tree Cameras #968](https:/
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the B-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** Day 20 **bottom-up state DP** — postorder returns one of three states: not covered, has camera, covered (no camera on this node).
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- **0 = not covered** — parent must place camera to watch this node.
+- **1 = has camera** — placed on this node.
+- **2 = covered** — watched by child camera, none on this node.
+- If any child **not covered** → place camera here → return 1, increment count.
+- If any child **has camera** → this node covered → return 2.
+- Else → return 0 (uncovered, defer to parent).
+- After dfs(root), if root **not covered** → place one more camera.
+
+**Pattern name before coding:** *Postorder 3-state coverage DP.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- Minimize cameras covering all nodes → greedy-on-tree via states
+- Local decision from child states only → postorder
+- Root may remain uncovered after child pass → extra camera check
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"dfs returns 0/1/2."*
+2. *"Child uncovered → camera here (1)."*
+3. *"Child has camera → I'm covered (2)."*
+4. *"Else uncovered (0) — parent handles."*
+5. *"After root dfs: if 0 → cameras++."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **Try all 2^n placements** | Exponential |
+| **Top-down greedy only** | Misses optimal child-driven placement |
+| **Two states only** | Can't distinguish "covered by child" vs "has camera" |
+| **Forget root uncovered case** | Off-by-one on single-node or line trees |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Same postorder state family as Day 20 House Robber III `(rob, skip)` — children report status, parent decides. Also relates to **Dijkstra/guard problems** on trees — local 3-state is the tree-optimal template.
 
 ---
 
@@ -67,6 +80,7 @@ Trace the pattern on the example tree from the problem statement. Then implement
 ### C++
 ```cpp
 class Solution {
+    // 0=not covered, 1=has camera, 2=covered (no camera)
     int cameras = 0;
     int dfs(TreeNode* node) {
         if (!node) return 2;
@@ -77,7 +91,8 @@ class Solution {
     }
 public:
     int minCameraCover(TreeNode* root) {
-        return dfs(root) == 0 ? cameras + 1 : cameras;
+        if (dfs(root) == 0) cameras++;
+        return cameras;
     }
 };
 ```
@@ -87,37 +102,38 @@ public:
 class Solution:
     def minCameraCover(self, root: Optional[TreeNode]) -> int:
         self.cameras = 0
+        NOT_COVERED, HAS_CAMERA, COVERED = 0, 1, 2
         def dfs(node):
-            if not node:
-                return 2
+            if not node: return COVERED
             l, r = dfs(node.left), dfs(node.right)
-            if l == 0 or r == 0:
-                self.cameras += 1
-                return 1
-            if l == 1 or r == 1:
-                return 2
-            return 0
-        return self.cameras + (1 if dfs(root) == 0 else 0)
+            if l == NOT_COVERED or r == NOT_COVERED:
+                self.cameras += 1; return HAS_CAMERA
+            if l == HAS_CAMERA or r == HAS_CAMERA: return COVERED
+            return NOT_COVERED
+        if dfs(root) == NOT_COVERED: self.cameras += 1
+        return self.cameras
 ```
 
 ### Java
 ```java
 class Solution {
-    int cameras = 0;
+    private static final int NOT_COVERED=0, HAS_CAMERA=1, COVERED=2;
+    private int cameras = 0;
     public int minCameraCover(TreeNode root) {
-        return dfs(root) == 0 ? cameras + 1 : cameras;
+        if (dfs(root) == NOT_COVERED) cameras++;
+        return cameras;
     }
-    int dfs(TreeNode node) {
-        if (node == null) return 2;
+    private int dfs(TreeNode node) {
+        if (node == null) return COVERED;
         int l = dfs(node.left), r = dfs(node.right);
-        if (l == 0 || r == 0) { cameras++; return 1; }
-        if (l == 1 || r == 1) return 2;
-        return 0;
+        if (l == NOT_COVERED || r == NOT_COVERED) { cameras++; return HAS_CAMERA; }
+        if (l == HAS_CAMERA || r == HAS_CAMERA) return COVERED;
+        return NOT_COVERED;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
+**Complexity:** undefined
 
 </details>
 
@@ -125,10 +141,71 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a B-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Min cameras cover tree"** → postorder 3-state.
+- **"Child uncovered → camera now"** → greedy works on trees.
+- **"Null returns COVERED"** — empty child doesn't force placement.
+- **"Root still 0 after dfs"** → one more camera.
 
 ---
 
 *3 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    // 0=not covered, 1=has camera, 2=covered (no camera)
+    int cameras = 0;
+    int dfs(TreeNode* node) {
+        if (!node) return 2;
+        int l = dfs(node->left), r = dfs(node->right);
+        if (l == 0 || r == 0) { cameras++; return 1; }
+        if (l == 1 || r == 1) return 2;
+        return 0;
+    }
+public:
+    int minCameraCover(TreeNode* root) {
+        if (dfs(root) == 0) cameras++;
+        return cameras;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def minCameraCover(self, root: Optional[TreeNode]) -> int:
+        self.cameras = 0
+        NOT_COVERED, HAS_CAMERA, COVERED = 0, 1, 2
+        def dfs(node):
+            if not node: return COVERED
+            l, r = dfs(node.left), dfs(node.right)
+            if l == NOT_COVERED or r == NOT_COVERED:
+                self.cameras += 1; return HAS_CAMERA
+            if l == HAS_CAMERA or r == HAS_CAMERA: return COVERED
+            return NOT_COVERED
+        if dfs(root) == NOT_COVERED: self.cameras += 1
+        return self.cameras
+```
+
+### Java
+```java
+class Solution {
+    private static final int NOT_COVERED=0, HAS_CAMERA=1, COVERED=2;
+    private int cameras = 0;
+    public int minCameraCover(TreeNode root) {
+        if (dfs(root) == NOT_COVERED) cameras++;
+        return cameras;
+    }
+    private int dfs(TreeNode node) {
+        if (node == null) return COVERED;
+        int l = dfs(node.left), r = dfs(node.right);
+        if (l == NOT_COVERED || r == NOT_COVERED) { cameras++; return HAS_CAMERA; }
+        if (l == HAS_CAMERA || r == HAS_CAMERA) return COVERED;
+        return NOT_COVERED;
+    }
+}
+```
+
+**Complexity:** undefined

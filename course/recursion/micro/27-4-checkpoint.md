@@ -1,86 +1,92 @@
+<!-- hand-authored -->
 # ✅ Day 27 Checkpoint
 
 > **Interview Simulation** · 2 quests completed · ⭐ 120 XP earned
 
 ---
 
-## 🔍 Pattern Signals — Recognition Drill
+## ⏱ Timed Recognition — 30 Seconds Per Problem
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Set a timer. Read each statement **once**. Say the memo type aloud before looking at the answer.
 
-| When you see... | Think... | Why |
+| # | Problem statement (one line) | Your answer (cover right column) |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| 1 | Count **ordered** sequences from nums summing to target, reuse allowed | **Ordered combo — 1D memo on target** |
+| 2 | Can nums split into two subsets with **equal sum**? | **0/1 subset — 2D memo on (i, rem)** |
+| 3 | How many **unordered** combos sum to target, reuse allowed | **Start-index backtracking (#39) — NOT #377** |
+| 4 | Can you form target by picking each element **once**? | **0/1 subset — include OR skip** |
+| 5 | Count ways to decode a digit string | **1D index memo (#91) — linear, not combo** |
 
-### 🧠 Quick Recognition Test
-
-Read each mini-problem. Which pattern fires first?
-
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+**Pass:** 4/5 correct in under 2.5 minutes total.
 
 ---
 
-## 🎯 Transfer to Unseen Problems
+## 🔍 Side-by-Side Memo Cheat Sheet
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+| Signal | Combination Sum IV #377 | Partition Equal Subset #416 |
+|---|---|---|
+| Order matters? | **Yes** | No |
+| Reuse elements? | **Yes** | No (once each) |
+| Return type | Count (sum) | Boolean (OR) |
+| Memo key | `target` (1D) | `(index, rem)` (2D) |
+| Recursive shape | `for x: dfs(t-x)` | `include OR skip` |
+| Early exit | `t < 0 → 0` | `sum % 2 → false` |
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+### 🧠 Quick Contrast Test
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
-
-**Scenario 2:** *"Given n, compute x^n efficiently."*
-
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
-
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
-
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
-
----
-
-## ⚠ Common Mistakes
-
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. *"nums=[1,2], target=3, order matters"* → **377: 2 ways** ([1,2] and [2,1])
+2. *"nums=[1,2], can partition equally?"* → **416: false** (total=3, odd)
+3. *"Same nums, target=3, order does NOT matter"* → **NOT #377** — use start-index combo or coin change variant
 
 ---
 
-## 🏋️ Mini Challenge
+## 🎯 Transfer Under Time Pressure
 
-### Related LeetCode Practice
+**Scenario 1:** Interviewer says *"Given coins and amount, find minimum coins needed."*
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Which pattern? **1D target DP** — but **min**, not count. Order doesn't matter. Not #377 (count ordered), not #416 (boolean).
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+**Scenario 2:** *"Assign +/- to each number to reach target 0."*
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Which pattern? **0/1 subset variant (#494)** — same `(index, rem)` 2D memo shape as #416, different combine.
+
+**Scenario 3:** *"Count permutations of nums that sum to target."*
+
+Which pattern? **Ordered combo (#377)** — identical template to today's quest 1.
+
+> **Interview key:** Read "order" and "reuse" first. They decide 1D vs 2D before you write code.
+
+---
+
+## ⚠ Common Interview Mistakes
+
+1. **Start-index combo on #377** — Misses order. Loop all nums instead.
+2. **1D target memo on #416** — Can't enforce single-use. Need index dimension.
+3. **Sum vs OR** — Count problems sum children; boolean problems OR children.
+4. **Skip odd-sum check on #416** — `total % 2 != 0` → false in O(1).
+5. **Confuse #377 title with #39** — "Combination" in name ≠ same template.
+
+---
+
+## 🏋️ Timed Mini Challenge
+
+**Round 1 (2 min):** Read Combination Sum IV statement. Write function signature + memo key only.
+
+**Round 2 (2 min):** Read Partition Equal Subset Sum statement. Write function signature + memo key only.
+
+**Round 3 (10 min):** Implement whichever problem you got wrong — no hints.
+
+**Pass criteria:** Correct memo dimension on Round 1 & 2. Working code on Round 3.
 
 ---
 
 ## 📚 Practice Queue
 
-| Problem | Difficulty | Key Pattern |
+| Problem | Difficulty | Memo Type |
 |---|---|---|
-| [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) | Medium | Order-Matters Counting |
-| [Partition Equal Subset Sum #416](https://leetcode.com/problems/partition-equal-subset-sum/) | Medium | Subset Sum Memoization |
+| [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) | Medium | 1D target (ordered) |
+| [Partition Equal Subset Sum #416](https://leetcode.com/problems/partition-equal-subset-sum/) | Medium | 2D (i, rem) (0/1 subset) |
 
 ---
 
-*Day 27 complete! Tomorrow: the next descent of your ascension. →*
+*Day 27 complete! Tomorrow: recursive synthesis continues. →*

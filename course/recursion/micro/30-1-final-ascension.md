@@ -1,119 +1,180 @@
+<!-- hand-authored -->
 # 📝 The Final Ascension
 
 > **Day 30** · The Final Ascension · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Pattern Decision Tree visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Thirty days. One skill: **see the recursive skeleton before you write code.**
+
+Today's concept is the **Pattern Decision Tree** — the capstone flowchart that routes any new problem to the right template from Days 1–29. Today's quests are the two hardest **multi-pattern** problems in the pack: Trie + grid (Day 16 + trie) and full board generation (Day 18 N-Queens II → generate all boards).
+
+This is not new theory. It is **Legend-tier synthesis**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Capstone Pattern Decision Tree
 
-### 1. What is the pattern?
+### 1. The master flowchart
 
-**Pattern Decision Tree** — the core technique you'll use in today's quests.
-
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+When a new problem lands in an interview, run this tree **before** coding:
 
 ```
-PATTERN DECISION TREE — any new problem:
-
-1. Can I define a smaller version of the same problem?
-   NO → probably not recursion
-   YES ↓
-2. Do I need to try ALL valid choices?
-   YES → backtracking (choose / explore / unchoose)
-   NO ↓
-3. Does information flow UP from sub-results?
-   YES → bottom-up return recursion
-   NO → top-down state passing
-4. Same subproblem repeated?
-   YES → add memoization
+                    NEW PROBLEM
+                         │
+         ┌───────────────┴───────────────┐
+         │ Can I define a SMALLER version │
+         │ of the SAME problem?           │
+         └───────────────┬───────────────┘
+                    NO   │   YES
+                         ↓
+              ┌──────────────────────┐
+              │ Need ALL valid       │
+              │ choices / configs?   │
+              └──────────┬───────────┘
+                    YES  │  NO
+                         ↓
+              ┌──────────────────────┐
+              │ BACKTRACKING         │
+              │ choose→explore→undo  │
+              └──────────┬───────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ↓               ↓               ↓
+    ┌─────────┐    ┌───────────┐   ┌────────────┐
+    │ String  │    │ Grid/Board│   │ Assign/    │
+    │ partition│   │ mark/unmark│  │ partition  │
+    │ Day 14  │    │ Day 16/18 │   │ Day 17/19  │
+    └─────────┘    └───────────┘   └────────────┘
+                         │
+              ┌──────────┴──────────┐
+              │ Info flows UP from  │
+              │ sub-results?        │
+              └──────────┬──────────┘
+                    YES  │  NO
+                         ↓
+              ┌──────────────────────┐
+              │ RETURN recursion     │
+              │ trust + combine      │
+              │ Days 4, 7, 9         │
+              └──────────┬───────────┘
+                         │
+              ┌──────────┴──────────┐
+              │ Same (i,j) or state  │
+              │ reached again?       │
+              └──────────┬───────────┘
+                    YES  │  NO
+                         ↓
+              ┌──────────────────────┐
+              │ MEMOIZE              │
+              │ Days 23, 29          │
+              └──────────────────────┘
 ```
 
-### 4. How the pattern works
+### 2. Route to the right day
+
+| Problem shape | Reach for | Example days |
+|---|---|---|
+| Shrink by 1 element / index | Linear recursion | 1–3 |
+| Tree / linked list structure | Return-value recursion | 4, 9, 10 |
+| Include / exclude / pick k | Subset / combo backtrack | 11, 13, 15 |
+| All orderings | Permutation backtrack | 12 |
+| Cut string into valid segments | String partition | 14, 28 |
+| Walk grid, mark cells | Grid DFS backtrack | 16 |
+| Fill board with constraints | CSP backtrack | 18, 30 |
+| +/- or k buckets | Pruning backtrack | 17, 19 |
+| Count ways, overlapping states | Memo recursion | 23, 27 |
+| Pattern vs text | `(i,j)` memo | 29 |
+| Many words on grid | Trie + grid DFS | 30 |
+| Generate all board configs | Full constraint generation | 30 |
+
+### 3. Today's two capstone patterns
+
+**Word Search II (#212)** — Day 16 grid backtrack **+ trie prefix prune**:
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+Build trie from dictionary
+For each cell (r,c):
+  dfs(r, c, trie_node):
+    if node.is_word: collect; optionally remove to dedupe
+    mark board[r][c] = '#'
+    for 4 neighbors: dfs if trie has next char
+    unmark board[r][c]
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Why trie? Day 16 Word Search checks one word. Day 30 checks **thousands** — trie collapses shared prefixes so `"abc"`, `"ab"`, `"abd"` share the `"ab"` path.
 
-### 5. What problem does this solve?
+**N-Queens (#51)** — Day 18 N-Queens II **+ store the board**:
 
-| Problem family | How this pattern helps |
-|---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+```
+dfs(row r):
+  if r == n: snapshot board → res; return
+  for col c in 0..n-1:
+    if valid(r,c): mark constraints
+      board[r][c] = 'Q'
+      dfs(r+1)
+      unmark; board[r][c] = '.'
+```
 
-### 6. Why brute force / iteration fails
+Same constraint sets as Day 18 (`cols`, `d1`, `d2`). Output changes from **count** to **all boards**.
 
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+### 4. The Legend workflow
 
-### 7. The key observation
+Every S-Rank interview problem:
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+1. **Read** — underline what shrinks and what "done" means
+2. **Route** — run the decision tree → name the day/pattern
+3. **Trace** — one example on paper (call stack or board)
+4. **Code** — template first, special cases second
+5. **Prune** — ask "can I cut this branch?" (Days 17, 28)
 
-### 8. Pattern signals & recognition clues
+> 💡 **The S-Rank skill:** Trace the call stack first. Name the pattern second. Code third.
 
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+### 5. Full pack map — where you learned each branch
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+```
+Days  1–3:  linear recursion (base + trust)
+Days  4–6:  return-value + multi-call recursion
+Days  7–10: divide & conquer + tree helpers
+Days 11–15: backtracking generation (subset → combo → partition)
+Days 16–18: grid + board constraint CSP
+Days 19–22: advanced backtrack + multi-constraint
+Days 23–25: memo + counting
+Days 26–27: synthesis + interview speed
+Days 28–29: optimized revisit + pattern matching
+Day  30:    capstone — trie+grid + full N-Queens
+```
 
-### 9. Common beginner mistakes
+### 6. Common capstone mistakes
 
-| Mistake | Fix |
-|---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Mistake | Pattern | Fix |
+|---|---|---|
+| Run Word Search II without trie | Day 16 only | TLE — prefix tree mandatory |
+| Forget to unmark grid cell | Day 16 | `'#'` leaks across paths |
+| N-Queens: scan board for attacks | Day 18 | Use cols/d1/d2 sets — O(1) |
+| N-Queens II vs #51 confusion | Day 18 vs 30 | Same dfs — count vs collect |
+| Skip pattern naming | All days | Decision tree first |
 
-### 10. Recognition drill
+### 7. Recognition drill — capstone edition
 
-Read this problem aloud:
+Read each problem. Route through the tree:
 
-> *"Given an array, generate all possible subsets."*
+> *"Find all words from a dictionary in a 2D grid."*
+>
+> → **Backtrack → Grid → Trie prune.** Day 16 mark/unmark + trie from Day 30 concept.
 
-Before coding, say:
+> *"Return all N-Queens board configurations."*
+>
+> → **Backtrack → Board CSP → generate all.** Day 18 constraint sets + store board strings.
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Does text match regex with `.` and `*`?"*
+>
+> → **Not backtrack → `(i,j)` memo.** Day 29 — star branch diagram.
+
+> *"Partition string into palindromes — all schemes."*
+>
+> → **Backtrack → String partition → isPal precompute.** Day 14 + Day 28.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You have the full decision tree. Quest 1: Word Search II — trie meets grid. →*

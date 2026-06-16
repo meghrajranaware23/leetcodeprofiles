@@ -1,120 +1,177 @@
+<!-- hand-authored -->
 # 📝 BST Fundamentals: Search & Validate
 
 > **Day 11** · BST Fundamentals · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand BST Invariant & Search visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Day 10 built and flattened general binary trees. Today the tree carries an **ordering contract**: every node sits in a strict `(min, max)` window inherited from ancestors. That single rule unlocks **O(h) search** (one comparison per level) and **range-bounded validation** (pass bounds down, fail fast on violation).
+
+> **Contrast (Day 10):** General trees need full traversal. BSTs let you **prune** — go left if smaller, right if larger.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**BST Invariant & Search** — the core technique you'll use in today's quests.
+**BST invariant + range descent** — two faces of the same rule:
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+- **Search:** at each node, compare target to `node.val`; walk **left** or **right** only — never both
+- **Validate:** carry `(lo, hi)` down; node must satisfy `lo < val < hi`; tighten bounds for children
+
+| Operation | Direction | Key state |
+|---|---|---|
+| Search | Top-down walk | Target value |
+| Validate | Top-down DFS | `(min, max)` open interval |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+A BST is a **sorted filing cabinet** laid flat. The root is the middle drawer. Everything left is smaller; everything right is larger — and that holds **recursively inside every subtree**.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+To **search:** start at root. Too big? Right drawer only. Too small? Left only. Miss a drawer? Return null.
 
-### 3. Visual walkthrough
+To **validate:** each drawer must fit inside its parent's allowed range. Left child inherits `(lo, parent.val)`; right inherits `(parent.val, hi)`.
+
+### 3. Visual — BST search: left/right walk
 
 ```
-        1
+BST:        8
+           / \
+          3   10
+         / \    \
+        1   6    14
+           / \   /
+          4   7 13
+
+Search target = 6:
+
+  Start [8]:  6 < 8  → go LEFT
+  At   [3]:  6 > 3  → go RIGHT
+  At   [6]:  6 == 6 → FOUND ✓
+
+Only 3 nodes visited — not all 8.
+
+Search target = 13:
+
+  [8]:  13 > 8   → RIGHT
+  [10]: 13 > 10  → RIGHT
+  [14]: 13 < 14  → LEFT
+  [13]: FOUND ✓
+
+Each step eliminates half the remaining tree (in balanced case).
+```
+
+### 4. Visual — Range validation: (min, max) descent
+
+```
+INVALID tree (classic trap):
+
+        5
        / \
-      2    3
-     / \    \
-    4    5    6
+      1   4        ← 4 is in RIGHT subtree of 5
+     /              but 4 < 5 — violates BST!
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+Checking node 4 alone looks fine (1 < 4).
+The bug: 4 must be > 5 because it's in 5's RIGHT subtree.
+
+RANGE DESCENT fixes this:
+
+dfs(5, -∞, +∞):
+  5 OK in (-∞, +∞)
+  left:  dfs(1, -∞, 5)   → 1 OK
+  right: dfs(4, 5, +∞)   → 4 < 5 → FAIL ✗
+
+At each node:
+  ┌──────────────────────────────────────────┐
+  │  FAIL if val <= lo OR val >= hi          │
+  │  left:  dfs(node.left,  lo, node.val)    │
+  │  right: dfs(node.right, node.val, hi)    │
+  └──────────────────────────────────────────┘
+
+Use long / open interval — INT_MIN and INT_MAX as endpoints
+can equal legitimate node values at the boundary.
 ```
 
-### 4. How the pattern works
+### 5. The universal template
 
+**Search (iterative or recursive):**
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+function search(node, val):
+    while node and node.val != val:
+        node = val < node.val ? node.left : node.right
+    return node
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+**Validate (range descent):**
+```
+function valid(node, lo, hi):
+    if node is null: return true
+    if node.val <= lo or node.val >= hi: return false
+    return valid(node.left, lo, node.val)
+        && valid(node.right, node.val, hi)
+```
 
-### 5. What problem does this solve?
+| Problem | Pattern | Why BST helps |
+|---|---|---|
+| Search in BST #700 | Left/right walk | O(h) — one branch per level |
+| Validate BST #98 | Range descent | Catches "local OK, global wrong" nodes |
 
-| Problem family | How this pattern helps |
+### 6. Why local checks fail
+
+| Wrong approach | Problem |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| `left.val < node.val < right.val` only | Misses nodes deep in wrong subtree (see 4 under 5's right) |
+| Inorder "is sorted?" without null handling | Duplicate values break strict `<` |
+| BFS level-by-level | Ignores ancestor bounds entirely |
+| Compare to parent only | Grandparent range violations slip through |
 
-### 6. Why brute force fails
+**The insight:** Validation is **inheritance** — each node receives legal bounds from every ancestor, not just its parent.
 
-| Brute force | Problem |
+### 7. Bridge — Recursion pack Validate BST
+
+If you completed **Recursion pack Day 10** ([Validate BST #98](https://leetcode.com/problems/validate-binary-search-tree/)), you already coded this pattern with a helper `dfs(node, lo, hi)`.
+
+| Trees pack (today) | Recursion pack |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| Same `(min, max)` descent | Same helper signature |
+| Search #700 as companion | Often paired with helper-function template |
+| BST as ordered structure | BST as recursion-with-constraints |
 
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+**One pattern, two homes.** If Validate BST felt familiar from Recursion, that's the bridge working — today you add **search** and the **ordering mental model** that makes BST ops (Days 12–13) click.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "binary search tree" + "search/find" | Left/right walk, O(h) |
+| "validate BST" / "is valid BST" | Range `(lo, hi)` descent |
+| "inorder is sorted" | Equivalent property — but range check is safer to code |
+| "kth smallest" (Day 12 preview) | Inorder order = sorted sequence |
+| "values in range" on BST | Walk toward range boundaries |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `lo < val < hi` · `go left if smaller` · `open interval` · `LONG_MIN/MAX`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| `left.val < root.val` only | Pass `(lo, hi)` from root — bounds compound |
+| Using `<=` / `>=` at boundaries | BST requires **strict** inequality |
+| `INT_MIN`/`INT_MAX` as sentinel values | Use `long` or `-inf`/`+inf` — nodes can equal INT bounds |
+| Recursive search visiting both children | Compare once, pick **one** branch |
+| Confusing BST search with binary search on array | Tree pointers replace index arithmetic |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Determine if a binary tree is a valid binary search tree."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Range descent: dfs(node, lo, hi). Fail if val outside (lo, hi). Left gets (lo, val), right gets (val, hi). Not just parent comparison."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Invariant locked. First quest: catch the hidden invalid node with range descent. →*

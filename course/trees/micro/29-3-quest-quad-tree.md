@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Construct Quad Tree
 
 > **Day 29** · [Construct Quad Tree #427](https://leetcode.com/problems/construct-quad-tree/) · Medium · 15 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Construct Quad Tree on LeetCode](https://leetcode.com/problems/construct-quad-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw a 4×4 grid and mark the four quadrants at each split. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,36 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Divide and Conquer Tree Build**.
+Which pattern from today's concept applies? **Divide and Conquer Tree Build** — if entire region is uniform → leaf; else split into four `size/2` quadrants and recurse.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: quadrant order is **topLeft, topRight, bottomLeft, bottomRight**. Off-by-one in `(r, c)` origins is the #1 bug.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Divide and Conquer Tree Build
+**Pattern used:** Divide and Conquer Tree Build (4-quadrant unify/split)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"Construct quad tree"** → 4-ary tree, not binary
+- **"2^n × 2^n grid"** → always power-of-2 — clean halving
+- **"Same value in subgrid"** → base case for leaf
+- **"Merge if all four children are identical leaves"** → optional unify optimization
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "construct" / "build tree from grid" | Recursive spatial divide |
+| "isLeaf" / "uniform region" | Scan subgrid → leaf if all equal |
+| "topLeft, topRight, bottomLeft, bottomRight" | Fixed 4-child order |
+| "represent with fewer nodes" | Collapse 4 same-value leaves |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Day 8 splits traversals to build binary trees. Here the input is spatial — each recursive call owns a square region and either unifies or quarters it.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"build(r, c, size): scan region for uniform?"*
+2. *"Yes → return Leaf(val)."*
+3. *"No → half = size/2; build 4 quadrants."*
+4. *"Optional: if 4 leaf children same val → merge to one leaf."*
 
 ---
 
@@ -62,12 +62,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Build full tree then prune** | Unify during build is cleaner |
+| **Wrong quadrant coordinates** | Mixing TR/BL origins duplicates or skips cells |
+| **Binary tree split (2-way only)** | Quad-tree requires 4 children |
+| **Scan entire grid at every node O(n² log n)** | Scan only current region — still acceptable |
+| **Leaf when size>1 but not uniform** | Must recurse until uniform or size=1 |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Each cell belongs to exactly one recursive region — trust the quadrant boundaries.
 
 ---
 
@@ -75,31 +76,45 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Construct Binary Tree from Preorder and Inorder #105](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) | 2-way split on indices | Day 8 divide + merge |
+| [Construct Binary Tree from Inorder and Postorder #106](https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/) | Different split point | Same skeleton |
+| [Region Cut by Slashes #959](https://leetcode.com/problems/regions-cut-by-slashes/) | Grid → connected components | Spatial reasoning on grid |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Quad-tree is Day 8 construction with **four** subproblems instead of two.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**4×4 grid — split mixed region, unify uniform ones.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+grid (1=true, 0=false):     Step 1 — whole 4×4 mixed → split
 
-Apply Divide and Conquer Tree Build step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+1 1 | 1 1                   build(0,0,4) → not uniform
+1 1 | 0 0                   half=2
+----+----                   TL: build(0,0,2) all 1 → Leaf(1)
+1 1 | 0 0                   TR: build(0,2,2) mixed → split again
+1 1 | 1 1                   BL: build(2,0,2) mixed → split
+                            BR: build(2,2,2) all 1 → Leaf(1)
+
+TR subgrid (0,2,2):          BL subgrid (2,0,2):
+1 1                          1 1
+0 0                          0 0
+→ 4 leaves (1,0,0,1)         → 4 leaves (1,0,0,1)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Unify optimization (Python quest approach):**
+
+```
+After building tl, tr, bl, br:
+  if all are leaves AND tl.val == tr.val == bl.val == br.val:
+      return Leaf(tl.val)    // one node instead of four
+  else:
+      return Internal(tl, tr, bl, br)
+```
+
+> 💡 **The insight:** `build(r, c, size)` is the spatial analog of Day 8's `build(preorder, inorder, lo, hi)`.
 
 ---
 
@@ -108,25 +123,23 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    Node* build(vector<vector<int>>& g, int r, int c, int y, int x) {
-        bool same = true;
+    Node* build(vector<vector<int>>& g, int r, int c, int sz) {
+        bool allSame = true;
         int val = g[r][c];
-        for (int i = r; i < y; ++i)
-            for (int j = c; j < x; ++j)
-                if (g[i][j] != val) { same = false; break; }
-        if (same) return new Node(val == 1, true);
-        int rm = (r + y) / 2, cm = (c + x) / 2;
-        Node* node = new Node(true, false);
-        node->topLeft = build(g, r, c, rm, cm);
-        node->topRight = build(g, r, cm, rm, x);
-        node->bottomLeft = build(g, rm, c, y, cm);
-        node->bottomRight = build(g, rm, cm, y, x);
-        return node;
+        for (int i = r; i < r+sz && allSame; i++)
+            for (int j = c; j < c+sz && allSame; j++)
+                if (g[i][j] != val) allSame = false;
+        if (allSame) return new Node(val == 1, true);
+        int h = sz / 2;
+        return new Node(true, false,
+            build(g, r,   c,   h),
+            build(g, r,   c+h, h),
+            build(g, r+h, c,   h),
+            build(g, r+h, c+h, h));
     }
 public:
     Node* construct(vector<vector<int>>& grid) {
-        int n = grid.size();
-        return build(grid, 0, 0, n, n);
+        return build(grid, 0, 0, grid.size());
     }
 };
 ```
@@ -134,62 +147,57 @@ public:
 ### Python
 ```python
 class Solution:
-    def construct(self, grid: List[List[int]]) -> Node:
-        def build(r, c, y, x):
-            val = grid[r][c]
-            if all(grid[i][j] == val for i in range(r, y) for j in range(c, x)):
-                return Node(val == 1, True)
-            rm, cm = (r + y) // 2, (c + x) // 2
-            node = Node(True, False)
-            node.topLeft = build(r, c, rm, cm)
-            node.topRight = build(r, cm, rm, x)
-            node.bottomLeft = build(rm, c, y, cm)
-            node.bottomRight = build(rm, cm, y, x)
-            return node
-        n = len(grid)
-        return build(0, 0, n, n)
+    def construct(self, grid: List[List[int]]) -> 'Node':
+        def build(r, c, size):
+            if size == 1:
+                return Node(grid[r][c] == 1, True)
+            h = size // 2
+            tl = build(r,   c,   h)
+            tr = build(r,   c+h, h)
+            bl = build(r+h, c,   h)
+            br = build(r+h, c+h, h)
+            if all(n.isLeaf for n in [tl, tr, bl, br]) and tl.val == tr.val == bl.val == br.val:
+                return Node(tl.val, True)
+            return Node(True, False, tl, tr, bl, br)
+        return build(0, 0, len(grid))
 ```
 
 ### Java
 ```java
 class Solution {
-    public Node construct(int[][] grid) {
-        return build(grid, 0, 0, grid.length, grid.length);
-    }
-    Node build(int[][] g, int r, int c, int y, int x) {
+    public Node construct(int[][] grid) { return build(grid, 0, 0, grid.length); }
+    private Node build(int[][] g, int r, int c, int sz) {
+        boolean allSame = true;
         int val = g[r][c];
-        for (int i = r; i < y; i++)
-            for (int j = c; j < x; j++)
-                if (g[i][j] != val) {
-                    int rm = (r + y) / 2, cm = (c + x) / 2;
-                    Node node = new Node(true, false);
-                    node.topLeft = build(g, r, c, rm, cm);
-                    node.topRight = build(g, r, cm, rm, x);
-                    node.bottomLeft = build(g, rm, c, y, cm);
-                    node.bottomRight = build(g, rm, cm, y, x);
-                    return node;
-                }
-        return new Node(val == 1, true);
+        outer: for (int i = r; i < r+sz; i++)
+            for (int j = c; j < c+sz; j++)
+                if (g[i][j] != val) { allSame = false; break outer; }
+        if (allSame) return new Node(val == 1, true);
+        int h = sz / 2;
+        return new Node(true, false,
+            build(g, r,   c,   h),
+            build(g, r,   c+h, h),
+            build(g, r+h, c,   h),
+            build(g, r+h, c+h, h));
     }
 }
 ```
 
-**Complexity:** O(n log n) time · O(log n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Divide and Conquer Tree Build"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Uniform region"** → leaf base case — scan before split.
+- **"Four quadrants TL TR BL BR"** → write coordinates on paper first.
+- **"size=1"** → always leaf (Python path).
+- **"Unify four same leaves"** → optional compression — fewer nodes.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you confused top-right with bottom-left origins, redraw the grid with quadrant lines.
 
-> 🎯 **Pattern Unlocked:** Divide and Conquer Tree Build
+> 🎯 **Pattern Unlocked:** Divide and Conquer Tree Build — 4-quadrant unify/split.
 
 ---
 

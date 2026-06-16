@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Sorted List to BST
 
 > **Day 26** · [Convert Sorted List to Binary Search Tree #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Convert Sorted List to Binary Search Tree on LeetCode](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Sorted list = inorder sequence. Use slow/fast to find mid in `[head, tail)` range — root at mid, recurse left and right halves. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Balanced BST Construction**.
+Which pattern from today's concept applies? **List bisect BST build** — `build(head, tail)` with slow/fast mid; left subtree from `[head, mid)`, right from `[mid.next, tail)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: base case `head == tail` → null. Don't convert to array unless stuck — bisect is the target approach.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Balanced BST Construction
+**Pattern used:** Balanced BST Construction (List Bisect)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Sorted linked list → BST height-balanced
+- Same as sorted array #108 but linked list — find mid without indexing
+- O(n log n) time typical for repeated mid-finds
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "sorted list to BST" | Inorder = list order; pick mid as root |
+| "height-balanced" | Bisect halves — not skew insert |
+| "linked list" | Slow/fast for mid |
+| "convert" / "construct" | Divide and conquer |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Middle element of sorted sequence is BST root; left list half is left subtree inorder; right half is right subtree. Recursion on ranges `[head, tail)` builds balanced tree.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"build(head, tail): if head==tail return null."*
+2. *"slow/fast from head until fast reaches tail."*
+3. *"Root = slow; left=build(head,slow); right=build(slow.next,tail)."*
+4. *"Call build(head, null)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Copy to array, then #108** | O(n) extra space — acceptable but not list-native |
+| **Insert one-by-one into BST** | O(n²) skew risk |
+| **Always pick head as root** | Height O(n) — not balanced |
+| **Mid by counting length each call** | Works O(n log n) but two-pass; slow/fast one-pass per call |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Slow/fast finds mid in one forward scan per recursive call — no random access needed.
 
 ---
 
@@ -75,31 +74,34 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Convert Sorted Array to BST #108](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/) | Array indexing for mid | Same bisect logic |
+| [Construct BST from Preorder #1008](https://leetcode.com/problems/construct-binary-search-tree-from-preorder-traversal/) | Not sorted list | Upper bound divide |
+| [Balance BST #1382](https://leetcode.com/problems/balance-a-binary-search-tree/) | Existing tree | Inorder + rebuild |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: sorted order → mid root → recurse halves.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**List: -10 → -3 → 0 → 5 → 9**
 
 ```
-        3
+build(-10, null):
+  slow/fast → mid at 0
+  root=0
+  left  = build(-10, 0)  → mid -3, then -10
+  right = build(5, null) → mid 5, then 9
+
+Result:
+        0
        / \
-      9    20
-          /  \
-         15   7
-
-Apply Balanced BST Construction step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+     -3   5
+     /     \
+   -10      9
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `[head, tail)` half-open range — tail is never included as a node.
 
 ---
 
@@ -109,26 +111,20 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
     TreeNode* build(ListNode* head, ListNode* tail) {
-        if (!head) return nullptr;
-        if (head == tail) { ListNode* nxt = head->next; head->next = nullptr; return new TreeNode(head->val); }
-        ListNode* slow = head, *fast = head;
-        while (fast != tail) {
-            fast = fast->next;
-            if (fast != tail) { slow = slow->next; fast = fast->next; }
+        if (head == tail) return nullptr;
+        ListNode *slow = head, *fast = head;
+        while (fast != tail && fast->next != tail) {
+            slow = slow->next;
+            fast = fast->next->next;
         }
-        TreeNode* root = new TreeNode(slow->val);
-        ListNode* nxt = slow->next;
-        slow->next = nullptr;
-        root->left = build(head, slow);
-        root->right = build(nxt, tail);
-        return root;
+        TreeNode* node = new TreeNode(slow->val);
+        node->left  = build(head, slow);
+        node->right = build(slow->next, tail);
+        return node;
     }
 public:
     TreeNode* sortedListToBST(ListNode* head) {
-        if (!head) return nullptr;
-        ListNode* tail = head;
-        while (tail->next) tail = tail->next;
-        return build(head, tail->next);
+        return build(head, nullptr);
     }
 };
 ```
@@ -137,56 +133,54 @@ public:
 ```python
 class Solution:
     def sortedListToBST(self, head: Optional[ListNode]) -> Optional[TreeNode]:
-        vals = []
-        while head:
-            vals.append(head.val)
-            head = head.next
-        def build(l, r):
-            if l > r:
-                return None
-            m = (l + r) // 2
-            node = TreeNode(vals[m])
-            node.left = build(l, m - 1)
-            node.right = build(m + 1, r)
+        def build(head, tail):
+            if head is tail: return None
+            slow = fast = head
+            while fast is not tail and fast.next is not tail:
+                slow = slow.next
+                fast = fast.next.next
+            node = TreeNode(slow.val)
+            node.left  = build(head, slow)
+            node.right = build(slow.next, tail)
             return node
-        return build(0, len(vals) - 1)
+        return build(head, None)
 ```
 
 ### Java
 ```java
 class Solution {
     public TreeNode sortedListToBST(ListNode head) {
-        List<Integer> vals = new ArrayList<>();
-        for (; head != null; head = head.next) vals.add(head.val);
-        return build(vals, 0, vals.size() - 1);
+        return build(head, null);
     }
-    TreeNode build(List<Integer> vals, int l, int r) {
-        if (l > r) return null;
-        int m = (l + r) / 2;
-        TreeNode root = new TreeNode(vals.get(m));
-        root.left = build(vals, l, m - 1);
-        root.right = build(vals, m + 1, r);
-        return root;
+    private TreeNode build(ListNode head, ListNode tail) {
+        if (head == tail) return null;
+        ListNode slow = head, fast = head;
+        while (fast != tail && fast.next != tail) {
+            slow = slow.next; fast = fast.next.next;
+        }
+        TreeNode node = new TreeNode(slow.val);
+        node.left  = build(head, slow);
+        node.right = build(slow.next, tail);
+        return node;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Balanced BST Construction"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Sorted list → BST"** → bisect — mid is root.
+- **"slow/fast"** → find mid before tail sentinel.
+- **"head==tail → null"** → empty half-open range.
+- **"#108 array version"** → same logic, index instead of slow/fast.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you copied to array first, try in-place range bisect on the list.
 
-> 🎯 **Pattern Unlocked:** Balanced BST Construction
+> 🎯 **Pattern Unlocked:** List bisect BST build — slow/fast mid, recurse `[head,tail)`.
 
 ---
 

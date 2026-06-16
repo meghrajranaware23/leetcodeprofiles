@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: LCA of BST
 
 > **Day 13** · [Lowest Common Ancestor of a Binary Search Tree #235](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Lowest Common Ancestor of a Binary Search Tree on LeetCode](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node, check: are **both** p and q smaller? Both larger? Otherwise stop. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST LCA Walk**.
+Which pattern from today's concept applies? **BST LCA walk** — descend while both targets share the same side; stop when they straddle current value.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: no recursion required. While loop: both < root → left; both > root → right; else → return root.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BST LCA Walk
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "LCA" + **BST** → ordering gives O(h) walk
+- Both p and q in tree, values unique (standard BST)
+- Current node is LCA when p and q fall on **different sides** (or one is current)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "LCA of BST" | Range/straddle walk — not post-order |
+| "all nodes unique" | Clean comparisons with `<` / `>` |
+| "lowest" | First straddle on path from root |
+| "binary search tree" | Day 11 ordering applies |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** BST property guarantees LCA is the **deepest node whose value lies between p and q** (inclusive of equality cases). Walk toward that interval.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Compare p.val and q.val to root.val."*
+2. *"Both smaller → entire LCA is in left subtree."*
+3. *"Both larger → entire LCA is in right subtree."*
+4. *"Otherwise → root separates them → return root."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **General LCA #236 on BST** | Works but O(n) — ignores ordering |
+| **Find p path + find q path** | Two searches + compare — heavier |
+| **Store ancestors of p in set** | Extra space — walk is O(1) space |
+| **Inorder to find positions** | O(n) — walk is O(h) |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** When both targets sit in the **same** subtree, LCA can't be current node — keep walking. When they **straddle**, stop immediately.
 
 ---
 
@@ -75,31 +74,34 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [LCA Binary Tree #236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) | No ordering — split detection | Same LCA definition |
+| [Search in BST #700](https://leetcode.com/problems/search-in-a-binary-search-tree/) | One target | Single-side walk |
+| [Insert into BST #701](https://leetcode.com/problems/insert-into-a-binary-search-tree/) | Walk until null | Same compare logic |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: compare values, pick one direction or stop.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**LCA(2, 8) on BST from concept page:**
 
 ```
-        3
+        6
        / \
-      9    20
-          /  \
-         15   7
+      2   8
+     / \ / \
+    0  4 7  9
 
-Apply BST LCA Walk step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Step 1 — [6]: p=2 < 6, q=8 > 6 → straddle → return 6 ✓
+
+One comparison. No post-order.
+
+LCA(3, 5):
+  [6] both left → [2] both right → [4]: 3<4, 5>4 → straddle → return 4 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** BST LCA is a **targeted search** for the straddle point — Day 11 search logic with two targets.
 
 ---
 
@@ -131,6 +133,7 @@ class Solution:
                 root = root.right
             else:
                 return root
+        return None
 ```
 
 ### Java
@@ -138,7 +141,7 @@ class Solution:
 class Solution {
     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
         while (root != null) {
-            if (p.val < root.val && q.val < root.val) root = root.left;
+            if (p.val < root.val && q.val < root.val)      root = root.left;
             else if (p.val > root.val && q.val > root.val) root = root.right;
             else return root;
         }
@@ -147,22 +150,21 @@ class Solution {
 }
 ```
 
-**Complexity:** O(h) time · O(1) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST LCA Walk"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"LCA + BST"** → range walk, not #236 post-order.
+- **"Both on same side"** → keep descending.
+- **"Straddle"** → current node is deepest common ancestor.
+- **"O(1) space"** → iterative while loop suffices.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you reused #236 recursively, it works — but name the BST shortcut for interviews.
 
-> 🎯 **Pattern Unlocked:** BST LCA Walk
+> 🎯 **Pattern Unlocked:** BST LCA Walk — straddle detection in O(h).
 
 ---
 

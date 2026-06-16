@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 2 Checkpoint
 
 > **DFS Traversals** · 2 quests completed · ⭐ 40 XP earned
@@ -6,67 +7,93 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 2 is about **visit order during DFS** — when you record the node relative to left and right recursion. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "inorder traversal" | Left → Root → Right | Record between children |
+| "preorder traversal" | Root → Left → Right | Record before children |
+| "postorder" (preview) | Left → Right → Root | Record after children |
+| "return list of node values" | Named DFS order | Order is in the problem title |
+| "BST" + sorted output | Inorder | Left-first visit = ascending |
+| "serialize" / root first | Preorder | Parent before subtrees |
+| "visit before/after children" | Pre vs in/post | One line placement |
+| "same tree, two orders" | Trace both | Same nodes, different lists |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 2 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Return inorder traversal of a binary tree"* → **Inorder** — left, record, right
+2. *"Return preorder traversal of a binary tree"* → **Preorder** — record, left, right
+3. *"On tree [3,9,20,15,7], inorder output?"* → **[9, 3, 15, 20, 7]**
+4. *"Same tree — preorder output?"* → **[3, 9, 20, 15, 7]**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've traced inorder and preorder. Can you predict visit order on new trees?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Given a BST, return values in ascending order."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **Inorder** — left subtree has smaller values; recording between children yields sorted list.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Serialize a tree by writing root value before child values."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Preorder** — root-first matches serialization convention.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Delete a tree freeing nodes after children are freed."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Postorder** (preview) — process children before parent. Not inorder or preorder.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** The problem either names the order or describes **when** to process the node. Match that timing — don't default to "any DFS."
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Confusing inorder and preorder** — Draw one tree; write both sequences before coding.
+
+2. **Recording at wrong time** — Inorder: between calls. Preorder: before calls. One line moved = wrong algorithm.
+
+3. **Iterative stack push order (preorder)** — Push **right** then **left** so left is processed first.
+
+4. **Using BFS for named DFS order** — Level-order is Day 3; inorder/preorder are depth-first.
+
+5. **Forgetting empty tree** — Return `[]`, not crash.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Binary Tree Postorder Traversal #145](https://leetcode.com/problems/binary-tree-postorder-traversal/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Postorder Traversal on LeetCode](https://leetcode.com/problems/binary-tree-postorder-traversal/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Return the **postorder** traversal (Left → Right → Root).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:       3
+            / \
+           9  20
+             /  \
+            15   7
+
+Output: [9, 15, 7, 20, 3]
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "postorder" | Record **after** both children |
+| Same tree as Day 2 quests | Root 3 appears **last** |
+| "left-right-root" | Opposite of preorder |
+
+**Before you code:** Write the visit order 1–5 on paper. Compare all three: preorder starts with 3, inorder has 3 in middle, postorder ends with 3.
+
+> 💡 **Hint:** Recursive postorder = `post(left); post(right); record(node)`.
 
 ---
 
@@ -74,9 +101,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Binary Tree Inorder Traversal #94](https://leetcode.com/problems/binary-tree-inorder-traversal/) | Easy | Inorder DFS |
-| [Binary Tree Preorder Traversal #144](https://leetcode.com/problems/binary-tree-preorder-traversal/) | Easy | Preorder DFS |
+| [Binary Tree Inorder Traversal #94](https://leetcode.com/problems/binary-tree-inorder-traversal/) | Easy | Left → Root → Right |
+| [Binary Tree Preorder Traversal #144](https://leetcode.com/problems/binary-tree-preorder-traversal/) | Easy | Root → Left → Right |
 
 ---
 
-*Day 2 complete! Tomorrow: the next branch of your ascension. →*
+*Day 2 complete! Tomorrow: go wide, not deep — BFS and the level queue. →*

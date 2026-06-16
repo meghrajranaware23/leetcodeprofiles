@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Count Good Numbers
 
 > **Day 6** · [Count Good Numbers #1922](https://leetcode.com/problems/count-good-numbers/) · Medium · 15 min
@@ -10,23 +11,39 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Count Good Numbers on LeetCode](https://leetcode.com/problems/count-good-numbers/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Count even vs odd positions for n=4. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Count Good Numbers #1922](https://leetcode.com/problems/count-good-numbers/)**
+A **good number** is an n-digit number (leading zeros allowed) where:
 
-Work through the examples on paper before reading further.
+- Digits at **even indices** (0-indexed) must be **even** (0, 2, 4, 6, 8) → **5 choices**
+- Digits at **odd indices** must be **prime** (2, 3, 5, 7) → **4 choices**
+
+Return the **count** of all good numbers of length `n`, modulo `10⁹ + 7`.
+
+```
+Input:  n = 1
+Output: 5
+Explanation: 0, 2, 4, 6, 8
+
+Input:  n = 4
+Output: 400
+Explanation: 5 choices at indices 0,2 × 4 choices at indices 1,3 → 5² × 4² = 400
+
+Input:  n = 50
+Output: 564908303
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Modular Binary Recursion**.
+Which pattern from today's concept applies? **Modular binary recursion** — same halving pow as #50, with `% MOD` on every multiply.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: count even-index slots = `(n+1)/2`, odd-index slots = `n/2`. Answer = `5^evens × 4^odds`.
 
 ---
 
@@ -35,26 +52,23 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Modular Binary Recursion
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "count" + independent per-position choices → **multiply** counts, don't enumerate
+- "modulo 10⁹+7" → modular fast pow, not raw `pow()`
+- "even index / odd index" rules → split positions, two exponent counts
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "count good numbers" | Combinatorics: `5^evens × 4^odds` |
+| "modulo" / "1e9+7" | `pow_mod` with `%` after each multiply |
+| "even indices" / "odd indices" | `(n+1)/2` even slots, `n/2` odd slots |
+| "large n" (up to 10¹⁵) | O(log n) modular pow — never loop |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Positions are independent. Even slots: 5 ways each. Odd slots: 4 ways each. Product of powers = total count. Modular pow prevents overflow.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"evens = (n+1)/2, odds = n/2."*
+2. *"Answer = pow_mod(5, evens) * pow_mod(4, odds) % MOD."*
+3. *"pow_mod is identical to Pow(x,n) but every step uses % MOD."*
 
 ---
 
@@ -62,12 +76,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Enumerate all n-digit numbers** | 10^n strings — impossible for n = 10¹⁵ |
+| **Nested loops per digit** | O(10^n) — same explosion |
+| **Math.pow without mod** | Overflow before you can mod |
+| **Linear modular multiply n times** | O(n) — times out on large n |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** You never build numbers. You **count** choices per position type and **multiply** with modular fast pow.
 
 ---
 
@@ -75,25 +89,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Pow(x, n) #50](https://leetcode.com/problems/powx-n/) | Float, no mod | Same halving skeleton |
+| [Count Good Numbers #1922](https://leetcode.com/problems/count-good-numbers/) | Two pow calls + mod | `pow_mod` helper |
+| [Super Pow #372](https://leetcode.com/problems/super-pow/) | Base 1337 | Modular binary pow |
+| [Matrix Exponentiation problems](https://leetcode.com/problemset/) | 2×2 combine | Generalized fast pow |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`n = 4` — positions 0,1,2,3:
 
 ```
-Apply Modular Binary Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Index:     0    1    2    3
+Rule:     even odd  even odd
+Choices:    5    4    5    4
+
+evens = (4+1)/2 = 2  → 5² = 25
+odds  = 4/2 = 2      → 4² = 16
+answer = 25 × 16 = 400 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Modular `pow_mod(5, 2)` trace (same tree as Pow):
+
+```
+pow_mod(5, 2)
+  half = pow_mod(5, 1)
+    half = pow_mod(5, 0) → 1
+    half = (1*1 % MOD) * 5 % MOD = 5
+  half = (5*5) % MOD = 25
+return 25
+```
+
+Full answer: `pow_mod(5,2) * pow_mod(4,2) % MOD = 25 * 16 = 400`
+
+For `n = 50`: evens=25, odds=25 — two O(log 25) pow calls, not 50 loops.
+
+> 💡 **The insight:** Combinatorics names the exponents; binary recursion computes them safely under mod.
 
 ---
 
@@ -155,21 +187,20 @@ class Solution {
 ```
 
 **Complexity:** O(log n) time · O(log n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Modular Binary Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Independent digit choices"** → Multiply counts, don't enumerate strings.
+- **"Even index = 5 choices, odd = 4"** → `evens = (n+1)/2`, `odds = n/2`.
+- **"Modulo"** → Reuse Pow(x,n) skeleton with `% MOD` on every multiply.
+- **"n up to 10¹⁵"** → O(log n) pow is mandatory.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried building digits recursively, pivot to **counting formula + modular pow** — same Day 6 engine.
 
-> 🎯 **Pattern Unlocked:** Modular Binary Recursion
+> 🎯 **Pattern Unlocked:** Modular binary recursion — combinatorics for the exponents, fast pow for the computation.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 1 Checkpoint
 
 > **The Tree Mental Model** · 2 quests completed · ⭐ 40 XP earned
@@ -6,67 +7,89 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 1 is about the **information-flow compass**, **null base cases**, and two concrete patterns: **↑ depth bubble** and **in-place swap**. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "maximum depth" / "height" | ↑ Bottom-up bubble | `1 + max(left, right)`; null → 0 |
+| "invert" / "mirror the tree" | DFS + swap | Recurse both sides; swap pointers |
+| "binary tree" + return int | ↑ Combine from children | Trust recursive returns |
+| "return the root" after modify | In-place mutation | null → null; work at each node |
+| "empty tree" / null input | Base case first | Answer before recursing |
+| "longest path root to leaf" (depth) | Max of child depths | Not sum of both branches |
+| "flip left and right" | Same as invert | Swap at every node |
+| "subtree height" (preview) | ↑ Same bubble family | Day 4 extends this |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 1 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Find the maximum depth of a binary tree"* → **↑ Bottom-up bubble** — `1 + max(left, right)`
+2. *"Invert a binary tree in place"* → **DFS swap** — recurse, swap children, return root
+3. *"Return 0 for an empty tree's depth"* → **Null base case** — empty subtree = 0 nodes
+4. *"A single-node tree has depth 1"* → **Leaf combine** — `1 + max(0, 0) = 1`
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've traced Max Depth and Invert Tree. Can you apply the **compass** to new problems?
 
 **Scenario 1:** *"Given a binary tree, return the number of nodes."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **↑ Bottom-up** — return `1 + count(left) + count(right)`. null → 0. Same skeleton as depth, but **sum** instead of max.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Given a binary tree, check if every node has 0 or 2 children (full tree property)."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **↑ Bottom-up bool** — `isFull(left) && isFull(right) && (0 or 2 children check)`. Combine with `&&`.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Mirror a binary tree by swapping every node's children (same as invert)."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **DFS swap** — identical to Invert #226. Name the pattern before coding.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use **null base case + recurse both children + combine/mutate at node**. The local step changes (max, sum, swap) — the skeleton does not.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Base case after recursive call** — Write `if not node: return ...` first. Falling through causes null pointer errors.
+
+2. **Return 0 at leaf for depth** — null → 0, but a **node** returns `1 + max(children)`. Off-by-one is the #1 depth bug.
+
+3. **Swap only at root (invert)** — Every node must swap its two children, not just the top.
+
+4. **Passing depth counter down for max depth** — Valid alternative, but Day 1's ↑ bubble is the tree-native template.
+
+5. **Not tracing on paper** — Draw the tree. Label return values bubbling up (depth) or mark swaps (invert).
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Minimum Depth of Binary Tree #111](https://leetcode.com/problems/minimum-depth-of-binary-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Minimum Depth on LeetCode](https://leetcode.com/problems/minimum-depth-of-binary-tree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Return the minimum number of nodes along the shortest path from root to a **leaf**.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  root = [3,9,20,null,null,15,7]
+Output: 2
+Explanation: Shortest path is 3 → 9 (two nodes).
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "minimum depth" | ↑ Bottom-up — `min` instead of `max` |
+| "shortest path to leaf" | One-child node: don't take min of 0 and child |
+| "binary tree" + return int | Same skeleton as Max Depth #104 |
+
+**Before you code:** Say the pattern name out loud. Trace a tree where root has only a left child — why is `1 + min(0, 5)` wrong?
+
+> 💡 **Hint:** If one child is null, the min depth comes entirely from the **non-null** child. Max Depth didn't need this guard; min depth does.
 
 ---
 
@@ -74,9 +97,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Easy | Bottom-Up Recursion |
-| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Easy | Recursive Tree Modification |
+| [Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) | Easy | ↑ Bottom-up bubble |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Easy | DFS swap |
 
 ---
 
-*Day 1 complete! Tomorrow: the next branch of your ascension. →*
+*Day 1 complete! Tomorrow: visit order matters — inorder vs preorder on the same tree. →*

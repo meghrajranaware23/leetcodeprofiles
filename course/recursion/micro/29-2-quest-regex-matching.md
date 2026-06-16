@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Regular Expression Matching
 
 > **Day 29** · [Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/) · Hard · 25 min · 60 XP
@@ -10,51 +11,56 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Regular Expression Matching on LeetCode](https://leetcode.com/problems/regular-expression-matching/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the `p[j+1]=='*'` branch diagram for every call. Fill the `(i,j)` memo table on `"aab"` / `"c*a*b"`. No code until cases are on paper.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/)**
+Given an input string `s` and a pattern `p`, implement regular expression matching with support for `.` and `*`.
 
-Work through the examples on paper before reading further.
+- `.` matches any single character
+- `*` matches zero or more of the **preceding** element
+
+The matching should cover the **entire** input string (not partial).
+
+```
+Input:  s = "aa", p = "a"     → false
+Input:  s = "aa", p = "a*"    → true
+Input:  s = "ab", p = ".*"    → true
+Input:  s = "aab", p = "c*a*b" → true
+Input:  s = "mississippi", p = "mis*is*ip*." → true
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Recursive Pattern Matching**.
+**Hint 1:** State: `dp(i,j)` = does `s[i..]` match `p[j..]`? Base: `j==n` → return `i==m`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** `match = i<m && (s[i]==p[j] || p[j]=='.')`.
+
+**Hint 3:** If `p[j+1]=='*'`: return `dp(i,j+2) || (match && dp(i+1,j))`. Branch A skips `x*`. Branch B eats one char and keeps star active.
+
+**Hint 4:** Else if match: `dp(i+1,j+1)`. Else false. Memoize every `(i,j)`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Recursive Pattern Matching
+**Pattern used:** Recursive Pattern Matching + `(i,j)` Memo
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| "regex" / "pattern matching" | 2D dp on text + pattern indices |
+| `.` and `*` | case split on `p[j+1]=='*'` |
+| full string match | base requires both consumed |
+| Hard | star branch diagram — zero vs one+ |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Write the 4-case matrix before coding."*
+2. *"Star binds to p[j], not p[j+1]."*
+3. *"Memo (i,j) — same cell from zero-star and multi-star paths."*
 
 ---
 
@@ -62,38 +68,81 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Simulate with nested loops** | `*` repetition breaks linear scan |
+| **No memo on (i,j)** | Exponential — `"aaa..."` with `"a*a*a*..."` |
+| **Check p[j]=='*' for regex** | Star is always at j+1; char before star is at j |
+| **dp(i+1,j+2) after one match** | Star may match more — stay at j |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Each `(i,j)` is a unique subproblem. The `*` operator creates overlapping paths to the same cell.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Wildcard Matching #44](https://leetcode.com/problems/wildcard-matching/) | `*` matches any chars — today's quest 2 |
+| [Regular Expression Matching #10](https://leetcode.com/problems/regular-expression-matching/) | `x*` binds to preceding char |
+| [Wildcard Matching #44](https://leetcode.com/problems/wildcard-matching/) | `?` ≡ `.` but `*` is global |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+### Example 1: `s = "aa"`, `p = "a*"`
 
 ```
-Apply Recursive Pattern Matching step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dp(0,0): p[0]='a', p[1]='*' → star case
+  Branch A: dp(0,2) → j==n, i==0 → i≠m → false
+  Branch B: match s[0]='a' → dp(1,0)
+    dp(1,0): star again
+      Branch A: dp(1,2) → j==n, i==1 → false
+      Branch B: match s[1]='a' → dp(2,0)
+        dp(2,0): star
+          Branch A: dp(2,2) → j==n, i==m → TRUE ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+### Example 2: `s = "aab"`, `p = "a*b"`
+
+Pattern: `a` + `*` + `b` — star binds to `a`.
+
+```
+dp(0,0): a* at j=0
+  Branch A: dp(0,2) — skip "a*", match "aab" with "b" → s[0]='a'≠'b' → false
+  Branch B: eat s[0]='a' → dp(1,0)
+    dp(1,0): a* still active
+      Branch A: dp(1,2) — skip "a*", match "ab" with "b" → s[1]='a'≠'b' → false
+      Branch B: eat s[1]='a' → dp(2,0)
+        dp(2,0): a* at end of usable star
+          Branch A: dp(2,2) — skip "a*", match "b" with "b" → TRUE ✓
+```
+
+Path: `a*` eats `"aa"`, then literal `b` matches `s[2]='b'`.
+
+### Example 3: `s = "ab"`, `p = ".*"`
+
+```
+dp(0,0): '.' followed by '*'
+  Branch A: dp(0,2) → pattern empty, text "ab" left → false
+  Branch B: '.' matches 'a' → dp(1,0)
+    dp(1,0): '.*' still
+      Branch A: dp(1,2) → false (text left)
+      Branch B: '.' matches 'b' → dp(2,0)
+        dp(2,0): Branch A: dp(2,2) → both empty → TRUE ✓
+```
+
+`.*` eats the entire string — classic "any string" pattern.
+
+### `(i,j)` memo table fragment for `s="aa"`, `p="a*"`
+
+```
+        j=0(a*)  j=2(end)
+i=0(aa)   T        F
+i=1(a)    T        F
+i=2(∅)    T        T
+```
+
+Cell `(0,0)` reaches `(2,2)` via repeated Branch B then Branch A — memo stores `true` once computed.
 
 ---
 
@@ -166,22 +215,21 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Recursive Pattern Matching"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Four cases only."** → base, memo hit, star, plain match.
+- **`p[j+1]=='*'` not `p[j]=='*'`.** → Star sits one ahead; char before it is `p[j]`.
+- **Zero branch: `dp(i,j+2)`. Consume branch: `dp(i+1,j)`.** → Star stays active.
+- **Memo (i,j).** → Same cell from skip-star and eat-char paths.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **the branch diagram**, not memorizing one solution.
 
 > 🎯 **Pattern Unlocked:** Recursive Pattern Matching
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Wildcard #44 — same memo, different `*`. →*

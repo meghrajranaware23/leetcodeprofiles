@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 18 Checkpoint
 
 > **Tree Manipulation** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 18 is **parallel construction** and **BST reverse walks**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "merge two trees" / two roots | Parallel merge `(t1,t2)` | Null donates other subtree |
+| "sum overlapping nodes" | `t1.val += t2.val` in-place | #617 |
+| "BST" + "greater than" / suffix sum | Reverse inorder | Right → node → left |
+| "same tree?" / compare two | **Day 5** parallel compare | Not merge |
+| "construct from traversals" | **Day 8** divide & conquer | Different split logic |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Add two binary trees node by node"* → **Parallel merge**
+2. *"Every node += sum of greater BST keys"* → **Reverse inorder + total**
+3. *"Are two trees identical?"* → **Day 5** — boolean compare
+4. *"Merge k sorted lists"* → Not tree parallel — different domain
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Overlay tree A on B; where B missing, keep A unchanged."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Parallel merge** — identical skeleton to #617.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Replace each BST node with sum of all nodes ≥ it."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Reverse inorder** — same as Greater Tree.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Add a constant to every node in subtree."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Top-down DFS** — pass delta down, not reverse inorder.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 18. Scenario 3 = simple propagation.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Merge: not returning other tree on null** — Crashes or drops branches.
+2. **Merge: always allocating new nodes** — Reuse t1 when allowed.
+3. **Greater Tree: normal inorder** — Must visit right subtree first.
+4. **Greater Tree: total passed by value** — Use instance/ref variable.
+5. **Confusing merge with symmetric check** — Construct vs compare.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Draw two misaligned trees (different depths). Trace merge pairs by hand. Then draw a 4-node BST and list reverse inorder visit order with running total.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before you code anything new:** Say which pattern each scenario uses.
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Null in merge = "copy this subtree pointer."
 
 ---
 
@@ -79,4 +73,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 18 complete! Tomorrow: the next branch of your ascension. →*
+*Day 18 complete! Tomorrow: tries and N-ary trees. →*

@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Combination Sum II
 
-> **Day 15** · [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) · Medium · 15 min · 25 XP
+> **Day 15** · [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,48 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Combination Sum II on LeetCode](https://leetcode.com/problems/combination-sum-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Start from Combination Sum (#39). Two changes: single-use (always i+1) and dedup (Day 11). This problem appears on the C-Rank test.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/)**
+Given candidates (may contain duplicates) and a target, find all unique combinations where candidates sum to target. **Each candidate used at most once.**
 
-Work through the examples on paper before reading further.
+```
+Input:  candidates = [10,1,2,7,6,1,5], target = 8
+Output: [[1,1,6], [1,2,5], [1,7], [2,6]]
+
+Input:  candidates = [2,5,2,1,2], target = 5
+Output: [[1,2,2], [5]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Single-Use with Dedup**.
+**Hint 1:** **Sort** candidates first (Day 11 dedup requires adjacent duplicates).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** At index `i`: include → `dfs(i+1, rem-c[i])` with push/pop. **Not** `dfs(i,...)` — no reuse.
+
+**Hint 3:** Before exclude branch: `while (i+1 < n && c[i+1]==c[i]) i++`, then `dfs(i+1, rem)`. Skips duplicate "don't take" branches.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Single-Use with Dedup
+**Pattern used:** Single-Use Combination Sum + Sort-and-Skip Dedup
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| vs Combination Sum #39 | Change |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| Include → `dfs(i, ...)` | Include → **`dfs(i+1, ...)`** |
+| No dedup | Sort + while-skip |
+| Distinct candidates | Duplicates possible |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Day 13 minus reuse plus Day 11 dedup."*
+2. *"Two calls: include (i+1), exclude (skip dupes then i+1)."*
+3. *"Record when rem==0."*
 
 ---
 
@@ -62,38 +60,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Combination Sum #39 template unchanged** | Reuse creates wrong combos; duplicates in output |
+| **Generate all, dedup with set** | Works but explores duplicate branches |
+| **No sort** | while-skip never groups duplicates |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Key difference |
+|---|---|
+| [Combination Sum #39](https://leetcode.com/problems/combination-sum/) | Unlimited reuse |
+| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Single use + dedup |
+| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Same dedup, no target |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Sorted `candidates = [1,1,2,5,6,7,10], target = 8`:
 
 ```
-Apply Single-Use with Dedup step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, rem=8, [])
+  include c[0]=1: dfs(i=1, rem=7, [1])
+    include c[1]=1: dfs(i=2, rem=6, [1,1])
+      include c[2]=2: ... 
+      include c[4]=6: rem=0 → record [1,1,6] ✓
+    ...
+  after exclude path at i=0: skip duplicate 1s with while
 ```
-
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
 
 ---
 
@@ -162,22 +157,16 @@ class Solution {
 ```
 
 **Complexity:** O(2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Single-Use with Dedup"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **No reuse** → Always `i+1` on include — unlike #39.
+- **Day 11 dedup returns** → Sort + while-skip between branches.
+- **C-Rank test preview** → You'll see this again untimed.
 
 > 🎯 **Pattern Unlocked:** Single-Use with Dedup
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: exactly k digits from 1–9. →*

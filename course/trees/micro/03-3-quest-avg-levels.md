@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Average of Levels
 
 > **Day 3** · [Average of Levels in Binary Tree #637](https://leetcode.com/problems/average-of-levels-in-binary-tree/) · Easy · 10 min
@@ -10,51 +11,63 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Average of Levels in Binary Tree on LeetCode](https://leetcode.com/problems/average-of-levels-in-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same queue as Level Order #102. Write `[3] → [9,20] → [15,7]`, then compute mean per batch. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Average of Levels in Binary Tree #637](https://leetcode.com/problems/average-of-levels-in-binary-tree/)**
+Given the root of a binary tree, return the **average value of nodes at each level**.
 
-Work through the examples on paper before reading further.
+```
+Input:       3
+            / \
+           9  20
+             /  \
+            15   7
+
+Output: [3.00000, 14.50000, 11.00000]
+
+Explanation:
+  Level 0: 3 / 1 = 3.0
+  Level 1: (9 + 20) / 2 = 14.5
+  Level 2: (15 + 7) / 2 = 11.0
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS Level Computation**.
+Which pattern from today's concept applies? **BFS level computation** — identical queue skeleton to #102; instead of storing values, **sum** the batch and divide by `level_size`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: you already wrote level-order grouping. Replace `level list` with `sum / sz`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** BFS Level Computation
+**Pattern used:** BFS Level Aggregation (↔ Across + reduce)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Each level" / "average" → BFS batch, then aggregate
+- Same level structure as #102 → same `len(q)` loop
+- Return one number per level → sum and divide
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "average of each level" | BFS + sum / count |
+| "values at same depth" | Level batch boundary |
+| "return array of doubles" | Divide integer sum by level size |
+| "level order" family | Queue, not DFS |
+| "sum" / "mean" per row | Reduce each batch |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Every node belongs to exactly one BFS batch. Summing that batch and dividing by its size is the definition of level average.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Same BFS as #102."*
+2. *"Per batch: sum += node.val, count = level_size."*
+3. *"Append sum / count to result."*
+4. *"Use long for sum if values large (Java/C++)."*
 
 ---
 
@@ -62,12 +75,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **DFS + depth index arrays** | Two passes or awkward indexing |
+| **Store all level lists then average** | Extra memory — sum during batch |
+| **Global node sum / total levels** | Loses per-level breakdown |
+| **Floating divide after int sum only in Python** | Watch integer division in C++/Java |
+| **Skip level_size — wrong denominator** | Average of mixed levels |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** #637 **is** #102 with a different last line. Reuse the skeleton.
 
 ---
 
@@ -75,31 +89,40 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Binary Tree Level Order Traversal #102](https://leetcode.com/problems/binary-tree-level-order-traversal/) | Collect values, not average | Same BFS batch |
+| [Maximum Level Sum of a Binary Tree #1161](https://leetcode.com/problems/maximum-level-sum-of-a-binary-tree/) | Track max sum level | Sum per batch |
+| [Find Largest Value in Each Tree Row #515](https://leetcode.com/problems/find-largest-value-in-each-tree-row/) | Max per batch | Same loop |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same queue — different reducer (avg, max, sum).
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**BFS batches with running sum per level.**
 
 ```
         3
        / \
-      9    20
-          /  \
-         15   7
+      9  20
+        /  \
+       15   7
 
-Apply BFS Level Computation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Queue flow: [3] → [9,20] → [15,7]
+
+Level 0 — batch [3]:
+  sum = 3, count = 1  →  avg = 3.0
+
+Level 1 — batch [9, 20]:
+  sum = 9 + 20 = 29, count = 2  →  avg = 14.5
+
+Level 2 — batch [15, 7]:
+  sum = 15 + 7 = 22, count = 2  →  avg = 11.0
+
+Output: [3.0, 14.5, 11.0]  ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `level_size` is both loop bound **and** divisor. Same nodes processed as #102 — only the accumulator changes.
 
 ---
 
@@ -111,19 +134,18 @@ class Solution {
 public:
     vector<double> averageOfLevels(TreeNode* root) {
         vector<double> res;
-        if (!root) return res;
         queue<TreeNode*> q;
         q.push(root);
         while (!q.empty()) {
             int sz = q.size();
-            long long sum = 0;
-            for (int i = 0; i < sz; ++i) {
+            double sum = 0;
+            for (int i = 0; i < sz; i++) {
                 TreeNode* node = q.front(); q.pop();
                 sum += node->val;
-                if (node->left) q.push(node->left);
+                if (node->left)  q.push(node->left);
                 if (node->right) q.push(node->right);
             }
-            res.push_back((double)sum / sz);
+            res.push_back(sum / sz);
         }
         return res;
     }
@@ -132,21 +154,19 @@ public:
 
 ### Python
 ```python
+from collections import deque
 class Solution:
     def averageOfLevels(self, root: Optional[TreeNode]) -> List[float]:
-        if not root:
-            return []
         res, q = [], deque([root])
         while q:
-            level, n = [], len(q)
+            n = len(q)
+            total = 0
             for _ in range(n):
                 node = q.popleft()
-                level.append(node.val)
-                if node.left:
-                    q.append(node.left)
-                if node.right:
-                    q.append(node.right)
-            res.append(sum(level) / n)
+                total += node.val
+                if node.left:  q.append(node.left)
+                if node.right: q.append(node.right)
+            res.append(total / n)
         return res
 ```
 
@@ -155,41 +175,39 @@ class Solution:
 class Solution {
     public List<Double> averageOfLevels(TreeNode root) {
         List<Double> res = new ArrayList<>();
-        if (root == null) return res;
-        Queue<TreeNode> q = new ArrayDeque<>();
+        Queue<TreeNode> q = new LinkedList<>();
         q.offer(root);
         while (!q.isEmpty()) {
             int sz = q.size();
-            long sum = 0;
+            double sum = 0;
             for (int i = 0; i < sz; i++) {
                 TreeNode node = q.poll();
                 sum += node.val;
-                if (node.left != null) q.offer(node.left);
+                if (node.left != null)  q.offer(node.left);
                 if (node.right != null) q.offer(node.right);
             }
-            res.add(sum / (double) sz);
+            res.add(sum / sz);
         }
         return res;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BFS Level Computation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Average of levels"** → BFS — same as #102.
+- **"Sum then divide"** → One pass per level; no need to store level list.
+- **`level_size` = divisor** → Same number as loop iterations.
+- **Not depth bubble** → Day 1 ↑ pattern doesn't group by level.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you wrote recursion with depth parameter, compare to queue — BFS is cleaner here.
 
-> 🎯 **Pattern Unlocked:** BFS Level Computation
+> 🎯 **Pattern Unlocked:** BFS level aggregation — batch, sum, divide.
 
 ---
 

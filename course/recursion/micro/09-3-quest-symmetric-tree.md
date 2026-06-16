@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Symmetric Tree
 
 > **Day 9** · [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) · Easy · 10 min
@@ -10,23 +11,37 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Symmetric Tree on LeetCode](https://leetcode.com/problems/symmetric-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For root's two children, which pairs do you compare? The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/)**
+Given the `root` of a binary tree, check whether it is a **mirror of itself** (symmetric around its center).
 
-Work through the examples on paper before reading further.
+```
+Input:     1
+          / \
+         2   2
+        / \ / \
+       3  4 4  3
+Output: true
+
+Input:     1
+          / \
+         2   2
+          \   \
+           3   3
+Output: false
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Mirror Recursion**.
+Which pattern from today's concept applies? **Mirror recursion** — helper compares `a` with `b` cross-wise: `a.left` vs `b.right`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: start with `mirror(root.left, root.right)`. Never compare `a.left` with `b.left`.
 
 ---
 
@@ -35,26 +50,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Mirror Recursion
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Symmetric" / "mirror of itself" → compare **two nodes** as mirror partners
+- "Binary tree" → paired DFS, not single-node descent
+- Returns boolean → same family as Same Tree #100 but cross-child pairing
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "symmetric" / "mirror image" | `mirror(a,b)` helper |
+| "mirror of itself" | Compare left subtree with right subtree |
+| cross-child compare | `a.left`↔`b.right`, `a.right`↔`b.left` |
+| "same structure" variant | Same Tree compares `a.left,b.left` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Symmetry means left subtree is mirror of right subtree — defined recursively on cross pairs.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Empty root → true."*
+2. *"Helper mirror(a,b): both null → true."*
+3. *"Vals must match, then two cross recursive calls."*
+4. *"AND both cross pairs — not OR."*
 
 ---
 
@@ -62,12 +75,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Compare left subtree to left subtree** | Misses cross-mirror requirement |
+| **Invert then compare same tree** | O(n) extra work — direct mirror check suffices |
+| **Check only root's two children** | Deep asymmetry missed |
+| **BFS without mirror pairing** | Level order needs symmetric index pairing |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Symmetry is a **relation between two nodes** — helper with two pointers, like Same Tree but cross-wired.
 
 ---
 
@@ -75,25 +88,67 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Self-symmetric | Mirror helper |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Parallel compare | `a.left,b.left` |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Structural swap | Day 9 modify |
+| [Merge Two Binary Trees #617](https://leetcode.com/problems/merge-two-binary-trees/) | Combine values | Paired recursion |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Symmetric example:
 
 ```
-Apply Mirror Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+        1
+       / \
+      2   2
+     / \ / \
+    3  4 4  3
+
+isSymmetric(1):
+  mirror(2, 2):
+    vals 2==2 ✓
+    mirror(2.left=3, 2.right=4)?  NO — wait that's wrong tree
+
+Correct symmetric tree at leaves: 3 mirrors 3, 4 mirrors 4
+
+mirror(2a, 2b) where both are value 2:
+  mirror(3, 3): both null children → true
+  mirror(4, 4): true
+  return true && true → true
+
+mirror(left, right) of root → true ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Invalid** example:
+
+```
+    1
+   / \
+  2   2
+   \   \
+    3   3
+
+mirror(2, 2):
+  vals match
+  mirror(2.left=null, 2.right=3): one null → false ✓
+```
+
+Pair wiring diagram:
+
+```
+    a         b
+   / \       / \
+  al ar     bl br
+
+SYMMETRIC requires:
+  mirror(al, br) AND mirror(ar, bl)
+
+NOT mirror(al, bl)  ← Same Tree, not Symmetric
+```
+
+> 💡 **The insight:** Two-node helper with **cross** children — mirror of invert's swap logic, but checking not mutating.
 
 ---
 
@@ -140,21 +195,20 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Mirror Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Symmetric tree"** → Left subtree mirrors right — paired helper.
+- **"Cross compare"** → `a.left` with `b.right`, not `b.left`.
+- **"Same as Same Tree #100"** → But wiring is crossed — know both.
+- **"Day 4 boolean return"** → Children answers combined with `&&`.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you only checked root's two children once, recurse **all mirror pairs**.
 
-> 🎯 **Pattern Unlocked:** Mirror Recursion
+> 🎯 **Pattern Unlocked:** Mirror recursion — two-node helper with cross-child pairing.
 
 ---
 

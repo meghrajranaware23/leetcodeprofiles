@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Count Good Nodes
 
 > **Day 21** · [Count Good Nodes in Binary Tree #1448](https://leetcode.com/problems/count-good-nodes-in-binary-tree/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Count Good Nodes in Binary Tree on LeetCode](https://leetcode.com/problems/count-good-nodes-in-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** A node is good if it's ≥ every ancestor. Carry max-so-far down from root — same family as Day 6 path problems. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Top-Down Max Tracking**.
+Which pattern from today's concept applies? **Top-down max tracking** — `dfs(node, maxSoFar)`: if `node.val >= maxSoFar`, count 1; update `maxSoFar = max(maxSoFar, node.val)`; sum counts from children.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: start with `maxSoFar = -∞` so root is always good. Link to [Day 6 Top-Down DFS](../06-1-top-down-dfs.md).
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Top-Down Max Tracking
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Path from root" condition
+- Compare to **all ancestors** = max on path so far
+- Count nodes satisfying condition
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "no smaller value on path from root" | maxSoFar param |
+| "good node" | val >= maxSoFar |
+| "count" | Return int sum from dfs |
+| "update maximum" | max before recursing children |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Max on root-to-node path is sufficient — if current ≥ max so far, it's ≥ all ancestors. Tighten max before descending.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"dfs(node, maxSoFar) → int count."*
+2. *"good = val >= maxSoFar ? 1 : 0."*
+3. *"newMax = max(maxSoFar, val)."*
+4. *"return good + dfs(left,newMax) + dfs(right,newMax)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Check all ancestors per node** | O(n·h) redundant |
+| **Bottom-up subtree max** | Doesn't know path from root |
+| **BFS without path max** | Need ancestor chain state |
+| **Compare to parent only** | Grandparent could be larger |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** One integer `maxSoFar` encodes entire ancestor chain — Day 6 top-down template.
 
 ---
 
@@ -75,31 +74,32 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Path Sum #112](https://leetcode.com/problems/path-sum/) | Day 6 — remainder | State down |
+| [Path Sum II #113](https://leetcode.com/problems/path-sum-ii/) | Day 6 — collect paths | + backtrack |
+| [Longest Univalue Path #687](https://leetcode.com/problems/longest-univalue-path/) | Match value chain | Different combine |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
         3
        / \
-      9    20
-          /  \
-         15   7
+      1   4
+     /   / \
+    3   1   5
 
-Apply Top-Down Max Tracking step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+dfs(3, -∞): good ✓  max→3
+  dfs(1, 3): bad     max→3
+    dfs(3, 3): good ✓
+  dfs(4, 3): good ✓  max→4
+    dfs(1, 4): bad
+    dfs(5, 4): good ✓
+
+Total good = 4
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** maxSoFar replaces walking the whole ancestor list — O(1) state per frame.
 
 ---
 
@@ -108,14 +108,14 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    int dfs(TreeNode* node, int mx) {
-        if (!node) return 0;
-        int cnt = node->val >= mx;
-        mx = max(mx, node->val);
-        return cnt + dfs(node->left, mx) + dfs(node->right, mx);
-    }
 public:
     int goodNodes(TreeNode* root) {
+        function<int(TreeNode*, int)> dfs = [&](TreeNode* node, int maxSoFar) -> int {
+            if (!node) return 0;
+            int good = node->val >= maxSoFar ? 1 : 0;
+            maxSoFar = max(maxSoFar, node->val);
+            return good + dfs(node->left, maxSoFar) + dfs(node->right, maxSoFar);
+        };
         return dfs(root, INT_MIN);
     }
 };
@@ -125,12 +125,11 @@ public:
 ```python
 class Solution:
     def goodNodes(self, root: TreeNode) -> int:
-        def dfs(node, mx):
-            if not node:
-                return 0
-            cnt = 1 if node.val >= mx else 0
-            mx = max(mx, node.val)
-            return cnt + dfs(node.left, mx) + dfs(node.right, mx)
+        def dfs(node, max_so_far):
+            if not node: return 0
+            good = 1 if node.val >= max_so_far else 0
+            max_so_far = max(max_so_far, node.val)
+            return good + dfs(node.left, max_so_far) + dfs(node.right, max_so_far)
         return dfs(root, float('-inf'))
 ```
 
@@ -140,29 +139,24 @@ class Solution {
     public int goodNodes(TreeNode root) {
         return dfs(root, Integer.MIN_VALUE);
     }
-    int dfs(TreeNode node, int mx) {
+    private int dfs(TreeNode node, int maxSoFar) {
         if (node == null) return 0;
-        int cnt = node.val >= mx ? 1 : 0;
-        mx = Math.max(mx, node.val);
-        return cnt + dfs(node.left, mx) + dfs(node.right, mx);
+        int good = node.val >= maxSoFar ? 1 : 0;
+        maxSoFar = Math.max(maxSoFar, node.val);
+        return good + dfs(node.left, maxSoFar) + dfs(node.right, maxSoFar);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Top-Down Max Tracking"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"No smaller on path from root"** → maxSoFar.
+- **"Day 6 top-down"** → parameter down, no backtrack.
+- **"-inf start"** → root always counts.
+- **"Not parent only"** → max encodes all ancestors.
 
 > 🎯 **Pattern Unlocked:** Top-Down Max Tracking
 

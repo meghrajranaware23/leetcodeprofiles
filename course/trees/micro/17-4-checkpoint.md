@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 17 Checkpoint
 
 > **Tree Views** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 17 is **BFS view aggregation** — same queue as Day 3/9, different per-level or per-column record.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "bottom-left" / "last row leftmost" | Level-end first node | BFS deepest wave, i=0 |
+| "vertical order" (no row/value sort) | Column BFS map #314 | `(node, col)` queue |
+| "vertical order" + same row value tie | **C-Rank #987** | Sort `(row, val)` |
+| "right side view" | **Day 9** — last per level | Opposite of bottom-left |
+| "deepest leaves sum" | **Day 22 preview** — sum last level | Level-end, aggregate all |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Leftmost node in deepest row"* → **Level-end tracking** — first dequeued each batch
+2. *"Nodes grouped by vertical column, top-to-bottom"* → **Column map** — #314
+3. *"Same column, sort by row then value"* → **#987** — not today's #314
+4. *"Zigzag level order"* → **Day 9** — direction flip, not column view
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Return the rightmost value in the bottom row."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Level-end tracking** — last dequeued (`i == sz-1`) each batch, not first.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Print all nodes column by column, left columns first."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Column BFS map** — same as #314 unless problem adds row sort.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Top view — one node per column (smallest row wins)."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Column tagging + row min** — extends Day 15 coordinate idea; not pure #314.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 17 BFS views. Scenario 3 = column coords with min-row rule.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **DFS for bottom-left** — Preorder doesn't guarantee deepest-leftmost.
+2. **Forgetting to update `res` only at level start** — Every node vs `i==0`.
+3. **Column direction inverted** — Left child = col−1, right = col+1.
+4. **Applying #987 sort to #314** — Read statement; #314 needs no tie-break.
+5. **Unsorted column keys in output** — Use `TreeMap` or `sorted(keys)`.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### Compare #314 vs #987 on paper
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Draw a tree where two nodes share a column at different rows (e.g. root and left-right child). Write #314 output vs #987 output. When do they differ?
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+**Before you code:** Label columns on a 7-node tree. Circle the first node of each BFS level.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** #314 lists BFS order in column 0; #987 sorts by row within column 0.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 17 complete! Tomorrow: the next branch of your ascension. →*
+*Day 17 complete! Tomorrow: merge two trees and reverse-inorder transform. →*

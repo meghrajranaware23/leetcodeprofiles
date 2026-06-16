@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Preorder Traversal
 
 > **Day 2** · [Binary Tree Preorder Traversal #144](https://leetcode.com/problems/binary-tree-preorder-traversal/) · Easy · 10 min
@@ -10,51 +11,66 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Binary Tree Preorder Traversal on LeetCode](https://leetcode.com/problems/binary-tree-preorder-traversal/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Use the **same tree** as inorder. Number visits 1–5. Preorder = **Root → Left → Right**. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Binary Tree Preorder Traversal #144](https://leetcode.com/problems/binary-tree-preorder-traversal/)**
+Given the root of a binary tree, return the **preorder** traversal of its nodes' values.
 
-Work through the examples on paper before reading further.
+```
+Input:       1
+              \
+               2
+              /
+             3
+
+Output: [1, 2, 3]
+
+Input:       3
+            / \
+           9  20
+             /  \
+            15   7
+
+Output: [3, 9, 20, 15, 7]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Preorder DFS**.
+Which pattern from today's concept applies? **Preorder DFS** — **record** node first, then recurse left, then recurse right.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: compare to inorder on the same tree — inorder gave [9,3,15,20,7]. Preorder records each root **before** diving into its subtrees.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Preorder DFS
+**Pattern used:** Preorder DFS (Root → Left → Right)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Problem name says **preorder** — record before children
+- Return list in visit sequence
+- Root-first order matches serialization and copy-tree problems
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "preorder traversal" | Root → Left → Right |
+| "visit root first" | Record before recursive calls |
+| "serialize tree" (related) | Preorder + null markers |
+| "construct from traversals" (preview) | Preorder gives root first |
+| "return list of values" | One record per node |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Recording before recursion guarantees parents appear before all descendants — exactly the "root first" contract.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → return."*
+2. *"record node.val"*
+3. *"preorder(left)"*
+4. *"preorder(right)"*
 
 ---
 
@@ -62,12 +78,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Inorder (left before record)** | Wrong list — [9,3,...] instead of [3,9,...] |
+| **Postorder (record last)** | Reversed feel — root appears after subtrees |
+| **Level-order BFS** | [3,9,20,15,7] may match on some trees by luck, not definition |
+| **Recursive without null guard** | Crashes on empty tree |
+| **Stack push left then right (iterative)** | Must push **right** first so **left** is processed first |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Preorder is defined by **one line of code placement** — record before the two recursive calls. Move that line and you change algorithms.
 
 ---
 
@@ -75,31 +92,42 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Construct Binary Tree from Preorder and Inorder #105](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) | First preorder val = root; split inorder | Preorder identifies root |
+| [Serialize and Deserialize BST #449](https://leetcode.com/problems/serialize-and-deserialize-bst/) | Add markers | Preorder walk |
+| [Binary Tree Inorder Traversal #94](https://leetcode.com/problems/binary-tree-inorder-traversal/) | Record between children | Same tree, different order |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same frame — record moves to the top.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Preorder on the same tree as inorder — Root → Left → Right.**
 
 ```
         3
        / \
-      9    20
-          /  \
-         15   7
+      9  20
+        /  \
+       15   7
 
-Apply Preorder DFS step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Step 1: preorder(3)
+  → record 3                    [3]
+  → preorder(9)
+       → record 9               [3, 9]
+  → preorder(20)
+       → record 20              [3, 9, 20]
+       → preorder(15)
+            → record 15         [3, 9, 20, 15]
+       → preorder(7)
+            → record 7          [3, 9, 20, 15, 7]  ✓
+
+Side-by-side with inorder (Quest 1):
+  Preorder:  3,  9, 20, 15,  7   (roots before subtrees)
+  Inorder:   9,  3, 15, 20,  7   (roots between subtrees)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Iterative preorder uses a stack — push root, pop and record, push **right then left** so left is processed first.
 
 ---
 
@@ -118,7 +146,7 @@ public:
             TreeNode* node = st.top(); st.pop();
             res.push_back(node->val);
             if (node->right) st.push(node->right);
-            if (node->left) st.push(node->left);
+            if (node->left)  st.push(node->left);
         }
         return res;
     }
@@ -131,14 +159,12 @@ class Solution:
     def preorderTraversal(self, root: Optional[TreeNode]) -> List[int]:
         if not root:
             return []
-        res, st = [], [root]
-        while st:
-            node = st.pop()
+        res, stack = [], [root]
+        while stack:
+            node = stack.pop()
             res.append(node.val)
-            if node.right:
-                st.append(node.right)
-            if node.left:
-                st.append(node.left)
+            if node.right: stack.append(node.right)
+            if node.left:  stack.append(node.left)
         return res
 ```
 
@@ -148,35 +174,34 @@ class Solution {
     public List<Integer> preorderTraversal(TreeNode root) {
         List<Integer> res = new ArrayList<>();
         if (root == null) return res;
-        Deque<TreeNode> st = new ArrayDeque<>();
-        st.push(root);
-        while (!st.isEmpty()) {
-            TreeNode node = st.pop();
+        Deque<TreeNode> stack = new ArrayDeque<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            TreeNode node = stack.pop();
             res.add(node.val);
-            if (node.right != null) st.push(node.right);
-            if (node.left != null) st.push(node.left);
+            if (node.right != null) stack.push(node.right);
+            if (node.left != null)  stack.push(node.left);
         }
         return res;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Preorder DFS"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Preorder"** → **Record**, left, right — root always first in its subtree.
+- **"Contrast inorder"** → Same tree, different list — order name is everything.
+- **"Iterative stack"** → Push right before left so left pops first.
+- **"Serialize preview"** → Root-first walks rebuild trees later.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If your list matches inorder output, the record line is in the wrong place.
 
-> 🎯 **Pattern Unlocked:** Preorder DFS
+> 🎯 **Pattern Unlocked:** Preorder DFS — record node before left and right subtrees.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 12 Checkpoint
 
 > **BST Operations** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 12 is **BST modification** — inorder rank and structural delete.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "kth smallest in BST" | Inorder early-stop | Sorted visit order = rank |
+| "delete node in BST" | 0/1/2 child cases | Search + rewire |
+| "BST iterator" / "next smallest" | Lazy inorder stack | C-Rank test preview |
+| "inorder successor" | Leftmost of right subtree | Delete Case 2 helper |
+| "validate / search BST" | **Day 11** — read-only | No mutation |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Find 4th smallest in BST"* → **Inorder with k counter** — stop at k=0
+2. *"Remove node with one right child"* → **Case 1** — return right child to parent
+3. *"Remove node with two children"* → **Case 2** — successor value + delete successor
+4. *"Search for value in BST"* → **Day 11** — left/right walk, no inorder needed
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Trim BST to keep only values in [low, high]."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Delete variant.** Nodes below `low` → go right; above `high` → go left; in range → trim both subtrees recursively.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Implement BSTIterator with O(h) space and O(1) amortized next()."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Lazy inorder** — stack holds left spine; pop processes; push right's left spine.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Find kth largest in BST."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Reverse inorder** — right, node, left; same early-stop with k.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three extend Day 12 inorder/delete machinery.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Full inorder array for kth** — Early stop when k hits 0.
+2. **Swapping nodes in Case 2** — Copy value only; delete successor position.
+3. **Not capturing delete return** — `root.left = deleteNode(root.left, key)`.
+4. **k off-by-one** — Decrement **after** visiting node (1-indexed k).
+5. **Using predecessor inconsistently** — Successor (leftmost-right) is standard; stick to one.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Binary Search Tree Iterator #173](https://leetcode.com/problems/binary-search-tree-iterator/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try BST Iterator on LeetCode](https://leetcode.com/problems/binary-search-tree-iterator/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Lazy inorder — appears again in C-Rank test. `next()` = one inorder step.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Trace `next()` three times on a 5-node BST. What's on the stack after each call?
+
+> 💡 **Hint:** Constructor pushes left spine from root. `next()` pops, then pushes left spine of `node.right`.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 12 complete! Tomorrow: the next branch of your ascension. →*
+*Day 12 complete! Tomorrow: lowest common ancestor — split detection and BST shortcut. →*

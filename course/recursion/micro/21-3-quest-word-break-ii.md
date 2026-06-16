@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Break II
 
 > **Day 21** · [Word Break II #140](https://leetcode.com/problems/word-break-ii/) · Medium · 15 min · 35 XP
@@ -10,51 +11,67 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Break II on LeetCode](https://leetcode.com/problems/word-break-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Solve WB I mentally first. Then ask: *"What if I need every sentence?"* Draw the branch tree for `"catsanddog"`. Circle where `dfs(7)` would be called twice.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Word Break II #140](https://leetcode.com/problems/word-break-ii/)**
+Given a string `s` and a dictionary of strings `wordDict`, add spaces in `s` to construct a sentence where every word is a valid dictionary word. Return **all such possible sentences** in any order.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]
+Output: ["cats and dog","cat sand dog"]
+
+Input:  s = "pineapplepenapple", wordDict = ["apple","pen","applepen","pine","pineapple"]
+Output: ["pine apple pen apple","pineapple pen apple","pine applepen apple"]
+
+Input:  s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
+Output: []
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Backtracking + Memo Hybrid**.
+**Hint 1:** Same cut loop as WB I — `dfs(i)` returns **all valid sentences** for suffix `s[i..]`, not just bool.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** Base case: `i == n` → return `[""]` (one empty tail — lets you append the last word cleanly).
+
+**Hint 3:** For each valid word `w = s[i..j]`, get `tails = dfs(j)`. For each tail in `tails`, push `w` or `w + " " + tail` into result.
+
+**Hint 4:** **Memo[i] = list of suffix sentences** from index `i`. If already computed, return the list — don't re-explore the subtree.
+
+**Hint 5:** Pure backtracking without memo TLEs on overlapping suffixes. The tree is real; the memo collapses duplicate `(i)` work.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Backtracking + Memo Hybrid
+**Pattern used:** Backtracking + Index Memo Hybrid
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "return all possible sentences" | Generate-all on cut tree |
+| Same index, many prefix paths | Memo list at each index |
+| Dictionary segmentation | Identical cut loop to WB I |
+| Empty output when impossible | `dfs(0)` returns `[]` if no valid cuts |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**WB I vs WB II side-by-side:**
+
+| | Word Break I | Word Break II |
+|---|---|---|
+| Return type | `bool` | `List<String>` |
+| Base at `i==n` | `true` | `[""]` |
+| On success | Short-circuit | Collect all combos |
+| Memo value | true/false | list of suffix sentences |
+| Combine step | none | `w + " " + tail` for each tail |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Copy WB I cut loop — change return to list."*
+2. *"Empty tail at base lets last word stand alone."*
+3. *"memo[i] stores every sentence from s[i..] — reuse on second visit."*
+4. *"This is backtracking's tree with memo pruning duplicate subtrees."*
 
 ---
 
@@ -62,38 +79,46 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Pure backtrack, no memo** | Regenerates identical suffix sentences from every path |
+| **Run WB I first, one backtrack pass** | Misses memo benefit on suffix generation |
+| **Iterative BFS of paths** | Works but hides the index-memo insight |
+| **Building full strings before checking dict** | Wasteful — validate cut, then combine cached tails |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** `"cat sand dog"` and `"cats and dog"` both need **all completions from index 7** (`"dog"`). Compute once at `memo[7]`, prepend different prefixes.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Variant |
+|---|---|
+| [Word Break #139](https://leetcode.com/problems/word-break/) | Boolean memo — today's prerequisite |
+| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Pure backtrack generate-all (no index overlap) |
+| [Word Break II — follow-up with max words](https://leetcode.com/problems/word-break-ii/) | Same memo; optional pruning |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`s = "catsanddog"`, dict = `{cat, cats, and, sand, dog}`:
 
 ```
-Apply Backtracking + Memo Hybrid step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(10) → [""]                          // base
+dfs(7):  "dog" valid → tails = dfs(10)
+         → ["dog"]
+         memo[7] = ["dog"]
+
+dfs(3):  "sand" → tails = memo[7] → ["sand dog"]
+         "and"  → dfs(6) ... (no valid continuation here)
+         memo[3] = ["sand dog"]
+
+dfs(0):  "cat"  → memo[3] → ["cat sand dog"]
+         "cats" → dfs(4)
+           "and" → memo[7] → ["and dog"] → ["cats and dog"]
+         memo[0] = ["cat sand dog", "cats and dog"]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Second call to `dfs(7)` anywhere in the tree → instant return of `["dog"]`.
 
 ---
 
@@ -173,21 +198,16 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **Same cut loop as WB I** — only the return type and combine step changed.
+- **`[""]` base case** — elegant spacer for `"word" + tail`.
+- **memo[i] is a list** — backtracking tree, but suffix subtrees cached.
+- **Pure backtrack vs hybrid** — generate-all + overlap → memo on index.
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Backtracking + Memo Hybrid"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Backtracking + Memo Hybrid
+> 🎯 **Pattern Unlocked:** Backtracking + Index Memo Hybrid
 
 ---
 

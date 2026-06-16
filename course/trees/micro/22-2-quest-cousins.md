@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Cousins in Binary Tree
 
 > **Day 22** · [Cousins in Binary Tree #993](https://leetcode.com/problems/cousins-in-binary-tree/) · Easy · 10 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Cousins in Binary Tree on LeetCode](https://leetcode.com/problems/cousins-in-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Cousins = same depth, different parents. Track `(parent, depth)` when you find x and y. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS Parent Tracking**.
+Which pattern from today's concept applies? **BFS parent tracking** — queue `(node, parent, depth)` OR DFS passing `(parent, depth)` down. Record both targets; answer `sameDepth && differentParent`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: siblings fail because they share a parent at the same depth.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS Parent Tracking
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Two target values x, y
+- "Cousins" definition — depth + parent
+- Not asking for LCA or path
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "cousins" | Same depth, different parent |
+| "same depth" | Track depth per node |
+| "not siblings" | Parent pointer matters |
+| "binary tree" | Standard child links |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Depth locates the level; parent distinguishes siblings from cousins. One traversal records `(parent, depth)` for x and y.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Traverse with parent and depth."*
+2. *"On x: save (xPar, xDepth)."*
+3. *"On y: save (yPar, yDepth)."*
+4. *"return xDepth==yDepth && xPar!=yPar."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Same depth only** | Siblings also same depth |
+| **Same parent only** | Would mean siblings |
+| **Find LCA and compare** | Overkill — parent+depth suffices |
+| **Store all nodes at depth** | Wasteful vs two target lookups |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Two scalars per target — parent pointer + depth — decide everything.
 
 ---
 
@@ -75,31 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [LCA #236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) | Day 13 — split point | Different question |
+| [Deepest Leaves Sum #1302](https://leetcode.com/problems/deepest-leaves-sum/) | Today's second quest | BFS level focus |
+| [Binary Tree Level Order #102](https://leetcode.com/problems/binary-tree-level-order-traversal/) | Day 3 — full levels | Same BFS engine |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+     / \
+    4   5
 
-Apply BFS Parent Tracking step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Are 4 and 5 cousins?
+  4: parent=2, depth=2
+  5: parent=2, depth=2
+  Same depth ✓, same parent ✗ → siblings, not cousins
+
+Are 4 and 3 cousins?
+  4: parent=2, depth=2
+  3: parent=1, depth=1
+  Different depth → not cousins
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Parent tracking is **new vs Day 17** — view problems didn't need who the parent was.
 
 ---
 
@@ -108,19 +109,18 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    bool dfs(TreeNode* node, int x, int y, int d, TreeNode* par, int& dx, TreeNode*& px, int& dy, TreeNode*& py) {
-        if (!node) return false;
-        if (node->val == x) { dx = d; px = par; }
-        if (node->val == y) { dy = d; py = par; }
-        return dfs(node->left, x, y, d + 1, node, dx, px, dy, py)
-            || dfs(node->right, x, y, d + 1, node, dx, px, dy, py);
-    }
 public:
     bool isCousins(TreeNode* root, int x, int y) {
-        int dx = -1, dy = -1;
-        TreeNode *px = nullptr, *py = nullptr;
-        dfs(root, x, y, 0, nullptr, dx, px, dy, py);
-        return dx == dy && px != py;
+        int xDepth, yDepth; TreeNode *xPar = nullptr, *yPar = nullptr;
+        function<void(TreeNode*, TreeNode*, int)> dfs = [&](TreeNode* node, TreeNode* par, int d) {
+            if (!node) return;
+            if (node->val == x) { xDepth = d; xPar = par; }
+            if (node->val == y) { yDepth = d; yPar = par; }
+            dfs(node->left, node, d+1);
+            dfs(node->right, node, d+1);
+        };
+        dfs(root, nullptr, 0);
+        return xDepth == yDepth && xPar != yPar;
     }
 };
 ```
@@ -129,56 +129,48 @@ public:
 ```python
 class Solution:
     def isCousins(self, root: Optional[TreeNode], x: int, y: int) -> bool:
-        def find(node, val, depth, par):
-            if not node:
-                return None
-            if node.val == val:
-                return depth, par
-            l = find(node.left, val, depth + 1, node)
-            if l:
-                return l
-            return find(node.right, val, depth + 1, node)
-        dx, px = find(root, x, 0, None)
-        dy, py = find(root, y, 0, None)
-        return dx == dy and px is not py
+        info = {}
+        def dfs(node, parent, depth):
+            if not node: return
+            if node.val in (x, y):
+                info[node.val] = (parent, depth)
+            dfs(node.left,  node, depth + 1)
+            dfs(node.right, node, depth + 1)
+        dfs(root, None, 0)
+        return info[x][1] == info[y][1] and info[x][0] is not info[y][0]
 ```
 
 ### Java
 ```java
 class Solution {
+    private int xDepth, yDepth;
+    private TreeNode xPar, yPar;
     public boolean isCousins(TreeNode root, int x, int y) {
-        int[] ax = new int[2], ay = new int[2];
-        TreeNode[] px = new TreeNode[1], py = new TreeNode[1];
-        dfs(root, x, 0, null, ax, px);
-        dfs(root, y, 0, null, ay, py);
-        return ax[0] == ay[0] && px[0] != py[0];
+        dfs(root, null, 0, x, y);
+        return xDepth == yDepth && xPar != yPar;
     }
-    void dfs(TreeNode node, int val, int d, TreeNode par, int[] depth, TreeNode[] parent) {
+    private void dfs(TreeNode node, TreeNode par, int d, int x, int y) {
         if (node == null) return;
-        if (node.val == val) { depth[0] = d; parent[0] = par; return; }
-        dfs(node.left, val, d + 1, node, depth, parent);
-        dfs(node.right, val, d + 1, node, depth, parent);
+        if (node.val == x) { xDepth = d; xPar = par; }
+        if (node.val == y) { yDepth = d; yPar = par; }
+        dfs(node.left,  node, d+1, x, y);
+        dfs(node.right, node, d+1, x, y);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BFS Parent Tracking"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Cousins"** → depth + parent, not just depth.
+- **"(node, parent, depth)"** → Day 22 queue metadata (DFS equivalent here).
+- **"Siblings trap"** → same parent fails.
+- **"Not LCA problem"** → two lookups suffice.
 
 > 🎯 **Pattern Unlocked:** BFS Parent Tracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: sum every node at the deepest level. →*

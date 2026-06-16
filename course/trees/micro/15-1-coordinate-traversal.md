@@ -1,120 +1,180 @@
+<!-- hand-authored -->
 # 📝 Tree Width, Depth & Coordinates
 
 > **Day 15** · Tree Coordinates · ★★★★☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Coordinate-Based Traversal visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Days 1–9 traversed by **structure** (DFS/BFS order). Today assign each node a **position on a grid**: column (horizontal), row (depth). Sort by `(col, row, val)` to produce vertical slices — or walk the **perimeter** in three deliberate passes: left edge, leaves, right edge.
+
+> **Contrast (Day 9 BFS):** Level-order groups by depth. Day 15 groups by **column** — same depth can split across vertical lines.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Coordinate-Based Traversal** — the core technique you'll use in today's quests.
+**Coordinate tagging + ordered collection:**
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Problem | Tagging rule | Output order |
+|---|---|---|
+| Vertical order | `(col, row, val)` — left col-1, right col+1 | Sort/map by col, then row |
+| Boundary | Three-pass perimeter walk | Left edge → leaves → right edge reversed |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+**Vertical order:** Root at column 0, row 0. Each left child shifts **column -1**; each right child **column +1**. Row increments on every downward step. Nodes sharing a column form one vertical line — sort by row (top to bottom); tie-break by value (#987).
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+**Boundary:** The silhouette of the tree from outside:
+1. **Left edge** — top-down, always prefer **left** child (record internal nodes, skip leaves here)
+2. **Leaves** — standard leaf collection, left-to-right (excluding root if alone)
+3. **Right edge** — top-down preferring **right**, collected **bottom-to-top**
 
-### 3. Visual walkthrough
-
-```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
-
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
-```
-
-### 4. How the pattern works
+### 3. Visual — Column map (col, row, val) BFS
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Tree:       3
+           / \
+          9   20
+             /  \
+            15   7
+
+Coordinates (col, row):
+
+  (0,0): 3
+  (-1,1): 9          (1,1): 20
+                     (0,2): 15    (2,2): 7
+
+Column map:
+  col -1: [9]
+  col  0: [3, 15]     ← same column, sort by row
+  col  1: [20]
+  col  2: [7]
+
+BFS/DFS with (col, row) tagging:
+
+  queue: (node, col, row)
+  root → (3, 0, 0)
+  push left  (9, -1, 1)
+  push right (20, 1, 1)
+  ...
+
+  Store in map[col][row] = val (or list for #987 tie-break)
+  Output columns left-to-right (min col → max col)
+
+  ┌────────────────────────────────────────────┐
+  │  left child:  (col - 1, row + 1)           │
+  │  right child: (col + 1, row + 1)           │
+  │  sort by (col, row, val) for output        │
+  └────────────────────────────────────────────┘
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 4. Visual — Boundary three-pass
 
-### 5. What problem does this solve?
+```
+Tree:       1
+           / \
+          2   3
+         / \   \
+        4   5   6
 
-| Problem family | How this pattern helps |
+PASS 1 — Left edge (top→bottom, prefer left):
+  Start at root.val = 1
+  Go left to 2 (has children → record)
+  Go left to 4 (leaf → skip in this pass)
+  Result so far: [1, 2]
+
+PASS 2 — Leaves (left-to-right inorder-style leaf scan):
+  Leaves: 4, 5, 6
+  Append: [1, 2, 4, 5, 6]
+
+PASS 3 — Right edge (top→bottom prefer right, REVERSE append):
+  From root.right = 3 (has child → record 3)
+  Go right to 6 (leaf → skip)
+  Collected [3], reversed → append 3
+  But 6 already in leaves — avoid duplicate root handling
+
+Full boundary: [1, 2, 4, 5, 6, 3]
+
+  ┌────────────────────────────────────────────┐
+  │  Left edge:   always go left if exists     │
+  │  Leaves:     both-null nodes, LR order     │
+  │  Right edge: always go right, reverse list │
+  │  Root:       add once at start             │
+  └────────────────────────────────────────────┘
+```
+
+### 5. The universal template
+
+**Vertical order (BFS tag + sort):**
+```
+map col → row → values
+queue (root, 0, 0)
+while queue:
+    pop (node, c, r)
+    map[c][r].add(node.val)
+    push (left, c-1, r+1), (right, c+1, r+1)
+output columns in sorted col order
+```
+
+**Boundary (three-pass):**
+```
+res = [root.val]
+addLeftBoundary(root.left)    // prefer left, skip leaves
+addLeaves(root.left); addLeaves(root.right)
+addRightBoundary(root.right)  // prefer right, reverse append
+```
+
+### 6. Why single-pass DFS fails
+
+| Wrong approach | Problem |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| One DFS for vertical order without coordinates | Can't group by column |
+| BFS level-order for vertical | Groups by row, not column |
+| One traversal for boundary | Picks up internal nodes wrongly — need three phases |
+| Include root twice on boundary | Root once; leaves pass skips root's duplicate |
 
-### 6. Why brute force fails
+### 7. Day 15 vs Day 9
 
-| Brute force | Problem |
-|---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
-
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+| | **Day 9 BFS** | **Day 15 Coordinates** |
+|---|---|---|
+| Groups by | Depth (row) | Column |
+| Queue carries | Level info | `(col, row)` pair |
+| Output | Level-by-level | Column-by-column |
+| Boundary | N/A | Three-pass perimeter |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "vertical order" / "columns" | `(col, row, val)` tag + sort |
+| "top view" / "bottom view" | Column extrema by row — variant |
+| "boundary" / "perimeter" | Left edge + leaves + right edge reversed |
+| "same column, sort by row" | `#987` tie-break on value too |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `col ± 1` · `row + 1` · `multiset` · `three-pass` · `reverse right edge`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Column drift wrong direction | Left = col-1, right = col+1 (standard convention) |
+| Boundary: including leaves in edge passes | Edge passes skip leaf-only nodes |
+| Boundary: right edge top-to-bottom append | Reverse before append — bottom-up on right |
+| #987: ignoring value tie-break | Same col AND row → sort by val |
+| Using float columns | Integer columns suffice for binary tree |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Return vertical order traversal grouped by column."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"BFS/DFS tag (col, row, val). Map or sort by col then row. Left child col-1, right col+1, row always +1."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Coordinates tag position; three passes trace the silhouette. First quest: vertical order. →*

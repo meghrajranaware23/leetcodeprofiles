@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Reverse String
 
 > **Day 1** · [Reverse String #344](https://leetcode.com/problems/reverse-string/) · Easy · 10 min
@@ -16,45 +17,52 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Reverse String #344](https://leetcode.com/problems/reverse-string/)**
+Write a function that reverses a string. The input string is given as an array of characters `s`. You must do this **in-place** with O(1) extra memory.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = ["h","e","l","l","o"]
+Output: ["o","l","l","e","h"]
+```
+
+```
+Input:  s = ["H","a","n","n","a","h"]
+Output: ["h","a","n","n","a","H"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Linear Recursion**.
+Which pattern from today's concept applies? **Two-pointer recursion** — swap the outer characters, then trust a recursive call to reverse the middle.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: draw the call stack for `s = ["h","e","l","l","o"]`. Mark when `l` and `r` meet — that's your base case.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Linear Recursion
+**Pattern used:** Linear Recursion (Two-Pointer Shrink)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Reverse in-place" → mutate the array; no second buffer
+- The middle sub-array is the **same problem** on a smaller range
+- One local action (swap ends) + one recursive call on `(l+1, r-1)`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "reverse in-place" | Swap from both ends — two pointers |
+| "array of characters" | Index-based recursion on `(l, r)` |
+| "O(1) extra memory" | Recursion depth O(n) — no auxiliary array |
+| "modify input" | Void helper — side effect, not return value |
+| "smaller subproblem" | Recurse on strictly smaller window |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each call handles exactly one pair of swaps at the boundary. The base case `l >= r` means zero or one character left — already reversed.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base case: l >= r → return."*
+2. *"Local step: swap s[l] and s[r]."*
+3. *"Shrink: recurse on l+1, r-1."*
+4. *"Trace the stack before writing syntax."*
 
 ---
 
@@ -62,12 +70,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Copy to a new array, reverse, copy back** | Violates in-place / O(1) extra space requirement |
+| **Single loop swapping without recursion insight** | Works iteratively — but misses the call-stack pattern Day 1 teaches |
+| **Recursive call on full `(l, r)` without shrinking** | Infinite recursion — never reaches base case |
+| **Swap only once (outer pair only)** | Returns `"oellh"` — middle never reversed |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Reversing is **self-similar**. After swapping the ends, *reversing the rest* is the identical problem on a smaller window.
 
 ---
 
@@ -75,25 +83,46 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Reverse Linked List #206](https://leetcode.com/problems/reverse-linked-list/) | Node pointers instead of indices | Shrink problem — delegate the tail |
+| [Reverse String II #541](https://leetcode.com/problems/reverse-string-ii/) | Reverse every 2k chunk | Same swap-ends idea per chunk |
+| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Compare instead of swap | Two pointers shrinking inward |
+| [Swap Nodes in Pairs #24](https://leetcode.com/problems/swap-nodes-in-pairs/) | Linked list pairs | Local swap + recurse on remainder |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you recognized Reverse String, you already have the skeleton for inward-shrinking recursion.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Use **two-pointer recursion**. Swap `s[l]` and `s[r]`, then recurse on the middle.
 
 ```
-Apply Linear Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+s = ["h", "e", "l", "l", "o"]     l=0, r=4
+
+CALL STACK:
+┌─────────────────────────────────────────┐
+│ rev(0,4): swap s[0]↔s[4]                │
+│   ["o", "e", "l", "l", "h"]             │
+│   waiting for rev(1,3)...               │
+├─────────────────────────────────────────┤
+│ rev(1,3): swap s[1]↔s[3]                │
+│   ["o", "l", "l", "e", "h"]             │
+│   waiting for rev(2,2)...               │
+├─────────────────────────────────────────┤
+│ rev(2,2): l >= r → BASE CASE → return   │
+└─────────────────────────────────────────┘
+
+UNWIND: all frames done → ["o","l","l","e","h"] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Single character edge case:
+
+```
+s = ["a"]     l=0, r=0
+rev(0,0): l >= r → return immediately (no swap needed) ✓
+```
+
+> 💡 **The insight:** You never think about the whole string — only one swap and a smaller `(l, r)`. The call stack remembers the rest.
 
 ---
 
@@ -136,22 +165,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Linear Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Reverse in-place"** → Two pointers from both ends — swap and shrink.
+- **"Same problem, smaller window"** → Recurse on `(l+1, r-1)`.
+- **"When do I stop?"** → `l >= r` — zero or one character left.
+- **"This is the call stack from the concept page"** → One frame per swap pair.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried a new array first, that's fine — the breakthrough is **naming the shrink direction**, not memorizing swap syntax.
 
-> 🎯 **Pattern Unlocked:** Linear Recursion
+> 🎯 **Pattern Unlocked:** Linear recursion with two-pointer shrink — swap locally, delegate the middle.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. The next one shrinks by dividing instead of swapping. →*

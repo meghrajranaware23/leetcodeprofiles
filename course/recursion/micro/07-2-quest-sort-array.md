@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Sort an Array
 
 > **Day 7** · [Sort an Array #912](https://leetcode.com/problems/sort-an-array/) · Medium · 15 min
@@ -10,23 +11,29 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Sort an Array on LeetCode](https://leetcode.com/problems/sort-an-array/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the split tree for `[5,2,4,1]`. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Sort an Array #912](https://leetcode.com/problems/sort-an-array/)**
+Given an array of integers `nums`, sort the array in **ascending order** and return it. You must solve it in **O(n log n)** time.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [5, 2, 3, 1]
+Output: [1, 2, 3, 5]
+
+Input:  nums = [5, 1, 1, 2, 0, 0]
+Output: [0, 0, 1, 1, 2, 5]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Merge Sort Recursion**.
+Which pattern from today's concept applies? **Merge sort recursion** — split at mid, sort both halves, merge.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: base case is one element (`lo >= hi`). Combine is the merge loop comparing two fronts.
 
 ---
 
@@ -35,26 +42,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Merge Sort Recursion
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Sort array" + O(n log n) → merge sort is the classic recursive sort
+- Implicit **split at midpoint** → two equal-ish subarrays
+- **Combine** step merges two sorted halves into one
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "sort" / "ascending order" | Merge or quicksort D&C |
+| "O(n log n)" required | Merge sort fits |
+| "divide" / split array | `mid`, recurse `[lo,mid]` and `[mid+1,hi]` |
+| "merge" / combine halves | Two-pointer merge into temp |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Sorted arrays merge in O(n). Two levels of log n splits → O(n log n) total.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: lo >= hi — subarray of size 0 or 1 is sorted."*
+2. *"Recurse both halves before merge — they must be sorted first."*
+3. *"Merge: compare fronts, write smaller, advance pointer."*
+4. *"Reuse one temp array sized n."*
 
 ---
 
@@ -62,12 +67,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Bubble / insertion sort** | O(n²) — fails time requirement |
+| **Sort only left, forget right** | Half unsorted — merge can't fix arbitrary order |
+| **Merge without temp buffer** | Shifting in-place during merge is O(n²) |
+| **Built-in sort in interview** | Misses the D&C lesson — know merge skeleton |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Sorting is **combine-heavy**. Children must return fully sorted halves; merge is linear glue.
 
 ---
 
@@ -75,25 +80,49 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Sort an Array #912](https://leetcode.com/problems/sort-an-array/) | Full array sort | Split, sort, merge |
+| [Merge k Sorted Lists #23](https://leetcode.com/problems/merge-k-sorted-lists/) | Many lists | Merge pairs recursively |
+| [Count of Smaller Numbers After Self #315](https://leetcode.com/problems/count-of-smaller-numbers-after-self/) | Merge with counting | Merge step records cross pairs |
+| [Reverse Pairs #493](https://leetcode.com/problems/reverse-pairs/) | Similar merge count | D&C + merge variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [5, 2, 4, 1]` — indices 0..3:
 
 ```
-Apply Merge Sort Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+SPLIT TREE:
+
+       sort(0,3)
+      /        \
+ sort(0,1)   sort(2,3)
+  /    \      /    \
+[5]   [2]  [4]   [1]
+
+MERGE UP:
+
+merge(0,1): [5],[2] → compare 5>2 → [2,5]
+merge(2,3): [4],[1] → [1,4]
+merge(0,3): [2,5] + [1,4]
+  i→2 j→1: pick 1 → [1]
+  i→2 j→4: pick 2 → [1,2]
+  i→5 j→4: pick 4 → [1,2,4]
+  i→5 done: append 5 → [1,2,4,5] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Merge frame detail `[2,5]` + `[1,4]`:
+
+```
+tmp:  [2,5,1,4]  (copy slice)
+i=0→2, j=2→1, k=0
+  tmp[0]=2 vs tmp[2]=1 → nums[0]=1, j++
+  tmp[0]=2 vs tmp[3]=4 → nums[1]=2, i++
+  tmp[1]=5 vs tmp[3]=4 → nums[2]=4, j++
+  append 5 → nums[3]=5
+```
+
+> 💡 **The insight:** Recursion sorts; merge **combines**. Never merge before children return.
 
 ---
 
@@ -177,22 +206,21 @@ class Solution {
 ```
 
 **Complexity:** O(n log n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Merge Sort Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Sort in O(n log n)"** → Merge sort D&C — split, sort halves, merge.
+- **"Base: one element"** → `lo >= hi` return immediately.
+- **"Merge compares two sorted fronts"** → Two pointers, write to temp, copy back.
+- **"Two recursive calls"** → Both halves must be sorted before combine.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried bubble sort first, that's fine — the breakthrough is **split tree + merge combine** on paper.
 
-> 🎯 **Pattern Unlocked:** Merge Sort Recursion
+> 🎯 **Pattern Unlocked:** Merge sort divide-and-conquer — split at mid, conquer both halves, merge sorted results.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: max subarray with a cross-midpoint combine. →*

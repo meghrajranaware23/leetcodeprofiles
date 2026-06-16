@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find Unique Binary String
 
 > **Day 22** · [Find Unique Binary String #1980](https://leetcode.com/problems/find-unique-binary-string/) · Medium · 15 min · 35 XP
@@ -10,23 +11,40 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find Unique Binary String on LeetCode](https://leetcode.com/problems/find-unique-binary-string/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw a grid — rows are input strings, columns are bit positions. At column `i`, why can at least one of `{0,1}` differ from every row?
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Find Unique Binary String #1980](https://leetcode.com/problems/find-unique-binary-string/)**
+Given an array of `n` **distinct** binary strings `nums` where each string has length `n`, return a binary string of length `n` that **does not appear** in `nums`. If multiple answers exist, return any.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = ["01","10"]
+Output: "11" or "00"
+
+Input:  nums = ["00","01"]
+Output: "11" or "10"
+
+Input:  nums = ["111","011","001"]
+Output: "101"
+```
+
+There are always `2^n` possible strings of length `n` but only `n` given — a missing string always exists.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Cantor Diagonal Backtracking**.
+**Hint 1:** Build answer left to right: `dfs(i)` fills bit at index `i`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** At position `i`, try `'0'` then `'1'`. **Reject** a bit if **every** string in `nums` has that same bit at column `i`.
+
+**Hint 3:** Helper `has(s, i)` — returns true if some `nums[k][i] == s[i]` for all k? Actually: skip bit if **all** strings match your choice at `i`. Equivalently: accept if **at least one** string differs — but simpler: reject when **every** input matches.
+
+**Hint 4:** Base: `i == n` → return true (found a complete string). First successful path wins — no need to collect all.
+
+**Hint 5:** **Cantor diagonal intuition:** pick bit `s[i]` that differs from `nums[i][i]` if you use the classic construction — backtracking generalizes this.
 
 ---
 
@@ -34,27 +52,27 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 **Pattern used:** Cantor Diagonal Backtracking
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| `n` strings of length `n`, all distinct | Pigeonhole — missing string exists |
+| "construct" / "find any" | Early-return backtrack, not count-all |
+| binary choices per level | Try `'0'`, `'1'` at each index |
+| differ from given set | Column-wise mismatch check |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Beautiful Arrangement:**
+
+| Beautiful Arrangement | Find Unique Binary String |
+|---|---|
+| `used[]` on numbers | No used — free bit choice |
+| Divisibility vs position | Column match vs input strings |
+| Count all | Return first valid |
+| Levels = positions 1..n | Levels = indices 0..n-1 |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Fill s[i] one bit at a time."*
+2. *"For each bit, if all nums match at column i, skip."*
+3. *"First dfs reaching i==n wins — return true up the stack."*
+4. *"Optional O(1) trick: ans[i] = nums[i][i]=='0'?'1':'0' — but learn backtrack version."*
 
 ---
 
@@ -62,38 +80,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all 2^n strings, check set** | Works for small n but misses the diagonal insight |
+| **Accept bit if any string differs** | Wrong — need string different from **all** inputs |
+| **Only flip diagonal without backtrack** | One-line solution exists; backtrack teaches column constraint |
+| **Forget to try both bits** | Sometimes `'0'` blocked at column, `'1'` works |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** You only need **one** string. Greedy diagonal (`s[i] != nums[i][i]`) always works — backtracking is the general "column constraint" template.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Connection |
+|---|---|
+| [Gray Code #89](https://leetcode.com/problems/gray-code/) | Binary string generation — different ordering rule |
+| Cantor's diagonal argument (CS theory) | Classic proof there are uncountably many reals |
+| [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | Today's other quest — positional constraint variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`nums = ["01", "10"]`:
 
 ```
-Apply Cantor Diagonal Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Greedy diagonal (O(n) insight):
+  i=0: flip nums[0][0]='0' → pick '1'
+  i=1: flip nums[1][1]='0' → pick '1'
+  → "11" (not in nums) ✓
+
+Backtrack equivalent at each column:
+  i=0: try '0' → nums[0][0] matches → has() true → skip
+       try '1' → no string has '1' at col 0 → recurse
+  i=1: try '0' → no string has '0' at col 1 → complete → "10" is in nums!
+       try '1' → no match at col 1 → "11" ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+The diagonal trick always works; backtrack teaches the column-by-column constraint.
 
 ---
 
@@ -167,19 +190,14 @@ class Solution {
 ```
 
 **Complexity:** O(n^2) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Cantor Diagonal Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Column constraint** — at index `i`, pick a bit that **no** input string has at column `i` (`!has`). Every string differs from your choice at that position.
+- **Cantor diagonal shortcut** — `ans[i] = '1' if nums[i][i]=='0' else '0'` always works in O(n); backtrack teaches the general template.
+- **Find any, not all** — return true at `i == n`; first complete path wins.
+- **Same skeleton as bit-building backtrack** — try `'0'`, try `'1'`, constraint before recurse.
 
 > 🎯 **Pattern Unlocked:** Cantor Diagonal Backtracking
 

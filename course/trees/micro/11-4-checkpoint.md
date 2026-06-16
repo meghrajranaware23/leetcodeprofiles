@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 11 Checkpoint
 
 > **BST Fundamentals** · 2 quests completed · ⭐ 60 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 11 is **BST ordering** — the tree is a sorted structure. Prune, don't scan.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "search in BST" / "find in BST" | Left/right walk | One branch per level, O(h) |
+| "validate BST" | Range `(lo, hi)` descent | Ancestor bounds, not parent-only |
+| "inorder of BST" | Sorted sequence | Preview for Day 12 kth-smallest |
+| "general binary tree search" | Full DFS O(n) | No ordering — not Day 11 |
+| "node in range (lo, hi)" on BST | Walk toward boundaries | Same compare logic as search |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Search for value 7 in a BST"* → **Left/right walk** — compare, prune one side
+2. *"Is this tree a valid BST?"* → **Range descent** — `dfs(node, lo, hi)`
+3. *"Find maximum depth of binary tree"* → **Not Day 11** — general tree, bottom-up
+4. *"Node 4 in right subtree of 5 but 4 < 5 — valid?"* → **Invalid** — range check catches it
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Insert a value into a BST."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Search walk to null.** Same left/right decisions as #700; attach new leaf where walk ends.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Find the closest value to target in a BST."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Walk with best-so-far.** At each node update closest; go toward the side that might improve.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Validate BST by checking inorder is sorted."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Alternative to range descent** — works with strict `<`; watch duplicates and INT boundary values. Range descent is safer in interviews.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = left/right walk. Scenario 3 = equivalent property, different implementation.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Parent-only validation** — Right child must exceed all ancestors on path, not just parent.
+2. **Closed intervals at bounds** — BST needs strict `<`; use `long` or infinity endpoints.
+3. **Full traversal for BST search** — O(n) when O(h) suffices.
+4. **Visiting both subtrees in search** — Compare once, pick one direction.
+5. **Forgetting Recursion pack overlap** — Validate BST #98 is the same pattern if you did both tracks.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Insert into a Binary Search Tree #701](https://leetcode.com/problems/insert-into-a-binary-search-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Insert into a BST on LeetCode](https://leetcode.com/problems/insert-into-a-binary-search-tree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Walk until null, attach — search pattern with a construction step at the end.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Trace inserting 5 into a 3-node BST. Where does the walk stop?
+
+> 💡 **Hint:** Same loop as search; when `node` becomes null, parent link is your attach point.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 11 complete! Tomorrow: the next branch of your ascension. →*
+*Day 11 complete! Tomorrow: modify the BST — kth smallest and delete. →*

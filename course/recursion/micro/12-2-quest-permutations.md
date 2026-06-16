@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Permutations
 
 > **Day 12** · [Permutations #46](https://leetcode.com/problems/permutations/) · Medium · 15 min · 20 XP
@@ -10,51 +11,59 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Permutations on LeetCode](https://leetcode.com/problems/permutations/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the `used[]` tree for `[1,2,3]`. Contrast with yesterday's start-index tree — why does `[2,1,3]` appear here but not in subsets?
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Permutations #46](https://leetcode.com/problems/permutations/)**
+Given an array `nums` of **distinct** integers, return all possible permutations.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [1, 2, 3]
+Output: [[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]]
+
+Input:  nums = [0, 1]
+Output: [[0,1], [1,0]]
+
+Input:  nums = [1]
+Output: [[1]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Used-Array Permutations**.
+**Hint 1:** Day 11 used a **start index** (forward-only). Permutations need a **`used[]` boolean array** — at each level, try every index not yet used.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Base case: `path.size() == nums.size()` → record and return. Unlike subsets, don't record partial paths.
+
+**Hint 3:** Undo **two** things after each dfs: `path.pop()` **and** `used[i] = false`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Used-Array Permutations
+**Pattern used:** Used-Array Permutation Backtracking
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "all permutations" | Full-length paths, all orderings |
+| distinct elements | No dedup needed |
+| uses every element exactly once | `used[]` tracks what's left |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 11:**
+
+| Subsets (#78) | Permutations (#46) |
+|---|---|
+| start index, forward picks | loop all `i`, skip if `used[i]` |
+| record at every node | record at leaves only |
+| `[1,2]` but not `[2,1]` as separate from start-2 branch | both `[1,2]` and `[2,1]` appear |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Order matters → used[], not start index."*
+2. *"Leaf when path full → 3! = 6 permutations for n=3."*
+3. *"push/dfs/pop + unmark used — twin undo."*
 
 ---
 
@@ -62,38 +71,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Start-index loop (Day 11)** | Never generates `[2,1,3]` — treats combinations as permutations |
+| **Record at every node** | Outputs `[1]`, `[1,2]` — partial paths aren't permutations |
+| **Forget to reset used[i]** | Same element used twice in one path |
+| **Heap's algorithm without understanding** | Correct but interviewers expect backtracking trace |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Duplicates — sort + skip |
+| [Next Permutation #31](https://leetcode.com/problems/next-permutation/) | Single next, not all — different algo |
+| [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | Add divisibility constraint in loop |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [1, 2, 3]`:
 
 ```
-Apply Used-Array Permutations step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs([], used=[F,F,F])
+  pick 1: dfs([1], [T,F,F])
+    pick 2: dfs([1,2], [T,T,F])
+      pick 3: [1,2,3] → record ✓
+    pick 3: dfs([1,3], [T,F,T])
+      pick 2: [1,3,2] → record ✓
+  pick 2: dfs([2], [F,T,F])
+    pick 1: [2,1,3] → record ✓
+    ...
+  pick 3: ... → [3,2,1] ✓
+
+6 leaves recorded
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Same push/pop rhythm as Day 11. The loop bounds changed from `j >= start` to `all i where !used[i]`.
 
 ---
 
@@ -160,22 +174,17 @@ class Solution {
 ```
 
 **Complexity:** O(n · n!) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Used-Array Permutations"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Order matters"** → `used[]`, not start index.
+- **Twin undo** → pop path AND unmark used.
+- **Leaves only** → partial paths aren't valid permutations.
+- **Same push/pop skeleton** → Day 11 muscle memory still applies.
 
 > 🎯 **Pattern Unlocked:** Used-Array Permutations
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: duplicates return with a new skip rule. →*

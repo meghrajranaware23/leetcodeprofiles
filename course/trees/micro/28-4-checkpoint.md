@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 28 Checkpoint
 
 > **Tree Synthesis I** · 2 quests completed · ⭐ 150 XP earned
@@ -6,67 +7,71 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 28 fused **top-down running state** (Day 6) with **bottom-up validity tuples** (Day 11 + Day 20). Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "consecutive" / "parent + 1" | ↓ Running `(parentVal, len)` | Streak depends on parent value |
+| "longest sequence" in tree | Global + top-down state | Best may start mid-tree |
+| "valid BST subtree" + optimize | ↑ Tuple `(isBST, min, max, sum)` | Validate and aggregate in one pass |
+| "lmax < node < rmin" | Bottom-up BST combine | Day 11 invariant via child bounds |
+| "reset streak" | `len = 1` on break | Non-consecutive edge starts fresh |
+| "poison tuple" on invalid | `(false, 0, 0, 0)` | Parent must not trust bad subtree |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 28 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Longest path of values increasing by 1 along parent-child edges"* → **Running length top-down** — `(parentVal, len)`, global `ans`
+2. *"Maximum sum among all BST subtrees"* → **Validity tuple** — 4-field combine, update `ans` on valid
+3. *"Validate BST only (no sum)"* → **Day 11 range descent** OR tuple without sum field
+4. *"Largest BST by node count"* → **Same tuple** — swap `sum` for `size`
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Count nodes in the largest BST subtree."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Validity tuple** — same as #1373 but track `count` instead of `sum` in the 4th field. Update global max count on valid combine.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Longest consecutive decreasing sequence (each child is parent − 1)."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Running length top-down** — change check to `node.val == parentVal - 1`. Same skeleton.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Is the entire tree a BST with total sum ≥ k?"*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Tuple at root** — if root returns `isBST=true`, compare `sum >= k`. Single pass.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Ask *does the child need parent context?* → top-down. *Does parent combine child reports?* → bottom-up tuple.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Consecutive: bottom-up max of children** — Parent value context is required; go top-down.
+
+2. **Consecutive: forget seed `root.val - 1`** — Root must start at length 1, not 0.
+
+3. **BST tuple: local child compare only** — Need `lmax` and `rmin` from entire subtrees.
+
+4. **BST tuple: return sum when invalid** — Always poison with `(false, 0, 0, 0)`.
+
+5. **Mixing patterns on same problem** — Consecutive = ↓ only. BST sum = ↑ only. Don't hybridize blindly.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Largest BST Subtree #333](https://leetcode.com/problems/largest-bst-subtree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Largest BST Subtree on LeetCode](https://leetcode.com/problems/largest-bst-subtree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Return the **number of nodes** in the largest BST subtree — same tuple skeleton as today's #1373 quest.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Write the null tuple. Write the valid combine. Swap `sum` for `count = 1 + lcount + rcount`.
+
+> 💡 **Hint:** If you've solved #1373 today, this is a 5-minute retarget of the 4th tuple field.
 
 ---
 
@@ -79,4 +84,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 28 complete! Tomorrow: the next branch of your ascension. →*
+*Day 28 complete! Tomorrow: trie wildcard design + quad-tree construction. →*

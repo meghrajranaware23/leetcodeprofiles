@@ -1,76 +1,68 @@
+<!-- hand-authored -->
 # ✅ Day 20 Checkpoint
 
-> **Backtracking + String Building** · 2 quests completed · ⭐ 120 XP earned
+> **Expression Generation** · 2 quests completed · ⭐ 70 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "insert +, -, *" into digit string | Operator insertion dfs | curr/prev + multiply carry |
+| "expression equals target" | Track curr, record at i==n | Don't eval path string |
+| "additive number" / sum of prior two | First-two-seed + validation dfs | prefix check for a+b |
+| digit string + cut lengths | Inner loop j from i | Leading zero → break |
+| `*` in expression | `curr - prev + prev*val` | NOT `curr * val` |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Insert operators in '123' to reach target 6"* → **Operator insertion.** First num seeds curr/prev. Three branches per cut.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Is '112358' an additive number?"* → **Seed (1,1), dfs checks 2,3,5,8.** Slide window (a,b)→(b,a+b).
+
+3. *"Partition string into palindromes"* → **Day 14 — validator swap, not operators.**
+
+4. *"Assign array to k equal buckets"* → **Day 19 — numeric buckets, not string cuts.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Split string into Fibonacci sequence — return the list if possible."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Additive Number + path collection (#842).** Same double-loop seed and dfs prefix check; push terms to a vector instead of returning boolean.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Insert operators to reach target — but only + and -, no multiply."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Simpler operator insertion.** Drop prev; only `curr + val` and `curr - val` branches.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Evaluate expression with parentheses — return all results."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Divide and conquer (#241), not insertion.** Split at each operator, recurse both halves, combine — different skeleton.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 → Day 20 family. Scenario 3 → divide & conquer (Day 7 territory).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **`curr *= val` for multiply** — Use carry undo: `curr - prev + prev*val`.
+2. **`continue` on leading zero** — Must `break`; longer cuts all invalid.
+3. **Single loop for additive seeds** — First two numbers need nested loops.
+4. **Evaluating path string mid-dfs** — Incremental curr/prev is O(1) per step.
+5. **int overflow** — Use long; LeetCode tests large digit strings.
+6. **Forgetting `prev = -val` on subtract** — Next multiply undo needs signed prev.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Trace `num = "232", target = 8` by hand. List both valid expressions before checking the solution.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Then: what is `curr` after `"2+3"` with `prev = 3` when you apply `*2`?
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Answer:** `"2*3+2"` and `"2+3*2"`. After `"2+3"`: curr=5, prev=3. Apply `*2`: curr = 5 - 3 + 3*2 = **8**.
 
 ---
 
@@ -78,9 +70,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Expression Add Operators #282](https://leetcode.com/problems/expression-add-operators/) | Medium | Operator Insertion Backtracking |
-| [Additive Number #306](https://leetcode.com/problems/additive-number/) | Medium | Sequence Validation Backtracking |
+| [Expression Add Operators #282](https://leetcode.com/problems/expression-add-operators/) | Medium | Operator insertion + multiply carry |
+| [Additive Number #306](https://leetcode.com/problems/additive-number/) | Medium | First-two-seed validation |
+| [Split Array into Fibonacci Sequence #842](https://leetcode.com/problems/split-array-into-fibonacci-sequence/) | Medium | Additive + collect path |
 
 ---
 
-*Day 20 complete! Tomorrow: the next descent of your ascension. →*
+*Day 20 complete. Tomorrow: backtracking meets memoization — Word Break II. →*

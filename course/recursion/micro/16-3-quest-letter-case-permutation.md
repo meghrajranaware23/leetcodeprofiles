@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Letter Case Permutation
 
 > **Day 16** · [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) · Medium · 15 min · 20 XP
@@ -10,51 +11,53 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Letter Case Permutation on LeetCode](https://leetcode.com/problems/letter-case-permutation/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Each letter is a binary fork — lower or upper. Digits are forced. Same push/pop as Day 11, two branches per letter.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/)**
+Given a string `s`, return all possible strings from changing the case of **letters** only. Digits stay fixed.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = "a1b2"
+Output: ["a1b2","a1B2","A1b2","A1B2"]
+
+Input:  s = "3z4"
+Output: ["3z4","3Z4"]
+
+Input:  s = "12345"
+Output: ["12345"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Binary Choice Backtracking**.
+**Hint 1:** `dfs(i, path)` — process character `s[i]`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** If `s[i]` is a letter: push lowercase, dfs; change to uppercase in place (or push upper), dfs; pop.
+
+**Hint 3:** If digit: push as-is, dfs, pop. Base case: `i == len(s)` → record path.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Binary Choice Backtracking
+**Pattern used:** Binary Choice Backtracking (index-based)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "letter case" / "upper or lower" | 2 branches per alpha char |
+| digits fixed | Single branch |
+| generate all strings | Record at `i == n` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Word Search:** no grid — pure index walk like Day 11, but **fixed 2 branches** per letter instead of a candidate loop.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Binary decision per letter — subset include/exclude vibe from Day 11."*
+2. *"Digits: no choice, still push/pop for uniform structure."*
+3. *"2^(#letters) outputs."*
 
 ---
 
@@ -62,38 +65,37 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Bitmask over letter positions** | Works but interview expects backtracking trace |
+| **Forget to pop after digit branch** | Path grows incorrectly |
+| **Change case globally on string** | Need independent choice per position |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Branching |
+|---|---|
+| [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | 2 per letter |
+| [Subsets #78](https://leetcode.com/problems/subsets/) | include/exclude per element |
+| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | add '(' or ')' with constraints |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`s = "a1b2"`:
 
 ```
-Apply Binary Choice Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(0, [])
+  'a' lower: dfs(1, ['a'])
+    '1': dfs(2, ['a','1'])
+      'b' lower: dfs(3, ['a','1','b'])
+        '2': dfs(4, ['a','1','b','2']) → record "a1b2" ✓
+      'b' upper: ... → "a1B2" ✓
+  'a' upper: ... → "A1b2", "A1B2" ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+4 strings = 2² letter choices.
 
 ---
 
@@ -170,22 +172,16 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Binary Choice Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Binary branch per letter** → Day 11 include/exclude on a string.
+- **Digits unchanged** → Single path, still push/pop.
+- **C-Rank capstone** → Same choose/explore/unchoose across array, string, and grid.
 
 > 🎯 **Pattern Unlocked:** Binary Choice Backtracking
 
 ---
 
-*Both quests complete. Head to the checkpoint. →*
+*Both quests complete. Head to the checkpoint — then the C-Rank test. →*

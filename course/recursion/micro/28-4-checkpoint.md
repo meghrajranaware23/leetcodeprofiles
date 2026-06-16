@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 28 Checkpoint
 
 > **Recursive Synthesis I** · 2 quests completed · ⭐ 150 XP earned
@@ -6,71 +7,63 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 28 revisited **Day 14 string partition** with S-Rank upgrades. Hear the signal:
 
-| When you see... | Think... | Why |
+| When you see... | Think... | S-Rank upgrade |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "partition string" + palindrome parts | Cut loop + pal check | `isPal[i][j]` precompute |
+| "restore IP" / exactly 4 octets | Cut max 3 + octet valid | remaining-length bounds prune |
+| "minimum palindrome cuts" (#132) | Same `isPal` table | DP not generate-all |
+| "split into words" (dictionary) | Cut loop + dict (Day 21) | trie or hash set lookup |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"All palindrome partitions — optimize validation"* → **`isPal[i][j]` table, O(1) per cut.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Restore IP from `25525511135`"* → **Two answers. Length prune + octet check.**
+
+3. *"Combination sum to target"* → **Day 13 — not string partition.**
+
+4. *"Generate all, pal check is bottleneck"* → **Precompute before dfs.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Split a string into dictionary words (Word Break II)."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Same cut loop — validator becomes `word in dict`. Optional trie for O(1) prefix prune.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Minimum cuts for palindrome partition (#132)."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Same `isPal[i][j]` — but DP: `dp[i] = min cuts for s[i..]`. Different output, same precompute.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Split digits into Fibonacci sequence."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+C-Rank test — cut loop + segment must extend Fibonacci sum rule.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three start with Day 14's cut skeleton. The **validator layer** and **prune hooks** change.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Fill `isPal` in wrong order** — extend from length-1 substrings upward.
+2. **IP: skip length prune** — wastes frames on impossible suffix lengths.
+3. **IP: record when parts==4 but i≠n** — leftover digits invalid.
+4. **Palindrome: forget pop** — stale segments in sibling branches.
+5. **Confuse #131 (generate) with #132 (min cuts)** — same `isPal`, different algorithm.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+From memory, write:
+1. The `isPal[i][j]` recurrence (one line).
+2. The IP remaining-length bounds check (one line).
+3. The Day 14 partition dfs pseudocode (5 lines: choose, explore, unchoose).
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then solve one revisit quest on LeetCode without notes.
 
 ---
 
@@ -78,9 +71,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Medium | Partition Backtracking |
-| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Medium | Partition with Pruning |
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Medium | 4 octets + length prune |
+| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Medium | cut + `isPal` precompute |
+| [Palindrome Partitioning II #132](https://leetcode.com/problems/palindrome-partitioning-ii/) | Hard | same `isPal`, min-cuts DP |
 
 ---
 
-*Day 28 complete! Tomorrow: the next descent of your ascension. →*
+*Day 28 complete. Tomorrow: recursive pattern matching — the hardest prose in the pack. →*

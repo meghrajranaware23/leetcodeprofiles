@@ -1,119 +1,183 @@
+<!-- hand-authored -->
 # 📝 Recursive Synthesis II
 
 > **Day 29** · Recursive Synthesis II · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Complex State Recursion visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Day 23 introduced **memoization on `(index, state)`**. Today you apply that to **two-dimensional string matching** — the hardest recursive case analysis in the entire pack.
+
+Two problems, one skeleton: `dp(i, j)` = *does `s[i..]` match `p[j..]`?*
+
+- **Regular Expression Matching #10** — `.` matches any char; `x*` matches zero or more of `x`
+- **Wildcard Matching #44** — `?` matches one char; `*` matches zero or more of **anything**
+
+The difference is subtle. The state machine is not. Read every case before you code.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The `(i, j)` Memo Framework
 
-### 1. What is the pattern?
-
-**Complex State Recursion** — the core technique you'll use in today's quests.
-
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+### 1. State definition
 
 ```
-PATTERN DECISION TREE — any new problem:
+dp(i, j) → bool
+  i = current index in text s  (0 .. m)
+  j = current index in pattern p (0 .. n)
 
-1. Can I define a smaller version of the same problem?
-   NO → probably not recursion
-   YES ↓
-2. Do I need to try ALL valid choices?
-   YES → backtracking (choose / explore / unchoose)
-   NO ↓
-3. Does information flow UP from sub-results?
-   YES → bottom-up return recursion
-   NO → top-down state passing
-4. Same subproblem repeated?
-   YES → add memoization
+Base: j == n  →  return (i == m)     // pattern consumed ↔ text consumed
 ```
 
-### 4. How the pattern works
+**Subproblem shrinks:** each recursive call advances `i`, or `j`, or both. Memo on `(i, j)` because the same pair is reached from different `*` branches — without memo, exponential blowup.
+
+### 2. The `(i, j)` memo table — what it stores
+
+For `s = "aa"`, `p = "a*"` (m=2, n=2):
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+        j=0   j=1   j=2
+        'a'   '*'   (end)
+i=0 'a'  ?     ?     ?
+i=1 'a'  ?     ?     ?
+i=2(end) ?     ?    T/F
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Fill bottom-up mentally or top-down with cache. Each cell answers: *"If I'm at text[i] and pattern[j], can the rest match?"*
 
-### 5. What problem does this solve?
+```
+dp(0,0): s="aa", p="a*"  → true (entire "aa" eaten by a*)
+dp(2,2): j==n, i==m      → true  (both empty — success)
+dp(2,0): j==0, i==2       → false (text left, pattern gone)
+```
 
-| Problem family | How this pattern helps |
+**Memo table rule:** if `memo[i][j]` already computed, return it. Same `(i,j)` reached when `*` tries 0 chars vs 1 char vs 2 chars — that's why memo is mandatory.
+
+### 3. Case analysis — when `p[j+1] != '*'`
+
+Two subcases only:
+
+```
+match = (i < m) && (s[i] == p[j] || p[j] == '.')
+
+if match:
+    return dp(i+1, j+1)      // consume one char from both
+else:
+    return false             // can't match this pattern char
+```
+
+**Example:** `s="ab"`, `p="a.b"`, at `(i=0,j=0)`:
+- `s[0]='a'`, `p[0]='a'` → match → `dp(1,1)`
+- at `(1,1)`: `s[1]='b'`, `p[1]='.'` → match → `dp(2,2)` → base true ✓
+
+**Example:** `s="ac"`, `p="ab"`, at `(0,0)`:
+- `'a'=='a'` → `dp(1,1)` → `'c'!='b'` → false ✗
+
+### 4. Case analysis — when `p[j+1] == '*'`  (THE HARD PART)
+
+When pattern has `x*` at positions `j` and `j+1`, **always look at `p[j]` (the char before `*`)**, not `p[j+1]`.
+
+```
+match = (i < m) && (s[i] == p[j] || p[j] == '.')
+
+if p[j+1] == '*':
+    return dp(i, j+2)                    // Branch A: * matches ZERO x's
+        || (match && dp(i+1, j))         // Branch B: * matches ONE OR MORE
+```
+
+**Branch diagram for `p[j]=='x'` followed by `*':**
+
+```
+                    dp(i, j)   pattern: ... x * ...
+                   /          \
+                  /            \
+         Branch A              Branch B
+    skip "x*" entirely      s[i] matches x (or '.')
+    dp(i, j+2)              consume s[i], keep pattern at j
+                            dp(i+1, j)
+                            (star still active — can eat more)
+```
+
+**Why `dp(i+1, j)` not `dp(i+1, j+2)`?** The `*` can match multiple `x`'s. After eating one `s[i]`, the pattern stays at `j` (the `x` before `*`) so the star can fire again.
+
+**Branch A — zero matches:**
+
+`"aab"`, `p="c*a*b"` at `(i=0,j=0)`: `p[0]='c'`, `p[1]='*'` → try `dp(0,2)` — skip `c*` entirely. Text still at `'a'`, pattern now at `'a'`.
+
+**Branch B — one or more:**
+
+`"aaa"`, `p="a*"` at `(i=0,j=0)`: match `'a'=='a'` → `dp(1,0)` → match → `dp(2,0)` → match → `dp(3,0)` → `j==n, i==3` → true.
+
+**Branch B then A:**
+
+`"ab"`, `p="a*b"` at `(0,0)`: eat `'a'` → `dp(1,0)` → `'b' matches, eat → `dp(2,0)` → at `(2,0)` pattern `a*` — Branch A: `dp(2,2)` → `j==n, i==m` → true.
+
+### 5. Full case matrix (Regex #10)
+
+| Condition | Action |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| `j == n` | return `i == m` |
+| `(i,j)` in memo | return cached |
+| `p[j+1] == '*'` | `dp(i,j+2) \|\| (match && dp(i+1,j))` |
+| else, match | `dp(i+1,j+1)` |
+| else | `false` |
 
-### 6. Why brute force / iteration fails
+where `match = i < m && (s[i]==p[j] || p[j]=='.')`
 
-| Brute force | Problem |
+### 6. Wildcard #44 — same skeleton, different `*`
+
+| | Regex #10 | Wildcard #44 |
+|---|---|---|
+| `.` / `?` | `.` = any one char | `?` = any one char |
+| `*` meaning | zero or more of **preceding** char | zero or more of **any** chars |
+| `*` check | look at `p[j+1]=='*'`, act on `p[j]` | look at `p[j]=='*'` directly |
+| zero-match branch | `dp(i, j+2)` skip `x*` | `dp(i, j+1)` skip `*` |
+| one+-match branch | `match && dp(i+1, j)` | `i < m && dp(i+1, j)` |
+
+**Wildcard `*` branch diagram:**
+
+```
+                dp(i, j)   pattern[j] == '*'
+               /          \
+              /            \
+     dp(i, j+1)          dp(i+1, j)
+   * matches 0 chars    * eats s[i] (any char)
+                         pattern stays at j
+```
+
+No `match` guard on the consume branch — `*` matches anything.
+
+**Example:** `s="adceb"`, `p="*a*b"`:
+- Start `(0,0)`: `p[0]='*'` → try zero: `dp(0,1)` with pattern `"a*b"` ...
+- Eventually `*` at front eats zero, `'a'` matches `'a'`, `*` eats `"dce"`, `'b'` matches `'b'` ✓
+
+### 7. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| Nested loops over all substrings | Doesn't handle `*` repetition |
+| Recursion without memo | Same `(i,j)` recomputed exponentially |
+| Treat regex `*` like wildcard `*` | Wrong branch — regex star binds to **previous** char |
+| `dp(i+1, j+2)` after one `*` match | Star can match more — stay at `j` |
 
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
-
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 8. Common mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Check `p[j]=='*'` in regex #10 | Check `p[j+1]=='*'`, operate on `p[j]` |
+| Forget zero-match branch | Always `dp(i, j+2)` or `dp(i, j+1)` first |
+| No memo | `(i,j)` table mandatory |
+| Base case `j==n` returns true always | Must also have `i==m` |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
-Read this problem aloud:
+> *"Does text match pattern with `.` and `x*`?"*
+>
+> → **`dp(i,j)` memo. If `p[j+1]=='*'`: skip or consume loop. Else: char match → both advance.**
 
-> *"Given an array, generate all possible subsets."*
-
-Before coding, say:
-
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Does text match pattern with `?` and `*`?"*
+>
+> → **Same memo. If `p[j]=='*'`: `dp(i,j+1)` or `dp(i+1,j)`. Else: `?` or equal → `dp(i+1,j+1)`.**
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*This is the hardest case analysis in the pack. Quest 1 is Regex #10 — trace every branch on paper first. →*

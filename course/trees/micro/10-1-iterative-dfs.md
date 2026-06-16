@@ -1,120 +1,164 @@
+<!-- hand-authored -->
 # 📝 Recursion vs Iteration Trade-offs
 
 > **Day 10** · Recursion vs Iteration · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand Iterative DFS with Stack visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Ten days of recursive DFS — today you **simulate the call stack** explicitly. Same visit orders, same tree rewrites; different control structure. Knowing both lets you pick the tool and survive interviews that ban recursion.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Iterative DFS with Stack** — the core technique you'll use in today's quests.
+**Iterative DFS with stack** — the stack replaces the call frame. Push nodes, pop when ready to process, track a `last visited` pointer for postorder.
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+- **Preorder iterative** — push right then left (pop = left first)
+- **Postorder iterative** — go left until stuck; if right unvisited, pivot right; else process node
+- **In-place rewire** — reverse postorder (right → left → node) builds right-tail linked list
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+Recursion = OS-managed stack of "where I was." Iteration = **you** manage that stack. Postorder is tricky because you must not print a node until both children are done — the `last` pointer remembers which subtree you just finished.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+Flatten tree? Process **right subtree first**, then left, then attach current node to the growing right tail — that's reverse postorder with pointer rewiring.
 
-### 3. Visual walkthrough
+### 3. Visual — Iterative postorder stack trace
 
 ```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
+Tree:     1
+         / \
+        2   3
+       /
+      4
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+Target postorder: [4, 2, 3, 1]
+
+Stack evolution (cur, stack, last):
+
+cur=1: push 1, go left
+cur=2: push 2, go left
+cur=4: push 4, go left
+cur=null: peek 4 — no right / right done → POP 4, last=4, res=[4]
+cur=null: peek 2 — right? no → POP 2, last=2, res=[4,2]
+cur=null: peek 1 — right=3 ≠ last → cur=3
+cur=3: push 3, go left
+cur=null: peek 3 → POP 3, last=3, res=[4,2,3]
+cur=null: peek 1 → POP 1, res=[4,2,3,1] ✓
+
+Rule at peek:
+  if node.right exists AND last ≠ node.right → cur = node.right
+  else → process node, last = node, pop
 ```
 
-### 4. How the pattern works
+### 4. Visual — Flatten: right-tail rewire (reverse postorder)
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Before:      1                After (right-skewed list):
+            / \                    1
+           2   5                   \
+              / \                    2
+             3   4                    \
+                                    3
+                                     \
+                                      4
+                                       \
+                                        5
+
+Reverse postorder visit: 5 → 4 → 3 → 2 → 1
+
+At each node (after children processed):
+  node.right = prev    ← old tail becomes my right child
+  node.left  = null
+  prev = node          ← I am the new tail
+
+Walk:
+  dfs(5): prev=null → 5.right=null, prev=5
+  dfs(4): 4.right=5, prev=4
+  dfs(3): 3.right=4, prev=3
+  dfs(2): 2.right=3, prev=2
+  dfs(1): 1.right=2, prev=1  ✓
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 5. Recursion vs iteration — trade-offs
 
-### 5. What problem does this solve?
+| | **Recursion** | **Iteration (stack)** |
+|---|---|---|
+| Code length | Shorter, mirrors definition | Longer, explicit state |
+| Stack limit | O(h) call frames — deep trees risk overflow | Same O(h) — you control the stack |
+| Postorder | Trivial: `left; right; node` | Needs `last` pointer logic |
+| Interview | Default choice | Required when recursion banned |
+| Flatten / Morris | Recursive reverse postorder is clean | Stack or O(1) Morris (later ranks) |
 
-| Problem family | How this pattern helps |
+**When to prefer iterative:** explicit stack control, very deep trees, or problem asks "without recursion."
+
+**When to prefer recursive:** clarity, bottom-up returns, construction — recursion matches the definition.
+
+### 6. The universal templates
+
+**Iterative postorder:**
+```
+while cur or stack not empty:
+    if cur: push cur; cur = cur.left
+    else:
+        node = stack.top()
+        if node.right and last ≠ node.right: cur = node.right
+        else: output node; last = node; pop
+```
+
+**Flatten (recursive reverse postorder — also valid iteratively):**
+```
+prev = null
+dfs(node):
+    if null: return
+    dfs(node.right)
+    dfs(node.left)
+    node.right = prev; node.left = null; prev = node
+```
+
+### 7. Why naive iteration fails
+
+| Naive approach | Problem |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
-
-### 6. Why brute force fails
-
-| Brute force | Problem |
-|---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
-
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+| Pop and immediately output (preorder stack) | Wrong order for postorder |
+| Two-stack reverse preorder trick | Works for postorder output but not in-place rewire |
+| BFS for postorder | Wrong traversal family |
+| Flatten with preorder | Loses left-subtree nodes — need reverse postorder |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "postorder" + "iterative" | Stack + last visited |
+| "without recursion" | Explicit stack simulation |
+| "flatten to linked list" | Reverse postorder rewire |
+| "follow right pointers only" | Postorder / reverse-postorder property |
+| "morris traversal" | O(1) space — later rank (not today) |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `stack` · `last visited` · `cur.left` · `prev` · `node.right = prev`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Output on pop (preorder behavior) | Postorder: peek, check right, defer pop |
+| Forgetting `last ≠ node.right` | Re-process right subtree before parent |
+| Flatten: process left before right | Reverse postorder: **right first** |
+| Flatten: lose `prev` between calls | Class field or nonlocal `prev` |
+| Stack overflow fear → BFS everywhere | Iterative DFS stack same depth as recursion |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Return the postorder traversal of a binary tree iteratively."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Stack + cur pointer. Drill left pushing. At peek: if right unvisited go right; else output and pop. Track last to avoid reprocessing."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*The call stack, made explicit. First quest: iterative postorder. →*

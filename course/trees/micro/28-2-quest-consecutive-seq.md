@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Consecutive Sequence
 
 > **Day 28** · [Binary Tree Longest Consecutive Sequence #298](https://leetcode.com/problems/binary-tree-longest-consecutive-sequence/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Binary Tree Longest Consecutive Sequence on LeetCode](https://leetcode.com/problems/binary-tree-longest-consecutive-sequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node write `(parentVal, len)` on the way down. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DFS + Running State**.
+Which pattern from today's concept applies? **↓ Running consecutive length** — pass `(parentVal, len)` down; extend streak when `node.val == parentVal + 1`, else reset to 1.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: the longest streak may **start at a non-root node**. Seed with `dfs(root, root.val - 1, 0)` so the root always begins length 1.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** DFS + Running State
+**Pattern used:** DFS + Running State (top-down streak)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"Consecutive"** along parent-child edges → compare current value to parent's value
+- **"Longest"** anywhere in tree → global `ans`, not just return from root
+- Not root-to-leaf path sum — streak can **reset** mid-tree when values skip
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "consecutive" / "increasing by 1" | `node.val == parentVal + 1` check |
+| "longest sequence" | Global max over all nodes |
+| "parent-child" (not any path) | Top-down — child needs parent's value |
+| "binary tree" (not BST) | No ordering invariant — only local +1 rule |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Each node knows whether it **continues** the streak from its parent or **starts fresh**. That decision requires parent context — bottom-up cannot see it.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Void dfs(node, parentVal, len) — no return needed."*
+2. *"len = extend or reset to 1."*
+3. *"ans = max(ans, len) at every node."*
+4. *"Recurse both children with node.val as new parentVal."*
 
 ---
 
@@ -62,12 +61,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Only track streak from root** | Best streak may start at internal node |
+| **Bottom-up max of child streaks** | Child doesn't know if parent continued +1 |
+| **Enumerate all paths O(n²)** | Single top-down pass is O(n) |
+| **BFS level order** | Consecutive is parent-child, not level-based |
+| **Sort values and scan** | Tree structure defines valid edges, not sorted order |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** One downward parameter `parentVal` encodes the entire streak context in O(1).
 
 ---
 
@@ -75,31 +75,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Longest Univalue Path #687](https://leetcode.com/problems/longest-univalue-path/) | Same value, not +1 | Dual-role bottom-up (Day 7) — different signal |
+| [Binary Tree Longest Consecutive Sequence II #549](https://leetcode.com/problems/binary-tree-longest-consecutive-sequence-ii/) | ±1 allowed | Two streaks per node (up/down) |
+| Day 6 Path Sum II | Remainder down, backtrack | Top-down state — different combine |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same compass direction (↓), different state variable.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Streak extends, breaks, and restarts — global captures best.**
 
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+         / \
+        4   5
 
-Apply DFS + Running State step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+dfs(1, 0, 0):   len=1  ans=1
+  dfs(2, 1, 1): len=2  ans=2   ← 2==1+1 ✓
+  dfs(3, 1, 1): len=1  ans=2   ← 3≠2+1, reset
+    dfs(4, 3, 1): len=2  ans=2   ← 4==3+1 ✓
+    dfs(5, 3, 1): len=1  ans=2   ← 5≠4+1... wait parentVal=3 at 4
+
+Correct trace at 5:
+    dfs(4, 3, 1): len=2  ans=2
+    dfs(5, 4, 2): len=3  ans=3   ← 5==4+1 ✓  BEST
+
+Answer: 3  (path 3→4→5)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** After reset at node 3, a new streak builds 3→4→5. Global `ans` catches it even though root's streak was only 2.
 
 ---
 
@@ -109,17 +117,17 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
     int ans = 0;
-    void dfs(TreeNode* node, TreeNode* parent, int len) {
+    void dfs(TreeNode* node, int parentVal, int len) {
         if (!node) return;
-        if (parent && node->val == parent->val + 1) ++len;
-        else len = 1;
+        len = (node->val == parentVal + 1) ? len + 1 : 1;
         ans = max(ans, len);
-        dfs(node->left, node, len);
-        dfs(node->right, node, len);
+        dfs(node->left,  node->val, len);
+        dfs(node->right, node->val, len);
     }
 public:
     int longestConsecutive(TreeNode* root) {
-        dfs(root, nullptr, 0);
+        if (!root) return 0;
+        dfs(root, root->val - 1, 0);
         return ans;
     }
 };
@@ -130,56 +138,50 @@ public:
 class Solution:
     def longestConsecutive(self, root: Optional[TreeNode]) -> int:
         self.ans = 0
-        def dfs(node, parent, length):
-            if not node:
-                return
-            if parent and node.val == parent.val + 1:
-                length += 1
-            else:
-                length = 1
+        def dfs(node, parent_val, length):
+            if not node: return
+            length = length + 1 if node.val == parent_val + 1 else 1
             self.ans = max(self.ans, length)
-            dfs(node.left, node, length)
-            dfs(node.right, node, length)
-        dfs(root, None, 0)
+            dfs(node.left,  node.val, length)
+            dfs(node.right, node.val, length)
+        if root: dfs(root, root.val - 1, 0)
         return self.ans
 ```
 
 ### Java
 ```java
 class Solution {
-    int ans = 0;
+    private int ans = 0;
     public int longestConsecutive(TreeNode root) {
-        dfs(root, null, 0);
+        if (root != null) dfs(root, root.val - 1, 0);
         return ans;
     }
-    void dfs(TreeNode node, TreeNode parent, int len) {
+    private void dfs(TreeNode node, int parentVal, int len) {
         if (node == null) return;
-        if (parent != null && node.val == parent.val + 1) len++;
-        else len = 1;
+        len = (node.val == parentVal + 1) ? len + 1 : 1;
         ans = Math.max(ans, len);
-        dfs(node.left, node, len);
-        dfs(node.right, node, len);
+        dfs(node.left,  node.val, len);
+        dfs(node.right, node.val, len);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"DFS + Running State"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Consecutive parent-child"** → top-down running state, not bottom-up.
+- **"Reset to 1"** → any break starts a new streak at current node.
+- **"Seed parentVal = root.val - 1"** → root always gets length 1.
+- **"Global ans"** → streak may peak in a subtree, not at root.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried bottom-up first, that's the synthesis lesson — **direction follows the dependency**. Parent value flows down; children cannot infer it.
 
-> 🎯 **Pattern Unlocked:** DFS + Running State
+> 🎯 **Pattern Unlocked:** DFS + Running State — consecutive streak with `(parentVal, len)`.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: BST validity tuple + max subtree sum. →*

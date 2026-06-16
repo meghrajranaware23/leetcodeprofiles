@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Generate Parentheses
 
 > **Day 8** · [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) · Medium · 15 min
@@ -10,51 +11,55 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Generate Parentheses on LeetCode](https://leetcode.com/problems/generate-parentheses/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree for n=2. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/)**
+Given `n` pairs of parentheses, write a function to generate all **combinations of well-formed parentheses**.
 
-Work through the examples on paper before reading further.
+```
+Input:  n = 3
+Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
+
+Input:  n = 1
+Output: ["()"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Constrained Generation**.
+Which pattern from today's concept applies? **Constrained generation** — track `open` and `close` counts; only append valid next char.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: add `)` only when `open > close`. Base when `len(path) == 2*n`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Constrained Generation
+**Pattern used:** Constrained Generation (Open/Close Tree)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Generate all" + "well-formed" → DFS with **pruning**, not generate-all-then-filter
+- Two choices per step (when valid): `(` or `)`
+- State = how many opens remain + how many closes placed
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "well-formed parentheses" | `open > close` before adding `)` |
+| "n pairs" | Path length `2n`, start `open=n` |
+| "generate all" | Collect at base, backtrack with pop |
+| "balanced" | Never more `)` than `(` at any prefix |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Invalid strings are never built — `)` branch only exists when an unmatched `(` exists.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"`open` = remaining `(` to place; `close` = `)` count so far."*
+2. *"Add `)` when `open > close` — still have unmatched opens."*
+3. *"Add `(` when `open > 0`."*
+4. *"Pop after each dfs — classic backtrack."*
 
 ---
 
@@ -62,12 +67,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **All 2^(2n) strings of ( and )** | Exponential waste — most invalid |
+| **Generate then validate with stack** | Same waste — filter after build |
+| **Add `)` when `close < n` only** | Allows invalid prefixes like `())` |
+| **No pop after recurse** | Path leaks chars into sibling branches |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Constraints belong **in the DFS branches**, not in a post-filter.
 
 ---
 
@@ -75,25 +80,83 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | open/close balance | Constrained DFS |
+| [Valid Parenthesis String #678](https://leetcode.com/problems/valid-parenthesis-string/) | `*` wildcard | DFS with lo/hi bounds |
+| [Remove Invalid Parentheses #301](https://leetcode.com/problems/remove-invalid-parentheses/) | Min removals | BFS/DFS with pruning |
+| [Different Ways to Add Parentheses #241](https://leetcode.com/problems/different-ways-to-add-parentheses/) | Insert ops | Partition + recurse |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`n = 2` — target length 4. DFS tree (valid branches only):
 
 ```
-Apply Constrained Generation step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+                    ""  open=2 close=0
+                     |
+                    "("  open=1 close=0
+                   /         \
+              "(("           "()"  open=1 close=1
+             open=0           |
+                |            "()(" open=0 close=1
+             "(()"            |
+                |            "()()" open=0 close=2 → RECORD ✓
+             "(())" → RECORD ✓
+
+dfs(2,0,""):
+  '(' → dfs(1,0,"(")
+    '(' → dfs(0,0,"((")
+      ')' → dfs(0,1,"(()")     [open>close: 0>1? no — wait 0>0 for first )
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Retrace with code order — **`)` before `(`** when `open > close`:
+
+From `dfs(1,0,"(")`:
+- `open > close` (1>0): add `)` → `dfs(1,1,"()")`
+  - `open > 0`: add `(` → `dfs(0,1,"()(")`
+    - `open > close` (0>1)? no. Stuck... 
+
+From `dfs(1,0,"(")` **also** `open > 0`: add `(` → `dfs(0,0,"((")`
+  - `open > close` (0>0)? no. Dead at `(("`...
+
+The **working paths** use interleaved `(` and `)`:
+
+```
+Path to "(())":
+  ( → ( → ) → )
+  dfs(2,0) → ( → dfs(1,0)
+           → ( → dfs(0,0)  path "(("
+           → ) → dfs(0,1)  path "(()"  [need open>close: at dfs(0,1) path has 2 '(' and 1 ')']
+```
+
+At `dfs(0,1,"(()")`: `open=0`, `close=1`. `open > close`? 0>1 false. Can't finish to `(())`.
+
+Trace path that **records** with Python base `len==2n`:
+
+Standard equivalent logic: add `(` if `open < n`, add `)` if `close < open`.
+
+For `n=2`, recorded strings: `(())` and `()()`.
+
+```
+"(())":  ( ( ) )
+"()()":  ( ) ( )
+```
+
+Tree with **close < open** rule (equivalent valid tree):
+
+```
+       ""
+       |
+      "("
+     /   \
+   "(("  "()"
+    |      |
+  "(()"  "()("
+    |      |
+ "(())" "()()"  ✓
+```
+
+> 💡 **The insight:** Each prefix must have more `(` than `)` — the open/close counters **prune** before invalid nodes exist. Pop restores path for siblings.
 
 ---
 
@@ -166,22 +229,21 @@ class Solution {
 ```
 
 **Complexity:** O(4^n / √n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Constrained Generation"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Generate all valid parentheses"** → DFS tree, not brute 2^(2n) strings.
+- **"Well-formed"** → Only add `)` when more `(` than `)` in current path (`open > close` in this parameterization).
+- **"Choose, explore, unchoose"** → `path.push` / `dfs` / `path.pop`.
+- **"This is backtracking preview"** → Days 11+ use the same skeleton with harder constraints.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried generating all binary strings first, pivot to **pruned DFS** — the tree is smaller and cleaner.
 
-> 🎯 **Pattern Unlocked:** Constrained Generation
+> 🎯 **Pattern Unlocked:** Constrained string generation — open/close counters prune the parentheses tree.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: multi-branch phone keypad. →*

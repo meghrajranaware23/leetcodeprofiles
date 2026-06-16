@@ -1,120 +1,176 @@
+<!-- hand-authored -->
 # 📝 Path Problems: Root-to-Leaf & Any-to-Any
 
 > **Day 14** · Path Problems · ★★★★☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Path Sum Patterns visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Day 6 tracked **root-to-leaf** remainders downward. Day 7 bent paths with **bottom-up globals**. Today paths start **anywhere** and end anywhere — two tools: a **prefix-sum hashmap** on tree DFS (Path Sum III), and **bottom-up univalue length** combine (Longest Univalue Path).
+
+> **Contrast (Day 7):** Day 7 global = cross-subtree through a node. Day 14 prefix map = count paths with target sum; univalue = same-value chain lengths upward.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Path Sum Patterns** — the core technique you'll use in today's quests.
+**Two path families:**
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Problem shape | Technique | State |
+|---|---|---|
+| Count paths summing to target (any start/end) | Prefix-sum hashmap on DFS | `cnt[prefix]` + backtrack |
+| Longest same-value path | Bottom-up length combine | Return arm lengths; global max |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+**Path Sum III:** On an array, count subarrays summing to `k` with `cnt[prefix_sum]`. On a tree, DFS **is** the path — carry running sum from root **down**; at each node, how many ancestors had prefix `current - target`? That's how many paths ending here sum to target. **Backtrack** the map when unwinding (sibling branches need clean state).
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+**Univalue path:** Each node asks children: *"Longest same-value chain you can offer through your edge to me?"* Combine left + right arms through current node; update global. Return **one** arm upward (the longer) — parent can only extend one side.
 
-### 3. Visual walkthrough
+### 3. Visual — Prefix-sum hashmap on tree DFS
 
 ```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
+Tree:       10
+           /  \
+          5   -3
+         / \    \
+        3   2   11
+       / \   \
+      3  -2   1
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+Target = 8
+
+DFS carries prefix sum from root (NOT required to start at root!)
+
+At node 5 (prefix=15 from 10→5):
+  cnt has {0:1, 10:1, 15:1} along current path
+  Need prefix = 15-8 = 7 → count paths ending here summing to 8
+
+Key insight: path 5→3 (5+3=8) starts at 5, not root.
+Prefix map on downward walk catches ALL downward paths.
+
+BACKTRACK at each unwind:
+  cnt[sum] -= 1   ← sibling branch must not see this path's prefixes
+
+  ┌─────────────────────────────────────────────┐
+  │  cnt[0] = 1  (empty prefix before root)     │
+  │  Enter node: sum += val                     │
+  │  ans += cnt[sum - target]                   │
+  │  cnt[sum] += 1                              │
+  │  recurse children                           │
+  │  cnt[sum] -= 1  ← BACKTRACK                 │
+  └─────────────────────────────────────────────┘
 ```
 
-### 4. How the pattern works
+### 4. Visual — Univalue bottom-up length combine
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Tree:       5
+           / \
+          4   5
+         / \   \
+        1   1   5
+
+At node 5 (leaf right): return (0, 0) — no same-value child
+At node 5 (middle, val=5):
+  left child 4 ≠ 5 → left arm = 0
+  right child 5 = 5 → right arm = 1
+  global = max(0, 0+1) = 1  (path: right child only)
+  return (0, 1) — offer 1-step right arm upward
+
+At node 5 (root):
+  left: child 4 ≠ 5 → 0
+  right: child 5 = 5 → right arm from child = 1 → +1 = 2
+  global through root = 0 + 2 = 2  (path: root→right→right, three 5s?)
+
+Trace carefully — return (leftArm, rightArm):
+  leftArm  = longest same-value chain via LEFT child edge
+  rightArm = longest same-value chain via RIGHT child edge
+  global candidate = leftArm + rightArm (edges through node)
+  return (leftArm, rightArm) for parent
+
+  ┌─────────────────────────────────────────────┐
+  │  GLOBAL: ans = max(ans, left + right)       │
+  │  RETURN: (leftArm, rightArm) to parent      │
+  │  Arm = childArm+1 IF child.val == node.val  │
+  └─────────────────────────────────────────────┘
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 5. The universal template
 
-### 5. What problem does this solve?
+**Prefix-sum on tree:**
+```
+cnt[0] = 1
+function dfs(node, sum):
+    if not node: return 0
+    sum += node.val
+    res = cnt[sum - target]
+    cnt[sum] += 1
+    res += dfs(left) + dfs(right)
+    cnt[sum] -= 1          // backtrack
+    return res
+```
 
-| Problem family | How this pattern helps |
+**Univalue bottom-up:**
+```
+function dfs(node):
+    if not node: return (0, 0)
+    (ll, lr) = dfs(left); (rl, rr) = dfs(right)
+    left  = lr+1 if left.val==node.val else 0
+    right = rl+1 if right.val==node.val else 0
+    ans = max(ans, left + right)
+    return (left, right)
+```
+
+### 6. Why naive approaches fail
+
+| Naive | Problem |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| Fix root, DFS every start node | O(n²) — prefix map is O(n) |
+| Root-to-leaf only (Day 6) | Misses paths starting at internal nodes |
+| Univalue: return single int height | Need **two** arm lengths (left vs right) |
+| Univalue: top-down same-value count | Can't see cross-subtree through node |
 
-### 6. Why brute force fails
+### 7. Day 14 vs Day 6–7
 
-| Brute force | Problem |
-|---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
-
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+| | **Day 6** | **Day 7** | **Day 14** |
+|---|---|---|---|
+| Path start | Root only | Any node | Any node |
+| Technique | Remainder down | Global cross-subtree | Prefix map OR univalue arms |
+| Backtrack | Path list | None | Prefix map yes |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "path sum" + "does not need to start at root" | Prefix-sum hashmap |
+| "number of paths" (not list) | Count via map — likely #437 |
+| "longest path same value" | Bottom-up dual-arm + global |
+| "count edges vs nodes" | Univalue counts **edges** — off-by-one care |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `cnt[sum - target]` · `backtrack` · `leftArm + rightArm` · `global ans`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Forgetting `cnt[0] = 1` | Empty prefix before root — paths starting at current node |
+| No backtrack on prefix map | Sibling subtrees pollute each other's counts |
+| Using int for prefix sum (negatives) | Use `long long` / Python int |
+| Univalue: returning `left + right` to parent | Return tuple of arms; parent uses one side only |
+| Confusing Path Sum III with Path Sum I | I = root-to-leaf; III = any downward path |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Count paths with sum exactly target — path can start and end anywhere."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"DFS with prefix map: ans += cnt[sum-target]; enter cnt[sum]++; recurse; leave cnt[sum]--. Init cnt[0]=1."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Prefix map counts bent sum paths; univalue arms bubble length up. First quest: Path Sum III. →*

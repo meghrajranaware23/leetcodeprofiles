@@ -1,120 +1,165 @@
+<!-- hand-authored -->
 # 📝 DFS: Inorder, Preorder, Postorder
 
 > **Day 2** · DFS Traversals · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand DFS Traversals visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Your mission today: **learn visit order by name** — not a generic "walk the tree." Inorder and preorder visit the **same nodes** but in **different sequences**. Draw one tree. Trace both orders side by side. Then the quest code is just recording when you "process" each node.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Visit Order Is the Pattern
 
-### 1. What is the pattern?
+### 1. What is DFS traversal?
 
-**DFS Traversals** — the core technique you'll use in today's quests.
+**Depth-first search** on a tree: go as deep as possible before backtracking. The only difference between inorder, preorder, and postorder is **when you record the current node's value** relative to the two recursive calls:
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Order | When you visit (process) node | Mnemonic |
+|---|---|---|
+| **Preorder** | **Before** left and right | Root → Left → Right |
+| **Inorder** | **Between** left and right | Left → Root → Right |
+| **Postorder** | **After** left and right | Left → Right → Root |
 
-### 2. Simple explanation
+Day 2 quests: **inorder** (#94) and **preorder** (#144). Same tree, different output lists.
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+### 2. The same tree — two numbered sequences
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
-
-### 3. Visual walkthrough
+Use this tree for every trace today:
 
 ```
-        1
+        3
        / \
-      2    3
-     / \    \
-    4    5    6
-
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+      9  20
+        /  \
+       15   7
 ```
 
-### 4. How the pattern works
+**Preorder #144 — process node FIRST:**
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+Visit order:  3 → 9 → 20 → 15 → 7
+
+ 1. Process 3       (root first)
+ 2. Process 9       (left subtree, leaf)
+ 3. Process 20      (right subtree root)
+ 4. Process 15      (20's left)
+ 5. Process 7       (20's right)
+
+Output: [3, 9, 20, 15, 7]
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+**Inorder #94 — process node BETWEEN left and right:**
 
-### 5. What problem does this solve?
+```
+Visit order:  9 → 3 → 15 → 20 → 7
 
-| Problem family | How this pattern helps |
+ 1. Go left to 9     → process 9   (no left child)
+ 2. Back to 3        → process 3
+ 3. Go left of 20    → process 15
+ 4. Back to 20       → process 20
+ 5. Go right of 20   → process 7
+
+Output: [9, 3, 15, 20, 7]
+```
+
+**Side-by-side:**
+
+| Step | Preorder (Root first) | Inorder (Root middle) |
+|---|---|---|
+| 1 | **3** | 9 |
+| 2 | 9 | **3** |
+| 3 | **20** | 15 |
+| 4 | 15 | **20** |
+| 5 | 7 | 7 |
+
+Same five nodes. Different order. **The pattern is the order, not "DFS" generically.**
+
+### 3. Recursive skeletons — only the print moves
+
+```python
+# PREORDER: process BEFORE children
+def preorder(node):
+    if not node: return
+    record(node.val)          # ← step 1 at each frame
+    preorder(node.left)
+    preorder(node.right)
+
+# INORDER: process BETWEEN children
+def inorder(node):
+    if not node: return
+    inorder(node.left)
+    record(node.val)          # ← step 2 at each frame
+    inorder(node.right)
+```
+
+**null base case:** empty subtree contributes nothing to the list.
+
+### 4. Why order matters (not just "visit all")
+
+| Problem type | Typical order |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| "Return nodes in inorder" | Inorder — Left, Root, Right |
+| "Copy tree structure" / serialize root-first | Preorder |
+| "Delete tree" / compute bottom-up | Postorder (Day 10 preview) |
+| BST sorted output | Inorder gives sorted sequence |
+
+Wrong order = wrong list, even if you visit every node.
+
+### 5. Pattern signals — Day 2 only
+
+| When the problem says… | Think… |
+|---|---|
+| "inorder traversal" | Left → Root → Right |
+| "preorder traversal" | Root → Left → Right |
+| "return list of node values" | DFS + record at correct position |
+| "binary tree" + visit sequence named | Match the name exactly |
+| "recursive or iterative" | Stack simulates call order |
+| "BST" + sorted order (preview) | Inorder |
+| "root first" | Preorder |
+| "process before/after children" | Pre vs post/in |
+
+**Keywords:** `inorder` · `preorder` · `left-root-right` · `root-left-right` · `visit order`
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| BFS for inorder/preorder | Wrong algorithm family — order names are DFS |
+| Visit nodes in arbitrary DFS order | Output won't match spec |
+| Store all paths | O(n²) — only need one value per node once |
+| Confuse inorder with preorder | Same tree, different answer list |
+| Skip iterative when asked | Stack mimics call stack — know both |
 
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
-
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
-
-### 9. Common beginner mistakes
+### 7. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Mixing preorder and inorder | Trace both on the **same** tree before coding |
+| Forgetting null base case | Empty subtree adds nothing |
+| Processing node after both children (inorder) | Inorder = **between** left and right |
+| Stack push order wrong (iterative preorder) | Push right first so left pops first |
+| Assuming any DFS order works | Read the problem's order name |
 
-### 10. Recognition drill
+### 8. Bridge from Day 1
 
-Read this problem aloud:
+Day 1 taught **where information flows** (↑ depth, swap mutate). Day 2 teaches **when you touch each node** during a DFS descent:
 
-> *"Given a binary tree, find its maximum depth."*
+- Max Depth: combine on the **return** (postorder-like timing)
+- Inorder/Preorder: **record** at a fixed point in the frame
 
-Before coding, say:
+Both use `if not node: return` — but traversal records values; property problems combine returns.
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+### 9. Recognition drill — today's quests
+
+**Quest 1 — Inorder #94:**
+> *"Left, then record, then right. On our tree: [9, 3, 15, 20, 7]."*
+
+**Quest 2 — Preorder #144:**
+> *"Record first, then left, then right. On our tree: [3, 9, 20, 15, 7]."*
+
+Say both sequences from memory before opening LeetCode.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You know the two visit orders. Quest 1 records inorder. →*

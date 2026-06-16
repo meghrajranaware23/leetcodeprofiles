@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Climbing Stairs
 
 > **Day 2** · [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) · Easy · 10 min
@@ -10,51 +11,68 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Climbing Stairs on LeetCode](https://leetcode.com/problems/climbing-stairs/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For `n = 4`, list every step sequence (1+1+1+1, 1+1+2, …). Then see if the count matches `ways(3) + ways(2)`. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/)**
+You are climbing a staircase. It takes `n` steps to reach the top.
 
-Work through the examples on paper before reading further.
+Each time you can either climb **1** or **2** steps. In how many **distinct ways** can you climb to the top?
+
+```
+Input:  n = 2
+Output: 2
+Explanation: 1+1, or 2
+```
+
+```
+Input:  n = 3
+Output: 3
+Explanation: 1+1+1, 1+2, 2+1
+```
+
+```
+Input:  n = 4
+Output: 5
+Explanation: 1+1+1+1, 1+1+2, 1+2+1, 2+1+1, 2+2
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Memoized Recursion**.
+Which pattern from today's concept applies? **Memoized recursion** — to stand on step `n`, you came from `n-1` or `n-2`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: write `ways(n) = ways(n-1) + ways(n-2)`. Base: `n <= 2 → return n`. Same skeleton as Fibonacci, different bases.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Memoized Recursion
+**Pattern used:** Memoized Recursion (Count Paths)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "1 or 2 steps" → every full path ends with either a 1-step or 2-step from below
+- Counting distinct ways → sum of counts from two previous positions
+- Overlap: `ways(k)` feeds many parent calls → memo
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "how many distinct ways" | Counting DP / recursive counting |
+| "1 or 2 steps" | Split into `f(n-1) + f(n-2)` |
+| "climb to the top" | Answer for full height n |
+| "n steps" | Subproblem indexed by remaining stairs |
+| same substructure at n-1 and n-2 | Memoization |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Every valid way to reach step `n` either ends with a single step from `n-1` or a double step from `n-2`. Those two sets don't overlap — partition of all paths.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Last move: 1-step or 2-step → ways(n) = ways(n-1) + ways(n-2)."*
+2. *"Base: n=1 → 1 way; n=2 → 2 ways → compact as n<=2 return n."*
+3. *"Trust both sub-calls — recursive hypothesis."*
+4. *"Memoize — same overlap as Fibonacci."*
 
 ---
 
@@ -62,12 +80,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate every 1/2 sequence with backtracking** | O(2^n) paths — correct but TLE on n=45 |
+| **Naive recursion without memo** | Recomputes `ways(3)`, `ways(2)` exponentially often |
+| **Nested loops simulating every path length** | Messy bookkeeping — recurrence is cleaner |
+| **Using Fibonacci base `n<=1→n` for stairs** | Wrong on n=2 — stairs need `n<=2 → n` |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** You don't list paths — you **count** by trusting how many paths lead to the two landing spots below the top.
 
 ---
 
@@ -75,25 +93,62 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) | Sequence definition | Identical recurrence, different story |
+| [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | Min cost, not count | Still choose step 1 or 2 from below |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Digit constraints | Count splits from current position |
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | Skip-adjacent max sum | 1D DP flavor — next week in this pack |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you solved Fibonacci today, Climbing Stairs is recognition practice — not a new algorithm.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Count ways for **`n = 4`**. Verify brute enumeration (5 paths) matches **`ways(4) = ways(3) + ways(2)`**.
 
 ```
-Apply Memoized Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+All paths to step 4 (brute list):
+  1+1+1+1
+  1+1+2
+  1+2+1
+  2+1+1
+  2+2
+Total: 5  ✓
+
+
+Recursive count (trust + memo):
+
+ways(4) = ways(3) + ways(2)
+
+ways(3) = ways(2) + ways(1)
+        = 2 + 1 = 3
+
+ways(2) = 2   ← base (1+1 or 2)
+
+ways(4) = 3 + 2 = 5  ✓
+
+
+Stair diagram — last hop onto step 4:
+
+  ... → step 3 ──1 step──→ step 4
+  ... → step 2 ──2 steps─→ step 4
+
+Every path to 4 is exactly one of these extensions.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Memoized call order (each k once):
+
+```
+dfs(4)
+  dfs(3)
+    dfs(2) → 2  (base)
+    dfs(1) → 1  (base)
+    memo[3] = 3
+  dfs(2) → memo hit → 2
+  memo[4] = 5
+```
+
+> 💡 **The insight:** The stair story and Fibonacci formula differ in **wording** only. Your Day 2 skill is spotting `f(n-1) + f(n-2)` and applying the right base case.
 
 ---
 
@@ -142,21 +197,20 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Memoized Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"1 or 2 steps to the top"** → Last move partitions paths → sum of two subcounts.
+- **"Distinct ways"** → Counting recurrence, not generating paths.
+- **"Looks like Fibonacci"** → Same memo skeleton — verify base case (`n<=2→n`).
+- **"Day 1 stack + Day 2 trust"** → Frames still push/pop; you combine two return values.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you listed all paths first, that's a valid sanity check for small n — the breakthrough is **trusting the recurrence** for large n.
 
-> 🎯 **Pattern Unlocked:** Memoized Recursion
+> 🎯 **Pattern Unlocked:** Memoized counting recursion — `ways(n) = ways(n-1) + ways(n-2)`.
 
 ---
 

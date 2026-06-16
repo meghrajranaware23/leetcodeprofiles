@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Different Ways to Add Parentheses
 
 > **Day 25** · [Different Ways to Add Parentheses #241](https://leetcode.com/problems/different-ways-to-add-parentheses/) · Medium · 15 min · 40 XP
@@ -10,23 +11,38 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Different Ways to Add Parentheses on LeetCode](https://leetcode.com/problems/different-ways-to-add-parentheses/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace `diffWays("2-1-1")` — list left/right results for each operator split before coding.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Different Ways to Add Parentheses #241](https://leetcode.com/problems/different-ways-to-add-parentheses/)**
+Given a string `expression` of digits and operators `+`, `-`, `*`, return **all possible results** from adding parentheses in different ways. You may assume the expression is valid.
 
-Work through the examples on paper before reading further.
+```
+Input:  expression = "2-1-1"
+Output: [0, 2]
+Explanation:
+  ((2-1)-1) = 0
+  (2-(1-1)) = 2
+
+Input:  expression = "2*3-4*5"
+Output: [-34, -14, -10, -10, 10]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Divide and Conquer Enumeration**.
+**Hint 1:** If the string has **no operator**, return `[integer value]` — base case.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Loop index `i` over the string. Skip non-operators (`+`, `-`, `*` only).
+
+**Hint 3:** Split: `left = diffWays(expression[0..i))`, `right = diffWays(expression[i+1..])`.
+
+**Hint 4:** Combine: for every `a` in left, every `b` in right, apply operator at `i` → `a+b`, `a-b`, or `a*b`.
+
+**Hint 5:** Collect all results in a list. Same split structure as Day 7 divide-and-conquer — multiple split points instead of one `mid`.
 
 ---
 
@@ -34,27 +50,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 **Pattern used:** Divide and Conquer Enumeration
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "different ways to add parentheses" | Every operator is a potential split |
+| "return all possible results" | List return, Cartesian combine |
+| Digits and binary operators | Recurse on substrings |
+| Valid expression, small length | Exponential results ok |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 7 (Merge Sort / Max Subarray):**
+
+| Day 7 D&C | Add Parentheses |
+|---|---|
+| One split at `mid` | Split at **each** operator |
+| Combine two sorted halves | Combine all pairs `(a, b)` with op |
+| Returns one structure | Returns list of integers |
+| Fixed divide point | Loop all divide points |
+
+**Contrast with Day 25 Quest 1 (Unique BSTs):**
+
+| Unique BSTs | Add Parentheses |
+|---|---|
+| Scalar multiply + sum | List Cartesian product |
+| Root loop on size | Operator loop on index |
+| Count structures | Enumerate eval values |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"No operator → base list with one value."*
+2. *"Each operator: recurse left string, recurse right string."*
+3. *"Nested loop combine — every left with every right."*
+4. *"Operator stays at split index — not included in substrings."*
 
 ---
 
@@ -62,38 +86,49 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Insert parentheses at all positions blindly** | Hard to track valid groupings vs operator splits |
+| **Left-to-right eval only** | Misses `(2-(1-1))` style regrouping |
+| **Return single int from recurse** | Need list of all sub-expression values |
+| **Include operator in left substring** | Split must be `[0..i)` and `[i+1..n)` |
+| **Only split at first operator** | Must try every `+`, `-`, `*` |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Splitting at operator `i` separates "how to parenthesize the left" from "how to parenthesize the right" — classic divide and conquer.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Unique BSTs #96](https://leetcode.com/problems/unique-binary-search-trees/) | Today's prior quest — scalar Catalan count |
+| [Expression Add Operators #282](https://leetcode.com/problems/expression-add-operators/) | Day 20 — insert missing operators + target |
+| [Sort an Array #912](https://leetcode.com/problems/sort-an-array/) | Day 7 — single mid split, merge combine |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`expression = "2-1-1"`:
 
 ```
-Apply Divide and Conquer Enumeration step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Split at i=1 ('-'):
+  left  = diffWays("2")     → [2]
+  right = diffWays("1-1")
+    split at i=1 ('-'): left=[1], right=[1] → 1-1=0
+    right → [0]
+  combine: 2-0 = 2, 2-0 = 2  → [2]
+
+Split at i=3 ('-'):
+  left  = diffWays("2-1")
+    split at i=1 ('-'): left=[2], right=[1] → 2-1=1
+    left → [1]
+  right = diffWays("1") → [1]
+  combine: 1-1=0
+
+Results: [2, 0] → sorted [0, 2] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+`"2*3-4*5"` — multiple splits produce overlapping subproblems (memo optional for speed; base solution recurses cleanly).
 
 ---
 
@@ -160,19 +195,15 @@ class Solution {
 ```
 
 **Complexity:** O(4^n / √n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Divide and Conquer Enumeration"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"All parenthesizations"** → split at each operator, D&C.
+- **Base: no operator** → single integer in a list.
+- **Combine: nested loops** → every left eval × every right eval.
+- **Operator at split index** — excluded from both substrings.
+- **Day 7 cousin** — multiple split points, list merge instead of sorted merge.
 
 > 🎯 **Pattern Unlocked:** Divide and Conquer Enumeration
 

@@ -1,76 +1,67 @@
+<!-- hand-authored -->
 # ✅ Day 18 Checkpoint
 
-> **Board & Grid Problems** · 2 quests completed · ⭐ 120 XP earned
+> **Board & Grid CSP** · 2 quests completed · ⭐ 70 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "n-queens" / queens not attacking | Row-by-row placement | cols + d1[r-c] + d2[r+c] |
+| "number of solutions" on board puzzle | Count-only CSP | ans++ at r==n, no board storage |
+| "solve sudoku" / fill empty cells | Fill-board CSP | idx 0..80, try 1–9, undo with '.' |
+| row + column + 3×3 box | Sudoku valid() | Scan all three before assign |
+| "word search" / path in grid | Day 16 — not Day 18 | 4-dir movement + mark/unmark path |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Return count of n-queens solutions"* → **Row dfs, three constraint sets, ans++ at leaf.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Solve sudoku in place"* → **Linear idx, skip givens, valid row/col/box, return true on first fill.**
+
+3. *"Find word path in character grid"* → **Day 16 Word Search** — not slot assignment.
+
+4. *"Return all n-queens board layouts"* → **N-Queens I (#51)** — same dfs, push board string at leaf.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Place rooks so none share row or column — count arrangements."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **N-Queens without diagonals** — only `cols` set, simpler constraint.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Determine if a partially filled Sudoku is valid (no solve needed)."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Valid Sudoku (#36)** — same row/col/box checks, no backtracking recursion.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Fill a crossword grid with dictionary words."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Cell/slot CSP like Sudoku** — try candidates per slot, undo on failure; constraints from crossing words.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1 and 3 → Day 18 slot-fill family. Scenario 2 → validation only.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **N-Queens: forget anti-diagonal `r+c`** — Only checking columns leaves diagonal attacks.
+2. **N-Queens II: storing all boards** — Count-only needs only `ans++`.
+3. **Sudoku: validate row only** — Column and 3×3 box duplicates fail hidden tests.
+4. **Sudoku: overwrite given cells** — Skip with `if board[r][c] != '.'`.
+5. **Confusing with Word Search** — Day 18 assigns values to fixed slots; Day 16 walks adjacent cells.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Without looking at notes, write the three constraint keys for a queen at `(r, c)` and the Sudoku `valid()` scan regions (row, column, box anchor formula).
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Then solve [Valid Sudoku #36](https://leetcode.com/problems/valid-sudoku/) — no backtracking, just the constraint checks.
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Keys:** `cols[c]`, `d1[r-c]`, `d2[r+c]`. Box anchor: `(r/3*3, c/3*3)`.
 
 ---
 
@@ -78,9 +69,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [N-Queens II #52](https://leetcode.com/problems/n-queens-ii/) | Medium | Row-by-Row Constraints |
-| [Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/) | Medium | Cell Assignment Backtracking |
+| [N-Queens II #52](https://leetcode.com/problems/n-queens-ii/) | Medium | Row-by-row count CSP |
+| [Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/) | Medium | Cell fill row/col/box |
 
 ---
 
-*Day 18 complete! Tomorrow: the next descent of your ascension. →*
+*Day 18 complete. Tomorrow: partition backtracking — matchsticks and equal subsets revisited. →*

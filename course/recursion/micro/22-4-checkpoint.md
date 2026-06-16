@@ -1,76 +1,71 @@
+<!-- hand-authored -->
 # ✅ Day 22 Checkpoint
 
-> **Advanced Constraint Backtracking** · 2 quests completed · ⭐ 120 XP earned
+> **Advanced Constraint Backtracking** · 2 quests completed · ⭐ 70 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| permutation + rule at position `i` | Divisibility constraint permutation | `used[]` + check before choose |
+| "count arrangements" | Global counter at leaf | `pos > n → ans++` |
+| build binary/string + differ from set | Cantor diagonal backtrack | Column check at each index |
+| "find any valid" | Early return true | First complete path wins |
+| board / row / column conflicts | Day 18 constraint satisfaction | Same check-before-choose idea |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Count permutations of 1..n where position divides value or vice versa."* → **Beautiful Arrangement.** `used[]`, divisibility guard, count at leaf.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Return a length-n binary string not in a list of n strings."* → **Cantor diagonal.** Bit-by-bit; skip if all inputs share bit at column.
+
+3. *"Generate all permutations of distinct nums."* → **Day 12.** No positional constraint.
+
+4. *"Place n queens on n×n board."* → **Day 18.** Row-by-row constraint, not permutation of numbers.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Count permutations where adjacent elements sum to a prime."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Constraint permutation.** `used[]` + check `(path[last], candidate)` before choose.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Given strings, find shortest string not in the set (unbounded length)."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Not today's template** — tries / automata, not fixed-length backtrack.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Construct string s such that s[i] != nums[i][i] for all i."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Greedy Cantor diagonal** — O(n), no backtrack needed. Special case of today's quest.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** 1 → constraint permutation. 2 → different family. 3 → diagonal one-liner.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **0-indexed vs 1-indexed pos** — Beautiful Arrangement uses **1-indexed** positions for divisibility.
+
+2. **Python `i % pos and pos % i`** — Truthy when both nonzero; means "neither divides" → skip. Correct.
+
+3. **Cantor: accept if any string matches** — Code skips when **any** string matches your bit at column (`has` true → skip). You need a bit **no** input has at that column.
+
+4. **Forgetting used[] undo** — Same as Day 12 — always unmark after dfs.
+
+5. **Treating both quests as same constraint** — One is positional divisibility; one is external set column check.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Without code: for `n=3`, how many beautiful arrangements exist? Trace `pos=1,2,3` and count leaves.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Then: for `nums=["000","111"]` (n=3), what does greedy diagonal `s[i] = flip(nums[i][i])` produce?
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Check:** 3 arrangements for n=3. Diagonal gives `"101"` — verify it's not in the set.
 
 ---
 
@@ -78,9 +73,15 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | Medium | Divisibility Constraint Permutation |
-| [Find Unique Binary String #1980](https://leetcode.com/problems/find-unique-binary-string/) | Medium | Cantor Diagonal Backtracking |
+| [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | Medium | Divisibility constraint permutation |
+| [Find Unique Binary String #1980](https://leetcode.com/problems/find-unique-binary-string/) | Medium | Cantor diagonal backtrack |
 
 ---
 
-*Day 22 complete! Tomorrow: the next descent of your ascension. →*
+## 🏆 B-Rank Finale
+
+Day 22 closes B-Rank core training. The **B-Rank test** (3 problems) draws from Days 17–22: pruning, board constraints, grid DFS, partition assignment. Name the pattern in 30 seconds, then code.
+
+---
+
+*Day 22 complete. B-Rank test awaits — prove the foundation. →*

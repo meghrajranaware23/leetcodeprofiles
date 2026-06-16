@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Same Tree
 
 > **Day 5** · [Same Tree #100](https://leetcode.com/problems/same-tree/) · Easy · 10 min
@@ -10,51 +11,58 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Same Tree on LeetCode](https://leetcode.com/problems/same-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw both trees. Pair nodes: left-with-left, right-with-right. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Same Tree #100](https://leetcode.com/problems/same-tree/)**
+Given the roots of two binary trees `p` and `q`, check if they are **the same** — same structure and same values at corresponding positions.
 
-Work through the examples on paper before reading further.
+```
+Input:  p = [1,2,3]     q = [1,2,3]
+
+Output: true
+
+Input:  p = [1,2]       q = [1,null,2]
+
+Output: false
+Explanation: Structure differs — q's 2 is right child of 1, not left.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Parallel Recursion**.
+Which pattern from today's concept applies? **Parallel recursion** — `(p.left, q.left)` and `(p.right, q.right)`. Both null → true; one null → false; values must match.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: this is **not** mirror pairing. Left goes with left.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Parallel Recursion
+**Pattern used:** Parallel Recursion (⇄ Side-by-side)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Two tree roots `p` and `q` → two-pointer walk
+- "Same structure and values" → parallel child pairing
+- Boolean short-circuit → `&&` on both subtrees
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "same tree" / "identical" | `(p.left,q.left)`, `(p.right,q.right)` |
+| "corresponding nodes" | Parallel, not cross |
+| "structure and value" | Null check + val equality |
+| "two binary trees" | Two parameters in recursive function |
+| "subtree" (related #572) | Reuse same() as building block |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Two trees are identical iff roots match and left subtrees match in parallel and right subtrees match in parallel.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Both null → true. One null → false."*
+2. *"Values differ → false."*
+3. *"same(p.left,q.left) && same(p.right,q.right)."*
 
 ---
 
@@ -62,12 +70,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Serialize to strings, compare** | Works but hides parallel skeleton used in #572 |
+| **Mirror pairing (symmetric style)** | Wrong — rejects valid identical trees |
+| **Compare only values, ignore shape** | `[1,2]` vs `[1,null,2]` would falsely pass |
+| **Flatten inorder lists** | Different shapes can yield same list |
+| **BFS both trees separately** | Harder null alignment than DFS parallel |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Same Tree is the **building block** for Subtree (#572) — master parallel pairing first.
 
 ---
 
@@ -75,31 +84,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Subtree of Another Tree #572](https://leetcode.com/problems/subtree-of-another-tree/) | Search + same() at each node | Parallel check |
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | **Cross** pairing instead | Mirror variant (Quest 2) |
+| [Merge Two Binary Trees #617](https://leetcode.com/problems/merge-two-binary-trees/) | Build new tree | Parallel walk both |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same two-pointer frame — different combine or build step.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Parallel pairing — left with left, right with right.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+p:        1              q:        1
+         / \                      / \
+        2   3                    2   3
 
-Apply Parallel Recursion step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Step 1: same(1, 1)  → vals match
+Step 2: same(2, 2)  → both leaves → true
+Step 3: same(3, 3)  → both leaves → true
+→ true ✓
+
+Mismatch example:
+p:   1          q:   1
+    /                 \
+   2                   2
+
+same(1,1) ✓
+same(2, null) → one null → false ✓
+(Never compare p's left 2 with q's right 2 — wrong pairing)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Structure matters. `(p.left, q.left)` must be checked even when one side is null.
 
 ---
 
@@ -110,8 +127,9 @@ Watch what gets returned from leaves back to root.
 class Solution {
 public:
     bool isSameTree(TreeNode* p, TreeNode* q) {
-        if (!p || !q) return p == q;
-        return p->val == q->val && isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
+        if (!p && !q) return true;
+        if (!p || !q || p->val != q->val) return false;
+        return isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
     }
 };
 ```
@@ -120,38 +138,38 @@ public:
 ```python
 class Solution:
     def isSameTree(self, p: Optional[TreeNode], q: Optional[TreeNode]) -> bool:
-        if not p or not q:
-            return p is q
-        return p.val == q.val and self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)
+        if not p and not q: return True
+        if not p or not q or p.val != q.val: return False
+        return self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)
 ```
 
 ### Java
 ```java
 class Solution {
     public boolean isSameTree(TreeNode p, TreeNode q) {
-        if (p == null || q == null) return p == q;
-        return p.val == q.val && isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
+        if (p == null && q == null) return true;
+        if (p == null || q == null || p.val != q.val) return false;
+        return isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Parallel Recursion"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Same tree"** → Parallel `(p.left,q.left)` AND `(p.right,q.right)`.
+- **"Not symmetric"** → No cross pairing — that's Quest 2.
+- **"Null rule"** → Both null true; exactly one null false.
+- **"Subtree test preview"** → This same() function is reused in #572.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you paired `p.left` with `q.right`, you wrote mirror logic by mistake.
 
-> 🎯 **Pattern Unlocked:** Parallel Recursion
+> 🎯 **Pattern Unlocked:** Parallel recursion — corresponding children stay paired.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: one tree, but compare left subtree against right — mirror. →*

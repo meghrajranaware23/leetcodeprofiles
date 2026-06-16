@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Boundary of Binary Tree
 
 > **Day 15** · [Boundary of Binary Tree #545](https://leetcode.com/problems/boundary-of-binary-tree/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Boundary of Binary Tree on LeetCode](https://leetcode.com/problems/boundary-of-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace three passes separately: left edge, leaves, right edge (reversed). The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Boundary DFS**.
+Which pattern from today's concept applies? **Boundary three-pass** — `[root] + leftEdge + leaves + reverse(rightEdge)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: left/right edge passes record nodes **with at least one child** only — pure leaves belong in the middle pass.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Boundary DFS
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Boundary" / "anti-clockwise" perimeter
+- Three components: left side, leaves, right side (bottom-up)
+- Root counted once at start
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "boundary of binary tree" | Three-pass perimeter |
+| "counterclockwise" | Left down → leaves LR → right up |
+| "left boundary nodes" | Prefer left, skip leaves |
+| "right boundary bottom-up" | Prefer right, reverse collection |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Perimeter decomposes into disjoint segments — no single traversal captures "outer shell" without double-counting internals.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"res = [root.val]."*
+2. *"Left edge: while node, if has child record; go left else right."*
+3. *"Leaves: standard leaf DFS left-to-right (both subtrees)."*
+4. *"Right edge: same as left but prefer right; reverse before append."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Single DFS around outside** | Hard to define "outside" without three phases |
+| **Include all left-path nodes** | Leaves on left spine double-count |
+| **Right edge top-to-bottom order** | Wrong — boundary goes up on right side |
+| **Preorder everything** | Picks up internal nodes not on perimeter |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Edge passes and leaf pass have **different inclusion rules** — edges skip leaves; leaf pass gets all leaves.
 
 ---
 
@@ -75,31 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Vertical Order #987](https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree/) | Today's other quest | Coordinate tagging |
+| [Right Side View #199](https://leetcode.com/problems/binary-tree-right-side-view/) | One node per level | Different "view" concept |
+| [Leaf order traversal variants](https://leetcode.com/) | Leaves only | Subroutine of boundary pass |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same decomposition mindset — break geometry into named passes.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree from concept page:**
 
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+     / \   \
+    4   5   6
 
-Apply Boundary DFS step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Pass 1 — left edge: 1, 2 (4 is leaf → skip)
+Pass 2 — leaves: 4, 5, 6
+Pass 3 — right edge from 3: record 3, reverse → 3
+
+Boundary: [1, 2, 4, 5, 6, 3] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `node.left or node.right` guard on edge passes — leaves wait for the dedicated leaf sweep.
 
 ---
 
@@ -108,34 +109,35 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    void addLeftBoundary(TreeNode* node, vector<int>& res) {
+    bool isLeaf(TreeNode* n) { return !n->left && !n->right; }
+    void addLeft(TreeNode* node, vector<int>& res) {
         while (node) {
-            if (node->left || node->right) res.push_back(node->val);
+            if (!isLeaf(node)) res.push_back(node->val);
             node = node->left ? node->left : node->right;
         }
     }
     void addLeaves(TreeNode* node, vector<int>& res) {
         if (!node) return;
-        if (!node->left && !node->right) { res.push_back(node->val); return; }
+        if (isLeaf(node)) { res.push_back(node->val); return; }
         addLeaves(node->left, res);
         addLeaves(node->right, res);
     }
-    void addRightBoundary(TreeNode* node, vector<int>& res) {
+    void addRight(TreeNode* node, vector<int>& res) {
         vector<int> tmp;
         while (node) {
-            if (node->left || node->right) tmp.push_back(node->val);
+            if (!isLeaf(node)) tmp.push_back(node->val);
             node = node->right ? node->right : node->left;
         }
-        res.insert(res.end(), tmp.rbegin(), tmp.rend());
+        for (int i = tmp.size()-1; i >= 0; i--) res.push_back(tmp[i]);
     }
 public:
     vector<int> boundaryOfBinaryTree(TreeNode* root) {
         if (!root) return {};
-        vector<int> res = {root->val};
-        addLeftBoundary(root->left, res);
-        addLeaves(root->left, res);
-        addLeaves(root->right, res);
-        addRightBoundary(root->right, res);
+        vector<int> res;
+        if (!isLeaf(root)) res.push_back(root->val);
+        addLeft(root->left, res);
+        addLeaves(root, res);
+        addRight(root->right, res);
         return res;
     }
 };
@@ -145,84 +147,80 @@ public:
 ```python
 class Solution:
     def boundaryOfBinaryTree(self, root: Optional[TreeNode]) -> List[int]:
-        if not root:
-            return []
-        def leaves(node):
-            if not node:
-                return []
-            if not node.left and not node.right:
-                return [node.val]
-            return leaves(node.left) + leaves(node.right)
-        def left_boundary(node):
-            res = []
+        if not root: return []
+        def is_leaf(n): return not n.left and not n.right
+        def add_left(node):
             while node:
-                if node.left or node.right:
-                    res.append(node.val)
-                node = node.left or node.right
-            return res
-        def right_boundary(node):
-            res = []
+                if not is_leaf(node): res.append(node.val)
+                node = node.left if node.left else node.right
+        def add_leaves(node):
+            if not node: return
+            if is_leaf(node): res.append(node.val); return
+            add_leaves(node.left); add_leaves(node.right)
+        def add_right(node):
+            tmp = []
             while node:
-                if node.left or node.right:
-                    res.append(node.val)
-                node = node.right or node.left
-            return res[::-1]
-        return [root.val] + left_boundary(root.left) + leaves(root.left) + leaves(root.right) + right_boundary(root.right)
+                if not is_leaf(node): tmp.append(node.val)
+                node = node.right if node.right else node.left
+            res.extend(reversed(tmp))
+        res = []
+        if not is_leaf(root): res.append(root.val)
+        add_left(root.left)
+        add_leaves(root)
+        add_right(root.right)
+        return res
 ```
 
 ### Java
 ```java
 class Solution {
     public List<Integer> boundaryOfBinaryTree(TreeNode root) {
-        if (root == null) return new ArrayList<>();
         List<Integer> res = new ArrayList<>();
-        res.add(root.val);
+        if (root == null) return res;
+        if (!isLeaf(root)) res.add(root.val);
         addLeft(root.left, res);
-        addLeaves(root.left, res);
-        addLeaves(root.right, res);
+        addLeaves(root, res);
         addRight(root.right, res);
         return res;
     }
-    void addLeft(TreeNode node, List<Integer> res) {
+    private boolean isLeaf(TreeNode n) { return n.left == null && n.right == null; }
+    private void addLeft(TreeNode node, List<Integer> res) {
         while (node != null) {
-            if (node.left != null || node.right != null) res.add(node.val);
+            if (!isLeaf(node)) res.add(node.val);
             node = node.left != null ? node.left : node.right;
         }
     }
-    void addLeaves(TreeNode node, List<Integer> res) {
+    private void addLeaves(TreeNode node, List<Integer> res) {
         if (node == null) return;
-        if (node.left == null && node.right == null) { res.add(node.val); return; }
-        addLeaves(node.left, res);
-        addLeaves(node.right, res);
+        if (isLeaf(node)) { res.add(node.val); return; }
+        addLeaves(node.left, res); addLeaves(node.right, res);
     }
-    void addRight(TreeNode node, List<Integer> res) {
-        List<Integer> tmp = new ArrayList<>();
+    private void addRight(TreeNode node, List<Integer> res) {
+        Deque<Integer> tmp = new ArrayDeque<>();
         while (node != null) {
-            if (node.left != null || node.right != null) tmp.add(node.val);
+            if (!isLeaf(node)) tmp.push(node.val);
             node = node.right != null ? node.right : node.left;
         }
-        Collections.reverse(tmp);
-        res.addAll(tmp);
+        while (!tmp.isEmpty()) res.add(tmp.pop());
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Boundary DFS"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Boundary"** → three passes, not one DFS.
+- **"Left edge prefer left"** → if no left, slide to right (stay on perimeter).
+- **"Skip leaves in edge passes"** → `has child` check.
+- **"Right edge reversed"** → bottom-up on the right side.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If duplicates appeared, check whether leaves were recorded in edge passes too.
 
-> 🎯 **Pattern Unlocked:** Boundary DFS
+> 🎯 **Pattern Unlocked:** Boundary DFS — left edge + leaves + reversed right edge.
 
 ---
 

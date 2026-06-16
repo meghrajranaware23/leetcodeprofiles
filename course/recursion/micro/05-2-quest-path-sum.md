@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Path Sum
 
 > **Day 5** · [Path Sum #112](https://leetcode.com/problems/path-sum/) · Easy · 10 min
@@ -10,51 +11,55 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Path Sum on LeetCode](https://leetcode.com/problems/path-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Write the **remaining target** at each node on the way down. Check only at leaves. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Path Sum #112](https://leetcode.com/problems/path-sum/)**
+Given the root of a binary tree and an integer `targetSum`, return `true` if the tree has a **root-to-leaf** path such that the sum of node values equals `targetSum`.
 
-Work through the examples on paper before reading further.
+A **leaf** is a node with no children.
+
+```
+Input:  root = [5,4,8,11,null,13,4,7,2,null,null,null,1],  targetSum = 22
+Output: true
+Explanation: 5 → 4 → 11 → 2 sums to 22
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Top-Down Accumulator**.
+Which pattern from today's concept applies? **Top-down remainder** — pass `targetSum - node.val` to children; at a leaf, check if `node.val == targetSum`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: don't sum upward from subtrees. Subtract as you go down; use `||` because only one path needs to win.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Top-Down Accumulator
+**Pattern used:** Top-Down Remainder (Root-to-Leaf Existential)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- **Root-to-leaf path** → must track running remainder downward; subtree alone doesn't know prefix
+- "Has / exists" → boolean OR across branches
+- Check at **leaf** → internal nodes don't declare success early (unless leaf)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "root-to-leaf path" | Downward state; leaf-only success check |
+| "path sum equals target" | Pass `target - val` each step |
+| "return true if any" | `left || right` |
+| "leaf node" | No children → equality test with remaining |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each step reduces the question: *"After paying for this node, can any continuation below finish the budget?"* The leaf base case is a single equality check.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"null → false (no path)."*
+2. *"Leaf → return node.val == targetSum."*
+3. *"Internal → rem = targetSum - val; return hasPath(left, rem) || hasPath(right, rem)."*
+4. *"Not Day 4 depth — I'm passing state down, not max-ing returns up."*
 
 ---
 
@@ -62,12 +67,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Sum all root-to-leaf paths into array, search** | Works but O(n) space; misses the O(h) recursive template |
+| **Bottom-up subtree sum == target** | Wrong — any node could match partial sum; need full root-to-leaf |
+| **Check target at every node** | Internal node match doesn't mean a leaf completes the path |
+| **Global sum from root without leaf check** | Counts partial paths incorrectly |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** The target is a **budget** consumed node by node. Only a leaf with exact remainder proves a valid path.
 
 ---
 
@@ -75,25 +80,53 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Path Sum II #113](https://leetcode.com/problems/path-sum-ii/) | Collect all paths | Top-down remainder + backtrack path list |
+| [Binary Tree Paths #257](https://leetcode.com/problems/binary-tree-paths/) | Build path strings | Top-down accumulation |
+| [Sum Root to Leaf Numbers #129](https://leetcode.com/problems/sum-root-to-leaf-numbers/) | Accumulate digits ×10 | Top-down running number |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+All pass **state down** along one root-to-leaf thread.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+**Remainder flows down; leaf checks equality; `||` merges branches.**
 
 ```
-Apply Top-Down Accumulator step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+target = 22
+
+              5  rem=22
+             / \
+        rem=17  rem=17
+          4       8
+         / \     / \
+    rem=13 rem=9 rem=9 rem=9
+     11     2     13    4
+     / \          (leaves)  / \
+ rem=2 rem=11    ...       5   1
+
+Path 5→4→11→2:
+  22 → 17 → 13 → 2
+  Leaf 2: 2 == 2?  YES ✓
+
+Path 5→4→8→13:
+  22 → 17 → 9 → -4 at 13... (13 != -4 at leaf) ✗
+
+Any true wins:
+  hasPath(5,22) = ... || hasPath(2,13) = true
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+State diagram:
+
+```
+     [node, remaining]
+           │
+    subtract node.val at each step
+           │
+     leaf? remaining == node.val
+```
+
+> 💡 **The insight:** At node 5 with target 22, you don't ask children "what's your depth?" — you ask *"can you finish 17?"* That's top-down state.
 
 ---
 
@@ -135,22 +168,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Top-Down Accumulator"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Root-to-leaf path sum"** → Top-down remainder, not bottom-up aggregation.
+- **"Leaf only"** → Internal nodes never return true on equality alone.
+- **"Subtract before recurse"** → Children inherit `target - val`.
+- **"|| not &&"** → One good path is enough — existential, not universal like same-tree.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried Day 4's `1 + max(left, right)` instinct, stop — path problems carry **budget**, not **height**.
 
-> 🎯 **Pattern Unlocked:** Top-Down Accumulator
+> 🎯 **Pattern Unlocked:** Top-down remainder — pass the shrinking target down; win at a leaf with `||`.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same downward bounds, but prune whole BST subtrees. →*

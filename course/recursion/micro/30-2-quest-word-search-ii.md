@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Search II
 
 > **Day 30** · [Word Search II #212](https://leetcode.com/problems/word-search-ii/) · Hard · 25 min · 60 XP
@@ -10,51 +11,66 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Search II on LeetCode](https://leetcode.com/problems/word-search-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Day 16 mark/unmark + trie navigation. Trace finding `"oath"` and `"oathf"` on the classic board — watch shared `"oath"` prefix collapse in the trie.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Word Search II #212](https://leetcode.com/problems/word-search-ii/)**
+Given an `m × n` board of characters and a list of strings `words`, return all words on the board.
 
-Work through the examples on paper before reading further.
+Each word must be constructed from letters of sequentially adjacent cells (horizontal or vertical). Same cell may not be used twice per word.
+
+```
+Input:  board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]]
+        words = ["oath","pea","eat","rain"]
+Output: ["eat","oath"]
+
+Input:  board = [["a","b"],["c","d"]], words = ["abcb"]
+Output: []
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Trie + Grid Backtracking**.
+**Hint 1:** Build a trie from all words. Each node stores optional `word` at terminal.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** Outer loop: start dfs from every cell with `trie_root`.
+
+**Hint 3:** Day 16 core: save char → mark `'#'` → 4 directions → restore char.
+
+**Hint 4:** At each step: if `board[r][c]` not in current trie node → return (prefix prune). If node has word → add to result.
+
+**Hint 5 (optimization):** Remove found word from trie node to avoid duplicates and prune dead branches.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Trie + Grid Backtracking
+**Pattern used:** Trie + Grid Backtracking (Day 16 + prefix tree)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| multiple words on grid | trie — not single-word DFS |
+| adjacent cells, no reuse | mark/unmark (Day 16) |
+| prefix shared across words | trie collapse |
+| find all matching | collect at terminal nodes |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Day 16 vs Day 30:**
+
+| Word Search #79 | Word Search II #212 |
+|---|---|
+| one target word | dictionary of words |
+| match `word[k]` explicitly | walk trie by board char |
+| return on first find | collect all terminal hits |
+| no trie | trie mandatory at scale |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Trie build first — O(total chars)."*
+2. *"dfs(r,c,node) — node moves through trie, not k index."*
+3. *"Mark/unmark identical to Day 16."*
+4. *"No trie child → prune before dfs."*
 
 ---
 
@@ -62,38 +78,77 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Run Word Search #79 per word** | O(words × m × n × 4^L) — TLE |
+| **DFS without trie prune** | Explores paths that can't form any dictionary prefix |
+| **Forget unmark** | `'#'` blocks valid cross-paths |
+| **Global visited across starts** | Must unmark per path, not per search |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Trie turns "is any word in the dictionary continuing with prefix `pre`?" into O(1) child lookup.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Twist |
+|---|---|
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Single word (Day 16) |
+| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | Trie + all words |
+| [Design Add and Search Words #211](https://leetcode.com/problems/design-add-and-search-word-data-structure/) | Trie with wildcard search |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+Classic board + `words = ["oath","pea","eat","rain"]`:
 
 ```
-Apply Trie + Grid Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Board:          Trie (partial):
+o a a n         root
+e t a e          └─ o → a → t → h (word: "oath")
+i h k r              └─ f (continues "oathf" if present)
+i f l v          └─ e → a → t (word: "eat")
+                 └─ p → e → a (word: "pea")
+                 └─ r → a → i → n (word: "rain")
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Finding `"oath"` — start (1,1) = `'t'`? No — start (0,0) = `'o'`:**
+
+```
+dfs(0,0, root)
+  board[0][0]='o' → trie child 'o' exists → node = root.o
+  mark (0,0) '#'
+  dfs(0,1, node.o): 'a' → node.o.a ✓ mark
+    dfs(0,2, node.o.a): 'a' → dead (need 't' next, board has 'a') → backtrack
+    dfs(1,1, node.o.a): 't' → node.o.a.t ✓ mark
+      dfs(1,2, ...): 'a' ✓
+        dfs(0,2,...): already '#' — skip
+        dfs(2,1,...): 'h' ✓ → node.o.a.t.h has word="oath" → ADD ✓
+      unmark each level...
+```
+
+**Finding `"eat"` — start (1,2) = `'a'` or trace from (1,1):**
+
+```
+dfs(1,1): 't' — not 'e', fail from here for "eat"
+dfs(1,2): 'a' → trie 'e'.'a' needs 'e' first — try (1,1):
+  (1,1) 't' — no. Start (0,3) 'n' — no.
+  
+Path for "eat": (1,2) via (1,1)? 
+(1,1)='t' — wrong start.
+
+Correct "eat" path:
+(1,2)='a' — need prefix "e" first
+(0,0)='o' — no
+(1,0)='e' → trie.e ✓
+  (1,1)='t' → trie.e.t — but 'a' needed not 't'
+
+Actually: (1,0)='e' → (1,1)='t'? "et" not in trie as prefix to eat
+(1,0)='e' → (0,1)='a' → trie.e.a ✓ → (1,2)='t' → trie.e.a.t = "eat" ✓ ADD
+```
+
+**Prefix prune example:** dfs reaches prefix `"oa"` on board but trie has no `'a'` child after `"o"` at that path → return immediately without exploring 4 directions.
+
+**Shared prefix `"oath"` / `"oathf"`:** if both in dictionary, they share nodes `o→a→t→h`. At `'h'` node, collect `"oath"`. Continue to `'f'` child for `"oathf"`. One dfs path finds both.
 
 ---
 
@@ -199,22 +254,21 @@ class Solution {
 ```
 
 **Complexity:** O(m · n · 4^L) time · O(total chars) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Trie + Grid Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Day 16 grid dfs — mark/unmark unchanged."** → `'#'` enter, restore exit.
+- **"Trie replaces word[k] index."** → node = prefix so far.
+- **"No trie child → prune."** → don't dfs into dead prefixes.
+- **"Collect at terminal, optionally pop word."** → dedupe + prune found words.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried per-word Word Search first, that's fine — the breakthrough is **trie as the dfs state**, not a separate search per word.
 
 > 🎯 **Pattern Unlocked:** Trie + Grid Backtracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: N-Queens — full board generation. →*

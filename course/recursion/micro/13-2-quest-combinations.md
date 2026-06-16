@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Combinations
 
 > **Day 13** · [Combinations #77](https://leetcode.com/problems/combinations/) · Medium · 15 min · 20 XP
@@ -10,51 +11,48 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Combinations on LeetCode](https://leetcode.com/problems/combinations/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** This is Day 11 subsets with a size gate. Draw pairs for `n=4, k=2` — confirm `[2,1]` never appears.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Combinations #77](https://leetcode.com/problems/combinations/)**
+Given two integers `n` and `k`, return all possible combinations of `k` numbers chosen from the range `[1, n]`.
 
-Work through the examples on paper before reading further.
+```
+Input:  n = 4, k = 2
+Output: [[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]]
+
+Input:  n = 1, k = 1
+Output: [[1]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Start-Index Combinations**.
+**Hint 1:** Same start-index loop as Subsets (#78). Difference: record **only** when `path.size() == k`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Loop `i` from `start` to `n`. Push `i`, recurse with `start = i + 1`, pop.
+
+**Hint 3:** Optional prune: if remaining slots `(k - path.size()) > (n - i + 1)`, stop early — not required for AC.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Start-Index Combinations
+**Pattern used:** Start-Index Combinations (fixed size k)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| vs Day 11 Subsets | Change |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| Record at every node | Record only when `path.size() == k` |
+| Any subset size | Exactly k elements |
+| Same start index | Same push/pop |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"C(n,k) = subsets filtered by size."*
+2. *"Start index prevents [2,1]."*
+3. *"Base case: path.size()==k → record."*
 
 ---
 
@@ -62,38 +60,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Permutations then filter** | `[1,2]` and `[2,1]` both appear — duplicate combos |
+| **Record at every node** | Outputs `[1]`, `[1,2,3]` — wrong sizes |
+| **used[] array** | Works but unnecessary — start index is simpler |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Twist |
+|---|---|
+| [Combination Sum #39](https://leetcode.com/problems/combination-sum/) | Target + reuse same index |
+| [Combination Sum III #216](https://leetcode.com/problems/combination-sum-iii/) | k numbers 1-9 summing to n (Day 15) |
+| [Subsets #78](https://leetcode.com/problems/subsets/) | All sizes, not fixed k |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`n=4, k=2`:
 
 ```
-Apply Start-Index Combinations step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
-```
+dfs(start=1, path=[])
+  i=1: push 1 → dfs(2, [1])
+         i=2: push 2 → [1,2] size==2 → record ✓
+         i=3: push 3 → [1,3] → record ✓
+         i=4: push 4 → [1,4] → record ✓
+  i=2: push 2 → dfs(3, [2])
+         i=3: [2,3] ✓
+         i=4: [2,4] ✓
+  i=3: [3,4] ✓
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+6 combinations = C(4,2)
+```
 
 ---
 
@@ -154,22 +153,16 @@ class Solution {
 ```
 
 **Complexity:** O(C(n,k) · k) time · O(k) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Start-Index Combinations"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Day 11 skeleton** → Same loop; gate recording on `path.size()==k`.
+- **Start index** → Combos, not permutations.
+- **C(n,k) count** → Prune optionally when not enough numbers remain.
 
 > 🎯 **Pattern Unlocked:** Start-Index Combinations
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: reuse the same candidate index. →*

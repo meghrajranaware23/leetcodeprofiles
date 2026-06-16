@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Decode Ways
 
 > **Day 23** · [Decode Ways #91](https://leetcode.com/problems/decode-ways/) · Medium · 15 min · 35 XP
@@ -10,51 +11,71 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Decode Ways on LeetCode](https://leetcode.com/problems/decode-ways/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace `decode(i)` on `"226"`. Then trace `"06"` and confirm the `'0'` guard returns 0 before any branch.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Decode Ways #91](https://leetcode.com/problems/decode-ways/)**
+A message containing letters `A–Z` is encoded to numbers: `A=1`, `B=2`, …, `Z=26`. Given a string `s` containing digits, return the **number of ways** to decode it.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = "12"
+Output: 2
+Explanation: "AB" (1,2) or "L" (12).
+
+Input:  s = "226"
+Output: 3
+Explanation: "2,2,6" | "22,6" | "2,26"
+
+Input:  s = "06"
+Output: 0
+Explanation: No valid decoding — '0' cannot stand alone.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **String Memoization**.
+**Hint 1:** Define `decode(i)` — *number of ways to decode suffix `s[i..]`*.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Base case: `i == len(s)` → return `1` (one way to decode empty suffix).
+
+**Hint 3:** **Guard:** if `s[i] == '0'` → return `0` immediately. Zero cannot start a letter.
+
+**Hint 4:** Branch 1: always take one digit → `decode(i+1)` (valid because of guard).
+
+**Hint 5:** Branch 2: if `i+1 < n` and `10 <= int(s[i:i+2]) <= 26`, add `decode(i+2)`.
+
+**Hint 6:** Memo on `i` — same overlap pattern as Word Break and House Robber.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** String Memoization
+**Pattern used:** String Index Memoization (Count)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "how many ways" + left-to-right string | Count memo on index |
+| Digit grouping (1 or 2 chars) | Two branches from each `i` |
+| Leading zero invalid | `'0'` guard before branching |
+| Two-digit must be 10–26 | Rejects `"06"`, `"07"`, … `"09"` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 21 (Word Break):**
+
+| Word Break I | Decode Ways |
+|---|---|
+| Cut lengths vary by dictionary | Cut lengths fixed: 1 or 2 |
+| Dict membership check | Numeric range check 10–26 |
+| Return bool | Return count (sum branches) |
+| No char guard | **`'0'` guard essential** |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"State = index i. How many decodings of suffix?"*
+2. *"If s[i]=='0', dead end → 0."*
+3. *"Add 1-digit path + optional 2-digit path."*
+4. *"Memo[i] caches suffix count."*
 
 ---
 
@@ -62,38 +83,57 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Enumerate all binary split points** | Exponential — overlapping suffixes |
+| **Skip `'0'` guard** | Counts paths through invalid decodings |
+| **Two-digit check only `<= 26`** | Allows `"06"` as a "letter" |
+| **Base `i==n` returns 0** | Empty suffix should contribute 1 way |
+| **No memo on overlapping `i`** | TLE on long strings |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** `decode(j)` is identical whether you arrived via one-digit or two-digit steps — cache at `memo[j]`.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Today's problem |
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | Today's prior quest — max instead of count |
+| [Word Break #139](https://leetcode.com/problems/word-break/) | Day 21 — bool instead of count |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`s = "226"`:
 
 ```
-Apply String Memoization step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+decode(0)
+├─ 1-digit '2' → decode(1)
+│   ├─ 1-digit '2' → decode(2)
+│   │   └─ 1-digit '6' → decode(3) → base 1
+│   └─ 2-digit '26' → decode(3) → base 1     (path: 2, 26)
+│   └─ 2-digit '22' invalid (>26)
+└─ 2-digit '22' → decode(2)  (same subproblem as above)
+
+Paths: (2,2,6), (22,6), (2,26) → 3 ways
+memo[3]=1, memo[2]=1, memo[1]=2, memo[0]=3
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+`s = "06"` — guard fires:
+
+```
+decode(0): s[0]=='0' → return 0 immediately ✓
+(no branch to decode(1) that wrongly returns 1)
+```
+
+`s = "11106"` — `'0'` in the middle:
+
+```
+... paths reaching index 4 with s[4]=='0' → decode(4)=0
+Only valid splits avoid leaving a lone '0'
+Answer: 0
+```
 
 ---
 
@@ -163,19 +203,15 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"String Memoization"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Count ways on a string"** → index memo with `+` combine.
+- **`'0'` guard** → invalid prefix returns 0, not 1.
+- **Two-digit 10–26** → `"1"` alone ok, `"06"` not ok.
+- **Base `i==n → 1`** → empty suffix completes one decoding path.
+- **Same overlap as WB / House Robber** → memo key is `i`.
 
 > 🎯 **Pattern Unlocked:** String Memoization
 

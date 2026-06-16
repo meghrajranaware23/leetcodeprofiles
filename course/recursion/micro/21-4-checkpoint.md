@@ -1,76 +1,71 @@
+<!-- hand-authored -->
 # ✅ Day 21 Checkpoint
 
-> **Backtracking + Memoization Bridge** · 2 quests completed · ⭐ 120 XP earned
+> **Backtracking + Memoization Bridge** · 2 quests completed · ⭐ 70 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "segment string" / "word break" / dict cuts | Index recursion `dfs(i)` | Loop `j`, check `s[i..j]`, recurse `dfs(j)` |
+| "true/false" + same suffix revisited | Boolean index memo | `memo[i] = true/false`; cache failures |
+| "all sentences" / "all partitions" + overlap | List index memo | `memo[i] = [...]`; combine word + cached tails |
+| "partition" without dict overlap worry | Pure backtrack (Day 14) | push/pop path; each `i` advances |
+| "how many ways" + index overlap | Count memo (Day 23 preview) | `memo[i] += dfs(j)` |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Can `s` be segmented using dictionary words?"* → **WB I.** Bool memo on index. Base `i==n` → true.
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Return every valid spaced sentence."* → **WB II.** List memo. Base → `[""]`. Combine `w + tail`.
+
+3. *"Return all palindrome partitions of a string."* → **Day 14 backtrack.** push/pop segments. No index memo needed for correctness.
+
+4. *"Decode ways — count segmentations by digit rules."* → **Day 23.** Index memo with integer count.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Given `s` and word list, return the minimum number of words needed to segment `s`."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Index memo / bottom-up DP.** Same cut loop as WB I, but store min word count at each index instead of bool. Overlap identical.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Given `s`, return one valid segmentation (not all)."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **WB I bool dfs** — stop at first success. No list memo needed.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Concatenate words from a list to form a string — find all starting indices."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Different problem** — sliding window + hash, not index memo. Don't force WB template.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 → index memo family from today. Scenario 3 → different technique.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Memo key = path of words** — Key is start index `i` only. Suffix determines the subproblem.
+
+2. **Not caching false (WB I)** — Dead suffixes get recomputed exponentially without `memo[i]=false`.
+
+3. **WB II base case `[]` instead of `[""]`** — Empty tail breaks the combine step for the final word.
+
+4. **Using push/pop path for WB I** — Return-value recursion; no shared mutable path.
+
+5. **Skipping memo on WB II** — Correct but TLE; the whole point of today is overlap recognition.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+On paper, draw the tree for `s = "catsanddog"` with dict `{cat,cats,and,sand,dog}`.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Label `memo[7]`, `memo[3]`, `memo[0]`. Say aloud what each stores before coding WB II from memory.
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Check:** `memo[7]=["dog"]`, `memo[3]=["sand dog"]`, `memo[0]=["cat sand dog","cats and dog"]`.
 
 ---
 
@@ -78,9 +73,15 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Word Break #139](https://leetcode.com/problems/word-break/) | Medium | Recursion + Memoization |
-| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Medium | Backtracking + Memo Hybrid |
+| [Word Break #139](https://leetcode.com/problems/word-break/) | Medium | Boolean index memo |
+| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Medium | List index memo + combine |
 
 ---
 
-*Day 21 complete! Tomorrow: the next descent of your ascension. →*
+## 🔭 A-Rank Preview
+
+Tomorrow (Day 22) stays in backtracking. Day 23 generalizes today's memo idea to **top-down DP** — House Robber, Decode Ways. The habit you're building: **trace the tree, circle repeated states, cache them.**
+
+---
+
+*Day 21 complete. Tomorrow: two constraint flavors on the same backtracking skeleton. →*

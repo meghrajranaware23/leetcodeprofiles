@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 30 Checkpoint
 
 > **Final Ascension** · 2 quests completed · ⭐ 150 XP earned
@@ -6,67 +7,71 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 30 is the **capstone** — route through the decision tree, then execute. Final patterns:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "distribute coins" / "minimum moves" | Post-order excess | `abs(excess)` = edge crossings |
+| "each node has one coin" | `coins + L + R - 1` | Keep 1, rest flows to parent |
+| "smallest missing genetic value" | Subtree set + MEX | Collect values, scan from 1 |
+| "parents array" + tree | Build children adjacency | Not binary — n-ary from parent list |
+| "permutation 1..n" | Unique node with 1 | Path-to-root optimization |
+| "no node has value 1" | All answers = 1 | MEX can't exceed 1 without 1 in subtree |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Route each through the Day 30 decision tree:
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Minimum moves to balance coins to 1 per node"* → **Post-order excess** — Day 30 quest 1
+2. *"Smallest missing value in each subtree"* → **Gene set aggregation** — Day 30 quest 2
+3. *"Minimum cameras to cover all nodes"* → **3-state bottom-up** — S-Test #968
+4. *"Nodes equal to subtree average"* → **`(sum, count)` tuple** — S-Test #2265
+5. *"Good paths with non-decreasing values"* → **DSU + sort by value** — S-Test #2421
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Minimum edge weight to send supplies so each node has exactly k units."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Post-order excess** — generalize to `excess = coins + L + R - k`.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"For each node, count distinct values in subtree."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Set aggregation** — same collect as gene problem, output set size not MEX.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"You see a new tree problem in an interview — where do you start?"*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Decision tree (Day 30 concept)** — BFS? Parallel? Top-down? Bottom-up tuple? Route first.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 30 quests are both **bottom-up**, but different return semantics — excess (scalar) vs set (aggregate).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Distribute Coins: simulate instead of excess** — Post-order accounting is O(n).
+
+2. **Distribute Coins: forget `- 1`** — Each node keeps exactly one coin.
+
+3. **Gene MEX: O(n²) per-node DFS** — Use path-from-1 optimization + global visited.
+
+4. **Gene MEX: reset mex each node** — `mex` only increases as set grows.
+
+5. **Skip capstone decision tree** — 30 days of patterns collapse into the flowchart — use it.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+You have completed the Trees pack. Before S-Test, run the **capstone drill**:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+1. Open a random tree problem on LeetCode.
+2. Draw the tree.
+3. Run the Day 30 decision flowchart — name the day and pattern.
+4. Write the recursive skeleton before looking at solutions.
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** If you can't route in 60 seconds, re-read `30-1-final-ascension.md` Section 1.
 
 ---
 
@@ -79,4 +84,14 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 30 complete! Tomorrow: the next branch of your ascension. →*
+## 🏆 Ready for S-Test
+
+Three problems stand between you and **Forest Legend**:
+
+| Test | Problem | Pattern |
+|---|---|---|
+| s-test-1 | Binary Tree Cameras #968 | 3-state post-order (deeper than B-test) |
+| s-test-2 | Number of Good Paths #2421 | DSU + value sort on tree |
+| s-test-3 | Average of Subtree #2265 | `(sum, count)` tuple |
+
+> *Day 30 complete. The forest awaits your final proof. →*

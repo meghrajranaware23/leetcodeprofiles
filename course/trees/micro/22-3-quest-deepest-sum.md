@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Deepest Leaves Sum
 
 > **Day 22** · [Deepest Leaves Sum #1302](https://leetcode.com/problems/deepest-leaves-sum/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Deepest Leaves Sum on LeetCode](https://leetcode.com/problems/deepest-leaves-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** BFS level batches — sum every value in the last wave. Links to Day 9 level-order and Day 17 level-end tracking. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS Depth Accumulation**.
+Which pattern from today's concept applies? **BFS depth accumulation** — each level batch: `level_sum = 0`, add all vals, set `res = level_sum`. Last batch wins.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: same inner loop as Day 17 bottom-left, but sum **all** nodes in the wave instead of capturing only the first.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS Depth Accumulation
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Deepest leaves" → last BFS level
+- "Sum" → aggregate whole level
+- All deepest nodes count (not just one)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "deepest level" / "deepest leaves" | Last BFS wave |
+| "sum of values" | Accumulate per level |
+| "leaf nodes at max depth" | Entire final batch |
+| "binary tree" | Standard BFS enqueue |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** BFS processes shallow to deep. Summing each level and keeping the last sum equals sum of deepest leaves.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"while q not empty."*
+2. *"level_sum = 0 at each batch start."*
+3. *"Add every node.val in inner loop."*
+4. *"res = level_sum after each batch."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **DFS find max depth then second pass** | Two traversals — one BFS enough |
+| **Only leftmost deepest (Day 17 #513)** | Must sum **all** deepest nodes |
+| **Global sum of all leaves** | Shallow leaves excluded |
+| **No level separation** | Can't identify deepest only |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Last level batch in BFS = exactly the deepest leaves.
 
 ---
 
@@ -75,31 +74,29 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Find Bottom Left #513](https://leetcode.com/problems/find-bottom-left-tree-value/) | Day 17 — first only | Same last level |
+| [Level Order #102](https://leetcode.com/problems/binary-tree-level-order-traversal/) | Day 3 — collect all levels | Same BFS |
+| [Average Levels #637](https://leetcode.com/problems/average-of-levels-in-binary-tree/) | Day 3 — mean per level | Level aggregate |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   3
+     / \   \
+    4   5   6
 
-Apply BFS Depth Accumulation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Level 0: sum = 1
+Level 1: sum = 5
+Level 2: sum = 4+5+6 = 15  ✓
+
+Deepest leaves {4,5,6} all in final wave.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Day 17 tracked one node at level end; today sums the entire level end.
 
 ---
 
@@ -112,24 +109,24 @@ public:
     int deepestLeavesSum(TreeNode* root) {
         queue<TreeNode*> q;
         q.push(root);
-        int sum = 0;
+        int res = 0;
         while (!q.empty()) {
-            int sz = q.size();
-            sum = 0;
-            for (int i = 0; i < sz; ++i) {
+            res = 0;
+            for (int sz = q.size(); sz > 0; sz--) {
                 TreeNode* node = q.front(); q.pop();
-                sum += node->val;
-                if (node->left) q.push(node->left);
+                res += node->val;
+                if (node->left)  q.push(node->left);
                 if (node->right) q.push(node->right);
             }
         }
-        return sum;
+        return res;
     }
 };
 ```
 
 ### Python
 ```python
+from collections import deque
 class Solution:
     def deepestLeavesSum(self, root: Optional[TreeNode]) -> int:
         q = deque([root])
@@ -138,10 +135,8 @@ class Solution:
             for _ in range(len(q)):
                 node = q.popleft()
                 level_sum += node.val
-                if node.left:
-                    q.append(node.left)
-                if node.right:
-                    q.append(node.right)
+                if node.left:  q.append(node.left)
+                if node.right: q.append(node.right)
         return level_sum
 ```
 
@@ -149,38 +144,32 @@ class Solution:
 ```java
 class Solution {
     public int deepestLeavesSum(TreeNode root) {
-        Queue<TreeNode> q = new ArrayDeque<>();
+        Queue<TreeNode> q = new LinkedList<>();
         q.offer(root);
-        int sum = 0;
+        int res = 0;
         while (!q.isEmpty()) {
-            int sz = q.size();
-            sum = 0;
-            for (int i = 0; i < sz; i++) {
+            res = 0;
+            for (int sz = q.size(); sz > 0; sz--) {
                 TreeNode node = q.poll();
-                sum += node.val;
-                if (node.left != null) q.offer(node.left);
+                res += node.val;
+                if (node.left != null)  q.offer(node.left);
                 if (node.right != null) q.offer(node.right);
             }
         }
-        return sum;
+        return res;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BFS Depth Accumulation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Deepest sum"** → last BFS level total.
+- **"Sum all in wave"** → not Day 17 first-node only.
+- **"Day 9 level loop"** → same engine, different aggregate.
+- **"res reset each level"** → last assignment survives.
 
 > 🎯 **Pattern Unlocked:** BFS Depth Accumulation
 

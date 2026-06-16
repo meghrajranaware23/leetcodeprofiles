@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Flatten Binary Tree
 
 > **Day 10** · [Flatten Binary Tree to Linked List #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Flatten Binary Tree to Linked List on LeetCode](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace **right → left → node** visit order and watch `prev` rewire the right tail. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **In-Place Tree Rewiring**.
+Which pattern from today's concept applies? **In-place tree rewiring** — reverse postorder: `dfs(right); dfs(left); node.right = prev; node.left = null; prev = node`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: preorder flatten loses nodes; you need **right subtree fully processed before left** so `prev` points to the next node in the flattened list.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** In-Place Tree Rewiring
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"In-place" + "right child only"** → pointer rewiring, not new nodes
+- **Preorder of flattened list** → reverse postorder construction
+- **`prev` tail pointer** → links current node to already-flattened suffix
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "flatten to linked list" | Reverse postorder rewire |
+| "right child pointer only" | `left = null`, extend right chain |
+| "in-place" | Reuse TreeNode links |
+| "preorder of flattened tree" | Visit right, then left, then attach |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Reverse postorder visits nodes from **last to first** in the target preorder list. Each node hooks its right pointer to the suffix already built in `prev`.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"prev = null (future tail)."*
+2. *"dfs(right) first — deeper/right nodes before left."*
+3. *"dfs(left); then node.right = prev; node.left = null; prev = node."*
+4. *"Recursive is clean; iterative = postorder stack variant."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Preorder: node, left, right with naive splice** | Loses right-subtree nodes |
+| **Collect values, rebuild tree** | O(n) extra space — not in-place |
+| **BFS level order** | Wrong order for preorder-linked-list |
+| **Process left before right** | `prev` points wrong — list reversed |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Flattened list is preorder; build it **backwards** via reverse postorder so each node knows its successor.
 
 ---
 
@@ -75,31 +74,52 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Postorder Traversal #145](https://leetcode.com/problems/binary-tree-postorder-traversal/) | Output values | Same visit order foundation |
+| [Convert Sorted List to BST #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/) | Build tree from list | Inverse direction |
+| [Morris Traversal](later ranks) | O(1) space flatten | Threaded tree variant |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Right-before-left postorder + `prev` tail is the core rewire template.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Right-tail rewire — reverse postorder.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+Before:        1
+              / \
+             2   5
+            /   / \
+           3   4   6
 
-Apply In-Place Tree Rewiring step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Flattened (preorder list): 1 → 2 → 3 → 5 → 4 → 6
+
+Reverse postorder visit: 6, 4, 5, 3, 2, 1
+
+Step by step:
+  dfs(6): prev=null  → 6.right=null, prev=6
+  dfs(4): 4.right=6, prev=4
+  dfs(5): 5.right=4, prev=5
+  dfs(3): 3.right=5, prev=3
+  dfs(2): 2.right=3, prev=2
+  dfs(1): 1.right=2, prev=1  ✓
+
+After:
+  1 → 2 → 3 → 5 → 4 → 6  (all left = null)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+Visit order:  R-subtree fully done → L-subtree → attach self to prev tail
+
+     1
+    /
+   2        prev walks backward building: 6←4←5←3←2←1
+  /
+ 3
+```
+
+> 💡 **The insight:** `node.right = prev` makes the old tail the new right child — in-place preorder list without extra nodes.
 
 ---
 
@@ -108,18 +128,19 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    TreeNode* prev = nullptr;
-    void dfs(TreeNode* node) {
-        if (!node) return;
-        dfs(node->right);
-        dfs(node->left);
-        node->right = prev;
-        node->left = nullptr;
-        prev = node;
-    }
 public:
     void flatten(TreeNode* root) {
-        dfs(root);
+        TreeNode* curr = root;
+        while (curr) {
+            if (curr->left) {
+                TreeNode* rightmost = curr->left;
+                while (rightmost->right) rightmost = rightmost->right;
+                rightmost->right = curr->right;
+                curr->right = curr->left;
+                curr->left = nullptr;
+            }
+            curr = curr->right;
+        }
     }
 };
 ```
@@ -128,53 +149,52 @@ public:
 ```python
 class Solution:
     def flatten(self, root: Optional[TreeNode]) -> None:
-        prev = None
-        def dfs(node):
-            nonlocal prev
-            if not node:
-                return
-            dfs(node.right)
-            dfs(node.left)
-            node.right = prev
-            node.left = None
-            prev = node
-        dfs(root)
+        curr = root
+        while curr:
+            if curr.left:
+                rightmost = curr.left
+                while rightmost.right:
+                    rightmost = rightmost.right
+                rightmost.right = curr.right
+                curr.right = curr.left
+                curr.left = None
+            curr = curr.right
 ```
 
 ### Java
 ```java
 class Solution {
-    TreeNode prev = null;
     public void flatten(TreeNode root) {
-        dfs(root);
-    }
-    void dfs(TreeNode node) {
-        if (node == null) return;
-        dfs(node.right);
-        dfs(node.left);
-        node.right = prev;
-        node.left = null;
-        prev = node;
+        TreeNode curr = root;
+        while (curr != null) {
+            if (curr.left != null) {
+                TreeNode rightmost = curr.left;
+                while (rightmost.right != null) rightmost = rightmost.right;
+                rightmost.right = curr.right;
+                curr.right = curr.left;
+                curr.left = null;
+            }
+            curr = curr.right;
+        }
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"In-Place Tree Rewiring"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Preorder list, in-place"** → Reverse postorder rewire.
+- **"Right before left"** → Opposite of normal postorder child order.
+- **"prev = built suffix"** → `node.right = prev` extends the chain backward.
+- **"left = null always"** → Problem requires right-only linked structure.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If your list is reversed, you processed left before right.
 
-> 🎯 **Pattern Unlocked:** In-Place Tree Rewiring
+> 🎯 **Pattern Unlocked:** In-Place Tree Rewiring — reverse postorder, prev tail, null left.
 
 ---
 

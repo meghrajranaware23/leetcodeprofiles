@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Break
 
 > **Day 21** · [Word Break #139](https://leetcode.com/problems/word-break/) · Medium · 15 min · 35 XP
@@ -10,51 +11,69 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Break on LeetCode](https://leetcode.com/problems/word-break/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw `wb(i)` on paper for `"leetcode"`. Mark memo entries at each index. No code until you can point to where overlap would happen on a longer string.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Word Break #139](https://leetcode.com/problems/word-break/)**
+Given a string `s` and a dictionary of strings `wordDict`, return `true` if `s` can be segmented into a space-separated sequence of one or more dictionary words.
 
-Work through the examples on paper before reading further.
+**Note:** The same word in the dictionary may be reused.
+
+```
+Input:  s = "leetcode", wordDict = ["leet","code"]
+Output: true
+Explanation: "leetcode" = "leet" + "code"
+
+Input:  s = "applepenapple", wordDict = ["apple","pen"]
+Output: true
+
+Input:  s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]
+Output: false
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Recursion + Memoization**.
+**Hint 1:** Define `dfs(i)` — *can the suffix `s[i..]` be segmented?* Base case: `i == len(s)` → `true`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Loop `j` from `i+1` to `n`. If `s[i..j]` is in the dictionary **and** `dfs(j)` is true, return true immediately.
+
+**Hint 3:** Put dictionary words in a `set` for O(1) lookup.
+
+**Hint 4:** **Memo on index.** Before exploring cuts, check `memo[i]`. After exploring, store `memo[i] = false` if nothing worked — caching failures matters.
+
+**Hint 5:** No path array needed. This is return-value recursion with overlap at the same start index.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Recursion + Memoization
+**Pattern used:** Index Memoization (Boolean) — overlap recognition
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "segmented into dictionary words" | Cut loop from index `i`, recurse from `j` |
+| "true/false" (not list all) | Boolean return; short-circuit on first success |
+| Same suffix reachable from different cuts | Memo key = start index `i` |
+| Reusable dictionary words | Cut length varies; same index still overlaps |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 14 (Palindrome Partitioning):**
+
+| Palindrome Partitioning | Word Break I |
+|---|---|
+| Generate all partitions | Existential — any one path suffices |
+| Push/pop path segments | No path — return bool |
+| Record at `i == n` | Return true at `i == n` |
+| Optional memo | **Memo required** for efficiency |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"State = start index i. What suffix remains?"*
+2. *"Try every word-length cut. Dict check, then dfs(j)."*
+3. *"Circle repeated i on the tree → memo[i]."*
+4. *"Cache false answers too."*
 
 ---
 
@@ -62,38 +81,47 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **dfs(i) without memo** | Exponential — `wb(j)` recomputed for many paths to `j` |
+| **Generate all sentences, check if list non-empty** | WB II work when you only need bool |
+| **Greedy longest match** | Fails — `"cars"` with dict `{car, cars}` needs wrong greedy choice |
+| **Nested loops over all 2^(n-1) split positions** | Same tree, but no cache on overlapping suffixes |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Two different prefix cuts can leave the **same suffix** starting at index `j`. Answer `wb(j)` once, reuse everywhere.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Today's next quest — list memo + combine |
+| [Palindrome Partitioning II #132](https://leetcode.com/problems/palindrome-partitioning-ii/) | Min cuts — DP table, not generate-all |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | A-Rank Day 23 — index memo with count |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`s = "leetcode"`, dict = `{leet, code}`:
 
 ```
-Apply Recursion + Memoization step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(0)
+  j=4: "leet" in dict → dfs(4)
+    j=8: "code" in dict → dfs(8)
+      i==8 → true ✓
+    memo[4] = true
+  memo[0] = true
+
+Answer: true
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Overlap example — `s = "aaaaaaa"`, dict = `{a, aa}`:
+
+```
+dfs(0) reaches dfs(2) via "a"+"a" prefix cuts
+dfs(1) also reaches dfs(2) via "a" cut
+→ memo[2] saves recomputing the suffix "aaaaa"
+```
 
 ---
 
@@ -161,22 +189,17 @@ class Solution {
 ```
 
 **Complexity:** O(n^2) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Segment string with dictionary"** → index cut loop, same skeleton as partition backtracking.
+- **"Just true/false"** → return bool, no path push/pop.
+- **`memo[i]`** → the suffix `s[i..]` was answered before; don't re-walk the tree.
+- **Cache false** → a dead-end index stays dead; prevents exponential retry.
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Recursion + Memoization"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Recursion + Memoization
+> 🎯 **Pattern Unlocked:** Index Memoization (Boolean)
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: generate every sentence — memo stores lists, not just yes/no. →*

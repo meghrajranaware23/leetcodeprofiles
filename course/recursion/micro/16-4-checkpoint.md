@@ -1,76 +1,55 @@
+<!-- hand-authored -->
 # ✅ Day 16 Checkpoint
 
-> **Backtracking with Complex State** · 2 quests completed · ⭐ 80 XP earned
+> **Grid Backtracking** · 2 quests completed · ⭐ 90 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Undo mechanism |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "word search" / grid path | 4-dir DFS + mark cell | Restore char |
+| "letter case permutation" | Binary branch per alpha | path.pop() |
+| "same cell twice" forbidden | Must mark before recurse | Unmark after |
+| "all subsets" | Day 11 — index not grid | path.pop() |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Find word in 2D character board"* → **Mark '#', dfs 4 dirs, unmark, try all starts.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"All case variations of a string"* → **Index dfs, lower/upper branch per letter.**
+
+3. *"Count islands"* → **DFS without unmark — different problem (visited stays).**
+
+4. *"Combination sum with reuse"* → **Day 13 — not grid.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Unique paths in grid with obstacles."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+DFS/backtrack or DP — if path can revisit, different from Word Search.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Generate all strings from mapping digits to letters."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
-
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
-
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
-
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+Multiple branches per digit — like Letter Case but 3-4 branches (#17).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **No unmark on failed dfs** — Board permanently corrupted.
+2. **8 directions on Word Search** — Only 4 allowed.
+3. **Skip outer start loop** — Word can begin at any cell.
+4. **Confuse mark/unmark with visited[][] that never clears** — Must backtrack visited state.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
-
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Write Word Search dfs signature and the mark/unmark two-liner from memory.
 
 ---
 
@@ -78,9 +57,21 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Word Search #79](https://leetcode.com/problems/word-search/) | Medium | Grid DFS Backtracking |
-| [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | Medium | Binary Choice Backtracking |
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Medium | grid mark/unmark |
+| [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | Medium | binary index branch |
 
 ---
 
-*Day 16 complete! Tomorrow: the next descent of your ascension. →*
+## 🏁 C-Rank Test Next
+
+Three problems test everything from Days 11–16:
+
+1. **Combination Sum II** — Day 13 + Day 15 dedup
+2. **Letter Tile Possibilities** — permutation count with repeats
+3. **Split Array into Fibonacci Sequence** — string partition + constraint
+
+Say the pattern name before you code. Trace first.
+
+---
+
+*Day 16 complete. Take the C-Rank test when ready. →*

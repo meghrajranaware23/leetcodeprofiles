@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Maximum Subarray
 
 > **Day 7** · [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) · Medium · 15 min
@@ -10,23 +11,33 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Subarray on LeetCode](https://leetcode.com/problems/maximum-subarray/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For `[-2,1,-3,4,-1,2,1,-5,4]`, find the cross sum at mid=4. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/)**
+Given an integer array `nums`, find the **contiguous subarray** with the **largest sum** and return its sum.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+Output: 6
+Explanation: [4, -1, 2, 1] has sum 6.
+
+Input:  nums = [1]
+Output: 1
+
+Input:  nums = [5, 4, -1, 7, 8]
+Output: 23
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Divide and Conquer Max**.
+Which pattern from today's concept applies? **Divide-and-conquer max** — best in left, best in right, best **crossing** mid.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: cross = max suffix ending at mid + max prefix starting at mid+1.
 
 ---
 
@@ -35,26 +46,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Divide and Conquer Max
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Contiguous subarray" + recursive framing → split range, three candidates at combine
+- **Cross-midpoint** subarray is the piece left-only/right-only miss
+- Classic interview also uses Kadane O(n) — today's lesson is D&C shape
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "maximum subarray sum" | `max(left, right, cross)` |
+| "contiguous" | Subarray = one interval [i..j] |
+| "divide" / midpoint | Split `[lo,hi]` at mid |
+| "spanning" / "crossing" | Suffix from mid + prefix from mid+1 |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Any optimal subarray lies entirely left, entirely right, or crosses mid. Recursion handles left/right; `cross()` handles the third case in O(n) per level → O(n log n).
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: lo == hi → return nums[lo]."*
+2. *"Left max = dc(lo,mid), right max = dc(mid+1,hi)."*
+3. *"Cross: scan left from mid, scan right from mid+1, add bests."*
+4. *"Return max of three — never forget cross."*
 
 ---
 
@@ -62,12 +71,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **All O(n²) pairs (i,j)** | O(n²) — works small n, not the D&C lesson |
+| **D&C without cross term** | Misses `[4,-1,2,1]` spanning mid in example |
+| **Cross only, no recursion** | Can't decompose left/right optimally |
+| **Sum entire array** | Subarray must be contiguous — may skip negatives |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** The answer might **straddle the split**. Left + right recursion alone is incomplete.
 
 ---
 
@@ -75,25 +84,55 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Sum only | D&C with cross |
+| [Maximum Product Subarray #152](https://leetcode.com/problems/maximum-product-subarray/) | Product | Cross tracks min/max product |
+| [Best Time to Buy and Sell Stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | Kadane variant | O(n) alternative |
+| [Shortest Subarray with Sum at Least K](https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/) | Deque / harder | Different tool |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]`, indices 0..8, `mid = 4` (value -1):
 
 ```
-Apply Divide and Conquer Max step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+THREE CANDIDATES at top level:
+
+LEFT half [0..4]:  dc(0,4) → best entirely left
+RIGHT half [5..8]: dc(5,8) → best entirely right
+CROSS at mid=4:
+
+  Scan LEFT from mid down to lo (suffix ending at mid):
+    i=4: -1  sum=-1  best=-1
+    i=3:  4  sum=3   best=3
+    i=2:-3  sum=0   best=3
+    i=1:  1  sum=1   best=3
+    i=0:-2  sum=-1  best=3
+    left_best = 3  (subarray [4] alone... but full suffix [4,-1] = 3)
+
+  Scan RIGHT from mid+1 up to hi (prefix starting at mid+1):
+    i=5:  2  sum=2   best=2
+    i=6:  1  sum=3   best=3
+    i=7: -5  sum=-2  best=3
+    i=8:  4  sum=2   best=3
+    right_best = 3  (prefix [2,1])
+
+  cross = 3 + 3 = 6  ← matches [4,-1,2,1]
+
+dc(0,8) = max(left_dc, right_dc, 6) = 6 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Recursive split sketch:
+
+```
+        dc(0,8)
+       /   |   \
+  dc(0,4) dc(5,8) cross=6
+   /  \     /  \
+ ...  ...  ...  ...
+```
+
+> 💡 **The insight:** Cross is O(length) glue at each merge level — the D&C analog of merge's combine step.
 
 ---
 
@@ -158,21 +197,20 @@ class Solution {
 ```
 
 **Complexity:** O(n log n) time · O(log n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Divide and Conquer Max"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Max contiguous sum"** → Could be Kadane O(n), but D&C = three-way max.
+- **"Crossing mid"** → Suffix ending at mid + prefix starting at mid+1.
+- **"Never skip cross"** → Example answer `[4,-1,2,1]` spans the split.
+- **"Base: single element"** → `lo == hi` returns that element (may be negative).
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you only compared left and right halves, cross is the fix — same combine discipline as merge sort.
 
-> 🎯 **Pattern Unlocked:** Divide and Conquer Max
+> 🎯 **Pattern Unlocked:** Divide-and-conquer max — left, right, and cross-midpoint at every combine.
 
 ---
 

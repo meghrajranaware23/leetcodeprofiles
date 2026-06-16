@@ -1,76 +1,88 @@
+<!-- hand-authored -->
 # ✅ Day 10 Checkpoint
 
-> **Helper Functions & Recursion Design** · 2 quests completed · ⭐ 65 XP earned
+> **Helper Functions** · 2 quests completed · ⭐ 65 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 10 is **helper design** — extra state the public API can't hold: bounds or `prev`.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "validate BST" | `validate(node, lo, hi)` | Ancestor bounds, not parent only |
+| "all left subtree less" | Tighten `hi` on left recurse | Open interval |
+| "flatten to linked list" | Postorder rewire + `prev` | Right-left-node order |
+| "preorder order" flatten | Process node after children | Reverse postorder stitch |
+| "left null" on flatten | `node.left = null` each step | Linked-list shape |
+| helper / wrapper split | Init `(-∞,+∞)` or `prev=null` | Public API stays clean |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Validate BST"* → **Bounded helper** — `lo < val < hi`
+2. *"Flatten tree to preorder list"* → **prev postorder rewire**
+3. *"Range sum in BST"* (Day 5) → **Bounded prune** — sum not validate
+4. *"Invert tree"* (Day 9) → **Swap** — no lo/hi helper
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Determine if array represents preorder traversal of a BST."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Bounded validation** or simulate with stack — same BST ordering rules as validate.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Convert sorted linked list to balanced BST."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Helper with mid** — different helper, same design: wrapper + recursive helper with extra state.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Serialize tree to string and deserialize back."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Preorder helper** with index or queue — state tracks position in string.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three need **helpers beyond single node parameter** — bounds, mid, or cursor.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **BST: parent-only compare** — Use full `(lo, hi)` from ancestors.
+
+2. **BST: `<=` on bounds** — Strict `lo < val < hi` for LC definition.
+
+3. **Flatten: left-right-node order** — Use **right-left-node** for this prev trick.
+
+4. **Forget `node.left = null`** — Flatten requires no left children.
+
+5. **No wrapper init** — Set `prev = null` or infinite bounds before dfs.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Convert Sorted List to Binary Search Tree #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Convert Sorted List to BST on LeetCode](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/)**
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Given head of sorted linked list, construct balanced BST.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  head = [-10, -3, 0, 5, 9]
+Output: [0, -3, 9, -10, null, 5]
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "sorted" + "BST" | Mid-element root — helper with range or list cursor |
+| "balanced" | Recurse on left/right halves |
+| helper design | Wrapper + helper carries list index/head |
+
+**Before you code:** Say *"helper with bounds or advancing list pointer."* Contrast with Validate BST — build vs validate.
+
+> 💡 **Hint:** Find mid with slow/fast, or pass lo/hi indices if converted to array — helper carries construction state.
 
 ---
 
@@ -78,9 +90,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Validate Binary Search Tree #98](https://leetcode.com/problems/validate-binary-search-tree/) | Medium | Range-Bounded Helper |
-| [Flatten Binary Tree to Linked List #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) | Medium | Postorder Rewiring |
+| [Validate Binary Search Tree #98](https://leetcode.com/problems/validate-binary-search-tree/) | Medium | Range-bounded helper |
+| [Flatten Binary Tree #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) | Medium | Postorder rewiring |
+| [Convert Sorted List to BST #109](https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/) | Medium | Helper construction (stretch) |
 
 ---
 
-*Day 10 complete! Tomorrow: the next descent of your ascension. →*
+*Day 10 complete! D-Rank tree and helper patterns locked. Tomorrow: backtracking deep dive. →*

@@ -1,76 +1,94 @@
+<!-- hand-authored -->
 # ✅ Day 1 Checkpoint
 
-> **The Recursive Mental Model** · 2 quests completed · ⭐ 40 XP earned
+> **Call Stack & Base Cases** · 2 quests completed · ⭐ 40 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 1 is about **one shrink step + one base case + call-stack tracing**. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "reverse in-place" / swap from both ends | Two-pointer recursion | Shrink `(l, r)` inward; base when `l >= r` |
+| "power of two" / divide by 2 | Recursive reduction | Halve `n`; base at `1` or odd failure |
+| "smallest input" / "when pointers meet" | Base case first | Stops infinite recursion |
+| "return true/false" from recursion | Return-value stack | Answer bubbles up from base case |
+| "modify in place" / void helper | Side-effect recursion | Work locally; no return to combine |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 1 pattern fires first?
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Reverse a character array in-place using recursion"* → **Two-pointer shrink** — swap ends, recurse on middle
+2. *"Is n a power of two?"* → **Divide by 2** — odd guard, recurse on `n/2`
+3. *"Is n a power of three?"* → **Same skeleton** — divide by 3 instead of 2
+4. *"Check if a string is a palindrome (ignore case)"* → **Two-pointer shrink** — compare instead of swap
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've traced Reverse String and Power of Two. Can you apply the **call stack mindset** to new problems?
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+**Scenario 1:** *"Given a string, check if it is a palindrome using recursion. Compare characters from both ends."*
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+Which pattern? **Two-pointer shrink** — same frame structure as Reverse String, but compare `s[l]` and `s[r]` instead of swapping. Base: `l >= r` → true. Mismatch → false.
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+**Scenario 2:** *"Given integer n, return true if n is a power of four."*
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+Which pattern? **Recursive reduction** — if `n <= 0` false; if `n == 1` true; if `n % 4 != 0` false; else recurse on `n/4`. Same stack shape as Power of Two.
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+**Scenario 3:** *"Reverse only the first half of a string recursively."*
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
+Which pattern? **Two-pointer shrink with a stop condition** — recurse while `l < mid`, swapping `s[l]` and `s[r]`. Base when `l >= mid`.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use **base case + smaller subproblem + stack unwind**. The local step changes (swap, compare, divide) — the skeleton does not.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Base case after recursive call** — Write the stop condition first. Falling through past base causes infinite recursion.
+
+2. **Wrong shrink direction** — Reverse String shrinks `(l, r)` inward; Power of Two shrinks `n` by halving. Mixing them up gives wrong depth or wrong answer.
+
+3. **Skipping edge cases** — Power of Two: test `n = 0`, `n = 1`, `n = -8`. Reverse String: test `["a"]` (single char).
+
+4. **Not tracing on paper** — If you cannot draw the call stack, you are not ready to code. One line per frame.
+
+5. **Ignoring return vs void** — Reverse String mutates in place (void). Power of Two returns bool upward. Know which direction values flow.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Power of Four #342](https://leetcode.com/problems/power-of-four/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Power of Four on LeetCode](https://leetcode.com/problems/power-of-four/)**
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Return `true` if `n` is a power of four.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  n = 16
+Output: true
+
+Input:  n = 5
+Output: false
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "power of four" | Divide by 4 each step |
+| "return true/false" | Boolean recursion — same as #231 |
+| "integer n" | Guard `n <= 0`, base `n == 1`, check `% 4` |
+
+**Before you code:** Say the pattern name out loud. Trace `n = 64` on paper — how many frames until base?
+
+> 💡 **Hint:** Same skeleton as Power of Two — change divisor from 2 to 4.
 
 ---
 
@@ -78,9 +96,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Reverse String #344](https://leetcode.com/problems/reverse-string/) | Easy | Linear Recursion |
-| [Power of Two #231](https://leetcode.com/problems/power-of-two/) | Easy | Recursive Reduction |
+| [Reverse String #344](https://leetcode.com/problems/reverse-string/) | Easy | Two-pointer shrink |
+| [Power of Two #231](https://leetcode.com/problems/power-of-two/) | Easy | Recursive reduction (÷2) |
+| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Easy | Two-pointer compare (stretch) |
 
 ---
 
-*Day 1 complete! Tomorrow: the next descent of your ascension. →*
+*Day 1 complete! Tomorrow: trust the recursive call when one step splits into two. →*

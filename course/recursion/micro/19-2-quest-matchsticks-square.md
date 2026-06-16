@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Matchsticks to Square
 
 > **Day 19** · [Matchsticks to Square #473](https://leetcode.com/problems/matchsticks-to-square/) · Medium · 15 min · 35 XP
@@ -10,51 +11,59 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Matchsticks to Square on LeetCode](https://leetcode.com/problems/matchsticks-to-square/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw four empty buckets labeled with target side length. Place each stick (largest first) into a bucket. Mark every add and undo. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Matchsticks to Square #473](https://leetcode.com/problems/matchsticks-to-square/)**
+Given an array `matchsticks` where each element is the length of a matchstick, return `true` if you can use **all** matchsticks to make a square.
 
-Work through the examples on paper before reading further.
+```
+Input:  matchsticks = [1,1,2,2,2]
+Output: true
+Explanation: four sides of length 2 — e.g. [2], [2], [1+1], [1+1]
+
+Input:  matchsticks = [3,3,3,3,4]
+Output: false
+```
+
+Every stick must be used exactly once. Each side of the square must have the same total length.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **4-Bucket Partition**.
+This is **k-bucket assignment with k = 4** from today's concept.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 1:** `target = sum / 4`. If `sum % 4 != 0`, return false immediately.
+
+**Hint 2:** Sort matchsticks **descending**. Place the longest sticks first to prune early.
+
+**Hint 3:** `dfs(i, sides[4])` — at index `i`, try placing `matchsticks[i]` into each bucket `j` where `sides[j] + stick <= target`.
+
+**Hint 4:** Skip bucket `j` when `j > 0 && sides[j] == sides[j-1]` — empty (or equal) buckets are interchangeable.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** 4-Bucket Partition
+**Pattern used:** 4-Bucket Partition (k-bucket with k=4)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "form a square" | Four equal sides → 4 buckets |
+| "use all matchsticks" | Every element assigned — not include/exclude |
+| "same length" per side | Each bucket sum must equal `sum/4` |
+| Medium, n ≤ 15 | Backtracking + pruning, not brute bitmask |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each recursive call assigns one stick to a bucket. Overflow and duplicate-bucket prunes cut symmetric dead branches. Sorting desc fails bad layouts sooner.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Square → 4 buckets, target = sum/4."*
+2. *"Sort desc, dfs with sides array."*
+3. *"Skip bucket j if sides[j] == sides[j-1]."*
+4. *"Same skeleton as Day 17 #698 with k=4."*
 
 ---
 
@@ -62,12 +71,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **4 nested loops picking disjoint subsets** | Nightmare to ensure disjointness and cover all sticks |
+| **Try all 4^n bucket assignments** | Explores overflow branches that `sides[j] + stick > target` would skip |
+| **No duplicate-bucket skip** | Same partition found via bucket 0 vs bucket 1 — 4× redundant work |
+| **Ascending sort** | Small sticks hide impossibility until deep in the tree |
+| **Include/exclude subset logic** | Wrong model — every stick must land in some bucket |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Buckets are **unlabeled**. Prune overflow and skip equal buckets — same code as Partition K Subsets with `k = 4`.
 
 ---
 
@@ -75,25 +85,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Partition K Subsets #698](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/) | General k | Same dfs + sides[] |
+| [Target Sum #494](https://leetcode.com/problems/target-sum/) | ± signs, not buckets | Day 17 — different assignment model |
+| [Fair Distribution of Cookies #2305](https://leetcode.com/problems/fair-distribution-of-cookies/) | Minimize max bucket | Same bucket loop, optimize not boolean |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`matchsticks = [1,1,2,2,2]` → sorted desc `[2,2,2,1,1]`, target = 2.
 
 ```
-Apply 4-Bucket Partition step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, sides=[0,0,0,0])
+  stick=2 → bucket0: [2,0,0,0]   ← side 0 full
+    stick=2 → bucket1: [2,2,0,0]
+      stick=2 → bucket2: [2,2,2,0]
+        stick=1 → bucket3: [2,2,2,1] ✗ overflow
+                  bucket0 full, bucket1 full... bucket3: [2,2,2,1] still ✗
+                  backtrack → bucket3 with second 1 after reassignment...
+        ... valid layout: buckets [2], [2], [1+1], [1+1] → return true ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Key moments:
+- **Overflow prune:** `sides[j] + stick > 2` → skip bucket j
+- **Duplicate skip:** when two buckets both hold 0, only try the leftmost
+- **Base case:** `i == n` → check all four sides equal target
+
+> 💡 **The insight:** You are not building a square shape — you are filling four equal-sum buckets. The geometry is irrelevant; the assignment is everything.
 
 ---
 
@@ -177,22 +195,21 @@ class Solution {
 ```
 
 **Complexity:** O(4 · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"4-Bucket Partition"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Square = four equal buckets"** → target = sum/4, not geometry.
+- **"Same as Day 17 k-bucket"** → k is just hardcoded to 4.
+- **"Sort descending"** → largest stick exposes dead branches early.
+- **"Skip equal buckets"** → unlabeled buckets, not four distinct sides.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is seeing **Matchsticks #473 as Partition #698 with k=4**.
 
 > 🎯 **Pattern Unlocked:** 4-Bucket Partition
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: the general k version you already met on Day 17 — now it should feel trivial. →*

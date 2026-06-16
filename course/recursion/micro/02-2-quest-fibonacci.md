@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Fibonacci Number
 
 > **Day 2** · [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) · Easy · 10 min
@@ -10,51 +11,73 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Fibonacci Number on LeetCode](https://leetcode.com/problems/fibonacci-number/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the recursion tree for `fib(5)`. Circle overlapping nodes. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/)**
+The **Fibonacci numbers**, commonly denoted `F(n)`, form a sequence where each number is the sum of the two preceding ones, starting from `0` and `1`. That is:
 
-Work through the examples on paper before reading further.
+```
+F(0) = 0,  F(1) = 1
+F(n) = F(n - 1) + F(n - 2), for n > 1
+```
+
+Given `n`, calculate `F(n)`.
+
+```
+Input:  n = 2
+Output: 1
+Explanation: F(2) = F(1) + F(0) = 1 + 0 = 1
+```
+
+```
+Input:  n = 3
+Output: 2
+Explanation: F(3) = F(2) + F(1) = 1 + 1 = 2
+```
+
+```
+Input:  n = 4
+Output: 3
+Explanation: F(4) = F(3) + F(2) = 2 + 1 = 3
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Binary Recursion**.
+Which pattern from today's concept applies? **Binary recursion with the recursive hypothesis** — trust that `fib(n-1)` and `fib(n-2)` return correct values.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: write the base case `n <= 1 → return n` first. Then add memo so each `fib(k)` is computed once.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Binary Recursion
+**Pattern used:** Binary Recursion + Memoization
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- Explicit recurrence: `F(n) = F(n-1) + F(n-2)`
+- Two smaller subproblems per call → recursion tree branches
+- Same subproblems repeat → memoization required for efficiency
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "Fibonacci" / "sum of two preceding" | `f(n-1) + f(n-2)` |
+| "starting from 0 and 1" | Base cases at 0 and 1 |
+| "calculate F(n)" | Return value bubbles up the stack |
+| "given n" | Top-down DFS from n downward |
+| overlapping recomputation | Memo table keyed by n |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** The recursive hypothesis states the answer for `n` in terms of two trusted smaller answers. Memo ensures each smaller answer is computed once.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: n <= 1 → return n."*
+2. *"Hypothesis: return fib(n-1) + fib(n-2)."*
+3. *"Overlap: cache in memo[n] before returning."*
+4. *"Trace fib(4) — mark duplicate nodes."*
 
 ---
 
@@ -62,12 +85,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Naive recursion, no memo** | O(2^n) time — `fib(40)` explodes; stack depth alone hurts |
+| **Iterating n times with nested loop to re-sum** | Reinvents DP the hard way — misses clean recurrence |
+| **Expanding full tree for large n by hand** | Impossible — signals you need trust + memo, not full expansion |
+| **Wrong bases (e.g. return 1 for n=0 always)** | Off-by-one on small test cases |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** The tree **reuses** subproblems. You don't need every path — you need every **unique** `fib(k)` once.
 
 ---
 
@@ -75,25 +98,66 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | Count paths, base `n<=2` | Same `f(n-1)+f(n-2)` + memo |
+| [N-th Tribonacci Number #1137](https://leetcode.com/problems/n-th-tribonacci-number/) | Three-term sum | `f(n-1)+f(n-2)+f(n-3)` + memo |
+| [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | Add cost per step | Same two-step structure, min instead of sum |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Constraint on digits | Two-way split from current index + memo |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you recognized Fibonacci, Climbing Stairs is the same quest in a stairwell costume.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Compute **`fib(4)`** with memo. Without memo, the tree overlaps; with memo, each value is computed once.
 
 ```
-Apply Binary Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Recursion tree for fib(4) (nodes = calls):
+
+                    fib(4)
+                   /      \
+              fib(3)      fib(2)     ← fib(2) shared if fib(3) expanded first
+             /    \
+        fib(2)  fib(1)
+       /    \
+  fib(1) fib(0)
+
+Naive call count: fib(2) computed 2×, fib(1) computed 3×
+
+
+MEMOIZED trace (each k computed once):
+
+fib(4)
+  needs fib(3) → compute:
+    fib(3)
+      needs fib(2) → compute:
+        fib(2)
+          needs fib(1) → 1
+          needs fib(0) → 0
+          memo[2] = 1 + 0 = 1  ✓
+      needs fib(1) → 1 (base)
+      memo[3] = 1 + 1 = 2  ✓
+  needs fib(2) → memo hit → 1
+  memo[4] = 2 + 1 = 3  ✓
+
+Return 3
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Call-stack snapshot at deepest point (before unwind):
+
+```
+┌──────────────┐
+│ fib(4)       │  waiting
+├──────────────┤
+│ fib(3)       │  waiting
+├──────────────┤
+│ fib(2)       │  waiting
+├──────────────┤
+│ fib(1)       │  BASE → 1
+└──────────────┘
+```
+
+> 💡 **The insight:** Day 1 taught you to read the stack. Day 2 adds: **two children per node**, but memo means each label `fib(k)` appears on the stack at most once per top-level run.
 
 ---
 
@@ -147,22 +211,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Binary Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Explicit recurrence in the statement"** → Write it as code: `f(n-1) + f(n-2)`.
+- **"Two recursive calls"** → Recursive hypothesis — trust both returns.
+- **"Tree has duplicates"** → Memo before you optimize anything else.
+- **"Same stack as Day 1"** → Base case still stops the descent.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If naive recursion timed out, that's expected — the breakthrough is **overlap + cache**, not a different formula.
 
-> 🎯 **Pattern Unlocked:** Binary Recursion
+> 🎯 **Pattern Unlocked:** Binary recursion with memo — trust `f(n-1)` and `f(n-2)`, store each `f(k)` once.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. The next one is the same recurrence with a real-world story. →*

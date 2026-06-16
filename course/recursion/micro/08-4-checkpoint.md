@@ -1,76 +1,88 @@
+<!-- hand-authored -->
 # ✅ Day 8 Checkpoint
 
-> **String Recursion & Generation** · 2 quests completed · ⭐ 55 XP earned
+> **String Generation** · 2 quests completed · ⭐ 55 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 8 is **choose → explore → unchoose** along a path. Branch count and constraints vary.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "generate all" strings/combos | DFS on path + index/state | Record at base |
+| "parentheses" / "balanced" | open/close counters | Prune `)` when `open <= close` |
+| "phone keypad" / digit → letters | Multi-branch per digit | Loop KEY chars, `i+1` |
+| "append and remove" / backtrack | `push` / `pop` | Siblings need clean path |
+| "path length == n" / `i == len` | Base case | Snapshot path to results |
+| empty input string | Return `[]` | No digit → no combo |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Generate all valid n-pair parentheses"* → **Constrained 2-branch DFS** — open/close
+2. *"All letter combos for phone digits"* → **Multi-branch index DFS**
+3. *"All subsets of array"* → **Backtracking preview** — include/skip (Day 11)
+4. *"Pow(x,n) efficiently"* → **Day 6** — halving, not generation
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Binary watch: represent time with n LEDs on — return all valid times."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Constrained generation** — prune invalid hour/minute like parentheses prune invalid prefixes.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Given digits 1-9 mapping to letters, generate words with dictionary filter."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Multi-branch DFS** — same as #17, prune when prefix not in dictionary (Day 17).
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Generate all length-n strings using only 'a' and 'b'."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **2-branch index DFS** — identical skeleton to phone pad with 2 letters per "digit."
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three = **path + dfs + pop**. Constraints change which branches exist.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **No `pop()` after recurse** — Wrong combinations on sibling branches.
+
+2. **Filter after generating all strings** — Prune during DFS when possible.
+
+3. **Store mutable path reference** — Copy at base: `''.join(path)`.
+
+4. **Wrong `)` rule for parentheses** — Need unmatched `(` before adding `)`.
+
+5. **Return `[""]` for empty digits** — Correct answer is `[]`.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Binary Watch #401](https://leetcode.com/problems/binary-watch/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Binary Watch on LeetCode](https://leetcode.com/problems/binary-watch/)**
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Given `turnedOn` LEDs lit, return all valid times the watch can represent.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  turnedOn = 1
+Output: ["0:01","0:02","0:04","0:08","0:16","0:32","1:00","2:00","4:00","8:00"]
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "all valid times" | Generate + prune invalid hour/minute |
+| "n LEDs on" | Choose positions / count bits — DFS or combinatorics |
+| "leading zero allowed" | String formatting at base case |
+
+**Before you code:** Say *"constrained generation."* Which hours are valid? Which minutes?
+
+> 💡 **Hint:** Pick which LEDs are on (subset of 10 positions) or DFS hour/minute with LED count — prune when hour > 11 or minute > 59.
 
 ---
 
@@ -78,9 +90,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | Medium | Constrained Generation |
-| [Letter Combinations of a Phone Number #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | Medium | Multi-Branch Generation |
+| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | Medium | Constrained generation |
+| [Letter Combinations #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | Medium | Multi-branch generation |
+| [Binary Watch #401](https://leetcode.com/problems/binary-watch/) | Easy | Constrained generation (stretch) |
 
 ---
 
-*Day 8 complete! Tomorrow: the next descent of your ascension. →*
+*Day 8 complete! Tomorrow: tree recursion — invert and mirror. →*

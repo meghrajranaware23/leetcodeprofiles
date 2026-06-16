@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Magic Dictionary
 
 > **Day 29** · [Implement Magic Dictionary #676](https://leetcode.com/problems/implement-magic-dictionary/) · Medium · 15 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Implement Magic Dictionary on LeetCode](https://leetcode.com/problems/implement-magic-dictionary/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For each search word, count mismatches against candidate dictionary words. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Trie + Wildcard Design**.
+Which pattern from today's concept applies? **Trie + Wildcard Design** — Day 19 trie insert + Day 24 wildcard branching, constrained to **exactly one** mismatch.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: filter by equal length first, then count `word[i] != searchWord[i]`. Return true only when count equals 1. Trie DFS is the scale-up when the dictionary is large.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Trie + Wildcard Design
+**Pattern used:** Trie + Wildcard Design (exactly-one mismatch)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"Magic" / "one character different"** → mismatch counter, not fuzzy distance
+- **Design class** — `buildDict` + `search` → store structure, query many times
+- Differs from Day 24 `WordDictionary` — no `.` in query; diff count is implicit
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "exactly one letter different" | `diff == 1` after char-by-char compare |
+| "same length" | Skip words with `len != searchWord.len` |
+| "buildDict" then "search" | Preprocess dictionary once |
+| "implement" / design | Class with two methods |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** The constraint is local — each position either matches or contributes to the one allowed mismatch. No subtree aggregation needed.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Store words in buildDict."*
+2. *"search: same length only."*
+3. *"Count index mismatches — return true iff diff == 1."*
+4. *"Trie upgrade: dfs(node, i, used_mismatch) for large dicts."*
 
 ---
 
@@ -62,12 +61,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Edit distance / Levenshtein** | Overkill — only ±1 substitution at one index |
+| **Accept diff=0 (exact match)** | Problem requires **exactly** one difference |
+| **Accept diff≥1 (any mismatch)** | Two mismatches must return false |
+| **Compare different lengths** | Invalid by problem definition |
+| **Hash without length filter** | Wastes work — filter length first |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** With equal length, a single pass counting mismatches is O(L) per word — sufficient for Medium. Trie wildcard is the Day 19/24 scale path.
 
 ---
 
@@ -75,31 +75,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Add and Search Word #211](https://leetcode.com/problems/add-and-search-word-data-structure-design/) | `.` wildcard in query | Trie DFS branch on `.` (Day 24) |
+| [Implement Trie #208](https://leetcode.com/problems/implement-trie-prefix-tree/) | Exact insert/search | Day 19 base |
+| [Words Within Two Edits #2452](https://leetcode.com/problems/word-within-two-edits-of-dictionary/) | Up to 2 mismatches | Same compare, higher threshold |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Day 19 builds the tree. Day 24 adds wildcard branches. Day 29 constrains mismatch count.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Mismatch count on equal-length strings.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+Dictionary after buildDict: ["hello", "leetcode"]
 
-Apply Trie + Wildcard Design step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+search("hello"):  vs "hello" diff=0, vs "leetcode" len≠5 → false
+search("hallo"):   vs "hello" → h=h, a≠e, l=l, l=l, o=o → diff=1 → true ✓
+search("hell"):    len=4 → skip all → false
+search("leetcoded"): len=9 → false
+search("lhello"):  vs "hello" diff=1 at index 0 → true ✓
+search("hellp"):   vs "hello" diff=1 at last char → true ✓
+search("heloo"):   vs "hello" diff=2 (e≠l, l≠o) → false
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Trie wildcard mental model (scale-up):**
+
+```
+search("hallo") via trie:
+  h → a (match) → at 'l': try match 'l' OR use mismatch budget on 'e' path
+  exactly one branch may consume the budget
+```
+
+> 💡 **The insight:** Exactly-one is a **hard constraint** — count, don't boolean-or all mismatches.
 
 ---
 
@@ -108,23 +116,17 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class MagicDictionary {
-    unordered_map<int, vector<string>> buckets;
-    bool diffOne(const string& a, const string& b) {
-        if (a.size() != b.size()) return false;
-        int cnt = 0;
-        for (int i = 0; i < (int)a.size(); ++i)
-            if (a[i] != b[i] && ++cnt > 1) return false;
-        return cnt == 1;
-    }
+    vector<string> words;
 public:
-    MagicDictionary() {}
-    void buildDict(vector<string> dictionary) {
-        for (auto& w : dictionary) buckets[w.size()].push_back(w);
-    }
+    void buildDict(vector<string> dictionary) { words = dictionary; }
     bool search(string searchWord) {
-        if (!buckets.count(searchWord.size())) return false;
-        for (auto& w : buckets[searchWord.size()])
-            if (diffOne(w, searchWord)) return true;
+        for (auto& w : words) {
+            if (w.size() != searchWord.size()) continue;
+            int diff = 0;
+            for (int i = 0; i < (int)w.size(); i++)
+                if (w[i] != searchWord[i]) diff++;
+            if (diff == 1) return true;
+        }
         return false;
     }
 };
@@ -134,13 +136,15 @@ public:
 ```python
 class MagicDictionary:
     def __init__(self):
-        self.words = defaultdict(list)
+        self.words = []
+
     def buildDict(self, dictionary: List[str]) -> None:
-        for w in dictionary:
-            self.words[len(w)].append(w)
+        self.words = dictionary
+
     def search(self, searchWord: str) -> bool:
-        for w in self.words[len(searchWord)]:
-            if sum(a != b for a, b in zip(w, searchWord)) == 1:
+        for word in self.words:
+            if len(word) != len(searchWord): continue
+            if sum(a != b for a, b in zip(word, searchWord)) == 1:
                 return True
         return False
 ```
@@ -148,16 +152,14 @@ class MagicDictionary:
 ### Java
 ```java
 class MagicDictionary {
-    Map<Integer, List<String>> buckets = new HashMap<>();
-    public void buildDict(String[] dictionary) {
-        for (String w : dictionary) buckets.computeIfAbsent(w.length(), k -> new ArrayList<>()).add(w);
-    }
+    private String[] words;
+    public void buildDict(String[] dictionary) { words = dictionary; }
     public boolean search(String searchWord) {
-        List<String> list = buckets.get(searchWord.length());
-        if (list == null) return false;
-        for (String w : list) {
+        for (String w : words) {
+            if (w.length() != searchWord.length()) continue;
             int diff = 0;
-            for (int i = 0; i < w.length(); i++) if (w.charAt(i) != searchWord.charAt(i) && ++diff > 1) break;
+            for (int i = 0; i < w.length(); i++)
+                if (w.charAt(i) != searchWord.charAt(i)) diff++;
             if (diff == 1) return true;
         }
         return false;
@@ -165,23 +167,22 @@ class MagicDictionary {
 }
 ```
 
-**Complexity:** O(n·L) build · O(m·L) search · O(n·L) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Trie + Wildcard Design"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Exactly one different"** → mismatch counter, not edit distance.
+- **"Same length"** → first filter before char compare.
+- **"Day 24 wildcard cousin"** → trie DFS when dict grows.
+- **"diff == 1 only"** → diff=0 (exact) and diff≥2 both false.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you built a trie with wildcard branches, that's the S-Rank design — today's solution is the direct compare shortcut.
 
-> 🎯 **Pattern Unlocked:** Trie + Wildcard Design
+> 🎯 **Pattern Unlocked:** Trie + Wildcard Design — exactly-one mismatch search.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: quad-tree unify/split on a grid. →*

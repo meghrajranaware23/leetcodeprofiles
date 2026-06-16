@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Path Different Chars
 
 > **Day 25** · [Longest Path With Different Adjacent Characters #2246](https://leetcode.com/problems/longest-path-with-different-adjacent-characters/) · Hard · 25 min · 50 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Path With Different Adjacent Characters on LeetCode](https://leetcode.com/problems/longest-path-with-different-adjacent-characters/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Build children from `parent` array. At each node: Day 7 top-two branches — but **skip** child if `s[child] == s[node]`. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,36 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **N-ary Diameter Variant**.
+Which pattern from today's concept applies? **N-ary diameter with letter state** — DFS returns longest valid downward chain; at each node combine top two valid child chains + 1 for global max.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: same letter on parent-child edge means that child's returned chain cannot extend through this node — treat as 0 contribution to top-two.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** N-ary Diameter Variant
+**Pattern used:** N-ary Diameter Variant (Letter Filter)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- `parent[i]` defines N-ary tree (node 0 root)
+- `s` string — one letter per node
+- "Longest path" where adjacent chars differ → filter on combine
+- Path can start/end anywhere — global max like Day 7 diameter
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "parent array" | Build children adjacency list |
+| "different adjacent characters" | Skip child when s[child]==s[node] |
+| "longest path" | Top-two child chains + global |
+| "directed tree" from parent | Root at 0, DFS downward only |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Day 7 diameter asks for top two **heights**. Here each child returns a downward chain length; only chains with different letters at the connecting edge qualify for top-two at the parent.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"children[parent[i]].append(i) for i=1..n-1."*
+2. *"dfs(node): get len from each child recursively."*
+3. *"If s[child]==s[node]: skip for top-two."*
+4. *"ans = max(ans, top1+top2+1); return top1+1."*
 
 ---
 
@@ -62,12 +62,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Enumerate all paths** | O(n²) — too slow for n=10⁵ |
+| **Day 7 binary template on left/right** | N-ary — loop all children |
+| **Ignore letter constraint** | Wrong answer — must filter |
+| **BFS from every node** | O(n²) |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Still only **two best branches** matter at each node for the longest path through that node — same Day 7 combine, with a filter predicate on edges.
 
 ---
 
@@ -75,31 +75,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Diameter of Binary Tree #543](https://leetcode.com/problems/diameter-of-binary-tree/) | Day 7 — binary, no filter | top1 + top2 + 1 |
+| [Binary Tree Maximum Path Sum #124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) | Sum not count | Same dual role |
+| [Tree Diameter #1245](https://leetcode.com/problems/tree-diameter/) | N-ary unweighted | No letter filter |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: return best downward, global cross combine.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**parent = [-1,0,0,1,1,2], s = "abacbe"**
 
 ```
-        3
+        0(a)
        / \
-      9    20
-          /  \
-         15   7
+      1(b) 2(a)   ← child 2 skipped at 0 (same 'a')
+     / \
+    3(a) 4(c)     ← 3 skipped at 1 (same 'a')
+   /
+  5(b)
 
-Apply N-ary Diameter Variant step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+At node 1: valid children 4(c→len?), 3 skipped
+At node 0: child 1 valid, child 2 skipped
+Global tracks best top1+top2+1 anywhere
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Day 7 diameter on an N-ary tree, with "edge valid only if letters differ."
 
 ---
 
@@ -108,113 +110,102 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    vector<vector<int>> g;
+    vector<vector<int>> children;
     string s;
-    int ans = 0;
-    pair<int,int> dfs(int u, int p) {
-        int best = 0, second = 0, upBest = 0;
-        for (int v : g[u]) if (v != p) {
-            auto child = dfs(v, u);
-            if (s[u - 1] != s[v - 1]) {
-                int len = child.second + 1;
-                if (len > best) { second = best; best = len; }
-                else if (len > second) second = len;
-                upBest = max(upBest, child.first + 1);
+    int ans = 1;
+    int dfs(int node) {
+        int top1 = 0, top2 = 0;
+        for (int child : children[node]) {
+            int len = dfs(child);
+            if (s[child] != s[node]) {
+                if (len > top1) { top2 = top1; top1 = len; }
+                else if (len > top2) { top2 = len; }
             }
         }
-        ans = max(ans, best + second);
-        return {upBest, best};
+        ans = max(ans, top1 + top2 + 1);
+        return top1 + 1;
     }
 public:
     int longestPath(vector<int>& parent, string s) {
-        this->s = s;
         int n = parent.size();
-        g.assign(n, {});
-        for (int i = 1; i < n; ++i) { g[i].push_back(parent[i]); g[parent[i]].push_back(i); }
-        dfs(0, -1);
-        return ans + 1;
+        this->s = s;
+        children.resize(n);
+        for (int i = 1; i < n; i++) children[parent[i]].push_back(i);
+        dfs(0);
+        return ans;
     }
 };
 ```
 
 ### Python
 ```python
+from collections import defaultdict
 class Solution:
     def longestPath(self, parent: List[int], s: str) -> int:
         n = len(parent)
-        g = [[] for _ in range(n)]
+        children = defaultdict(list)
         for i in range(1, n):
-            g[i].append(parent[i])
-            g[parent[i]].append(i)
-        self.ans = 0
-        def dfs(u, p):
-            best = second = 0
-            up_best = 0
-            for v in g[u]:
-                if v == p:
-                    continue
-                up, down = dfs(v, u)
-                if s[u] != s[v]:
-                    length = down + 1
-                    if length > best:
-                        second, best = best, length
-                    elif length > second:
-                        second = length
-                    up_best = max(up_best, up + 1)
-            self.ans = max(self.ans, best + second)
-            return up_best, best
-        dfs(0, -1)
-        return self.ans + 1
+            children[parent[i]].append(i)
+        ans = 1
+        def dfs(node):
+            nonlocal ans
+            top1 = top2 = 0
+            for child in children[node]:
+                length = dfs(child)
+                if s[child] != s[node]:
+                    if length > top1: top2 = top1; top1 = length
+                    elif length > top2: top2 = length
+            ans = max(ans, top1 + top2 + 1)
+            return top1 + 1
+        dfs(0)
+        return ans
 ```
 
 ### Java
 ```java
 class Solution {
-    List<Integer>[] g;
-    String s;
-    int ans = 0;
+    private List<List<Integer>> children;
+    private String s;
+    private int ans = 1;
     public int longestPath(int[] parent, String s) {
         this.s = s;
         int n = parent.length;
-        g = new List[n];
-        for (int i = 0; i < n; i++) g[i] = new ArrayList<>();
-        for (int i = 1; i < n; i++) { g[i].add(parent[i]); g[parent[i]].add(i); }
-        dfs(0, -1);
-        return ans + 1;
+        children = new ArrayList<>();
+        for (int i = 0; i < n; i++) children.add(new ArrayList<>());
+        for (int i = 1; i < n; i++) children.get(parent[i]).add(i);
+        dfs(0);
+        return ans;
     }
-    int[] dfs(int u, int p) {
-        int best = 0, second = 0, upBest = 0;
-        for (int v : g[u]) if (v != p) {
-            int[] child = dfs(v, u);
-            if (s.charAt(u) != s.charAt(v)) {
-                int len = child[1] + 1;
-                if (len > best) { second = best; best = len; }
-                else if (len > second) second = len;
-                upBest = Math.max(upBest, child[0] + 1);
+    private int dfs(int node) {
+        int top1 = 0, top2 = 0;
+        for (int child : children.get(node)) {
+            int len = dfs(child);
+            if (s.charAt(child) != s.charAt(node)) {
+                if (len > top1) { top2 = top1; top1 = len; }
+                else if (len > top2) { top2 = len; }
             }
         }
-        ans = Math.max(ans, best + second);
-        return new int[]{upBest, best};
+        ans = Math.max(ans, top1 + top2 + 1);
+        return top1 + 1;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"N-ary Diameter Variant"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Longest path + parent array"** → N-ary tree, build children list.
+- **"Different adjacent chars"** → filter before top-two update.
+- **"Day 7 diameter"** → return top1+1, global top1+top2+1.
+- **"ans starts at 1"** → single node is valid path.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you used binary left/right, refactor to loop over `children[node]`.
 
-> 🎯 **Pattern Unlocked:** N-ary Diameter Variant
+> 🎯 **Pattern Unlocked:** N-ary diameter variant — top-two with letter state filter.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ A-Rank Test — Problem 2
 
 > [Count Complete Tree Nodes #222](https://leetcode.com/problems/count-complete-tree-nodes/) · Medium · 250 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Count Complete Tree Nodes on LeetCode](https://leetcode.com/problems/count-complete-tree-nodes/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — bridge **Day 4 complete-tree math** (`2^h - 1`). Compare left and right spine heights before full recursion. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,46 @@ See the full problem statement on LeetCode: **[Count Complete Tree Nodes #222](h
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the A-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** **Day 4 E-Rank bridge** — complete tree shortcut vs fallback recursion.
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- Compute **left spine height** (always go left) and **right spine height** (always go right).
+- If `lh == rh`: perfect last level → `(1 << lh) - 1` nodes — O(log n).
+- Else: `1 + count(left) + count(right)` — recurse on one imperfect side.
+- Better than O(n) BFS when tree is complete or near-complete.
+
+**Pattern name before coding:** *Spine height check + complete tree formula.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- "Complete binary tree" → all levels full except possibly last, filled left-to-right
+- Count nodes faster than O(n) → spine trick
+- Same problem as Day 4 Quest — A-Rank test confirms retention
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"Walk left spine → lh, right spine → rh."*
+2. *"Equal spines → return 2^lh - 1."*
+3. *"Else recurse both children + 1."*
+4. *"O(log² n) — log levels × log spine walk."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **BFS level order count** | O(n) always — misses complete-tree math |
+| **Full recursion 1+L+R every node** | O(n) — spine check prunes |
+| **Assume always complete without check** | Wrong on general complete-but-not-perfect shapes |
+| **Off-by-one on 2^h vs 2^h-1** | Nodes not levels |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Day 4 introduced this; A-Rank tests it cold. Same spine logic applies to **perfect binary tree** checks and **minimum height** reasoning on nearly complete trees.
 
 ---
 
@@ -72,8 +81,8 @@ public:
         if (!root) return 0;
         int lh = 0, rh = 0;
         TreeNode *l = root, *r = root;
-        while (l) { ++lh; l = l->left; }
-        while (r) { ++rh; r = r->right; }
+        while (l) { lh++; l = l->left; }
+        while (r) { rh++; r = r->right; }
         if (lh == rh) return (1 << lh) - 1;
         return 1 + countNodes(root->left) + countNodes(root->right);
     }
@@ -88,12 +97,8 @@ class Solution:
             return 0
         lh = rh = 0
         l = r = root
-        while l:
-            lh += 1
-            l = l.left
-        while r:
-            rh += 1
-            r = r.right
+        while l: lh += 1; l = l.left
+        while r: rh += 1; r = r.right
         if lh == rh:
             return (1 << lh) - 1
         return 1 + self.countNodes(root.left) + self.countNodes(root.right)
@@ -114,7 +119,7 @@ class Solution {
 }
 ```
 
-**Complexity:** O(log² n) time · O(log n) space
+**Complexity:** undefined
 
 </details>
 
@@ -122,10 +127,61 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a A-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Complete tree count"** → Day 4 spine heights + `2^h - 1`.
+- **"lh == rh"** → last level full — formula applies.
+- **"Else recurse"** → one side incomplete — can't use formula at this node.
+- **"Bridge E4"** — same problem as Day 4 quest.
 
 ---
 
 *2 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    int countNodes(TreeNode* root) {
+        if (!root) return 0;
+        int lh = 0, rh = 0;
+        TreeNode *l = root, *r = root;
+        while (l) { lh++; l = l->left; }
+        while (r) { rh++; r = r->right; }
+        if (lh == rh) return (1 << lh) - 1;
+        return 1 + countNodes(root->left) + countNodes(root->right);
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def countNodes(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+        lh = rh = 0
+        l = r = root
+        while l: lh += 1; l = l.left
+        while r: rh += 1; r = r.right
+        if lh == rh:
+            return (1 << lh) - 1
+        return 1 + self.countNodes(root.left) + self.countNodes(root.right)
+```
+
+### Java
+```java
+class Solution {
+    public int countNodes(TreeNode root) {
+        if (root == null) return 0;
+        int lh = 0, rh = 0;
+        TreeNode l = root, r = root;
+        while (l != null) { lh++; l = l.left; }
+        while (r != null) { rh++; r = r.right; }
+        if (lh == rh) return (1 << lh) - 1;
+        return 1 + countNodes(root.left) + countNodes(root.right);
+    }
+}
+```
+
+**Complexity:** undefined

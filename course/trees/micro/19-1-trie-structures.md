@@ -1,120 +1,184 @@
+<!-- hand-authored -->
 # 📝 N-ary Trees and Trie Structures
 
 > **Day 19** · N-ary Trees & Tries · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Trie (Prefix Tree) visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Binary trees split **left/right**. Today expands the family: **N-ary trees** (children in a list) and **tries** (edges labeled by **characters**, not left/right). Tries power prefix search; N-ary recursion replaces two child calls with a loop over `children`.
+
+> **Contrast (Day 1):** Binary nodes have `.left` / `.right`. Trie nodes have `children['a'..'z']` and an **`isEnd`** flag marking complete words.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Trie (Prefix Tree)** — the core technique you'll use in today's quests.
+**Char-edge trie + N-ary postorder** — two structures:
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+| Structure | Edge meaning | Child access |
+|---|---|---|
+| **Trie** | One character per edge | `node.ch[c-'a']` or map |
+| **N-ary tree** | Parent-child link | `for child in node.children` |
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+A **trie** stores strings by shared prefixes. Insert `"cat"` and `"car"`: walk `c → a`, then branch `t` vs `r`. Each step follows the **character edge**. At the last character, set **`isEnd = true`** — that node marks a complete word, not just a prefix.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+An **N-ary tree** generalizes depth: max depth = 1 + max depth among **all** children (loop, not left/right).
 
-### 3. Visual walkthrough
+### 3. Visual — Trie: char-edge diagram + isEnd flag
 
 ```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
+Insert: "cat", "car", "dog"
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+                    (root)
+                      |
+          +-----------+-----------+
+          c                         d
+          |                         |
+          a                         o
+        /   \                       |
+       t     r                      g
+     isEnd  isEnd                 isEnd
+      ✓      ✓                     ✓
+
+Edges labeled by CHARACTER — not "left" or "right".
+
+Node after 'a' on c-branch:
+  child['t'] → word "cat"  (isEnd=true)
+  child['r'] → word "car"  (isEnd=true)
+
+search("ca")   → walk c,a → exists but isEnd=false → false
+search("cat")  → walk c,a,t → isEnd=true → true
+startsWith("ca") → walk c,a → true (prefix OK)
 ```
 
-### 4. How the pattern works
-
+**Trie node fields:**
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+struct TrieNode {
+    TrieNode* children[26];   // or map<char, TrieNode*>
+    bool isEnd;               // true = complete word ends here
+};
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 4. Visual — N-ary depth: bubble max from children
 
-### 5. What problem does this solve?
+```
+N-ary tree (NOT binary — no left/right):
 
-| Problem family | How this pattern helps |
-|---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+           1
+        /  |  \
+       3   2   4
+          /
+         5
+        / \
+       6   7
+
+POSTORDER bubble (each node asks all children):
+
+dfs(6): return 1
+dfs(7): return 1
+dfs(5): max(1,1)+1 = 2
+dfs(3): return 1
+dfs(2): return 1
+dfs(4): return 1
+dfs(1): max(1,1,1,2)+1 = 3   ← depth 3
+
+LOOP over children — not left/right DFS:
+  best = 0
+  for child in node.children:
+      best = max(best, dfs(child))
+  return best + 1
+```
+
+### 5. The universal template
+
+**Trie insert / search:**
+```
+function insert(word):
+    cur = root
+    for c in word:
+        if cur.next[c] is null: cur.next[c] = new Node()
+        cur = cur.next[c]
+    cur.isEnd = true
+
+function search(word):
+    cur = root
+    for c in word:
+        if cur.next[c] is null: return false
+        cur = cur.next[c]
+    return cur.isEnd          // prefix ≠ word without isEnd
+```
+
+**N-ary max depth:**
+```
+function maxDepth(node):
+    if node is null: return 0
+    best = 0
+    for child in node.children:
+        best = max(best, maxDepth(child))
+    return best + 1
+```
+
+| Problem | Pattern | Key detail |
+|---|---|---|
+| Implement Trie #208 | Char-edge walk + isEnd | `startsWith` skips isEnd check |
+| N-ary Max Depth #559 | Loop children, bubble max | `children` list, not `.left/.right` |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| Store all strings in hash set only | No prefix queries; O(total chars) space anyway |
+| Trie without isEnd | `"ca"` matches word incorrectly |
+| Binary left/right on N-ary problem | Wrong API — use `children` vector |
+| BFS depth when postorder is simpler | Both O(n); loop-recursion is cleaner |
+| Array of all words for prefix search | O(nm) scan vs O(m) trie walk |
 
-### 7. The key observation
+### 7. Bridge — B-Rank Word Search II (test preview)
 
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+Day 19 trie is the foundation for **Word Search II #212** (B-Rank test): build trie from dictionary, DFS grid following character edges, prune when edge missing.
+
+| Today #208 | Word Search II #212 |
+|---|---|
+| insert / search / startsWith | Trie + grid backtracking |
+| Char edges | Same edge walk on board |
+| isEnd marks word | Collect word at isEnd, prune branch |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "prefix tree" / "trie" | Char edges + isEnd |
+| "search prefix" vs "search word" | startsWith vs isEnd |
+| "N-ary" / "children list" | Loop all children |
+| "maximum depth" on Node* with `.children` | N-ary postorder max |
+| "dictionary of words" on grid | Trie + DFS (test) |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `isEnd` · `children[26]` · `for child in children` · `char edge`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Treating trie as binary tree | Edges = characters, up to 26 branches |
+| Forgetting isEnd on insert | Last char node must flag word end |
+| startsWith checks isEnd | Only search(word) needs isEnd |
+| N-ary: hardcoding left/right | Iterate `node.children` |
+| Empty children list on leaf | Leaf depth = 1, not 0 |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Implement a trie with insert, search, and startsWith."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Walk char by char. Create missing edges. isEnd on insert's last node. search requires isEnd; startsWith does not."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Tries for strings; N-ary loops for general trees. First quest: build the trie. →*

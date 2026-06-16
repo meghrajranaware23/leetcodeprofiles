@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Expression Add Operators
 
 > **Day 20** · [Expression Add Operators #282](https://leetcode.com/problems/expression-add-operators/) · Medium · 15 min · 35 XP
@@ -10,23 +11,41 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Expression Add Operators on LeetCode](https://leetcode.com/problems/expression-add-operators/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the decision tree for `num = "123", target = 6`. Track `curr` and `prev` columns beside each branch. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Expression Add Operators #282](https://leetcode.com/problems/expression-add-operators/)**
+Given a string `num` containing only digits and an integer `target`, insert `'+'`, `'-'`, or `'*'` between digits so the expression evaluates to `target`. Return all valid expressions.
 
-Work through the examples on paper before reading further.
+```
+Input:  num = "123", target = 6
+Output: ["1+2+3", "1*2*3"]
+
+Input:  num = "232", target = 8
+Output: ["2*3+2", "2+3*2"]
+
+Input:  num = "105", target = 5
+Output: ["1*0+5", "10-5"]
+```
+
+You may not reorder digits. Unary minus is not allowed — only binary operators between numbers.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Operator Insertion Backtracking**.
+**Hint 1:** Outer loop — `j` from `i` to `n-1` picks the next number `num[i..j]`. Break (not continue) if `j > i && num[i]=='0'`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** First number (`i==0`): set `curr = prev = val`, path = `"val"`. No operator yet.
+
+**Hint 3:** Three branches for `+`, `-`, `*`:
+- `+`: `curr + val`, `prev = val`
+- `-`: `curr - val`, `prev = -val`
+- `*`: `curr - prev + prev * val`, `prev = prev * val`
+
+**Hint 4:** Base case: `i == n`. If `curr == target`, push `path` to result.
 
 ---
 
@@ -34,27 +53,21 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 **Pattern used:** Operator Insertion Backtracking
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "insert operators" between digits | Cut loop + operator branches |
+| "expression evaluates to target" | Track running `curr`, check at end |
+| `*` operator present | Multiply carry trick with `prev` |
+| generate all valid expressions | Don't return early except on collect |
+| digit string, no reorder | Index `i` only moves forward |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each cut appends a number and updates numeric state incrementally. The `prev` field lets `*` undo the last term without reparsing.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Cut string like Day 14 — but add operator state."*
+2. *"First number special — seeds curr and prev."*
+3. *"Multiply: curr - prev + prev*val."*
+4. *"Use long — products overflow int."*
 
 ---
 
@@ -62,12 +75,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Build string, eval with shunting-yard each time** | Correct but heavy; incremental curr/prev is cleaner |
+| **`curr *= val` on multiply** | Gives 9 for `1+2*3`, not 7 |
+| **`continue` on leading zero** | Must `break` — longer cuts also invalid |
+| **Forget `prev` on subtraction** | Next `*` undo breaks — need `prev = -val` |
+| **int arithmetic** | LeetCode hides overflow cases — use long |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** `*` is not `curr * val`. It replaces the last operand — `prev` stores that operand for O(1) undo.
 
 ---
 
@@ -75,25 +89,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Additive Number #306](https://leetcode.com/problems/additive-number/) | No operators — next term fixed | Cut loop + dfs (today's quest 2) |
+| [Different Ways to Add Parentheses #241](https://leetcode.com/problems/different-ways-to-add-parentheses/) | Parentheses, not insertion | Divide + combine results |
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Cut + validator, no operators | Day 14 string partition |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`num = "123"`, `target = 6`:
 
 ```
-Apply Operator Insertion Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, curr=0, prev=0, path="")
+│
+├─ j=0: val=1 (first) → dfs(1, curr=1, prev=1, "1")
+│   ├─ j=1: val=2, "+" → dfs(2, curr=3, prev=2, "1+2")
+│   │   └─ j=2: val=3, "+" → dfs(3, curr=6, prev=3, "1+2+3") → i==n, curr==6 ✓ RECORD
+│   │   └─ j=2: val=3, "*" → curr=3-2+2*3=7 ✗
+│   └─ j=1: val=2, "*" → dfs(2, curr=2, prev=2, "1*2")
+│       └─ j=2: val=3, "+" → curr=5 ✗
+│       └─ j=2: val=3, "*" → curr=2-2+2*3=6 ✓ RECORD "1*2*3"
+│
+├─ j=1: val=12 → "12+3"=15, etc. ✗
+└─ j=2: val=123 ✗
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Multiply row detail for `"1*2*3"` at the final step:
+```
+curr=2, prev=2, val=3
+curr = 2 - 2 + 2*3 = 6
+prev = 2 * 3 = 6
+```
+
+> 💡 **The insight:** The path string is for output. `curr`/`prev` are for math. Never eval the path string mid-dfs.
 
 ---
 
@@ -180,22 +208,21 @@ class Solution {
 ```
 
 **Complexity:** O(4^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Operator Insertion Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Cut loop like Day 14"** — but three operator branches instead of one validator.
+- **"First number is special"** — no operator, seed curr and prev.
+- **"Multiply needs prev"** — `curr - prev + prev*val`, not `curr * val`.
+- **"Break on leading zero"** — same rule as IP restore and additive number.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you got `1+2*3 = 9`, you missed the carry trick — that's the whole lesson of this quest.
 
 > 🎯 **Pattern Unlocked:** Operator Insertion Backtracking
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: no operators at all — the next term is forced by the previous two. →*

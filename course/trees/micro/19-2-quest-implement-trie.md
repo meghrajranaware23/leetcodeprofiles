@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Implement Trie
 
 > **Day 19** · [Implement Trie (Prefix Tree) #208](https://leetcode.com/problems/implement-trie-prefix-tree/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Implement Trie (Prefix Tree) on LeetCode](https://leetcode.com/problems/implement-trie-prefix-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the char-edge diagram from today's concept. Mark `isEnd` on word-ending nodes. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Trie Design**.
+Which pattern from today's concept applies? **Trie design** — each step follows a **character edge**; terminal node sets **`isEnd = true`**. `search` requires isEnd; `startsWith` only checks path exists.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: 26-array or hash map per node; loop `for c in word: cur = cur.next[c]`.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Trie Design
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Design class with insert / search / startsWith
+- Prefix sharing implied
+- Lowercase English letters → 26-array works
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "prefix tree" / "trie" | Char-edge nodes |
+| "search word" | Walk + check isEnd |
+| "starts with prefix" | Walk only — no isEnd required |
+| "insert string" | Create edges + isEnd at end |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Shared prefixes share path — one path for `"cat"` and `"car"` through `"ca"`. isEnd distinguishes word vs prefix node.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Root empty node, no char."*
+2. *"insert: walk/create edges, isEnd on last."*
+3. *"search: any missing edge → false; else isEnd."*
+4. *"startsWith: missing edge → false; else true."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **HashSet of all words only** | startsWith scans all — O(n·L) |
+| **No isEnd flag** | Prefix nodes mistaken for words |
+| **Store full strings at every node** | Defeats prefix compression |
+| **Binary tree per string** | Wrong structure |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Char edges compress shared prefixes; isEnd marks word boundaries.
 
 ---
 
@@ -75,31 +74,29 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | B-Rank test — trie + grid | Same insert + isEnd |
+| [Design Add and Search #211](https://leetcode.com/problems/design-add-and-search-words-data-structure/) | '.' wildcard | Trie walk + branching |
+| [Replace Words #648](https://leetcode.com/problems/replace-words/) | Shortest prefix root | Early isEnd stop |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+insert("apple"), insert("app")
 
-Apply Trie Design step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+        root
+          |
+          a → p → p → l → e (isEnd)
+                  ↑
+               isEnd ("app")
+
+search("app")   → true  (isEnd at 3rd p)
+search("ap")    → false (path exists, no isEnd)
+startsWith("ap")→ true
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Nodes are prefixes; isEnd says "a dictionary word ends here."
 
 ---
 
@@ -108,34 +105,37 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Trie {
-    Trie* child[26]{};
-    bool end = false;
+    struct Node {
+        Node* ch[26] = {};
+        bool end = false;
+    };
+    Node* root;
 public:
-    Trie() {}
+    Trie() : root(new Node()) {}
     void insert(string word) {
-        Trie* node = this;
+        Node* cur = root;
         for (char c : word) {
             int i = c - 'a';
-            if (!node->child[i]) node->child[i] = new Trie();
-            node = node->child[i];
+            if (!cur->ch[i]) cur->ch[i] = new Node();
+            cur = cur->ch[i];
         }
-        node->end = true;
+        cur->end = true;
     }
     bool search(string word) {
-        Trie* node = this;
+        Node* cur = root;
         for (char c : word) {
             int i = c - 'a';
-            if (!node->child[i]) return false;
-            node = node->child[i];
+            if (!cur->ch[i]) return false;
+            cur = cur->ch[i];
         }
-        return node->end;
+        return cur->end;
     }
     bool startsWith(string prefix) {
-        Trie* node = this;
+        Node* cur = root;
         for (char c : prefix) {
             int i = c - 'a';
-            if (!node->child[i]) return false;
-            node = node->child[i];
+            if (!cur->ch[i]) return false;
+            cur = cur->ch[i];
         }
         return true;
     }
@@ -146,79 +146,76 @@ public:
 ```python
 class Trie:
     def __init__(self):
-        self.children = {}
-        self.end = False
+        self.root = {}
+
     def insert(self, word: str) -> None:
-        node = self
+        node = self.root
         for c in word:
-            node = node.children.setdefault(c, Trie())
-        node.end = True
+            node = node.setdefault(c, {})
+        node['#'] = True
+
     def search(self, word: str) -> bool:
-        node = self
+        node = self.root
         for c in word:
-            if c not in node.children:
-                return False
-            node = node.children[c]
-        return node.end
+            if c not in node: return False
+            node = node[c]
+        return '#' in node
+
     def startsWith(self, prefix: str) -> bool:
-        node = self
+        node = self.root
         for c in prefix:
-            if c not in node.children:
-                return False
-            node = node.children[c]
+            if c not in node: return False
+            node = node[c]
         return True
 ```
 
 ### Java
 ```java
 class Trie {
-    Trie[] child = new Trie[26];
-    boolean end;
+    private Trie[] ch = new Trie[26];
+    private boolean isEnd = false;
     public void insert(String word) {
-        Trie node = this;
+        Trie cur = this;
         for (char c : word.toCharArray()) {
             int i = c - 'a';
-            if (node.child[i] == null) node.child[i] = new Trie();
-            node = node.child[i];
+            if (cur.ch[i] == null) cur.ch[i] = new Trie();
+            cur = cur.ch[i];
         }
-        node.end = true;
+        cur.isEnd = true;
     }
     public boolean search(String word) {
-        Trie node = find(word);
-        return node != null && node.end;
+        Trie cur = this;
+        for (char c : word.toCharArray()) {
+            int i = c - 'a';
+            if (cur.ch[i] == null) return false;
+            cur = cur.ch[i];
+        }
+        return cur.isEnd;
     }
     public boolean startsWith(String prefix) {
-        return find(prefix) != null;
-    }
-    Trie find(String s) {
-        Trie node = this;
-        for (char c : s.toCharArray()) {
+        Trie cur = this;
+        for (char c : prefix.toCharArray()) {
             int i = c - 'a';
-            if (node.child[i] == null) return null;
-            node = node.child[i];
+            if (cur.ch[i] == null) return false;
+            cur = cur.ch[i];
         }
-        return node;
+        return true;
     }
 }
 ```
 
-**Complexity:** O(m) per op · O(n·m) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Trie Design"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Prefix tree"** → char edges, not binary.
+- **"isEnd / '#'"** → word vs prefix node.
+- **"search vs startsWith"** → isEnd check only on search.
+- **"Shared prefix"** → one path for common start.
 
 > 🎯 **Pattern Unlocked:** Trie Design
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: N-ary depth — loop children, bubble max. →*

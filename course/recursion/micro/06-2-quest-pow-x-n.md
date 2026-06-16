@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Pow(x, n)
 
 > **Day 6** · [Pow(x, n) #50](https://leetcode.com/problems/powx-n/) · Medium · 15 min
@@ -10,51 +11,58 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Pow(x, n) on LeetCode](https://leetcode.com/problems/powx-n/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the halving tree for `2^10`. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Pow(x, n) #50](https://leetcode.com/problems/powx-n/)**
+Implement `pow(x, n)`, which calculates `x` raised to the power `n`.
 
-Work through the examples on paper before reading further.
+```
+Input:  x = 2.0, n = 10
+Output: 1024.0
+
+Input:  x = 2.1, n = 3
+Output: 9.261
+
+Input:  x = 2.0, n = -2
+Output: 0.25
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Fast Exponentiation**.
+Which pattern from today's concept applies? **Binary recursion** — halve the exponent, square the half-result.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: trace `pow(2, 5)`. Base at `n=0`. Odd step needs one extra `× x`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Fast Exponentiation
+**Pattern used:** Fast Exponentiation (Binary Recursion)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Implement pow(x, n)" → classic **halve exponent, combine squares**
+- "n can be negative" → recurse on `|n|`, return `1.0 / result`
+- "O(log n) expected" → one recursive call per level, not n multiplications
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "x raised to n" / "power" | `half = pow(x, n/2)` then `half²` |
+| "negative n" | `1 / pow(x, -n)` at wrapper level |
+| "efficient" / large n | Halving → O(log n) depth |
+| "even / odd exponent" | Even: `half²`; odd: `half² × x` |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** `x^n = (x^(n/2))²` when n is even. One sub-call, square the result. Odd n adds one more `x`.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: n == 0 → 1."*
+2. *"One call: half = pow(x, n/2). Don't call twice."*
+3. *"n % 2 decides square-only vs square-and-multiply."*
+4. *"Use long for n to handle -2³¹ safely."*
 
 ---
 
@@ -62,12 +70,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Loop: multiply x, n times** | O(n) — fails when n ≈ 2³¹ |
+| **Two calls: pow(n/2) + pow(n/2)** | Doubles work — still exponential |
+| **Linear recursion pow(x, n-1)** | O(n) depth — stack overflow |
+| **Ignoring negative n** | Wrong sign on half of test cases |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** You only need **one** half-result. Square it. Odd exponent needs one extra factor — not a second full recursion tree.
 
 ---
 
@@ -75,25 +83,55 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Count Good Numbers #1922](https://leetcode.com/problems/count-good-numbers/) | Modular pow + counting | Same `pow_mod` halving |
+| [Pow(x, n) #50](https://leetcode.com/problems/powx-n/) | Float x, negative n | Halve, square, odd guard |
+| [Super Pow #372](https://leetcode.com/problems/super-pow/) | Base 1337, array exponent | Modular binary pow |
+| [Pow(x, n) — iterative variant](https://leetcode.com/problems/powx-n/) | Same logic, while loop | Bit-scan exponent instead of recursion |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you recognized Pow(x, n), Count Good Numbers is the same engine with `% MOD`.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+Binary recursion on `x = 2, n = 10`:
 
 ```
-Apply Fast Exponentiation step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+CALL TREE (values returned upward):
+
+pow(2, 10)  n even
+  half = pow(2, 5)
+    half = pow(2, 2)
+      half = pow(2, 1)  n odd
+        half = pow(2, 0) → 1  (BASE)
+        return 1² × 2 = 2
+      return 2² = 4
+    return 4² × 2 = 32
+  return 32² = 1024  ✓
+
+Negative: x=2, n=-2
+  → 1.0 / pow(2, 2) = 1.0 / 4 = 0.25
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Frame trace for `pow(2, 5)`:
+
+```
+┌─────────────────────────┐
+│ pow(2,5)  half=pow(2,2) │
+│   waiting...            │
+├─────────────────────────┤
+│ pow(2,2)  half=pow(2,1) │
+│   waiting...            │
+├─────────────────────────┤
+│ pow(2,1)  half=pow(2,0) │
+│   half=1 → 1²×2 = 2     │
+├─────────────────────────┤
+│ pow(2,0)  BASE → 1      │
+└─────────────────────────┘
+UNWIND: 2 → 4 → 32
+```
+
+> 💡 **The insight:** One `half` variable per frame. Never `pow(n/2) + pow(n/2)`.
 
 ---
 
@@ -146,22 +184,21 @@ class Solution {
 ```
 
 **Complexity:** O(log n) time · O(log n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Fast Exponentiation"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Power of n"** → Don't loop n times. Halve n.
+- **"x^n = (x^(n/2))²"** → One recursive call, store `half`, square it.
+- **"n is odd"** → After squaring, multiply once more by x.
+- **"n is negative"** → `long N = n` then `1.0 / powRec(x, -N)` — avoid int overflow.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried a linear loop first, that's fine — the breakthrough is seeing the **halving tree** on paper, not memorizing the formula.
 
-> 🎯 **Pattern Unlocked:** Fast Exponentiation
+> 🎯 **Pattern Unlocked:** Fast exponentiation via binary recursion — halve exponent, square half, odd guard.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same skeleton with modular arithmetic. →*

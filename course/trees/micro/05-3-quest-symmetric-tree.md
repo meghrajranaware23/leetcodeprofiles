@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Symmetric Tree
 
 > **Day 5** · [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) · Easy · 10 min
@@ -10,51 +11,65 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Symmetric Tree on LeetCode](https://leetcode.com/problems/symmetric-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the tree. Compare **left child vs right child** with cross pairing. Hints are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/)**
+Given the root of a binary tree, check whether it is a **mirror of itself** (symmetric around its center).
 
-Work through the examples on paper before reading further.
+```
+Input:       1
+            / \
+           2   2
+          / \ / \
+         3  4 4  3
+
+Output: true
+
+Input:       1
+            / \
+           2   2
+            \   \
+             3    3
+
+Output: false
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Mirror Recursion**.
+Which pattern from today's concept applies? **Mirror recursion** — compare `(a.left, b.right)` and `(a.right, b.left)`. Start with `mirror(root.left, root.right)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: Same Tree pairs left-left; Symmetric pairs **left-right cross**.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Mirror Recursion
+**Pattern used:** Mirror Recursion (cross pairing)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Symmetric" / "mirror of itself" → cross child pairing
+- Single tree input → compare two subtrees of same root
+- Same null/value rules as Same Tree → different wiring
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "symmetric tree" | `(a.left, b.right)`, `(a.right, b.left)` |
+| "mirror of itself" | Helper on root.left vs root.right |
+| "reflection" / "flip horizontally" | Cross pairing |
+| "same structure both sides" | Not Same Tree — cross compare |
+| "corresponding mirror nodes" | Outer with outer, inner with inner |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Symmetry means left subtree is mirror of right subtree — outer nodes match outer, inner match inner, with roles swapped.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Empty root → true."*
+2. *"mirror(a, b): both null → true; one null → false."*
+3. *"a.val == b.val && mirror(a.left, b.right) && mirror(a.right, b.left)."*
 
 ---
 
@@ -62,12 +77,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Same Tree parallel pairing** | Compares left-left — fails on valid symmetric trees |
+| **Invert copy + Same Tree** | O(n) extra space — mirror walk is O(h) stack |
+| **Compare inorder sequences** | Symmetric inorder isn't simply palindrome in all defs |
+| **BFS level palindrome only** | Values per level palindrome necessary but check structure too |
+| **Only compare root's two children values** | Deep asymmetry missed |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Symmetric is Same Tree's **mirror wiring** — one line change in the two recursive calls.
 
 ---
 
@@ -75,31 +91,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Parallel pairing | `(left,left)`, `(right,right)` |
+| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Mutate, not compare | Day 1 swap |
+| [Subtree of Another Tree #572](https://leetcode.com/problems/subtree-of-another-tree/) | Parallel same() + search | Same Tree building block |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Mirror vs parallel — the Day 5 contrast table.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Cross pairing on symmetric tree.**
 
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      2   2
+     / \ / \
+    3  4 4  3
 
-Apply Mirror Recursion step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+mirror(2_left, 2_right):
+  vals 2 == 2 ✓
+  mirror(3, 3)     ← a.left vs b.right  ✓
+  mirror(4, 4)     ← a.right vs b.left  ✓
+→ true
+
+Asymmetric:
+        1
+       / \
+      2   2
+       \   \
+        3    3
+
+mirror(2, 2): vals match
+  mirror(null, 3) → one null → false ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Draw the contrast table from the concept page. Same Tree: L-L, R-R. Symmetric: L-R, R-L.
 
 ---
 
@@ -109,8 +137,9 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
     bool mirror(TreeNode* a, TreeNode* b) {
-        if (!a || !b) return a == b;
-        return a->val == b->val && mirror(a->left, b->right) && mirror(a->right, b->left);
+        if (!a && !b) return true;
+        if (!a || !b || a->val != b->val) return false;
+        return mirror(a->left, b->right) && mirror(a->right, b->left);
     }
 public:
     bool isSymmetric(TreeNode* root) {
@@ -124,41 +153,41 @@ public:
 class Solution:
     def isSymmetric(self, root: Optional[TreeNode]) -> bool:
         def mirror(a, b):
-            if not a or not b:
-                return a is b
-            return a.val == b.val and mirror(a.left, b.right) and mirror(a.right, b.left)
+            if not a and not b: return True
+            if not a or not b or a.val != b.val: return False
+            return mirror(a.left, b.right) and mirror(a.right, b.left)
         return not root or mirror(root.left, root.right)
 ```
 
 ### Java
 ```java
 class Solution {
+    private boolean mirror(TreeNode a, TreeNode b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null || a.val != b.val) return false;
+        return mirror(a.left, b.right) && mirror(a.right, b.left);
+    }
     public boolean isSymmetric(TreeNode root) {
         return root == null || mirror(root.left, root.right);
-    }
-    boolean mirror(TreeNode a, TreeNode b) {
-        if (a == null || b == null) return a == b;
-        return a.val == b.val && mirror(a.left, b.right) && mirror(a.right, b.left);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Mirror Recursion"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Symmetric"** → Cross: `(a.left, b.right)` AND `(a.right, b.left)`.
+- **"Same Tree diff"** → Parallel pairs left-left; mirror crosses.
+- **"Start at root's children"** → Don't compare root with itself.
+- **"Null rule identical to #100"** → Both null true; one null false.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If your recursive calls look like Same Tree, swap one pairing to cross.
 
-> 🎯 **Pattern Unlocked:** Mirror Recursion
+> 🎯 **Pattern Unlocked:** Mirror recursion — left meets right across the axis.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Search in BST
 
 > **Day 11** · [Search in a Binary Search Tree #700](https://leetcode.com/problems/search-in-a-binary-search-tree/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Search in a Binary Search Tree on LeetCode](https://leetcode.com/problems/search-in-a-binary-search-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node, write ONE arrow — left or right. Never visit both subtrees. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST Binary Search**.
+Which compass direction from today's concept applies? **↓ BST binary search walk** — one comparison per level, prune to left or right.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: this is array binary search with pointers. `val < node.val` → left; else → right. Stop when null or found.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BST Binary Search
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Search in a BST" → ordering lets you eliminate half the tree each step
+- Return the node pointer (or null)
+- No need to traverse both children — **one branch only**
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "search in BST" / "find node" | Left/right walk |
+| "subtree" in output | Return node where found — that subtree root |
+| "O(h) time" expected | Height-proportional — not full O(n) scan |
+| "binary search tree" | Compare and prune |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** BST ordering guarantees target, if present, lives entirely in one subtree. Wrong branch = impossible path.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"While node exists and val != target…"*
+2. *"Go left if val < node.val, else right."*
+3. *"Return node (found) or null (fell off tree)."*
+4. *"Iterative = O(1) extra space; recursive = O(h) stack."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Full tree DFS/BFS** | O(n) — ignores ordering, the whole point of BST |
+| **Inorder scan until match** | Works but slower constant factor; overkill |
+| **Visit both children recursively** | Correct but wasteful — compare first, pick one side |
+| **Compare to parent only** | Wrong logic — use root of current subtree |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** BST search is **array binary search on a linked structure**. Each node is a pivot; you never backtrack.
 
 ---
 
@@ -75,31 +74,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Insert into BST #701](https://leetcode.com/problems/insert-into-a-binary-search-tree/) | Walk to null, attach new node | Same left/right decision |
+| [Delete Node in BST #450](https://leetcode.com/problems/delete-node-in-a-bst/) | Day 12 — find then restructure | Search phase identical |
+| [Closest BST Value #272](https://leetcode.com/problems/closest-binary-search-tree-value/) | Track best so far while walking | Same prune direction |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: compare at root, go one way.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Search val = 6 in today's BST:**
 
 ```
-        3
+        8
        / \
-      9    20
-          /  \
-         15   7
+      3   10
+         / \
+        6   14
 
-Apply BST Binary Search step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Step 1 — [8]:  6 < 8   → LEFT
+Step 2 — [3]:  6 > 3   → RIGHT
+Step 3 — [6]:  6 == 6  → return node 6 ✓
+
+3 nodes visited. Never touched 10, 14, or 3's left subtree.
+
+Search val = 15:
+  [8] → right  [10] → right  [14] → right  null → return null
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Every step shrinks the search space to one subtree. That's the BST payoff from Day 11's invariant.
 
 ---
 
@@ -110,9 +114,11 @@ Watch what gets returned from leaves back to root.
 class Solution {
 public:
     TreeNode* searchBST(TreeNode* root, int val) {
-        while (root && root->val != val)
+        while (root) {
+            if (val == root->val) return root;
             root = val < root->val ? root->left : root->right;
-        return root;
+        }
+        return nullptr;
     }
 };
 ```
@@ -121,38 +127,40 @@ public:
 ```python
 class Solution:
     def searchBST(self, root: Optional[TreeNode], val: int) -> Optional[TreeNode]:
-        while root and root.val != val:
+        while root:
+            if val == root.val: return root
             root = root.left if val < root.val else root.right
-        return root
+        return None
 ```
 
 ### Java
 ```java
 class Solution {
     public TreeNode searchBST(TreeNode root, int val) {
-        while (root != null && root.val != val)
+        while (root != null) {
+            if (val == root.val) return root;
             root = val < root.val ? root.left : root.right;
-        return root;
+        }
+        return null;
     }
 }
 ```
 
-**Complexity:** O(h) time · O(1) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST Binary Search"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Search in BST"** → not full traversal — one branch per level.
+- **"Same as binary search"** → compare to pivot, halve the space.
+- **"While loop is enough"** → no recursion required for this quest.
+- **"Pair with Validate"** → invariant (Day 11 concept) enables the walk.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you wrote recursive DFS visiting both sides, refactor — the compare-then-prune loop is the canonical form.
 
-> 🎯 **Pattern Unlocked:** BST Binary Search
+> 🎯 **Pattern Unlocked:** BST Binary Search — left/right walk in O(h).
 
 ---
 

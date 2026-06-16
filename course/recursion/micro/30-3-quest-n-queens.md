@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: N-Queens
 
 > **Day 30** · [N-Queens #51](https://leetcode.com/problems/n-queens/) · Hard · 25 min · 60 XP
@@ -10,51 +11,65 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open N-Queens on LeetCode](https://leetcode.com/problems/n-queens/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Day 18 N-Queens II constraint sets — but **snapshot the board** at each leaf. Trace both n=4 solutions on paper with full board diagrams.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[N-Queens #51](https://leetcode.com/problems/n-queens/)**
+The **n-queens** puzzle: place `n` queens on an `n×n` board so no two queens attack each other (same row, column, or diagonal).
 
-Work through the examples on paper before reading further.
+Return all distinct solutions. Each solution is a board configuration as a string array where `'Q'` and `'.'` represent a queen and empty cell.
+
+```
+Input:  n = 4
+Output: [[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+
+Input:  n = 1
+Output: [["Q"]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Full Constraint Generation**.
+**Hint 1:** One queen per row → recurse on **row index** `r`, try each **column** `c`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Day 18 constraint sets: `cols[c]`, `d1[r-c]`, `d2[r+c]` — O(1) attack check.
+
+**Hint 3:** Base: `r == n` → snapshot board into result.
+
+**Hint 4:** Choose: mark constraints + `board[r][c]='Q'`. Unchoose: unmark + `board[r][c]='.'`.
+
+**Hint 5:** Difference from N-Queens II (#52): same dfs, but **store board strings** instead of incrementing count.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Full Constraint Generation
+**Pattern used:** Full Constraint Generation (Day 18 + board output)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "N-Queens" / place n queens | row-by-row backtrack |
+| no two attack | cols + diag sets |
+| return all configurations | snapshot board at leaf |
+| vs N-Queens II | generate vs count |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Day 18 vs Day 30:**
+
+| N-Queens II #52 | N-Queens #51 |
+|---|---|
+| return count | return all board strings |
+| `ans++` at leaf | `res.push_back(board)` |
+| no board storage needed | maintain `board[n][n]` |
+| same dfs skeleton | same dfs skeleton |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Row index dfs — one queen per row."*
+2. *"cols, d1, d2 — don't scan board."*
+3. *"Snapshot at r==n."*
+4. *"Unmark before next column try."*
 
 ---
 
@@ -62,38 +77,84 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Place queens anywhere on board (n² positions)** | Violates one-per-row structure |
+| **Scan full board for attacks each placement** | O(n) per check → O(n!) with extra factor |
+| **Forget to unmark constraints** | Ghost queens block valid configs |
+| **Store board before backtrack unmark** | Must copy board at leaf only |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Row-by-row placement + three boolean sets reduces each decision to O(n) column tries with O(1) validation.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Output |
+|---|---|
+| [N-Queens II #52](https://leetcode.com/problems/n-queens-ii/) | Count only (Day 18) |
+| [N-Queens #51](https://leetcode.com/problems/n-queens/) | All boards (today) |
+| [Sudoku Solver #37](https://leetcode.com/problems/sudoku-solver/) | Fill one board (Day 18) |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+### n = 4 — Solution 1 (full board trace)
+
+Target: `[".Q..","...Q","Q...","..Q."]`
 
 ```
-Apply Full Constraint Generation step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(r=0): c=1 → Q@(0,1)   cols={1}, d1={-1}, d2={1}
+
+         . Q . .
+         . . . .
+         . . . .
+         . . . .
+
+dfs(r=1): c=3 → Q@(1,3)   cols={1,3}, d1={-1,-2}, d2={1,4}
+
+         . Q . .
+         . . . Q
+         . . . .
+         . . . .
+
+dfs(r=2): c=0 → Q@(2,0)   all sets clear
+
+         . Q . .
+         . . . Q
+         Q . . .
+         . . . .
+
+dfs(r=3): c=2 → Q@(3,2)   r==4 → SNAPSHOT ✓
+
+         . Q . .
+         . . . Q
+         Q . . .
+         . . Q .
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+### n = 4 — Solution 2
+
+Target: `["..Q.","Q...","...Q",".Q.."]`
+
+```
+Row 0: c=2 → ..Q.
+Row 1: c=0 → Q...
+Row 2: c=3 → ...Q
+Row 3: c=1 → .Q..
+SNAPSHOT ✓
+```
+
+### dfs tree (n=4, abbreviated)
+
+```
+dfs(0)
+├── c=0 → ... → dead end
+├── c=1 → c=3 → c=0 → c=2 → dfs(4) → Solution 1 ✓
+├── c=2 → c=0 → c=3 → c=1 → dfs(4) → Solution 2 ✓
+└── c=3 → dead end
+```
+
+Two leaves at `r==n`. Constraint sets prune all other branches at O(1) per column try.
 
 ---
 
@@ -180,22 +241,21 @@ class Solution {
 ```
 
 **Complexity:** O(n!) time · O(n^2) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Full Constraint Generation"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Day 18 dfs — row by row."** → Same constraint sets as N-Queens II.
+- **"cols, d1, d2 — O(1) check."** → Never scan the board for attacks.
+- **"r==n → snapshot."** → Copy board rows to result.
+- **"Two boards for n=4."** → Trace both on paper before coding.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried nested loops over all cell combinations, that's fine — the breakthrough is **one queen per row + constraint sets**, not brute placement.
 
 > 🎯 **Pattern Unlocked:** Full Constraint Generation
 
 ---
 
-*Both quests complete. Head to the checkpoint. →*
+*Both quests complete. Head to the checkpoint — you are at the summit. →*

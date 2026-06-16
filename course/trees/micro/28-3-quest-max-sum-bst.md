@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Maximum Sum BST
 
 > **Day 28** · [Maximum Sum BST in Binary Tree #1373](https://leetcode.com/problems/maximum-sum-bst-in-binary-tree/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Sum BST in Binary Tree on LeetCode](https://leetcode.com/problems/maximum-sum-bst-in-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node write the 4-tuple `(isBST, min, max, sum)` returning up. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,36 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Tree DP + BST Validation**.
+Which pattern from today's concept applies? **↑ BST validity tuple** — return `(isBST, minVal, maxVal, sum)` from each subtree; valid combine when `lmax < node.val < rmin`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: when combine fails, return `(false, 0, 0, 0)` to poison ancestors. Day 11 range check, but min/max bubble up instead of bounds going down.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Tree DP + BST Validation
+**Pattern used:** Tree DP + BST Validation (4-tuple combine)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"BST subtree"** → need global ordering, not local child compare
+- **"Maximum sum"** → aggregate `sum` in the same pass as validation
+- **"Any subtree"** → global `ans` updated whenever a valid BST is confirmed
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "sum of BST" / "valid BST subtree" | Tuple: validity + min + max + sum |
+| "largest / maximum" among subtrees | Global update on valid combine |
+| "binary tree" (may not be BST overall) | Best answer may be strict sub-subtree |
+| "node values can be negative" | Sum can decrease — still track max |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Day 11 validates with `(lo, hi)` descent. Here you need **both** validation and sum — bottom-up tuple merges them in one post-order pass.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → (true, +∞, -∞, 0)."*
+2. *"Get left/right tuples."*
+3. *"Valid iff lb && rb && lmax < val < rmin."*
+4. *"On valid: ans = max(ans, total); return (true, min(lmin,val), max(rmax,val), total)."*
+5. *"On invalid: return poison tuple."*
 
 ---
 
@@ -62,12 +62,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Check every subtree by inorder array** | O(n²) — re-flatten each candidate |
+| **Day 11 range descent only** | Validates but doesn't compute sum in one pass |
+| **Compare only left.val and right.val** | Misses deep violations (Day 11 trap tree) |
+| **Return sum without validity flag** | Invalid subtree sum pollutes parent |
+| **Separate DFS for sum and validate** | Two passes when one tuple suffices |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** `(isBST, min, max, sum)` is the **minimum information** a parent needs to decide both validity and aggregate.
 
 ---
 
@@ -75,31 +76,44 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Validate BST #98](https://leetcode.com/problems/validate-binary-search-tree/) | Boolean only | Range descent (Day 11) or tuple without sum |
+| [Largest BST Subtree #333](https://leetcode.com/problems/largest-bst-subtree/) | Count nodes, not sum | Same tuple — track size instead of sum |
+| [Maximum Binary Tree #654](https://leetcode.com/problems/maximum-binary-tree/) | Build, not validate | Different combine — same post-order trust |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Tuple combine is the S-Rank upgrade when optimization rides on subtree validity.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Valid BST buried inside invalid outer tree.**
 
 ```
-        3
+        1
        / \
-      9    20
-          /  \
-         15   7
+      4   3
+         / \
+        2   5
 
-Apply Tree DP + BST Validation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+dfs(4): (T, 4, 4, 4)
+dfs(2): (T, 2, 2, 2)
+dfs(5): (T, 5, 5, 5)
+dfs(3): 2 < 3 < 5 → (T, 2, 5, 10)   ans = 10
+dfs(1): 4 < 1? NO → (F, 0, 0, 0)
+
+Whole tree invalid. Best BST = subtree at 3, sum = 2+3+5 = 10 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Poison propagation:**
+
+```
+When node 1 fails:
+  returns (F, 0, 0, 0)
+  parent (if any) sees lb or rb false → also invalid
+  min/max from failed branch are IGNORED
+```
+
+> 💡 **The insight:** `lmax < node.val < rmin` is the entire Day 11 invariant compressed into two numbers from children.
 
 ---
 
@@ -108,19 +122,23 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    const long INF = 1e18;
-    array<long,4> dfs(TreeNode* node) {
-        if (!node) return {1, INF, -INF, 0};
-        auto l = dfs(node->left), r = dfs(node->right);
-        if (l[0] && r[0] && node->val > l[2] && node->val < r[1]) {
-            long sum = node->val + l[3] + r[3];
-            return {1, min(l[1], (long)node->val), max(r[2], (long)node->val), sum};
+    int ans = 0;
+    // returns {isBST, minVal, maxVal, sum}
+    tuple<bool,int,int,int> dfs(TreeNode* node) {
+        if (!node) return {true, INT_MAX, INT_MIN, 0};
+        auto [lb, lmin, lmax, lsum] = dfs(node->left);
+        auto [rb, rmin, rmax, rsum] = dfs(node->right);
+        if (lb && rb && lmax < node->val && node->val < rmin) {
+            int total = lsum + rsum + node->val;
+            ans = max(ans, total);
+            return {true, min(lmin, node->val), max(rmax, node->val), total};
         }
-        return {0, 0, 0, max(l[3], r[3])};
+        return {false, 0, 0, 0};
     }
 public:
-    int maxSumBSTSubTree(TreeNode* root) {
-        return dfs(root)[3];
+    int maxSumBST(TreeNode* root) {
+        dfs(root);
+        return ans;
     }
 };
 ```
@@ -128,52 +146,59 @@ public:
 ### Python
 ```python
 class Solution:
-    def maxSumBSTSubTree(self, root: Optional[TreeNode]) -> int:
+    def maxSumBST(self, root: Optional[TreeNode]) -> int:
+        self.ans = 0
         def dfs(node):
             if not node:
                 return True, float('inf'), float('-inf'), 0
-            ll, lmn, lmx, ls = dfs(node.left)
-            rl, rmn, rmx, rs = dfs(node.right)
-            if ll and rl and lmx < node.val < rmn:
-                return True, min(lmn, node.val), max(rmx, node.val), node.val + ls + rs
-            return False, 0, 0, max(ls, rs)
-        return dfs(root)[3]
+            lb, lmin, lmax, lsum = dfs(node.left)
+            rb, rmin, rmax, rsum = dfs(node.right)
+            if lb and rb and lmax < node.val < rmin:
+                total = lsum + rsum + node.val
+                self.ans = max(self.ans, total)
+                return True, min(lmin, node.val), max(rmax, node.val), total
+            return False, 0, 0, 0
+        dfs(root)
+        return self.ans
 ```
 
 ### Java
 ```java
 class Solution {
-    public int maxSumBSTSubTree(TreeNode root) {
-        return dfs(root)[3];
+    private int ans = 0;
+    public int maxSumBST(TreeNode root) {
+        dfs(root);
+        return ans;
     }
-    long[] dfs(TreeNode node) {
-        if (node == null) return new long[]{1, Long.MAX_VALUE, Long.MIN_VALUE, 0};
-        long[] l = dfs(node.left), r = dfs(node.right);
-        if (l[0] == 1 && r[0] == 1 && node.val > l[2] && node.val < r[1]) {
-            long sum = node.val + l[3] + r[3];
-            return new long[]{1, Math.min(l[1], node.val), Math.max(r[2], node.val), sum};
+    // returns int[]{isBST(1/0), min, max, sum}
+    private int[] dfs(TreeNode node) {
+        if (node == null) return new int[]{1, Integer.MAX_VALUE, Integer.MIN_VALUE, 0};
+        int[] l = dfs(node.left), r = dfs(node.right);
+        if (l[0]==1 && r[0]==1 && l[2] < node.val && node.val < r[1]) {
+            int total = l[3] + r[3] + node.val;
+            ans = Math.max(ans, total);
+            return new int[]{1, Math.min(l[1], node.val), Math.max(r[2], node.val), total};
         }
-        return new long[]{0, 0, 0, Math.max(l[3], r[3])};
+        return new int[]{0, 0, 0, 0};
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Tree DP + BST Validation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"BST + optimize subtree"** → validity tuple, not range descent alone.
+- **"lmax < val < rmin"** → Day 11 global invariant in bottom-up form.
+- **"Poison on fail"** → `(false, 0, 0, 0)` stops bad sums propagating.
+- **"Global ans on valid combine"** → best BST may not include root.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried top-down range + separate sum dfs, compare — one tuple pass is cleaner and O(n).
 
-> 🎯 **Pattern Unlocked:** Tree DP + BST Validation
+> 🎯 **Pattern Unlocked:** Tree DP + BST Validation — `(isBST, min, max, sum)` combine.
 
 ---
 

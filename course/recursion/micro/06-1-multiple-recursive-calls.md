@@ -1,117 +1,125 @@
+<!-- hand-authored -->
 # 📝 Multiple Recursive Calls
 
-> **Day 6** · Multiple Recursive Calls · ★★★☆☆ · 15 XP · 15 min read
+> **Day 6** · Binary Recursion · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Binary Recursion visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **one recursive call is not enough** — you halve the problem and combine two half-results. Trace the binary tree of calls on paper before coding. Pow(x, n) and Count Good Numbers are the same skeleton with different combine math.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Binary Recursion
 
-### 1. What is the pattern?
+### 1. What is binary recursion?
 
-**Binary Recursion** — the core technique you'll use in today's quests.
+**Binary recursion** — each frame makes **one** recursive call on a **halved** subproblem, then **combines** the half-result with itself (and maybe one extra factor).
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Unlike Day 1's linear shrink (`n → n-1`), the depth is **O(log n)** because the input **halves** each level.
+
+Three pieces:
+
+- **Base case** — smallest exponent: `n == 0` → return `1`
+- **Recursive case** — `half = pow(x, n/2)`; combine with `half * half` (and `* x` if odd)
+- **Trust** — assume `pow(x, n/2)` is correct; you only square (or square-and-multiply)
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+To compute `2^10`, don't multiply ten times. Ask: *"What's 2^5?"* When that returns `32`, square it: `32² = 1024`. One recursive friend, not ten.
 
-The call stack is just a line of friends waiting for the next friend to finish.
+If the exponent is odd (`2^5`), you get `half = 2^2 = 4`, then `4² × 2 = 32`.
 
-### 3. Visual walkthrough
+### 3. Visual — pow halving tree
 
-```
-pow(2, 10) — binary recursion:
-
-              pow(2,10)
-             /        \
-        pow(2,5)      (cached half)
-        /     \
-   pow(2,2)  pow(2,3)
-    /   \
-pow(2,1) pow(2,1)
-
-Each level halves the problem → O(log n) calls instead of O(n)
-```
-
-### 4. How the pattern works
+`pow(2, 10)`:
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+                    pow(2, 10)
+                   /          \
+              n even          (combine: half²)
+                  │
+              pow(2, 5)
+             /         \
+        n odd           (combine: half² × 2)
+            │
+        pow(2, 2)
+       /        \
+   pow(2,1)   (half²)
+    /    \
+pow(2,0)  → BASE: return 1
+   ↑
+returns 1 → half=1 → 1²×2=2 → half=2 → 2²=4 → half=4 → 4²×2=32 → half=32 → 32²=1024 ✓
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**What shrinks?** Exponent `n` → `n/2` each call. Depth ≈ `log₂(n)`.
 
-### 5. What problem does this solve?
+### 4. The universal template
 
-| Problem family | How this pattern helps |
+```
+function pow(x, n):
+    if n == 0: return 1
+    half = pow(x, n / 2)
+  if n is even: return half * half
+  else:         return half * half * x
+```
+
+**Negative exponent:** `x^(-n) = 1 / x^n` — recurse on `|n|`, divide at the top.
+
+### 5. Modular variant (Count Good Numbers)
+
+Same tree, but every multiply uses `% MOD` to avoid overflow:
+
+```
+half = pow_mod(x, n/2)
+half = (half * half) % MOD
+if n odd: half = (half * x) % MOD
+```
+
+Count Good Numbers doesn't recurse on digit positions — it **counts** choices per position (5 even digits, 4 odd) and uses **two** modular pow calls. Same halving engine underneath.
+
+### 6. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **Multiply x, n times** | O(n) — misses halving; times out on n ≈ 10⁹ |
+| **Loop with `x *= x` without halving** | Still O(n) if you only increment exponent |
+| **Recursion without base `n == 0`** | Infinite descent on negative or wrong branch |
+| **Integer overflow in pow** | Need `long` / modular arithmetic for large n |
 
-### 6. Why brute force / iteration fails
+**The insight brute force misses:** `x^n = (x^(n/2))²` — one subproblem, not n.
 
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals for Day 6
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "compute x^n" / "power" / "exponent" | Binary recursion — halve n, square half |
+| "efficiently" / "large exponent" | O(log n) halving, not O(n) loop |
+| "count good numbers" / "modulo" | Same pow skeleton + `% MOD` on every combine |
+| "even index / odd index" choices | Multiply independent counts: `5^evens × 4^odds` |
+| "negative exponent" | Recurse on positive n, return `1.0 / result` |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `halve` · `binary recursion` · `fast exponentiation` · `half * half` · `modulo`
 
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| `pow(x, n-1)` linear recursion | Halve: `pow(x, n/2)` |
+| Forgetting odd case `* x` | After `half²`, multiply once more when `n % 2 == 1` |
+| `int n` overflow on `-n` | Cast to `long` before negating |
+| Modular: multiply before mod | `(half * half) % MOD` — mod after each multiply |
+| Two recursive calls `pow(n/2) + pow(n/2)` | **One** call — reuse `half` variable |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Implement pow(x, n) with O(log n) time."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Base: n==0 → 1. Half: pow(x, n/2). Even: half². Odd: half² × x. Negative n: 1/pow(x, -n). Trace pow(2,10) on paper."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see the halving tree. First quest: Pow(x, n). →*

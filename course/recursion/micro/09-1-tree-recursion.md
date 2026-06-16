@@ -1,117 +1,145 @@
+<!-- hand-authored -->
 # 📝 Recursion on Trees (Consolidation)
 
-> **Day 9** · Recursion on Trees · ★★★☆☆ · 15 XP · 15 min read
+> **Day 9** · Postorder Swap · Mirror Pairs · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Tree Recursion Skeleton visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **consolidate tree recursion** from E-Rank Days 4–5. You already know bottom-up returns (depth, same tree) and top-down state (path sum, BST range). Today you **modify structure** — swap children in postorder, and compare **mirror pairs** across subtrees.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Tree Recursion Skeleton
 
-### 1. What is the pattern?
+### 1. What is tree recursion?
 
-**Tree Recursion Skeleton** — the core technique you'll use in today's quests.
+At each node:
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+- **Base** — `node == null` → return sentinel (`null`, `true`, `0`)
+- **Recurse** — call on left and right children (smaller subtrees)
+- **Combine** — swap, compare mirrors, or aggregate child results
 
-### 2. Simple explanation
+Trees are recursion-native: each child is a smaller copy of the problem.
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+### 2. Link to E-Rank Days 4–5
 
-The call stack is just a line of friends waiting for the next friend to finish.
+| Day | Pattern | Example | Data flow |
+|---|---|---|---|
+| **Day 4** | Bottom-up return | Max Depth #104, Same Tree #100 | Children report up; parent combines |
+| **Day 5** | Top-down state | Path Sum #112, Range Sum BST #938 | Bounds/target passed down |
+| **Day 9** | Structural modify + mirror | Invert #226, Symmetric #101 | Postorder swap; paired-node compare |
 
-### 3. Visual walkthrough
+Invert Tree is **void/postorder modify** — children processed, then swap at current node.
 
-```
-pow(2, 10) — binary recursion:
+Symmetric Tree is **paired recursion** — not `left` vs `left`, but `left` vs **right mirror**.
 
-              pow(2,10)
-             /        \
-        pow(2,5)      (cached half)
-        /     \
-   pow(2,2)  pow(2,3)
-    /   \
-pow(2,1) pow(2,1)
-
-Each level halves the problem → O(log n) calls instead of O(n)
-```
-
-### 4. How the pattern works
+### 3. Visual — invert postorder swap
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+Tree before:     4
+                / \
+               2   7
+              / \ / \
+             1  3 6  9
+
+CALL ORDER (postorder-style — recurse then swap at node):
+
+invert(4):  recurse invert(7) first in code... 
+  (Python one-liner: invert right, invert left, assign)
+
+After invert(4):
+        4
+       / \
+      7   2
+     / \ / \
+    9  6 3  1
+
+At each node: left subtree already inverted, right already inverted → swap pointers.
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+C++ order: recurse left, recurse right, **then** `swap(left, right)`.
 
-### 5. What problem does this solve?
+### 4. Visual — symmetric mirror compare
 
-| Problem family | How this pattern helps |
+```
+Symmetric tree:     1
+                   / \
+                  2   2
+                 / \ / \
+                3  4 4  3
+
+mirror(2, 2): val match ✓
+  mirror(2.left=3, 2.right=4)?  3≠4 → false
+
+For valid symmetric:
+mirror(a,b):
+  both null → true
+  one null or vals differ → false
+  mirror(a.left, b.right) AND mirror(a.right, b.left)
+```
+
+**Mirror rule:** outer pair `(a.left, b.right)` and inner pair `(a.right, b.left)`.
+
+### 5. The universal templates
+
+**Postorder modify (invert):**
+```
+function invert(node):
+    if !node: return null
+    invert(node.left)
+    invert(node.right)
+    swap(node.left, node.right)
+    return node
+```
+
+**Mirror pair (symmetric):**
+```
+function mirror(a, b):
+    if !a && !b: return true
+    if !a || !b || a.val != b.val: return false
+    return mirror(a.left, b.right) && mirror(a.right, b.left)
+```
+
+### 6. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **BFS level-order invert** | Works but misses recursive structure lesson |
+| **Compare left with left for symmetry** | Wrong pairing — symmetry is cross-subtree |
+| **Swap before recursing children** | May double-swap or confuse order — follow postorder |
+| **Iterative without stack mental model** | Hard to verify mirror logic |
 
-### 6. Why brute force / iteration fails
-
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals for Day 9
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "invert" / "mirror" tree | Swap left/right at each node |
+| "symmetric" / "mirror image" | Helper comparing two nodes cross-wise |
+| "postorder" modification | Recurse children, then local swap/rewire |
+| "binary tree" + structural change | Tree DFS, not array index |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `invert` · `mirror` · `postorder` · `swap` · `symmetric` · `paired recursion`
 
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| `mirror(a.left, b.left)` | Cross: `a.left` with `b.right` |
+| Swap before child invert | Children swap again — messy; use postorder |
+| Forget null base on invert | `if !node return null` |
+| Symmetric: only check root children once | Full recursive mirror on all pairs |
+| Confuse invert with symmetric | Invert **changes** tree; symmetric **checks** structure |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Invert a binary tree."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Base: null. Recurse both subtrees. Swap left/right. Return root. Same skeleton as Day 4 depth, but modify instead of aggregate."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You link Days 4–5 to structural tree work. First quest: invert. →*

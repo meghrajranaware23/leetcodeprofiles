@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Unique Paths III
 
 > **Day 24** · [Unique Paths III #980](https://leetcode.com/problems/unique-paths-iii/) · Medium · 15 min · 40 XP
@@ -10,23 +11,46 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Unique Paths III on LeetCode](https://leetcode.com/problems/unique-paths-iii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** On a 3×3 example, precompute `empty` and trace `dfs` with a running `left` counter. Count `ans++` only when you hit `2` with `left==0`.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Unique Paths III #980](https://leetcode.com/problems/unique-paths-iii/)**
+You are given an `m × n` grid where:
 
-Work through the examples on paper before reading further.
+- `1` = start
+- `2` = end
+- `0` = empty squares you must walk through
+- `-1` = obstacle
+
+Return the **number of unique paths** from start to end that **visit every empty square exactly once**.
+
+```
+Input:  grid = [[1,0,0,0],[0,0,0,0],[0,0,2,-1]]
+Output: 2
+
+Input:  grid = [[1,0,0,0],[0,0,0,0],[0,0,0,2]]
+Output: 4
+
+Input:  grid = [[0,1],[2,0]]
+Output: 0
+Explanation: Start/end placement — no path visits all empties correctly.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Full Grid Coverage Backtracking**.
+**Hint 1:** Preprocess: find `sr, sc` (start), `er, ec` (end), count zeros as `empty`. Set **`empty = number of 0 cells + 1`** (start counts as one cell to consume).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** `dfs(r, c, left)`: if out of bounds or `grid[r][c] == -1`, return.
+
+**Hint 3:** If `(r,c) == (er, ec)`: if `left == 0`, increment `ans`. Return either way.
+
+**Hint 4:** Mark: `grid[r][c] = -1`. Four directions with `left - 1`. Restore: `grid[r][c] = 0`.
+
+**Hint 5:** Start with `dfs(sr, sc, empty)` — not from every cell.
 
 ---
 
@@ -34,27 +58,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 **Pattern used:** Full Grid Coverage Backtracking
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "visit every empty square exactly once" | Counter `left` tracks remaining cells |
+| Fixed start `1` and end `2` | Preprocess positions; success test at end |
+| "count unique paths" | Global `ans++` at valid leaf |
+| Obstacles `-1` | Same as visited mark during dfs |
+| Small grid (≤ 20×20, often tiny) | Exponential backtrack acceptable |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Contrast with Day 18 (N-Queens II):**
+
+| N-Queens II | Unique Paths III |
+|---|---|
+| Place one queen per row | Walk one step per dfs call |
+| Count complete boards | Count complete walks |
+| Constraint sets | Mark/unmark on grid |
+
+**Contrast with Day 16 (Word Search):**
+
+| Word Search | Unique Paths III |
+|---|---|
+| Match external word | Internal visit-all rule |
+| Any path length = word len | Path must cover all zeros + start |
+| Return bool | Count all valid paths |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Hamiltonian-path-style walk on empty cells."*
+2. *"`left` decrements each step; success at end only if left==0."*
+3. *"Mark -1, restore 0 — same unmark as gold quest."*
+4. *"Don't count reaching end early with unvisited zeros."*
 
 ---
 
@@ -62,38 +94,55 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Reach end without visiting all zeros** | Must check `left == 0` at end |
+| **`empty = count of zeros` only** | Off-by-one — start cell must be counted |
+| **Permanent visited array not cleared** | Backtrack requires restore |
+| **Count paths to end without coverage rule** | Standard unique paths — wrong problem |
+| **Start dfs from every cell** | Paths must begin at `1` |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** The `left` counter encodes "have I visited every required cell?" — reaching `2` alone is insufficient.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | What changes |
+|---|---|
+| [Path with Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/) | Today's prior quest — max gold, no coverage |
+| [Unique Paths #61](https://leetcode.com/problems/unique-paths/) | No backtrack — DP, only right/down |
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Day 16 — mark/unmark, different win test |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`grid = [[1,0,0,0],[0,0,0,0],[0,0,0,2]]` — 4 zeros + 1 start → `empty = 5`:
 
 ```
-Apply Full Grid Coverage Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(0,0, left=5) at start
+  mark (0,0)=-1, left=4
+  explore neighbors...
+  ... eventually reach (2,3)=2 with left=0 → ans++
+
+Four distinct Hamiltonian paths from start to end covering all zeros
+Answer: 4
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Failure case — reach end too early:
+
+```
+If left=2 when stepping on end cell:
+  at (er,ec): left != 0 → do NOT ans++
+  backtrack
+```
+
+`left` accounting:
+
+```
+empty = 1 (for start) + count of 0 cells
+Each dfs step onto a non-end cell: left--
+At end: accept only if left == 0
+```
 
 ---
 
@@ -177,19 +226,15 @@ class Solution {
 ```
 
 **Complexity:** O(4^(m·n)) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Full Grid Coverage Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Visit every empty cell once"** → `left` counter + coverage dfs.
+- **`empty = zeros + 1`** → start cell consumed on first step.
+- **End cell with `left > 0`** → invalid — don't count.
+- **Mark `-1`, restore `0`** → same backtrack rhythm as gold quest and Word Search.
+- **Day 18 counting** → increment global `ans` at valid complete assignment.
 
 > 🎯 **Pattern Unlocked:** Full Grid Coverage Backtracking
 

@@ -1,86 +1,82 @@
+<!-- hand-authored -->
 # ✅ Day 26 Checkpoint
 
 > **Backtracking Synthesis I** · 2 quests completed · ⭐ 110 XP earned
 
 ---
 
-## 🔍 Pattern Signals — Recognition Drill
+## 🔍 Synthesis Recognition — Two Trees, One Template
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 26 revisited Day 8. Before you move on, prove you can **name the tree in under 10 seconds**:
 
-| When you see... | Think... | Why |
-|---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| When you see... | Tree type | State | Branch rule |
+|---|---|---|---|
+| "phone keypad" / "letter combinations" / digits → letters | **Multi-branch index** | `i`, path | Loop all letters on `digits[i]` |
+| "well-formed parentheses" / "n pairs" / balanced | **Constrained open/close** | `open`, `close`, path | `(` if `open > 0`; `)` if `open > close` |
+| "generate all" + no prefix rule | Multi-branch | varies | All choices valid |
+| "generate all" + prefix validity | Constrained | counters | Prune invalid branches |
 
-### 🧠 Quick Recognition Test
+### 🧠 Quick Synthesis Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which **Day 8 tree** fires first?
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Given digits `'79'`, return all letter combinations"* → **Multi-branch index** (`i` + KEYS table, 4 branches on `'7'`)
+2. *"Given n=3, generate all valid parenthesis strings"* → **Constrained open/close** (base at length 6, prune `)`)
+3. *"Given `'234'`, how many combinations?"* → **Multi-branch index** (product of branch sizes: 3×3×3 = 27)
+4. *"Why not generate all 2^(2n) strings and filter?"* → **Parentheses prunes at generation** — most strings never exist in the tree
 
 ---
 
-## 🎯 Transfer to Unseen Problems
+## 🎯 Side-by-Side Transfer
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've coded both trees. Can you explain the **difference** without looking at solutions?
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+**Scenario 1:** *"Letter combinations on `'2'` — how many branches at root?"*
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Answer:** 3 branches (`a`, `b`, `c`). All valid. No pruning.
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+**Scenario 2:** *"Generate parentheses n=2 — how many branches at root?"*
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Answer:** 1 branch (`(`). `)` is invalid at root because `open > close` fails (0 > 0).
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+**Scenario 3:** *"Both use push/dfs/pop. What is the only structural difference?"*
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
+**Answer:** Branch **gate**. Phone pad: gate is always open. Parentheses: gate checks `open`/`close` counters.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
-
----
-
-## ⚠ Common Mistakes
-
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+> **Synthesis key:** Same skeleton. Different state. Different gate.
 
 ---
 
-## 🏋️ Mini Challenge
+## ⚠ Common Mistakes (Day 8 Déjà Vu)
 
-### Related LeetCode Practice
+1. **Pop forgotten** — Sibling branches inherit wrong prefix (both trees).
+2. **Nested loops on phone pad** — Index `i` generalizes; loops don't.
+3. **Generate-then-filter on parentheses** — Invalid strings should never be built.
+4. **Wrong close rule** — Use `open > close`, not `close < n`.
+5. **Empty digits** — Return `[]`, not `[""]`.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+---
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+## 🏋️ Mini Challenge — Code Both Cold
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Set a **5-minute timer**. Without notes:
+
+1. Implement Letter Combinations #17 from the multi-branch index tree.
+2. Implement Generate Parentheses #22 from the open/close tree.
+
+**Pass criteria:** Both compile and pass LeetCode examples. You can draw each tree in 30 seconds.
+
+> 💡 **Hint:** If you fail, re-read today's concept page side-by-side diagram — not Day 8 from scratch.
 
 ---
 
 ## 📚 Practice Queue
 
-| Problem | Difficulty | Key Pattern |
+| Problem | Difficulty | Tree Type |
 |---|---|---|
-| [Letter Combinations of a Phone Number #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | Medium | Multi-Branch Generation |
-| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | Medium | Constrained Generation |
+| [Letter Combinations of a Phone Number #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | Medium | Multi-branch index |
+| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | Medium | Constrained open/close |
 
 ---
 
-*Day 26 complete! Tomorrow: the next descent of your ascension. →*
+*Day 26 complete! Tomorrow: interview-speed memo recognition. →*

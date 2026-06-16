@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ A-Rank Test — Problem 3
 
 > [Delete Nodes And Return Forest #1110](https://leetcode.com/problems/delete-nodes-and-return-forest/) · Medium · 250 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Delete Nodes And Return Forest on LeetCode](https://leetcode.com/problems/delete-nodes-and-return-forest/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — post-order rewire with **isRoot** flag. Deleted node's non-deleted children become new forest roots. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,48 @@ See the full problem statement on LeetCode: **[Delete Nodes And Return Forest #1
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the A-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** **Structural delete + forest collection** — extends Day 12 delete cases.
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- Put `to_delete` values in a set for O(1) lookup.
+- `dfs(node, isRoot)` returns new subtree root (null if deleted).
+- If `isRoot && !deleted` → append node to `res` (new tree root in forest).
+- Recurse: `node.left = dfs(left, deleted)`, `node.right = dfs(right, deleted)`.
+- Return `null` if current deleted, else `node`.
+- `isRoot=true` only on initial call — children get `isRoot = parent_was_deleted`.
+
+**Pattern name before coding:** *Post-order delete + isRoot forest roots.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- "Delete nodes" + "return forest" → multiple roots after removal
+- Delete set given — not single key like Day 12
+- Rewire children before removing parent — post-order
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"deleted = node.val in set."*
+2. *"If isRoot and not deleted → forest.push(node)."*
+3. *"Recurse with isRoot = deleted (parent deleted → child may be new root)."*
+4. *"Return null if deleted else node."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **Copy tree then delete** | Wasteful — in-place rewire works |
+| **Collect all nodes then filter** | Doesn't rewire parent pointers |
+| **Pre-order delete before processing children** | Lose access to subtrees — need post-order |
+| **Always isRoot=true for children** | Wrong — only when parent deleted |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Same **return new subtree root** pattern as Day 12 delete — plus forest collection when parent link is cut. Generalizes to "remove nodes matching predicate, return components."
 
 ---
 
@@ -67,24 +78,21 @@ Trace the pattern on the example tree from the problem statement. Then implement
 ### C++
 ```cpp
 class Solution {
-    TreeNode* dfs(TreeNode* node, unordered_set<int>& del, vector<TreeNode*>& forest) {
+    unordered_set<int> del;
+    vector<TreeNode*> res;
+    TreeNode* dfs(TreeNode* node, bool isRoot) {
         if (!node) return nullptr;
-        node->left = dfs(node->left, del, forest);
-        node->right = dfs(node->right, del, forest);
-        if (del.count(node->val)) {
-            if (node->left) forest.push_back(node->left);
-            if (node->right) forest.push_back(node->right);
-            return nullptr;
-        }
-        return node;
+        bool deleted = del.count(node->val);
+        if (isRoot && !deleted) res.push_back(node);
+        node->left  = dfs(node->left,  deleted);
+        node->right = dfs(node->right, deleted);
+        return deleted ? nullptr : node;
     }
 public:
     vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
-        unordered_set<int> del(to_delete.begin(), to_delete.end());
-        vector<TreeNode*> forest;
-        root = dfs(root, del, forest);
-        if (root) forest.push_back(root);
-        return forest;
+        del = unordered_set<int>(to_delete.begin(), to_delete.end());
+        dfs(root, true);
+        return res;
     }
 };
 ```
@@ -92,53 +100,43 @@ public:
 ### Python
 ```python
 class Solution:
-    def delNodes(self, root: Optional[TreeNode], to_delete: List[int]) -> List[TreeNode]:
-        del_set = set(to_delete)
-        forest = []
-        def dfs(node):
-            if not node:
-                return None
-            node.left = dfs(node.left)
-            node.right = dfs(node.right)
-            if node.val in del_set:
-                if node.left:
-                    forest.append(node.left)
-                if node.right:
-                    forest.append(node.right)
-                return None
-            return node
-        root = dfs(root)
-        if root:
-            forest.append(root)
-        return forest
+    def delNodes(self, root: Optional[TreeNode], to_delete: List[int]) -> List[Optional[TreeNode]]:
+        to_del = set(to_delete)
+        res = []
+        def dfs(node, is_root):
+            if not node: return None
+            deleted = node.val in to_del
+            if is_root and not deleted: res.append(node)
+            node.left  = dfs(node.left,  deleted)
+            node.right = dfs(node.right, deleted)
+            return None if deleted else node
+        dfs(root, True)
+        return res
 ```
 
 ### Java
 ```java
 class Solution {
+    private Set<Integer> del;
+    private List<TreeNode> res = new ArrayList<>();
     public List<TreeNode> delNodes(TreeNode root, int[] to_delete) {
-        Set<Integer> del = new HashSet<>();
-        for (int x : to_delete) del.add(x);
-        List<TreeNode> forest = new ArrayList<>();
-        root = dfs(root, del, forest);
-        if (root != null) forest.add(root);
-        return forest;
+        del = new HashSet<>();
+        for (int v : to_delete) del.add(v);
+        dfs(root, true);
+        return res;
     }
-    TreeNode dfs(TreeNode node, Set<Integer> del, List<TreeNode> forest) {
+    private TreeNode dfs(TreeNode node, boolean isRoot) {
         if (node == null) return null;
-        node.left = dfs(node.left, del, forest);
-        node.right = dfs(node.right, del, forest);
-        if (del.contains(node.val)) {
-            if (node.left != null) forest.add(node.left);
-            if (node.right != null) forest.add(node.right);
-            return null;
-        }
-        return node;
+        boolean deleted = del.contains(node.val);
+        if (isRoot && !deleted) res.add(node);
+        node.left  = dfs(node.left,  deleted);
+        node.right = dfs(node.right, deleted);
+        return deleted ? null : node;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
+**Complexity:** undefined
 
 </details>
 
@@ -146,10 +144,76 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a A-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Delete and return forest"** → post-order rewire + isRoot flag.
+- **"Parent deleted → child isRoot=true"** → child may become new tree root.
+- **"Day 12 delete"** → same return-null-to-parent pattern, batch delete set.
+- **"Set lookup"** → O(1) per node check.
 
 ---
 
 *3 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    unordered_set<int> del;
+    vector<TreeNode*> res;
+    TreeNode* dfs(TreeNode* node, bool isRoot) {
+        if (!node) return nullptr;
+        bool deleted = del.count(node->val);
+        if (isRoot && !deleted) res.push_back(node);
+        node->left  = dfs(node->left,  deleted);
+        node->right = dfs(node->right, deleted);
+        return deleted ? nullptr : node;
+    }
+public:
+    vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
+        del = unordered_set<int>(to_delete.begin(), to_delete.end());
+        dfs(root, true);
+        return res;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def delNodes(self, root: Optional[TreeNode], to_delete: List[int]) -> List[Optional[TreeNode]]:
+        to_del = set(to_delete)
+        res = []
+        def dfs(node, is_root):
+            if not node: return None
+            deleted = node.val in to_del
+            if is_root and not deleted: res.append(node)
+            node.left  = dfs(node.left,  deleted)
+            node.right = dfs(node.right, deleted)
+            return None if deleted else node
+        dfs(root, True)
+        return res
+```
+
+### Java
+```java
+class Solution {
+    private Set<Integer> del;
+    private List<TreeNode> res = new ArrayList<>();
+    public List<TreeNode> delNodes(TreeNode root, int[] to_delete) {
+        del = new HashSet<>();
+        for (int v : to_delete) del.add(v);
+        dfs(root, true);
+        return res;
+    }
+    private TreeNode dfs(TreeNode node, boolean isRoot) {
+        if (node == null) return null;
+        boolean deleted = del.contains(node.val);
+        if (isRoot && !deleted) res.add(node);
+        node.left  = dfs(node.left,  deleted);
+        node.right = dfs(node.right, deleted);
+        return deleted ? null : node;
+    }
+}
+```
+
+**Complexity:** undefined

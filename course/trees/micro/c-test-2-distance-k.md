@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ C-Rank Test — Problem 2
 
 > [All Nodes Distance K in Binary Tree #863](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/) · Medium · 150 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open All Nodes Distance K in Binary Tree on LeetCode](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Trees don't have backward edges — build a parent map first, then BFS. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,47 @@ See the full problem statement on LeetCode: **[All Nodes Distance K in Binary Tr
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the C-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** **Graph view of tree** — add parent pointers, BFS from target with distance.
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- Step 1: DFS/BFS from root to fill `parent[node] = par`.
+- Step 2: BFS from **target** treating neighbors as `{left, right, parent}`.
+- Track `seen` — avoid bouncing back.
+- When `dist == k`, collect values (don't expand further from those nodes — or continue with dist check).
+- Combines Day 13 ancestor thinking with BFS — not pure LCA.
+
+**Pattern name before coding:** *Parent map + undirected BFS from target.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- "Distance K" from **target node** (not root) → may need to go **up** to parent
+- Binary tree edges are one-way downward — temporarily add upward edges via map
+- Return all values at exactly distance k
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"Build parent map in one DFS."*
+2. *"BFS queue (node, dist) from target."*
+3. *"Neighbors = left, right, parent — skip seen."*
+4. *"dist == k → collect val."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **DFS from root only downward** | Can't reach nodes above target |
+| **Find root-to-target path, then fan out** | Heavy path logic — parent BFS simpler |
+| **LCA-based without parent map** | Possible but parent+BFS is cleaner |
+| **No seen set** | Infinite ping-pong between parent and child |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Same **tree-as-graph** idea appears in graph-hybrid days (later ranks). Parent map converts a tree into an undirected graph for multi-direction search. Related: [Lowest Common Ancestor #236](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/) with parent pointers uses similar upward walks.
 
 ---
 
@@ -173,10 +183,111 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a C-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Distance from target, not root"** → need upward movement — parent map.
+- **"BFS on graph"** → three neighbors per node after map built.
+- **"seen set mandatory"** → prevent parent↔child loops.
+- **"Not Day 13 LCA"** → different goal — radius collection, not split node.
 
 ---
 
 *2 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    unordered_map<int, vector<int>> graph;
+    void buildGraph(TreeNode* node, int par) {
+        if (!node) return;
+        if (par != -1) {
+            graph[node->val].push_back(par);
+            graph[par].push_back(node->val);
+        }
+        buildGraph(node->left,  node->val);
+        buildGraph(node->right, node->val);
+    }
+public:
+    vector<int> distanceK(TreeNode* root, TreeNode* target, int k) {
+        buildGraph(root, -1);
+        unordered_set<int> visited;
+        queue<int> q;
+        q.push(target->val); visited.insert(target->val);
+        for (int dist = 0; !q.empty(); dist++) {
+            if (dist == k) {
+                vector<int> res;
+                while (!q.empty()) { res.push_back(q.front()); q.pop(); }
+                return res;
+            }
+            for (int sz = q.size(); sz > 0; sz--) {
+                int curr = q.front(); q.pop();
+                for (int nb : graph[curr]) {
+                    if (!visited.count(nb)) { visited.insert(nb); q.push(nb); }
+                }
+            }
+        }
+        return {};
+    }
+};
+```
+
+### Python
+```python
+from collections import defaultdict, deque
+class Solution:
+    def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:
+        graph = defaultdict(list)
+        def build(node, par):
+            if not node: return
+            if par is not None:
+                graph[node.val].append(par.val)
+                graph[par.val].append(node.val)
+            build(node.left, node); build(node.right, node)
+        build(root, None)
+        visited, q = {target.val}, deque([target.val])
+        dist = 0
+        while q:
+            if dist == k: return list(q)
+            for _ in range(len(q)):
+                curr = q.popleft()
+                for nb in graph[curr]:
+                    if nb not in visited:
+                        visited.add(nb); q.append(nb)
+            dist += 1
+        return []
+```
+
+### Java
+```java
+class Solution {
+    private Map<Integer, List<Integer>> graph = new HashMap<>();
+    public List<Integer> distanceK(TreeNode root, TreeNode target, int k) {
+        buildGraph(root, -1);
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> q = new LinkedList<>();
+        q.offer(target.val); visited.add(target.val);
+        int dist = 0;
+        while (!q.isEmpty()) {
+            if (dist == k) return new ArrayList<>(q);
+            for (int sz = q.size(); sz > 0; sz--) {
+                int curr = q.poll();
+                for (int nb : graph.getOrDefault(curr, new ArrayList<>())) {
+                    if (!visited.contains(nb)) { visited.add(nb); q.offer(nb); }
+                }
+            }
+            dist++;
+        }
+        return new ArrayList<>();
+    }
+    private void buildGraph(TreeNode node, int par) {
+        if (node == null) return;
+        if (par != -1) {
+            graph.computeIfAbsent(node.val, k -> new ArrayList<>()).add(par);
+            graph.computeIfAbsent(par, k -> new ArrayList<>()).add(node.val);
+        }
+        buildGraph(node.left, node.val); buildGraph(node.right, node.val);
+    }
+}
+```
+
+**Complexity:** undefined

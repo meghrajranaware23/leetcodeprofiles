@@ -25,6 +25,44 @@ const ROOT = path.join(__dirname, '..');
 const MICRO_DIR = path.join(ROOT, 'course', 'trees', 'micro');
 
 const STAR = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+const HAND_AUTHORED_MARKER = '<!-- hand-authored -->';
+
+function readMicroFile(file) {
+  const full = path.join(MICRO_DIR, file);
+  if (!fs.existsSync(full)) return null;
+  return fs.readFileSync(full, 'utf8');
+}
+
+function isHandAuthored(content) {
+  return content != null && content.trimStart().startsWith(HAND_AUTHORED_MARKER);
+}
+
+/** Replace ## Solution … up to the next --- + ## section in quest/test markdown. */
+function patchSolutionSection(existing, lc) {
+  const replacement = `## Solution\n\n${formatSolutions(lc)}`;
+  const solStart = existing.indexOf('## Solution');
+  if (solStart === -1) {
+    return `${existing.trimEnd()}\n\n${replacement}\n`;
+  }
+  const tail = existing.slice(solStart + '## Solution'.length);
+  const endMatch = tail.match(/\n---\n\n## /);
+  if (endMatch && endMatch.index != null) {
+    const endIdx = solStart + '## Solution'.length + endMatch.index;
+    return existing.slice(0, solStart) + replacement + existing.slice(endIdx);
+  }
+  const clickIdx = existing.indexOf('\n## 💭', solStart);
+  if (clickIdx !== -1) {
+    return `${existing.slice(0, solStart)}${replacement}\n${existing.slice(clickIdx)}`;
+  }
+  const detailsEnd = existing.indexOf('\n</details>', solStart);
+  if (detailsEnd !== -1) {
+    const detailsStart = existing.lastIndexOf('<details>', solStart);
+    if (detailsStart !== -1) {
+      return `${existing.slice(0, detailsStart)}<details>\n<summary><strong>📖 Solution & Walkthrough</strong></summary>\n\n${formatSolutions(lc)}\n\n</details>${existing.slice(detailsEnd + '\n</details>'.length)}`;
+    }
+  }
+  return `${existing.slice(0, solStart)}${replacement}\n`;
+}
 
 function formatSolutions(lc) {
   const sol = SOLUTIONS[lc];
@@ -51,6 +89,20 @@ function write(file, content) {
   const full = path.join(MICRO_DIR, file);
   fs.mkdirSync(path.dirname(full), { recursive: true });
   fs.writeFileSync(full, content.trim() + '\n', 'utf8');
+}
+
+/** Write generated content unless file is hand-authored (quests/tests: patch Solution only). */
+function writeLesson(file, content, { type, lc } = {}) {
+  const existing = readMicroFile(file);
+  if (existing && isHandAuthored(existing)) {
+    if ((type === 'quest' || type === 'test') && lc) {
+      write(file, patchSolutionSection(existing, lc));
+      return 'patched';
+    }
+    return 'skipped';
+  }
+  write(file, content);
+  return 'wrote';
 }
 
 function conceptXp(rank) {
@@ -670,20 +722,27 @@ ${nextSection}
 
 function buildContent() {
   fs.mkdirSync(MICRO_DIR, { recursive: true });
-  write('00-welcome.md', genWelcome());
+  const stats = { wrote: 0, skipped: 0, patched: 0 };
+
+  const track = (result) => {
+    stats[result] = (stats[result] || 0) + 1;
+  };
+
+  track(writeLesson('00-welcome.md', genWelcome()));
 
   for (const day of DAYS) {
-    write(day.concept.file, genConcept(day));
-    write(`${String(day.day).padStart(2, '0')}-4-checkpoint.md`, genCheckpoint(day));
-    day.quests.forEach((q, i) => write(q.file, genQuest(day, q, i + 1)));
+    track(writeLesson(day.concept.file, genConcept(day)));
+    track(writeLesson(`${String(day.day).padStart(2, '0')}-4-checkpoint.md`, genCheckpoint(day)));
+    day.quests.forEach((q) => track(writeLesson(q.file, genQuest(day, q, day.quests.indexOf(q) + 1), { type: 'quest', lc: q.lc })));
   }
 
   for (const [rank, block] of Object.entries(RANK_TESTS)) {
-    block.tests.forEach((t, i) => write(t.file, genTest(rank, t, i, block.tests.length)));
-    write(block.complete.file, genRankComplete(rank));
+    block.tests.forEach((t, i) => track(writeLesson(t.file, genTest(rank, t, i, block.tests.length), { type: 'test', lc: t.lc })));
+    track(writeLesson(block.complete.file, genRankComplete(rank)));
   }
 
-  console.log(`Wrote ${fs.readdirSync(MICRO_DIR).length} markdown files to course/trees/micro/`);
+  console.log(`Build: ${stats.wrote} wrote, ${stats.skipped} skipped (hand-authored), ${stats.patched} solution-patched`);
+  console.log(`${fs.readdirSync(MICRO_DIR).length} markdown files in course/trees/micro/`);
 }
 
 function buildContentJs() {

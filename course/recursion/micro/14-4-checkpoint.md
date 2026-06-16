@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 14 Checkpoint
 
 > **Backtracking on Strings** · 2 quests completed · ⭐ 85 XP earned
@@ -6,71 +7,55 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Base case |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "partition string" / palindrome parts | Cut loop + pal check | `i == n` |
+| "restore IP" / fixed k segments | Cut loop + octet check | `parts == k && i == n` |
+| "split into words" (dictionary) | Cut loop + dict check (Day 21) | `i == n` |
+| "Fibonacci sequence split" | Cut loop + sum constraint (C-Rank test) | `i == n`, len ≥ 3 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"All palindrome partitions of a string"* → **Cut from i, pal-check, dfs(j+1).**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"All valid IP addresses from digits"* → **4 parts, octet validation, max 3 chars per cut.**
+
+3. *"Combination sum to target"* → **Day 13 — not string partition.**
+
+4. *"Minimum palindrome cuts"* → **DP (#132), not generate-all.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Split a string into words from a dictionary."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Word Break II — same cut loop, `valid = word in dict`.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Split digits into a Fibonacci sequence."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+C-Rank test #3 — cut loop + each new segment must equal sum of previous two.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Add operators to make an expression equal target."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
-
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+Different pattern — insert operators between chars (Day 20).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Recurse with `i` not `j+1`** — Doesn't consume the segment.
+2. **IP: record when parts==4 but i≠n** — Leftover digits or too-short string.
+3. **Accept leading zeros in octets** — `"01"` invalid.
+4. **Palindrome: forget to pop segment** — Stale path entries.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Write the partition dfs pseudocode from memory (5 lines). Label: choose, explore, unchoose.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then name the two validators for today's quests.
 
 ---
 
@@ -78,9 +63,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Medium | Partition Backtracking |
-| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Medium | Fixed-Segment Partition |
+| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Medium | cut + palindrome |
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Medium | 4 octets |
 
 ---
 
-*Day 14 complete! Tomorrow: the next descent of your ascension. →*
+*Day 14 complete. Tomorrow: combination sum constraints tighten. →*

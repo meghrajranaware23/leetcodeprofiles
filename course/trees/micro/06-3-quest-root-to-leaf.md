@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Sum Root to Leaf Numbers
 
 > **Day 6** · [Sum Root to Leaf Numbers #129](https://leetcode.com/problems/sum-root-to-leaf-numbers/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Sum Root to Leaf Numbers on LeetCode](https://leetcode.com/problems/sum-root-to-leaf-numbers/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Write the running number `cur` at each node on the way down. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Top-Down Accumulation**.
+Which pattern from today's concept applies? **Top-down accumulation** — `cur = cur * 10 + node.val` at each step; at a leaf return `cur`; internal nodes return `dfs(left) + dfs(right)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: this is Path Sum without a target — you **build** the number downward, then **sum leaf values** on the way up. No backtrack needed (no path list).
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Top-Down Accumulation
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **Root-to-leaf digits** → prefix known only on descent
+- **Sum all leaf numbers** → leaves return value; internal nodes add child returns
+- No "all paths" collection → no push/pop
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "root-to-leaf numbers" | `cur * 10 + val` top-down |
+| "sum all path numbers" | Leaf returns cur; internal returns left + right |
+| "each path represents a number" | Digit accumulation, not remainder subtraction |
+| "binary tree" + no target | Accumulate, don't subtract toward goal |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** The number 129 comes from path 1→2→9: `((0*10+1)*10+2)*10+9`. Only the downward walk knows the prefix; leaves deliver finished numbers.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → 0 (no contribution)."*
+2. *"Update cur = cur*10 + val."*
+3. *"Leaf → return cur (finished number)."*
+4. *"Internal → return dfs(left, cur) + dfs(right, cur)."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Collect all path strings, parse, sum** | O(n²) string work — direct int accumulation is O(n) |
+| **Bottom-up without prefix** | Subtree can't reconstruct digit position from below |
+| **Global sum at every node** | Must only count leaves — internal nodes aren't valid numbers |
+| **Backtrack path list** | Unnecessary — no collection of paths, just numeric sum |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** `cur * 10 + val` is O(1) per node. Leaves return; parents add — hybrid of top-down state and bottom-up sum.
 
 ---
 
@@ -75,31 +74,47 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Path Sum #112](https://leetcode.com/problems/path-sum/) | Subtract toward target | Top-down numeric state |
+| [Path Sum II #113](https://leetcode.com/problems/path-sum-ii/) | Collect paths + backtrack | Top-down + path list |
+| [Binary Tree Paths #257](https://leetcode.com/problems/binary-tree-paths/) | String build `"a->b"` | Top-down accumulation variant |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+All carry a **running value down** the root-to-leaf thread.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Running number flows down; leaves return; parents sum.**
 
 ```
-        3
-       / \
-      9    20
-          /  \
-         15   7
+Tree:    1
+        / \
+       2   3
 
-Apply Top-Down Accumulation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Path 1→2:  cur: 0→1→12   leaf 2 returns 12
+Path 1→3:  cur: 0→1→13   leaf 3 returns 13
+
+              1   cur=1
+             / \
+        cur=12  cur=13
+          2       3
+        return 12  return 13
+
+At node 1: dfs(2,1) + dfs(3,1) = 12 + 13 = 25 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+State diagram:
+
+```
+[node, cur]
+    │
+ cur = cur * 10 + node.val
+    │
+ leaf? → return cur
+ else  → return dfs(L) + dfs(R)
+```
+
+> 💡 **The insight:** Unlike Path Sum II, no pop — `cur` is passed by value (or recomputed per call). Each branch gets its own running number.
 
 ---
 
@@ -108,19 +123,14 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    void dfs(TreeNode* node, int cur, int& sum) {
-        if (!node) return;
-        cur = cur * 10 + node->val;
-        if (!node->left && !node->right) { sum += cur; return; }
-        dfs(node->left, cur, sum);
-        dfs(node->right, cur, sum);
+    int dfs(TreeNode* node, int curr) {
+        if (!node) return 0;
+        curr = curr * 10 + node->val;
+        if (!node->left && !node->right) return curr;
+        return dfs(node->left, curr) + dfs(node->right, curr);
     }
 public:
-    int sumNumbers(TreeNode* root) {
-        int sum = 0;
-        dfs(root, 0, sum);
-        return sum;
-    }
+    int sumNumbers(TreeNode* root) { return dfs(root, 0); }
 };
 ```
 
@@ -128,47 +138,42 @@ public:
 ```python
 class Solution:
     def sumNumbers(self, root: Optional[TreeNode]) -> int:
-        def dfs(node, cur):
-            if not node:
-                return 0
-            cur = cur * 10 + node.val
-            if not node.left and not node.right:
-                return cur
-            return dfs(node.left, cur) + dfs(node.right, cur)
+        def dfs(node, curr):
+            if not node: return 0
+            curr = curr * 10 + node.val
+            if not node.left and not node.right: return curr
+            return dfs(node.left, curr) + dfs(node.right, curr)
         return dfs(root, 0)
 ```
 
 ### Java
 ```java
 class Solution {
-    public int sumNumbers(TreeNode root) {
-        return dfs(root, 0);
-    }
-    int dfs(TreeNode node, int cur) {
+    public int sumNumbers(TreeNode root) { return dfs(root, 0); }
+    private int dfs(TreeNode node, int curr) {
         if (node == null) return 0;
-        cur = cur * 10 + node.val;
-        if (node.left == null && node.right == null) return cur;
-        return dfs(node.left, cur) + dfs(node.right, cur);
+        curr = curr * 10 + node.val;
+        if (node.left == null && node.right == null) return curr;
+        return dfs(node.left, curr) + dfs(node.right, curr);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Top-Down Accumulation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Digits form a number root-to-leaf"** → `cur * 10 + val`, not remainder subtract.
+- **"Sum all paths"** → Leaf returns number; parent adds children (no global list).
+- **"No backtrack"** → Integer `cur` passed down — branches don't share mutable path state.
+- **"Not Day 7"** → No height/global; prefix only makes sense top-down.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried storing strings like `"129"`, switch to integer accumulation — same logic, cleaner code.
 
-> 🎯 **Pattern Unlocked:** Top-Down Accumulation
+> 🎯 **Pattern Unlocked:** Top-Down Accumulation — build the number on descent, sum at leaves.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Time to Infect Tree
 
 > **Day 27** · [Amount of Time for Binary Tree to Be Infected #2385](https://leetcode.com/problems/amount-of-time-for-binary-tree-to-be-infected/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Amount of Time for Binary Tree to Be Infected on LeetCode](https://leetcode.com/problems/amount-of-time-for-binary-tree-to-be-infected/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Infection starts at an internal node — you must spread **up to parent** and down to children. Build undirected graph, BFS from start. Same family as C-Rank Distance K #863. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Multi-Directional BFS**.
+Which pattern from today's concept applies? **Parent-map multi-source BFS** — DFS builds bidirectional adjacency; BFS from `start` counts levels until all nodes visited.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: `minutes` starts at -1, increment at start of each BFS level (or adjust to match "0 minutes at start").
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Multi-Directional BFS
+**Pattern used:** Multi-Directional BFS (Parent Map)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- Infection from given **start** node (not root)
+- Spreads to parent and children each minute
+- Return total minutes to infect entire tree
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "infected" / "spread" | Multi-direction BFS |
+| "start node" not root | Need parent links |
+| "minutes" / "time" | Level-order count |
+| "adjacent nodes" | Undirected graph view |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Each minute infects all graph neighbors of currently infected set — classic BFS layering on tree treated as undirected graph.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"buildGraph(root, par): add both directions."*
+2. *"BFS queue from start, visited set."*
+3. *"Process level by level, minutes++."*
+4. *"Same as C-test Distance K but count levels to completion."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **BFS downward from start only** | Misses nodes above start |
+| **DFS without visited** | Cycles via parent edge |
+| **Separate path to root then fan out** | Overcomplicated vs one graph BFS |
+| **Simulate minute-by-minute on tree only** | Still need parent — graph is cleaner |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** C-Rank #863 already built parent map for distance-k — here count BFS **depth until queue exhausts**.
 
 ---
 
@@ -75,31 +74,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [All Nodes Distance K #863](https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/) | C-Rank — collect at k | Same parent BFS |
+| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | General graph | BFS levels |
+| [Rotting Oranges #994](https://leetcode.com/problems/rotting-oranges/) | Grid multi-source | Same level BFS |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: build graph, BFS with visited.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree `[1,2,3,null,null,4,5]`, start=4**
 
 ```
-        3
+      1
+     / \
+    2   3
        / \
-      9    20
-          /  \
-         15   7
+      4   5
 
-Apply Multi-Directional BFS step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Graph edges (bidirectional):
+  4↔3, 3↔1, 3↔5, 1↔2
+
+BFS from 4:
+  min -1→0: {4}
+  min 0→1:  {3}
+  min 1→2:  {1,5}
+  min 2→3:  {2}
+
+Return 3 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Tree + parent edges = graph. BFS time = infection minutes.
 
 ---
 
@@ -108,81 +114,113 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    int ans = 0;
-    int dfs(TreeNode* node, int start) {
-        if (!node) return 0;
-        int l = dfs(node->left, start), r = dfs(node->right, start);
-        if (node->val == start) { ans = max(l, r); return 0; }
-        if (l || r) { ans = max(ans, l + r + 1); return max(l, r) + 1; }
-        return 0;
+    unordered_map<int, vector<int>> graph;
+    void buildGraph(TreeNode* node, int par) {
+        if (!node) return;
+        if (par != -1) {
+            graph[node->val].push_back(par);
+            graph[par].push_back(node->val);
+        }
+        buildGraph(node->left,  node->val);
+        buildGraph(node->right, node->val);
     }
 public:
     int amountOfTime(TreeNode* root, int start) {
-        dfs(root, start);
-        return ans;
+        buildGraph(root, -1);
+        unordered_set<int> visited;
+        queue<int> q;
+        q.push(start); visited.insert(start);
+        int minutes = -1;
+        while (!q.empty()) {
+            minutes++;
+            for (int sz = q.size(); sz > 0; sz--) {
+                int curr = q.front(); q.pop();
+                for (int nb : graph[curr]) {
+                    if (!visited.count(nb)) {
+                        visited.insert(nb); q.push(nb);
+                    }
+                }
+            }
+        }
+        return minutes;
     }
 };
 ```
 
 ### Python
 ```python
+from collections import defaultdict, deque
 class Solution:
     def amountOfTime(self, root: Optional[TreeNode], start: int) -> int:
-        self.ans = 0
-        def dfs(node):
-            if not node:
-                return 0
-            l = dfs(node.left)
-            r = dfs(node.right)
-            if node.val == start:
-                self.ans = max(l, r)
-                return 0
-            if l:
-                self.ans = max(self.ans, l + r + 1)
-                return l + 1
-            if r:
-                self.ans = max(self.ans, l + r + 1)
-                return r + 1
-            return 0
-        dfs(root)
-        return self.ans
+        graph = defaultdict(list)
+        def build(node, par):
+            if not node: return
+            if par is not None:
+                graph[node.val].append(par)
+                graph[par].append(node.val)
+            build(node.left,  node.val)
+            build(node.right, node.val)
+        build(root, None)
+        visited, q, minutes = {start}, deque([start]), -1
+        while q:
+            minutes += 1
+            for _ in range(len(q)):
+                curr = q.popleft()
+                for nb in graph[curr]:
+                    if nb not in visited:
+                        visited.add(nb); q.append(nb)
+        return minutes
 ```
 
 ### Java
 ```java
 class Solution {
-    int ans = 0;
+    private Map<Integer, List<Integer>> graph = new HashMap<>();
     public int amountOfTime(TreeNode root, int start) {
-        dfs(root, start);
-        return ans;
+        buildGraph(root, -1);
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> q = new LinkedList<>();
+        q.offer(start); visited.add(start);
+        int minutes = -1;
+        while (!q.isEmpty()) {
+            minutes++;
+            for (int sz = q.size(); sz > 0; sz--) {
+                int curr = q.poll();
+                for (int nb : graph.getOrDefault(curr, new ArrayList<>())) {
+                    if (!visited.contains(nb)) { visited.add(nb); q.offer(nb); }
+                }
+            }
+        }
+        return minutes;
     }
-    int dfs(TreeNode node, int start) {
-        if (node == null) return 0;
-        int l = dfs(node.left, start), r = dfs(node.right, start);
-        if (node.val == start) { ans = Math.max(l, r); return 0; }
-        if (l > 0 || r > 0) { ans = Math.max(ans, l + r + 1); return Math.max(l, r) + 1; }
-        return 0;
+    private void buildGraph(TreeNode node, int par) {
+        if (node == null) return;
+        if (par != -1) {
+            graph.computeIfAbsent(node.val, k -> new ArrayList<>()).add(par);
+            graph.computeIfAbsent(par, k -> new ArrayList<>()).add(node.val);
+        }
+        buildGraph(node.left,  node.val);
+        buildGraph(node.right, node.val);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Multi-Directional BFS"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Infection from internal node"** → parent map + BFS.
+- **"C-Rank Distance K"** → same graph build, different stop condition.
+- **"visited mandatory"** → undirected edges cycle without it.
+- **"Level BFS"** → minutes = layer count after start.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you only infected downward, add parent edges and redo BFS.
 
-> 🎯 **Pattern Unlocked:** Multi-Directional BFS
+> 🎯 **Pattern Unlocked:** Parent-map multi-source BFS — tree as undirected graph.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: step directions via LCA path strings. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Reverse Linked List
 
 > **Day 3** · [Reverse Linked List #206](https://leetcode.com/problems/reverse-linked-list/) · Easy · 10 min
@@ -10,51 +11,52 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Reverse Linked List on LeetCode](https://leetcode.com/problems/reverse-linked-list/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw arrows. On each return from the stack, mark which pointer gets flipped. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Reverse Linked List #206](https://leetcode.com/problems/reverse-linked-list/)**
+Given the head of a singly linked list, reverse the list and return the new head.
 
-Work through the examples on paper before reading further.
+```
+Input:  1 → 2 → 3 → 4 → 5 → null
+Output: 5 → 4 → 3 → 2 → 1 → null
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Pointer Recursion**.
+Which pattern from today's concept applies? **Pointer rewire recursion** — recurse to the tail first, then fix one backward link on the way up.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: base case is one node (or empty). Save `newHead = reverse(head.next)`, then set `head.next.next = head` and `head.next = null`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Pointer Recursion
+**Pattern used:** Pointer Rewire Recursion (Reverse on Unwind)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Reverse" a **linked list** in-place → change `.next` directions, not values
+- Single chain → recurse on `head.next`; combine step runs **after** the sub-call returns
+- "Return new head" → new head is the old tail, bubbled up from the deepest base case
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "reverse linked list" | Recurse to end, rewire one pointer per frame |
+| "in-place" | Mutate `.next`; no new nodes |
+| "return head" | Deepest node becomes new head; pass it back unchanged |
+| "recursively" | Work happens on **return**, not before the call |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** The tail of the original list becomes the head of the reversed list. Every node on the unwind makes its former `next` point back to itself.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Base: null or single node → return head."*
+2. *"Recurse first — `newHead = reverse(head.next)`."*
+3. *"Rewire: `head.next.next = head`, then `head.next = null`."*
+4. *"Return `newHead`, not `head` — head moved to the middle/end."*
 
 ---
 
@@ -62,12 +64,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Copy values to array, reverse array, copy back** | O(n) space; doesn't practice pointer manipulation |
+| **Build new list with push-front loop** | Works iteratively, but extra nodes if you're not careful |
+| **Rewire before recursive call** | You haven't reached the tail yet — links break mid-list |
+| **Return `head` instead of `newHead`** | You return the old head (now the tail), wrong answer |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Reversal is **one pointer flip per node**, done on the way **up** the stack. The recursive call fully reverses the tail before you touch your single link.
 
 ---
 
@@ -75,25 +77,50 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Reverse Linked List II #92](https://leetcode.com/problems/reverse-linked-list-ii/) | Reverse a subrange | Rewire segment; connect boundaries |
+| [Swap Nodes in Pairs #24](https://leetcode.com/problems/swap-nodes-in-pairs/) | Swap adjacent pairs | Recurse + two pointer flips per frame |
+| [K Reverse (hard variants)](https://leetcode.com/problems/reverse-nodes-in-k-group/) | Reverse k at a time | Chunk + same rewire template |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+The iterative three-pointer version (`prev`, `curr`, `next`) is equivalent — recursion just stores `prev` implicitly in the call stack.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+**Recurse down to the last node, rewire on the way back.**
 
 ```
-Apply Pointer Recursion step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+Original: 1 → 2 → 3 → null
+
+── GO DOWN ──
+reverse(1):  call reverse(2)
+reverse(2):  call reverse(3)
+reverse(3):  call reverse(null)
+reverse(null): BASE → return null
+
+── COME UP ──
+reverse(3):  newHead = null... wait, 3.next is null
+             Base: 3 has no next → return 3  (newHead = 3)
+
+reverse(2):  newHead = reverse(3) = 3
+             2.next is 3, so 3.next = 2     →  3 → 2
+             2.next = null                   →  3 → 2 → null
+             return 3
+
+reverse(1):  newHead = 3
+             1.next is 2, so 2.next = 1     →  3 → 2 → 1
+             1.next = null                   →  3 → 2 → 1 → null
+             return 3  ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Pointer picture at the `reverse(2)` frame:
+
+```
+Before rewire:   3 → null     (2 → 3, about to fix)
+After rewire:    3 → 2 → null  (1 still → 2, fixed on next frame)
+```
+
+> 💡 **The insight:** `head.next.next = head` makes the former next node point backward. `head.next = null` prevents cycles. Always return `newHead` from the deepest node.
 
 ---
 
@@ -138,21 +165,20 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Pointer Recursion"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Reverse linked list recursively"** → Work on unwind, not before the call.
+- **"Base: one node"** → That node is already the reversed tail; it's the new head.
+- **"Flip one link"** → `next.next = me`, then `me.next = null`.
+- **"Merge was pick-min going down; reverse is rewire coming up"** → Same shrink-by-`next`, different combine step.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried iterative `prev/curr/next` first, map each iteration to one stack frame — same logic, different storage.
 
-> 🎯 **Pattern Unlocked:** Pointer Recursion
+> 🎯 **Pattern Unlocked:** Pointer rewire on return — trust the reversed tail, then fix one backward link.
 
 ---
 

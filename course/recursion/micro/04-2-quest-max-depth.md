@@ -1,4 +1,5 @@
-# ⚔ Quest: Maximum Depth
+<!-- hand-authored -->
+# ⚔ Quest: Maximum Depth of Binary Tree
 
 > **Day 4** · [Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/) · Easy · 10 min
 
@@ -10,51 +11,57 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Depth of Binary Tree on LeetCode](https://leetcode.com/problems/maximum-depth-of-binary-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Label each node with the depth its subtree **returns** on the way up. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Maximum Depth of Binary Tree #104](https://leetcode.com/problems/maximum-depth-of-binary-tree/)**
+Given the root of a binary tree, return its **maximum depth** — the number of nodes along the longest path from root to a leaf.
 
-Work through the examples on paper before reading further.
+```
+Input:       3
+            / \
+           9  20
+             /  \
+            15   7
+
+Output: 3
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bottom-Up Return**.
+Which pattern from today's concept applies? **Bottom-up return** — empty tree returns `0`; otherwise `1 + max(leftDepth, rightDepth)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: don't pass a counter down. Let each subtree report its depth; the root adds 1 and takes the max of the two reports.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Bottom-Up Return
+**Pattern used:** Bottom-Up Depth Bubble
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Maximum depth" / "height" → aggregate from children, not a downward counter
+- Binary tree → two recursive calls, one combine step
+- Return type is **int** computed from child ints → classic bottom-up
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "maximum depth" / "height" | `1 + max(left, right)` |
+| "longest path root to leaf" | Depth = 1 at leaf; empty = 0 |
+| "binary tree" + return number | Recurse both children, aggregate up |
+| "number of nodes on path" | Count levels via return values |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** A node's depth is 1 plus the deeper of its two subtrees. Leaves know they're depth 1 without asking their parent.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"null → 0 (no nodes below)."*
+2. *"Get leftDepth and rightDepth from recursive calls."*
+3. *"Return 1 + max(leftDepth, rightDepth)."*
+4. *"Trace bubbling from leaves to root on paper."*
 
 ---
 
@@ -62,12 +69,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **BFS level-by-level counting** | Works iteratively, but hides the bottom-up template used in harder tree DP |
+| **Pass `depthSoFar` down, update global max** | Top-down state — valid, but wrong pattern family for today |
+| **Sum left depth + right depth** | Counts both branches — depth is **max**, not sum |
+| **Return 0 at leaf instead of 1** | Off-by-one — a single node tree should return 1 |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Each subtree fully answers *"how deep am I?"* before the parent adds one. No shared mutable state needed.
 
 ---
 
@@ -75,25 +82,45 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Minimum Depth #111](https://leetcode.com/problems/minimum-depth-of-binary-tree/) | `min` instead of `max`; careful at one-child nodes | Bottom-up bubble |
+| [Balanced Binary Tree #110](https://leetcode.com/problems/balanced-binary-tree/) | Return height or -1 sentinel | Combine with abs diff check |
+| [Diameter of Binary Tree #543](https://leetcode.com/problems/diameter-of-binary-tree/) | Track global max of left+right | Bottom-up height + side effect |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: children report, parent combines.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+**Depth bubbles up from leaves; root adds 1 and takes the max.**
 
 ```
-Apply Bottom-Up Return step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+        3
+       / \
+      9  20
+        /  \
+       15   7
+
+Step 1 — leaves report:
+  maxDepth(15): no children → return 1
+  maxDepth(7):  no children → return 1
+  maxDepth(9):  no children → return 1
+
+Step 2 — node 20 combines:
+  maxDepth(20) = 1 + max(1, 1) = 2
+
+Step 3 — root combines:
+  maxDepth(3) = 1 + max(1, 2) = 3  ✓
+
+Return chain (unwind order):
+  15 → 1
+  7  → 1
+  9  → 1
+  20 → 2
+  3  → 3
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `null` returns 0 so `1 + max(0,0)` at a leaf gives 1. The empty child doesn't add a level — the current node does.
 
 ---
 
@@ -129,22 +156,21 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Bottom-Up Return"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Max depth"** → Bottom-up; children return depths, I take max.
+- **"Empty tree = 0"** → Base case before any `+1`.
+- **"One line combine"** → `1 + max(left, right)` — trust both calls.
+- **"Not path sum"** → No target to subtract going down (that's Day 5).
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you started with a `depth++` parameter going down, compare it to this — both can work, but **aggregation problems** usually want returns up.
 
-> 🎯 **Pattern Unlocked:** Bottom-Up Return
+> 🎯 **Pattern Unlocked:** Bottom-up depth bubble — leaves return 1, each ancestor adds 1 and takes max of children.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: two trees, parallel recursion, answers combined with `&&`. →*

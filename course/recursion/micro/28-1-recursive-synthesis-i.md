@@ -1,119 +1,169 @@
+<!-- hand-authored -->
 # 📝 Recursive Synthesis I
 
 > **Day 28** · Recursive Synthesis I · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Multi-Pattern Recursion visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Day 14 taught **string partition backtracking** — cut the next segment, validate it, push → dfs → pop. You solved Restore IP (#93) and Palindrome Partitioning (#131) with a live palindrome check on every cut.
+
+Today is **synthesis at S-Rank**: same skeleton, but you add **precomputation** and **length pruning** so dead branches never enter the stack. The quests are the **same LeetCode problems**. The skill is coding them cold with optimizations you now understand.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Day 14 Revisit + S-Rank Upgrades
 
-### 1. What is the pattern?
+### 1. What you already know (Day 14)
 
-**Multi-Pattern Recursion** — the core technique you'll use in today's quests.
-
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+Both problems share one template:
 
 ```
-PATTERN DECISION TREE — any new problem:
-
-1. Can I define a smaller version of the same problem?
-   NO → probably not recursion
-   YES ↓
-2. Do I need to try ALL valid choices?
-   YES → backtracking (choose / explore / unchoose)
-   NO ↓
-3. Does information flow UP from sub-results?
-   YES → bottom-up return recursion
-   NO → top-down state passing
-4. Same subproblem repeated?
-   YES → add memoization
+dfs(s, i, path, ...):
+    if done: record path; return
+    for j from i to n-1:          // try every cut ending at j
+        seg = s[i..j]
+        if valid(seg):            // PRUNE here
+            path.push(seg)        // CHOOSE
+            dfs(s, j+1, path)     // EXPLORE
+            path.pop()            // UNCHOOSE
 ```
 
-### 4. How the pattern works
+| | Palindrome Partition #131 | Restore IP #93 |
+|---|---|---|
+| **Validator** | `isPal(s, i, j)` | octet 0–255, no bad leading zero |
+| **Stop** | `i == n` | `parts == 4 && i == n` |
+| **Cut width** | unbounded | at most 3 chars |
+
+You traced `"aab"` and `"25525511135"` on Day 14. Today you **upgrade the validator layer**, not the backtracking rhythm.
+
+### 2. Precompute `isPal[i][j]` — O(1) palindrome checks
+
+Day 14 called `isPal(l, r)` inside the cut loop — O(n) per check, O(n³) total worst case.
+
+**S-Rank upgrade:** build a 2D table once in O(n²):
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+isPal[i][j] = true if s[i..j] is palindrome
+
+Base:   isPal[i][i] = true
+        isPal[i][i+1] = (s[i] == s[i+1])
+Extend: isPal[i][j] = (s[i]==s[j]) && isPal[i+1][j-1]
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Fill by **decreasing length** (or increasing `j-i`) so inner cells exist before outer ones:
 
-### 5. What problem does this solve?
+```
+s = "aab"
 
-| Problem family | How this pattern helps |
+      j=0  j=1  j=2
+i=0    T    F    F     "a"✓  "aa"✓  "aab"✗
+i=1         T    F     "a"✓  "ab"✗
+i=2              T     "b"✓
+```
+
+Now the cut loop becomes:
+
+```
+for j from i to n-1:
+    if !isPal[i][j]: continue   // O(1) — skip entire branch
+    ...
+```
+
+Same tree shape. Fewer frames. This is the bridge from Day 14 generate-all to **pruned partition** (Day 17 mindset applied to strings).
+
+### 3. IP segment prune on `"25525511135"`
+
+Restore IP has **two** prune layers beyond octet validation:
+
+**Layer A — validity (Day 14):**
+- length > 3 → skip
+- leading zero on multi-digit → skip
+- value > 255 → skip
+
+**Layer B — remaining length (S-Rank):**
+
+Exactly 4 octets must consume **all** digits. With `parts` placed and index `i`:
+
+```
+remaining_parts = 4 - parts
+remaining_chars = n - i
+
+Need: remaining_parts <= remaining_chars <= 3 * remaining_parts
+```
+
+If too few digits remain for the octets left → cut branch. If too many digits remain (even max-width cuts can't fit) → cut branch.
+
+Trace `s = "25525511135"` (n=11):
+
+```
+dfs(i=0, parts=0)
+  "255" valid, 3 parts left, 8 chars left → 3≤8≤9 ✓
+    dfs(i=3, parts=1)
+      "255" valid, 2 parts left, 5 chars left → 2≤5≤6 ✓
+        dfs(i=6, parts=2)
+          "11" valid → dfs(i=8, parts=3)
+            "135" valid → parts=4, i=11 → "255.255.11.135" ✓
+          "111" valid → dfs(i=9, parts=3)
+            "35" valid → "255.255.111.35" ✓
+          "1113" → len>3 ✗ (Layer A)
+          "11135" → len>3 ✗
+        "2551" → >255 ✗
+      ...
+```
+
+The famous `"25525511135"` output has **exactly two** valid IPs — length pruning eliminates cuts like `"255255"` early (not enough room for 2 more octets).
+
+### 4. Same skeleton, different prune hooks
+
+| Problem | Precompute | Runtime prune |
+|---|---|---|
+| Palindrome Partition #131 | `isPal[i][j]` table | skip when `!isPal[i][j]` |
+| Restore IP #93 | none needed (O(1) octet check) | validity + remaining length bounds |
+| Palindrome Partition II #132 | same `isPal` table | DP min-cuts — different output goal |
+
+### 5. Recognition in 10 seconds
+
+Before coding, say one sentence:
+
+| Signal | One-liner |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| "partition" + "palindrome" + generate all | *"Cut loop + isPal table, base i==n."* |
+| "restore IP" / 4 octets | *"Cut max 3, valid octet, parts==4 && i==n, length prune."* |
+| Revisit after Day 14 | *"Same push/pop — add precompute or bounds prune."* |
 
-### 6. Why brute force / iteration fails
-
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
-
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 6. Common synthesis mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Recompute palindrome by reversing substring every cut | Precompute `isPal[i][j]` once |
+| IP: accept when parts==4 but i≠n | Must consume entire string |
+| IP: skip length prune | Wastes dfs on impossible suffix lengths |
+| Forget pop after explore | Stale segments leak to siblings |
+| Fill `isPal` in wrong order | Extend from shorter substrings first |
 
-### 10. Recognition drill
+### 7. Pattern signals — synthesis drill
 
-Read this problem aloud:
+| When the problem says… | Upgrade from Day 14 |
+|---|---|
+| "all palindrome partitions" | `isPal[i][j]` precompute |
+| "restore IP" / exactly k segments | length-bounds prune per call |
+| "minimum cuts" (#132) | same `isPal`, switch to DP not generate-all |
+| slow on long strings | ask: can validation become O(1)? |
 
-> *"Given an array, generate all possible subsets."*
+**Keywords:** `synthesis` · `revisit` · `isPal` · `precompute` · `length prune` · `partition`
 
-Before coding, say:
+### 8. Recognition drill
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+Read each problem aloud. Name the Day 14 base + S-Rank upgrade:
+
+> *"Return all palindrome partitionings of a string."*
+>
+> → **Day 14 cut loop.** Upgrade: **`isPal[i][j]` table** — O(1) per cut check.
+
+> *"Return all valid IP addresses from a digit string."*
+>
+> → **Day 14 fixed-4-partition.** Upgrade: **remaining-length prune** on top of octet validation. Trace `"25525511135"`.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You know the Day 14 skeleton and the S-Rank prune layer. Quest 1 revisits Restore IP — code it with length pruning. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 22 Checkpoint
 
 > **Advanced BFS** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 22 is **metadata-rich BFS** — parent, depth, level sums.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "cousins" | Same depth, different parent | #993 |
+| "(node, parent, depth)" queue | Day 22 NEW vs Day 17 | Parent required |
+| "deepest leaves sum" | Sum last BFS wave | #1302 |
+| "bottom-left value" | **Day 17** — first of last level | One node, not sum |
+| "level order traversal" | **Day 3 / Day 9** | Full level lists |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Are x and y cousins?"* → **Parent + depth tracking**
+2. *"Sum of all nodes at maximum depth"* → **BFS level accumulation**
+3. *"Leftmost node in last row"* → **Day 17 level-end first**
+4. *"Vertical column grouping"* → **Day 17 column map**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"All nodes at distance k from root."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **BFS with depth** — stop or collect at depth k (Day 3 extension).
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Check if two nodes are siblings."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Same depth + same parent** — inverse of cousins.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Product of deepest level nodes."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Same as #1302** — multiply instead of sum in last wave.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use BFS level/metadata from Days 3, 9, 22.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Cousins: depth match only** — Siblings share parent.
+2. **Missing parent on enqueue** — Push `(child, node, d+1)`.
+3. **Deepest sum: first node only** — Sum entire last level.
+4. **Not resetting level_sum** — Must zero each batch.
+5. **Confusing with Day 17 column BFS** — Different metadata.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Draw a tree with cousins (e.g. nodes under different parents at depth 3). Trace BFS queue with parent pointers. Then compute deepest level sum on the same tree.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before the B-Rank test:** Say how Day 22 BFS differs from Day 17 in one phrase.
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Day 22 tracks **relationships** (parent); Day 17 tracks **views** (column / first-node).
 
 ---
 
@@ -79,4 +73,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 22 complete! Tomorrow: the next branch of your ascension. →*
+*Day 22 complete! B-Rank test next — trie+grid, stack iterator, camera DP. →*

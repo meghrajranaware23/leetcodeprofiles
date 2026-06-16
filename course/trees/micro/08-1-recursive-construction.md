@@ -1,120 +1,143 @@
+<!-- hand-authored -->
 # 📝 Recursive Construction: Building Trees
 
 > **Day 8** · Tree Construction · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand Recursive Construction visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+You've traversed trees and measured them. Today you **build** them — from two traversal arrays that describe the same tree in different orders. The root's identity is pinned by **preorder** (first) or **postorder** (last); **inorder** tells you exactly where to split left from right.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Recursive Construction** — the core technique you'll use in today's quests.
+**Recursive construction** — pick root from one array, find it in inorder, split into left/right segments, recurse on each half.
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+- **Preorder + Inorder** — root = `pre[0]`; inorder split → left segment, right segment
+- **Inorder + Postorder** — root = `post[pe]` (last); same split, build **right subtree first** (reverse construction)
+- **Hash map** — `inorder value → index` for O(1) root lookup
 
 ### 2. Simple explanation
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+Inorder is a **cut line**: everything left of the root belongs in the left subtree; everything right belongs in the right subtree. Preorder tells you *who* the root is (always first). Postorder tells you *who* the root is (always last) — then you work backward.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
+Each recursive call shrinks three windows: preorder bounds, inorder bounds, (and postorder bounds for variant 2).
 
-### 3. Visual walkthrough
+### 3. Visual — Preorder + Inorder: root = pre[0], split inorder
 
 ```
-        1
+preorder:  [3, 9, 20, 15, 7]
+inorder:   [9, 3, 15, 20, 7]
+
+Step 1: root = pre[0] = 3
+        find 3 in inorder at index 1
+
+inorder:   [9 | 3 | 15, 20, 7]
+            ↑       ↑
+          left    right
+          size=1  size=2
+
+Step 2: build left  from pre[1..1],   in[0..0]   → node 9
+        build right from pre[2..4],   in[2..4]   → subtree 20
+
+Result:
+        3
        / \
-      2    3
-     / \    \
-    4    5    6
+      9   20
+         /  \
+        15   7
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+pre[0]=root → leftSize = k - is → left gets pre[1..1+leftSize-1]
 ```
 
-### 4. How the pattern works
+### 4. Visual — Inorder + Postorder: reverse construction
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+inorder:   [9, 3, 15, 20, 7]
+postorder: [9, 15, 7, 20, 3]
+
+Step 1: root = post[pe] = post[4] = 3
+        find 3 in inorder at index 1
+
+inorder:   [9 | 3 | 15, 20, 7]
+rightSize = ie - k = 4 - 1 = 2
+
+Step 2: build RIGHT first (postorder reads root last → process right before left)
+        right: in[2..4], post[2..3]  → subtree 20
+        left:  in[0..0], post[0..0]  → node 9
+
+Same tree — construction order reversed, split logic identical.
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+### 5. The universal templates
 
-### 5. What problem does this solve?
+**Preorder + Inorder:**
+```
+root = pre[ps]
+k = index of root in inorder
+leftSize = k - is
+root.left  = build(pre, ps+1, ps+leftSize,     in, is, k-1)
+root.right = build(pre, ps+leftSize+1, pe,    in, k+1, ie)
+```
 
-| Problem family | How this pattern helps |
-|---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+**Inorder + Postorder:**
+```
+root = post[pe]
+k = index of root in inorder
+rightSize = ie - k
+root.right = build(in, k+1, ie, post, pe-rightSize, pe-1)
+root.left  = build(in, is, k-1, post, ps, pe-rightSize-1)
+```
+
+Base case: `ps > pe` or `is > ie` → `null`.
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| Try every node as root, check if traversals match | O(n²) or worse — ignores inorder split structure |
+| Linear scan for root in inorder each call | O(n²) total — hash map fixes to O(n) |
+| Wrong segment sizes after split | Off-by-one on leftSize / rightSize corrupts entire tree |
+| Same build order for pre+in and in+post | Postorder variant must build **right before left** |
 
 ### 7. The key observation
 
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+**Inorder is the partition key.** Preorder/postorder only tell you the root; inorder tells you how big each child subtree is. `leftSize = k - is` (pre+in) or `rightSize = ie - k` (in+post).
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+| "construct from preorder and inorder" | Root = pre[0], split inorder |
+| "construct from inorder and postorder" | Root = post[last], build right first |
+| "unique binary tree" | Deterministic split — no ambiguity |
+| "build binary tree" + two arrays | Hash inorder indices, recurse on ranges |
+| "serialize / deserialize" | Often same divide-and-conquer skeleton |
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+**Keywords:** `pre[0]` · `post[pe]` · `leftSize` · `rightSize` · `idx map` · `split inorder`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Off-by-one in preorder segment for right child | Right starts at `ps + leftSize + 1` |
+| Building left before right in postorder variant | Postorder: right subtree first |
+| O(n) scan for root in inorder | Precompute `value → index` hash map |
+| Empty check wrong (`ps >= pe` vs `ps > pe`) | Use `ps > pe` for zero-length segment |
+| Forgetting leftSize = k - is | Size of left = elements before root in inorder |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Construct a binary tree from preorder and inorder traversal arrays."*
 
 Before coding, say:
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Root = pre[ps]. Map inorder. k = idx[root]. leftSize = k - is. Left = pre[ps+1..ps+leftSize], right = rest. Base: ps > pe → null."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Two arrays, one split line. First quest: preorder meets inorder. →*

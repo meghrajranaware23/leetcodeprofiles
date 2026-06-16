@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Target Sum
 
 > **Day 17** · [Target Sum #494](https://leetcode.com/problems/target-sum/) · Medium · 15 min · 35 XP
@@ -10,51 +11,69 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Target Sum on LeetCode](https://leetcode.com/problems/target-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the decision tree. Trace choose / explore / unchoose. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the +/- tree for `nums = [1, 1, 1, 1, 1], target = 3`. Count leaves that hit 3 before you touch an editor.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Target Sum #494](https://leetcode.com/problems/target-sum/)**
+You are given an integer array `nums` and an integer `target`.
 
-Work through the examples on paper before reading further.
+Build an expression by adding a `'+'` or `'-'` sign before each integer in `nums`, then concatenate them into an expression. Return the **number of different expressions** that evaluate to `target`.
+
+```
+Input:  nums = [1, 1, 1, 1, 1], target = 3
+Output: 5
+
+Explanation: -1+1+1+1+1, +1-1+1+1+1, +1+1-1+1+1,
+             +1+1+1-1+1, +1+1+1+1-1  (five ways)
+```
+
+```
+Input:  nums = [1], target = 1
+Output: 1
+```
+
+**Constraints:** `1 <= nums.length <= 20`, `-1000 <= nums[i], target <= 1000`
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Sign-Choice Backtracking**.
+**Hint 1:** This is **not** include/exclude. Every element appears in the final expression — you only choose its sign.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the decision tree. Trace choose / explore / unchoose.
+**Hint 2:** At index `i`, branch twice: `dfs(i+1, sum - nums[i])` and `dfs(i+1, sum + nums[i])`.
+
+**Hint 3:** Base case `i == len(nums)`: return 1 if `sum == 0` (when tracking `target - nums[i]` style) or if your running sum equals target — match your parameter convention.
+
+**Hint 4:** Memoize `(i, current_sum)` — the same subproblem is reached from different upstream sign choices.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Sign-Choice Backtracking
+**Pattern used:** Sign-Choice Backtracking + Memo
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Add `'+'` or `'-'` before each integer" → two branches per element, not skip
+- "Number of ways" → count at leaves, sum left + right subtree counts
+- Every element used → depth always `n`, not a subset-size problem
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "assign + or -" / "sign before each" | Sign-choice tree |
+| "number of expressions" / "how many ways" | Count at base + memo |
+| "evaluate to target" | Running sum state in dfs |
+| "all elements used" | Not subset backtracking — always recurse `i+1` |
+| combination sum family | Similar running-sum intuition, different branches |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Each level fixes one element's sign. The state `(i, sum)` fully describes the subproblem — memo collapses exponential recomputation.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Every element used → two branches, not include/exclude."*
+2. *"State = (index, running sum). Base = i==n, check sum."*
+3. *"Return left + right counts. Memo (i, sum)."*
+4. *"Trace [1,1], target=0 on paper — two paths: +1-1 and -1+1."*
 
 ---
 
@@ -62,12 +81,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all `2^n` sign strings, evaluate each** | Correct logic, but no memo — TLE on n=20 |
+| **Include/exclude some elements** | Wrong — all elements must appear with a sign |
+| **Greedy sign pick toward target** | Misses count — need all valid expressions |
+| **Nested loops over sign bits** | Same as brute bitmask without `(i,sum)` cache |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** Different sign choices upstream can land on the same `(i, sum)`. Memo turns `O(2^n)` into `O(n · sum_range)`.
 
 ---
 
@@ -75,25 +94,41 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
+| [Target Sum #494](https://leetcode.com/problems/target-sum/) | Count +/- ways | Sign tree + memo |
+| [Partition Equal Subset Sum #416](https://leetcode.com/problems/partition-equal-subset-sum/) | Can split into two equal sums? | Subset-sum DP (related state) |
+| [Combination Sum III #216](https://leetcode.com/problems/combination-sum-iii/) | Pick k digits summing to n | Running-sum prune (Day 15) |
+| [Ones and Zeroes #474](https://leetcode.com/problems/ones-and-zeroes/) | 2D knapsack variant | Multi-constraint counting |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+If you recognized Target Sum, the k-bucket quest next reuses **running-sum prune** with a different assignment shape.
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the decision tree. Trace choose / explore / unchoose.
+`nums = [1, 1], target = 0` — track `dfs(i, sum)` where we subtract/add `nums[i]` to running total, starting `sum = 0`:
 
 ```
-Apply Sign-Choice Backtracking step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(0, 0)
+├── subtract 1 → dfs(1, -1)
+│   ├── subtract 1 → dfs(2, -2)  → i==2, sum≠0 → 0
+│   └── add 1      → dfs(2,  0)  → i==2, sum==0 → 1  ✓  (-1+1)
+└── add 1      → dfs(1,  1)
+    ├── subtract 1 → dfs(2,  0)  → i==2, sum==0 → 1  ✓  (+1-1)
+    └── add 1      → dfs(2,  2)  → i==2, sum≠0 → 0
+
+Total = 2 ways
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+For `nums = [1,1,1,1,1], target = 3`:
+
+```
+Each leaf: sum of signed nums must equal 3
+Five 1's → need +1 on 4 and -1 on 1: C(5,1)=5 ways
+
+Tree has 2^5=32 leaves, but memo on (i,sum) avoids recomputing shared subtrees
+```
+
+> 💡 **The insight:** The code is the paper trace. Two recursive calls per index, add the counts, cache `(i, sum)`.
 
 ---
 
@@ -148,22 +183,21 @@ class Solution {
 ```
 
 **Complexity:** O(n · sum) time · O(sum) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Sign-Choice Backtracking"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Add + or - before each number"** → Not include/exclude. Two branches per index, always use the element.
+- **"Number of ways"** → Sum counts from both subtrees; base case returns 0 or 1.
+- **"Looks like combination sum"** → Same running-sum instinct, but branches are +/- not pick/skip.
+- **"n up to 20"** → Pure `2^n` TLE without memo on `(i, target)`.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried bitmasking all signs first, that's fine — the breakthrough is **memoizing the (index, sum) state**, not enumerating bit patterns.
 
-> 🎯 **Pattern Unlocked:** Sign-Choice Backtracking
+> 🎯 **Pattern Unlocked:** Sign-choice backtracking — subtract branch, add branch, memo the pair.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: assign elements into k equal buckets. →*

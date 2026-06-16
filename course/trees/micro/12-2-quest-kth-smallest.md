@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Kth Smallest in BST
 
 > **Day 12** · [Kth Smallest Element in a BST #230](https://leetcode.com/problems/kth-smallest-element-in-a-bst/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Kth Smallest Element in a BST on LeetCode](https://leetcode.com/problems/kth-smallest-element-in-a-bst/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Write the inorder visit sequence. Mark where k decrements to 0. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Inorder Early Termination**.
+Which pattern from today's concept applies? **Inorder early termination** — left, visit (k--), right; stop when k hits 0.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: iterative version — push all left nodes, pop one (that's an inorder step), move to right child and repeat. Same early-stop logic.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Inorder Early Termination
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "kth smallest **in BST**" → sorted order = inorder traversal
+- Don't need full array — count visits and **stop**
+- k is 1-indexed on LeetCode — decrement after processing each node
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "kth smallest in BST" | Inorder with counter |
+| "without extra space" (follow-ups) | Morris traversal (advanced) or iterative stack |
+| "BST" + rank/order statistic | Never sort all values — walk inorder |
+| "early termination" | Return as soon as k == 0 |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** BST inorder produces globally sorted sequence. The kth element in that sequence is the answer — visit until count reaches k.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Inorder = left, node, right."*
+2. *"After visiting node, k--. If k==0, record answer."*
+3. *"Don't recurse right if already found."*
+4. *"Iterative stack = same order, O(h) space."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Inorder into array, return arr[k-1]** | O(n) time and space always — no early stop |
+| **Sort all node values** | O(n log n) — destroys BST structure benefit |
+| **Heap / priority queue** | Overkill for BST with natural ordering |
+| **Decrement k before visiting node** | Off-by-one — process node first, then k-- |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** You only need the **first k** inorder elements. Small k on a large tree should touch far fewer than n nodes.
 
 ---
 
@@ -75,31 +74,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Binary Search Tree Iterator #173](https://leetcode.com/problems/binary-search-tree-iterator/) | C-Rank test — lazy one-at-a-time | Stack of left spines |
+| [Kth Largest in Stream #703](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | Not a tree — heap | Different structure, same "kth order" idea |
+| [Inorder Successor in BST #285](https://leetcode.com/problems/inorder-successor-in-bst/) | Find next after one node | Inorder / successor walk |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: inorder order unlocks rank queries.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**k = 3 on tree from concept page:**
 
 ```
-        3
+        5
        / \
-      9    20
-          /  \
-         15   7
+      3   7
+     / \   \
+    2   4   8
 
-Apply Inorder Early Termination step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Inorder: 2 → 3 → 4 → 5 → 7 → 8
+
+  Visit 2: k 3→2
+  Visit 3: k 2→1
+  Visit 4: k 1→0  → ans = 4, STOP ✓
+
+Nodes 5, 7, 8 never visited.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Inorder is the BST's sorted iterator. k is just "advance k steps and read."
 
 ---
 
@@ -108,18 +111,17 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    int k, ans;
-    void dfs(TreeNode* node) {
-        if (!node) return;
-        dfs(node->left);
-        if (--k == 0) { ans = node->val; return; }
-        dfs(node->right);
-    }
 public:
     int kthSmallest(TreeNode* root, int k) {
-        this->k = k;
-        dfs(root);
-        return ans;
+        stack<TreeNode*> st;
+        TreeNode* curr = root;
+        while (curr || !st.empty()) {
+            while (curr) { st.push(curr); curr = curr->left; }
+            curr = st.top(); st.pop();
+            if (--k == 0) return curr->val;
+            curr = curr->right;
+        }
+        return -1;
     }
 };
 ```
@@ -128,51 +130,51 @@ public:
 ```python
 class Solution:
     def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
-        st, cur = [], root
-        while True:
-            while cur:
-                st.append(cur)
-                cur = cur.left
-            cur = st.pop()
+        stack, curr = [], root
+        while curr or stack:
+            while curr:
+                stack.append(curr)
+                curr = curr.left
+            curr = stack.pop()
             k -= 1
-            if k == 0:
-                return cur.val
-            cur = cur.right
+            if k == 0: return curr.val
+            curr = curr.right
+        return -1
 ```
 
 ### Java
 ```java
 class Solution {
     public int kthSmallest(TreeNode root, int k) {
-        Deque<TreeNode> st = new ArrayDeque<>();
-        TreeNode cur = root;
-        while (true) {
-            while (cur != null) { st.push(cur); cur = cur.left; }
-            cur = st.pop();
-            if (--k == 0) return cur.val;
-            cur = cur.right;
+        Deque<TreeNode> stack = new ArrayDeque<>();
+        TreeNode curr = root;
+        while (curr != null || !stack.isEmpty()) {
+            while (curr != null) { stack.push(curr); curr = curr.left; }
+            curr = stack.pop();
+            if (--k == 0) return curr.val;
+            curr = curr.right;
         }
+        return -1;
     }
 }
 ```
 
-**Complexity:** O(h + k) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Inorder Early Termination"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"kth smallest in BST"** → inorder, not sort.
+- **"Early stop"** → return when k hits 0; don't finish traversal.
+- **"Stack iterative"** → push left spine, pop, go right — same as recursive order.
+- **"Preview of BST Iterator"** → C-Rank test uses this lazy inorder.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you collected all values first, refactor — the counter during inorder is the point.
 
-> 🎯 **Pattern Unlocked:** Inorder Early Termination
+> 🎯 **Pattern Unlocked:** Inorder Early Termination — sorted walk with k counter.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: delete with the three-case diagram. →*

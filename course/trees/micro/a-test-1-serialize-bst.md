@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ A-Rank Test — Problem 1
 
 > [Serialize and Deserialize BST #449](https://leetcode.com/problems/serialize-and-deserialize-bst/) · Medium · 250 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Serialize and Deserialize BST on LeetCode](https://leetcode.com/problems/serialize-and-deserialize-bst/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. BST preorder + bounds rebuild is the A-Rank payoff from Days 11–23. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,46 @@ See the full problem statement on LeetCode: **[Serialize and Deserialize BST #44
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the A-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** **BST-aware serialize** — preorder alone works for BST (not general binary tree). Deserialize with **min/max bounds** — no null markers needed.
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- **Serialize:** preorder values comma-separated (skip nulls — BST structure recoverable).
+- **Deserialize:** queue/iterator of values; `build(lo, hi)` — if front not in `(lo, hi)`, return null; else consume as root, recurse `(lo, val-1)` and `(val+1, hi)`.
+- Faster/smaller than general tree codec (#297) because BST ordering constrains rebuild.
+- Connects Day 11 validate-BST bounds + Day 23 inorder ordering.
+
+**Pattern name before coding:** *Preorder serialize + bounded queue rebuild.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- "Serialize/deserialize **BST**" → use ordering — not full #297 with null tokens
+- Preorder first value = root; all left subtree values < root in queue order
+- Design class `Codec` with two methods
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"Preorder string — no nulls for BST."*
+2. *"Deserialize: peek queue front, check lo ≤ val ≤ hi."*
+3. *"Left build(lo, val-1), right build(val+1, hi)."*
+4. *"Same bounds idea as Validate BST #98."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **General tree serialize with nulls (#297)** | Works but longer string — BST bounds omit nulls |
+| **Inorder only serialize** | Can't rebuild unique BST from inorder alone |
+| **Level order without BST property** | Needs null markers — heavier |
+| **Sort deserialized values and rebuild** | O(n log n) — bounds linear rebuild |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Same **bounded build** as validate BST and construct-from-preorder. If you mastered Day 11 range checks, deserialize is validate-in-reverse: consume values that fit current range.
 
 ---
 
@@ -67,32 +76,29 @@ Trace the pattern on the example tree from the problem statement. Then implement
 ### C++
 ```cpp
 class Codec {
-    int i = 0;
-    long read(const string& s) {
-        long sign = 1, val = 0;
-        if (s[i] == '-') { sign = -1; ++i; }
-        while (i < (int)s.size() && isdigit(s[i])) val = val * 10 + (s[i++] - '0');
-        return sign * val;
-    }
-    TreeNode* build(const string& s, long lo, long hi) {
-        if (i >= (int)s.size()) return nullptr;
-        int start = i;
-        long val = read(s);
-        if (val <= lo || val >= hi) { i = start; return nullptr; }
-        TreeNode* node = new TreeNode((int)val);
-        node->left = build(s, lo, val);
-        node->right = build(s, val, hi);
+    TreeNode* build(queue<int>& q, int lo, int hi) {
+        if (q.empty() || q.front() < lo || q.front() > hi) return nullptr;
+        int val = q.front(); q.pop();
+        TreeNode* node = new TreeNode(val);
+        node->left  = build(q, lo, val - 1);
+        node->right = build(q, val + 1, hi);
         return node;
     }
 public:
     string serialize(TreeNode* root) {
         if (!root) return "";
-        return to_string(root->val) + serialize(root->left) + serialize(root->right);
+        string res = to_string(root->val);
+        if (root->left)  res += "," + serialize(root->left);
+        if (root->right) res += "," + serialize(root->right);
+        return res;
     }
     TreeNode* deserialize(string data) {
         if (data.empty()) return nullptr;
-        i = 0;
-        return build(data, LONG_MIN, LONG_MAX);
+        queue<int> q;
+        stringstream ss(data);
+        string token;
+        while (getline(ss, token, ',')) q.push(stoi(token));
+        return build(q, INT_MIN, INT_MAX);
     }
 };
 ```
@@ -101,63 +107,70 @@ public:
 ```python
 class Codec:
     def serialize(self, root: Optional[TreeNode]) -> str:
+        if not root: return ''
+        parts = []
         def pre(node):
-            if not node:
-                return ''
-            return str(node.val) + pre(node.left) + pre(node.right)
-        return pre(root)
+            if not node: return
+            parts.append(str(node.val))
+            pre(node.left); pre(node.right)
+        pre(root)
+        return ','.join(parts)
+
     def deserialize(self, data: str) -> Optional[TreeNode]:
-        self.i = 0
+        if not data: return None
+        vals = iter(map(int, data.split(',')))
         def build(lo, hi):
-            if self.i >= len(data):
-                return None
-            if data[self.i] == '-':
-                j = self.i + 1
-                while j < len(data) and data[j].isdigit():
-                    j += 1
-                val = int(data[self.i:j])
-                self.i = j
-            else:
-                val = int(data[self.i])
-                self.i += 1
-            if not (lo < val < hi):
-                self.i -= len(str(val))
-                return None
-            node = TreeNode(val)
-            node.left = build(lo, val)
-            node.right = build(val, hi)
+            v = next(vals, None)
+            if v is None or not (lo <= v <= hi): return None
+            node = TreeNode(v)
+            node.left  = build(lo, v - 1)
+            node.right = build(v + 1, hi)
             return node
-        return build(float('-inf'), float('inf'))
+        # Need to peek; use a queue approach
+        from collections import deque
+        q = deque(map(int, data.split(',')))
+        def build2(lo, hi):
+            if not q or not (lo <= q[0] <= hi): return None
+            v = q.popleft()
+            node = TreeNode(v)
+            node.left  = build2(lo, v - 1)
+            node.right = build2(v + 1, hi)
+            return node
+        return build2(float('-inf'), float('inf'))
 ```
 
 ### Java
 ```java
 public class Codec {
-    int i = 0;
     public String serialize(TreeNode root) {
         if (root == null) return "";
-        return root.val + serialize(root.left) + serialize(root.right);
+        StringBuilder sb = new StringBuilder();
+        preorder(root, sb);
+        return sb.substring(0, sb.length()-1);
+    }
+    private void preorder(TreeNode node, StringBuilder sb) {
+        if (node == null) return;
+        sb.append(node.val).append(',');
+        preorder(node.left, sb); preorder(node.right, sb);
     }
     public TreeNode deserialize(String data) {
-        i = 0;
-        return build(data, Long.MIN_VALUE, Long.MAX_VALUE);
+        if (data.isEmpty()) return null;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (String s : data.split(",")) q.offer(Integer.parseInt(s));
+        return build(q, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
-    TreeNode build(String s, long lo, long hi) {
-        if (i >= s.length()) return null;
-        int start = i;
-        if (s.charAt(i) == '-') i++;
-        while (i < s.length() && Character.isDigit(s.charAt(i))) i++;
-        long val = Long.parseLong(s.substring(start, i));
-        if (val <= lo || val >= hi) { i = start; return null; }
-        TreeNode node = new TreeNode((int) val);
-        node.left = build(s, lo, val);
-        node.right = build(s, val, hi);
+    private TreeNode build(Deque<Integer> q, int lo, int hi) {
+        if (q.isEmpty() || q.peek() < lo || q.peek() > hi) return null;
+        int val = q.poll();
+        TreeNode node = new TreeNode(val);
+        node.left  = build(q, lo, val-1);
+        node.right = build(q, val+1, hi);
         return node;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
+**Complexity:** undefined
 
 </details>
 
@@ -165,10 +178,112 @@ public class Codec {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a A-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Serialize BST"** → preorder without nulls — ordering carries structure.
+- **"Deserialize with bounds"** → Validate BST #98 ranges on a value queue.
+- **"Not #297"** → BST special case is leaner.
+- **"Day 23 augmentation"** → inorder order implicit in rebuild.
 
 ---
 
 *1 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Codec {
+    TreeNode* build(queue<int>& q, int lo, int hi) {
+        if (q.empty() || q.front() < lo || q.front() > hi) return nullptr;
+        int val = q.front(); q.pop();
+        TreeNode* node = new TreeNode(val);
+        node->left  = build(q, lo, val - 1);
+        node->right = build(q, val + 1, hi);
+        return node;
+    }
+public:
+    string serialize(TreeNode* root) {
+        if (!root) return "";
+        string res = to_string(root->val);
+        if (root->left)  res += "," + serialize(root->left);
+        if (root->right) res += "," + serialize(root->right);
+        return res;
+    }
+    TreeNode* deserialize(string data) {
+        if (data.empty()) return nullptr;
+        queue<int> q;
+        stringstream ss(data);
+        string token;
+        while (getline(ss, token, ',')) q.push(stoi(token));
+        return build(q, INT_MIN, INT_MAX);
+    }
+};
+```
+
+### Python
+```python
+class Codec:
+    def serialize(self, root: Optional[TreeNode]) -> str:
+        if not root: return ''
+        parts = []
+        def pre(node):
+            if not node: return
+            parts.append(str(node.val))
+            pre(node.left); pre(node.right)
+        pre(root)
+        return ','.join(parts)
+
+    def deserialize(self, data: str) -> Optional[TreeNode]:
+        if not data: return None
+        vals = iter(map(int, data.split(',')))
+        def build(lo, hi):
+            v = next(vals, None)
+            if v is None or not (lo <= v <= hi): return None
+            node = TreeNode(v)
+            node.left  = build(lo, v - 1)
+            node.right = build(v + 1, hi)
+            return node
+        # Need to peek; use a queue approach
+        from collections import deque
+        q = deque(map(int, data.split(',')))
+        def build2(lo, hi):
+            if not q or not (lo <= q[0] <= hi): return None
+            v = q.popleft()
+            node = TreeNode(v)
+            node.left  = build2(lo, v - 1)
+            node.right = build2(v + 1, hi)
+            return node
+        return build2(float('-inf'), float('inf'))
+```
+
+### Java
+```java
+public class Codec {
+    public String serialize(TreeNode root) {
+        if (root == null) return "";
+        StringBuilder sb = new StringBuilder();
+        preorder(root, sb);
+        return sb.substring(0, sb.length()-1);
+    }
+    private void preorder(TreeNode node, StringBuilder sb) {
+        if (node == null) return;
+        sb.append(node.val).append(',');
+        preorder(node.left, sb); preorder(node.right, sb);
+    }
+    public TreeNode deserialize(String data) {
+        if (data.isEmpty()) return null;
+        Deque<Integer> q = new ArrayDeque<>();
+        for (String s : data.split(",")) q.offer(Integer.parseInt(s));
+        return build(q, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+    private TreeNode build(Deque<Integer> q, int lo, int hi) {
+        if (q.isEmpty() || q.peek() < lo || q.peek() > hi) return null;
+        int val = q.poll();
+        TreeNode node = new TreeNode(val);
+        node.left  = build(q, lo, val-1);
+        node.right = build(q, val+1, hi);
+        return node;
+    }
+}
+```
+
+**Complexity:** undefined

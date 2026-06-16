@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ C-Rank Test — Problem 3
 
 > [Recover Binary Search Tree #99](https://leetcode.com/problems/recover-binary-search-tree/) · Medium · 150 XP
@@ -8,11 +9,11 @@ You've completed your C-Rank training. Now prove your foundation.
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it for **at least 15 minutes** before revealing hints or solutions.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
 
 **[→ Open Recover Binary Search Tree on LeetCode](https://leetcode.com/problems/recover-binary-search-tree/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the tree. Trace the recursion. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Inorder of BST must be sorted — find where it breaks. No peeking until you've genuinely tried.
 
 ---
 
@@ -24,38 +25,48 @@ See the full problem statement on LeetCode: **[Recover Binary Search Tree #99](h
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the C-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** Day 12 **inorder on BST** — exactly two nodes swapped; inorder scan finds out-of-order pair(s).
 
-Revisit your rank's cheat sheet. Which traversal direction does this problem need?
+- BST inorder → strictly increasing sequence.
+- One pass inorder: track `prev` node value.
+- If `node.val < prev.val` → violation found.
+- **First** violation: `first = prev` (not current).
+- **Second** violation: `second = node` (adjacent swap: only one violation, second = node).
+- Swap `first.val` and `second.val` — O(1) extra if excluding recursion stack.
+
+**Pattern name before coding:** *Inorder violation detection — two swapped nodes.*
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
 **How to identify from the statement:**
-- Read for tree structure clues
-- Determine information flow direction
-- Name the pattern family before opening your editor
+- "Recover BST" / "two nodes swapped" → inorder sorted property broken
+- O(1) space follow-up (excluding stack) → Morris traversal optional; recursion acceptable on interview
+- In-place swap values — don't rebuild tree
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example tree."*
-2. *"What does my function return?"*
-3. *"Top-down, bottom-up, BFS, or parallel?"*
-4. *"What's the base case?"*
+1. *"Inorder traverse — compare to prev."*
+2. *"On drop: if first unset, first=prev; second=node always on drop."*
+3. *"After traversal: swap first.val, second.val."*
+4. *"Day 11 validate would fail — fix not check."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Tree problems have natural O(n) recursive solutions. Brute force typically means redundant traversal or storing unnecessary state. Trust the subtree structure.
+| Approach | Problem |
+|---|---|
+| **Sort all values, reassign** | O(n log n) — inorder O(n) suffices |
+| **Validate then search** | Two passes — combine in one inorder |
+| **Rebuild BST from sorted array** | O(n) but mutates structure — swap values simpler |
+| **Track every out-of-order pair in array** | Two nodes only — constant pointers enough |
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
-
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Connects Day 11 (BST order), Day 12 (inorder traversal), and sorted-array reasoning. Adjacent swap = one violation event; non-adjacent = two violation events with same `first` and updated `second`.
 
 ---
 
@@ -136,10 +147,75 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a C-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Two swapped in BST"** → inorder must be sorted — find dips.
+- **"first = prev on first dip"** → adjacent swap edge case handled.
+- **"second always updated on dip"** → non-adjacent swap gets correct pair.
+- **"Day 12 inorder"** → same walk as kth-smallest, different processing.
 
 ---
 
 *3 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    TreeNode *first = nullptr, *second = nullptr, *prev = nullptr;
+    void inorder(TreeNode* node) {
+        if (!node) return;
+        inorder(node->left);
+        if (prev && prev->val > node->val) {
+            if (!first) first = prev;
+            second = node;
+        }
+        prev = node;
+        inorder(node->right);
+    }
+public:
+    void recoverTree(TreeNode* root) {
+        inorder(root);
+        swap(first->val, second->val);
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def recoverTree(self, root: Optional[TreeNode]) -> None:
+        self.first = self.second = self.prev = None
+        def inorder(node):
+            if not node: return
+            inorder(node.left)
+            if self.prev and self.prev.val > node.val:
+                if not self.first: self.first = self.prev
+                self.second = node
+            self.prev = node
+            inorder(node.right)
+        inorder(root)
+        self.first.val, self.second.val = self.second.val, self.first.val
+```
+
+### Java
+```java
+class Solution {
+    private TreeNode first, second, prev;
+    public void recoverTree(TreeNode root) {
+        inorder(root);
+        int tmp = first.val; first.val = second.val; second.val = tmp;
+    }
+    private void inorder(TreeNode node) {
+        if (node == null) return;
+        inorder(node.left);
+        if (prev != null && prev.val > node.val) {
+            if (first == null) first = prev;
+            second = node;
+        }
+        prev = node;
+        inorder(node.right);
+    }
+}
+```
+
+**Complexity:** undefined

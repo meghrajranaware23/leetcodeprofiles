@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Partition to K Subsets (Revisited)
 
 > **Day 19** · [Partition to K Equal Sum Subsets #698](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/) · Medium · 15 min · 35 XP
@@ -10,51 +11,59 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Partition to K Equal Sum Subsets on LeetCode](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** You saw this on Day 17. Today, solve it again from memory after Matchsticks — the code should be nearly identical. Trace bucket add/undo on paper.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Partition to K Equal Sum Subsets #698](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/)**
+Given an integer array `nums` and an integer `k`, return `true` if it is possible to divide `nums` into `k` non-empty subsets whose sums are all equal.
 
-Work through the examples on paper before reading further.
+```
+Input:  nums = [4,3,2,3,5,2,1], k = 4
+Output: true
+Explanation: [5,1], [4,2], [3,3], [2,2]
+
+Input:  nums = [1,2,3,4], k = 3
+Output: false
+```
+
+Each number must appear in exactly one subset.
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Sorted Pruning Partition**.
+**Same skeleton as Matchsticks to Square** — only `k` is a parameter now.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 1:** `target = sum(nums) / k`. Early exit if `sum % k != 0`.
+
+**Hint 2:** Sort `nums` descending. Same sorted-sticks prune as the square quest.
+
+**Hint 3:** `sides = [0] * k`. Loop `j in 0..k-1`, skip overflow and duplicate buckets.
+
+**Hint 4:** If you solved #473 five minutes ago, change `4` to `k` — that's the entire diff.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Sorted Pruning Partition
+**Pattern used:** Sorted Pruning Partition (general k-bucket)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue in the problem | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "partition into k subsets" | k buckets, parameter k |
+| "equal sum" | target = total/k |
+| "each number once" | Assign every element — index-based dfs |
+| Revisit after #473 | Same code, k not hardcoded |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** Identical to Day 17 and today's Matchsticks quest. The revisit cements the pattern — you should not re-derive from scratch.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"I know this — k buckets, sort desc, dfs(i, sides)."*
+2. *"Pre-check sum % k."*
+3. *"Overflow + duplicate-bucket prune in the loop."*
+4. *"Matchsticks was k=4; this is the general form."*
 
 ---
 
@@ -62,12 +71,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all k-way splits** | Exponential with no overflow prune |
+| **k nested subset-sum loops** | Ensuring disjoint subsets is messy |
+| **Memo on (i, sides) without bucket dedup** | Still explores symmetric bucket orderings |
+| **Re-solving from scratch each time** | You already have the template — reuse it |
+| **Ascending sort** | Defers failure; sorted desc is standard for this family |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** After Matchsticks #473, this problem is the **same function** with `k` as input. Recognition > re-derivation.
 
 ---
 
@@ -75,25 +85,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Matchsticks to Square #473](https://leetcode.com/problems/matchsticks-to-square/) | k fixed at 4 | Today's quest 1 |
+| [Partition Equal Subset Sum #416](https://leetcode.com/problems/partition-equal-subset-sum/) | k=2, DP also works | Special case of k-bucket |
+| [Fair Distribution of Cookies #2305](https://leetcode.com/problems/fair-distribution-of-cookies/) | Minimize max load | Bucket dfs, different objective |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`nums = [4,3,2,3,5,2,1]`, k=4, sorted desc `[5,4,3,3,2,2,1]`, target=5. One valid partition: `[5], [4,1], [3,2], [3,2]`. DFS with pruning discovers it via bucket assignment — the exact tree is long, so trace the smaller case first:
+
+`nums = [2,2,2,2]`, k=4, target=2:
 
 ```
-Apply Sorted Pruning Partition step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+  num=2 → bucket0: [2,0,0,0]
+    num=2 → bucket1: [2,2,0,0]   (skip bucket0 — would overflow)
+      num=2 → bucket2: [2,2,2,0]
+        num=2 → bucket3: [2,2,2,2] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Duplicate-bucket skip in action with `nums = [1,1,1,1]`, k=2, target=2:
+```
+i=0, num=1: bucket0 → [1,0]
+  i=1, num=1: bucket0 → [2,0] ✓ base reached for first two
+  OR bucket1 → [1,1] but skip bucket1 when sides[1]==sides[0]==0 at i=0
+```
+
+> 💡 **The insight:** Day 17 introduced this. Day 19 Matchsticks special-cased k=4. Now the general form should be muscle memory.
 
 ---
 
@@ -181,19 +199,18 @@ class Solution {
 ```
 
 **Complexity:** O(k · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Sorted Pruning Partition"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Identical to Matchsticks"** → replace `4` with `k`.
+- **"Day 17 déjà vu"** → that's the point; pattern recognition is the skill.
+- **"Sorted desc + duplicate bucket skip"** → non-negotiable pruning pair.
+- **"Not subset backtracking"** → every number assigned, not included/excluded.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If this felt easier than quest 1, good — the square framing was training wheels for the general k case.
 
 > 🎯 **Pattern Unlocked:** Sorted Pruning Partition
 

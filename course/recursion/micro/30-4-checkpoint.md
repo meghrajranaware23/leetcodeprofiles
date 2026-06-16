@@ -1,76 +1,72 @@
+<!-- hand-authored -->
 # ✅ Day 30 Checkpoint
 
 > **The Final Ascension** · 2 quests completed · ⭐ 170 XP earned
 
 ---
 
-## 🔍 Pattern Signals — Recognition Drill
+## 🔍 Pattern Signals — Capstone Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 30 closes the pack. Route each signal through the **full decision tree**:
 
-| When you see... | Think... | Why |
+| When you see... | Think... | Key day |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| multiple words on grid | Trie + mark/unmark dfs | 16 + 30 |
+| single word on grid | Grid dfs, word index k | 16 |
+| N-Queens / all boards | Row dfs + cols/d1/d2 + snapshot | 18 + 30 |
+| N-Queens count only | Same dfs, ans++ | 18 |
+| regex / wildcard match | (i,j) memo, star branches | 29 |
+| partition + optimize check | isPal precompute / length prune | 28 |
+| generate all + prefix shared | Trie or sort+dedupe | 30, 15 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Find all dictionary words in a grid"* → **Trie + Day 16 grid backtrack.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Return all N-Queens configurations"* → **Day 18 constraints + board snapshot.**
+
+3. *"Count N-Queens solutions"* → **Same dfs, increment counter — no board storage.**
+
+4. *"Match regex with `.` and `a*`*" → **Day 29 — NOT backtracking.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Word Search II with wildcards in dictionary."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Trie nodes + modified match — still grid mark/unmark core.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Place k knights on board without attacking."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Same CSP backtrack as N-Queens — different constraint function.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"You have 30 seconds — name the pattern."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Run the capstone decision tree from Day 30 concept. That's the S-Rank skill.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** You have seen every branch. The interview tests **routing speed**, not new algorithms.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Word Search II without trie** — TLE on large word lists.
+2. **Forget grid unmark** — `'#'` leaks (Day 16 rule still applies).
+3. **N-Queens: scan board for attacks** — use sets (Day 18).
+4. **Confuse #51 generate vs #52 count** — same dfs, different output.
+5. **Skip pattern naming** — decision tree before code, always.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Without notes:
+1. Draw the capstone decision tree (4 levels).
+2. Write trie+grid dfs pseudocode (8 lines).
+3. Write N-Queens dfs pseudocode with cols/d1/d2 (10 lines).
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then take the S-Rank tests.
 
 ---
 
@@ -78,9 +74,18 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | Hard | Trie + Grid Backtracking |
-| [N-Queens #51](https://leetcode.com/problems/n-queens/) | Hard | Full Constraint Generation |
+| [Word Search II #212](https://leetcode.com/problems/word-search-ii/) | Hard | Trie + grid |
+| [N-Queens #51](https://leetcode.com/problems/n-queens/) | Hard | Full CSP generation |
+| S-Rank tests | Hard | Pattern recognition under pressure |
 
 ---
 
-*Day 30 complete! Tomorrow: the next descent of your ascension. →*
+## 🏆 You Are at the Summit
+
+Thirty days. Every pattern in the decision tree is yours.
+
+> *"I alone level up." — Trace first. Name second. Code third. Legend confirmed after the S-Rank tests.*
+
+---
+
+*Day 30 complete. Take the S-Rank tests to confirm Legend status. →*

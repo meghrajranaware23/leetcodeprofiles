@@ -1,117 +1,131 @@
+<!-- hand-authored -->
 # 📝 Divide and Conquer
 
-> **Day 7** · Divide and Conquer · ★★★☆☆ · 15 XP · 15 min read
+> **Day 7** · Split · Solve · Combine · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Divide and Conquer visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **split the input in half**, solve each half recursively, then **combine** the half-answers. Merge sort is the canonical picture. Maximum Subarray adds a third candidate — the best sum **crossing** the midpoint.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Divide-and-Conquer Template
 
-### 1. What is the pattern?
+### 1. What is divide and conquer?
 
-**Divide and Conquer** — the core technique you'll use in today's quests.
+**Divide and conquer** — break a problem of size n into **two** subproblems of size ≈ n/2, solve each recursively, **merge** results.
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Three explicit phases:
+
+- **Divide** — split range `[lo, hi]` at `mid`
+- **Conquer** — `leftAns = solve(lo, mid)`, `rightAns = solve(mid+1, hi)`
+- **Combine** — merge sorted halves, or `max(left, right, cross)`
+
+Unlike Day 6 (one halving call on exponent), you make **two** recursive calls on **disjoint halves** of the data.
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+Sorting `[38, 27, 43, 3]`:
 
-The call stack is just a line of friends waiting for the next friend to finish.
+1. Split → `[38, 27]` and `[43, 3]`
+2. Split again → singles (base case: one element is sorted)
+3. **Combine upward** — merge `[27, 38]` and `[3, 43]` → `[3, 27, 38, 43]`
 
-### 3. Visual walkthrough
+The combine step (merge) is where sorted order appears — children return sorted subarrays.
 
-```
-pow(2, 10) — binary recursion:
-
-              pow(2,10)
-             /        \
-        pow(2,5)      (cached half)
-        /     \
-   pow(2,2)  pow(2,3)
-    /   \
-pow(2,1) pow(2,1)
-
-Each level halves the problem → O(log n) calls instead of O(n)
-```
-
-### 4. How the pattern works
+### 3. Visual — merge sort split/combine
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+SPLIT (down):
+
+        [38, 27, 43, 3]
+         /            \
+    [38, 27]        [43, 3]
+     /    \          /    \
+  [38]  [27]      [43]   [3]   ← base: lo >= hi
+
+COMBINE (up):
+
+  [38] [27] → merge → [27, 38]
+  [43]  [3] → merge → [3, 43]
+  [27,38] + [3,43] → merge → [3, 27, 38, 43] ✓
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Merge step compares front of each half, writes smaller to temp, advances pointer.
 
-### 5. What problem does this solve?
+### 4. Visual — max subarray cross-midpoint
 
-| Problem family | How this pattern helps |
+For `[-2, 1, -3, 4, -1, 2, 1, -5, 4]` at full range:
+
+```
+maxSub(lo, hi) = max(
+    maxSub(left half),      // best entirely in left
+    maxSub(right half),     // best entirely in right
+    cross(lo, mid, hi)      // best spanning mid — CANNOT be missed!
+)
+
+cross: max sum ending at mid going left  +  max sum starting at mid+1 going right
+       scan left from mid:  [4,-1,2] → best ending at mid = 6
+       scan right from mid+1: [1,-5,4] → best starting = 5
+       cross = 6 + 5 = 11  ← global answer for this problem
+```
+
+**Why cross matters:** The global max might straddle the split — neither left-only nor right-only recursion finds it alone.
+
+### 5. The universal template
+
+```
+function solve(lo, hi):
+    if base(lo, hi): return direct(lo, hi)
+    mid = (lo + hi) / 2
+    left  = solve(lo, mid)
+    right = solve(mid + 1, hi)
+    return combine(lo, mid, hi, left, right)
+```
+
+Merge sort: base `lo >= hi`; combine = merge. Max subarray: base `lo == hi` → `a[lo]`; combine = `max(left, right, cross)`.
+
+### 6. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **Sort with nested loops (bubble)** | O(n²) — misses split structure |
+| **Max subarray: all O(n²) subarrays** | Works for small n but O(n²) — Kadane is O(n) |
+| **Merge sort without temp array** | Merge needs scratch space — O(n) extra |
+| **Max subarray: only left + right, no cross** | Wrong — misses spanning subarrays |
 
-### 6. Why brute force / iteration fails
-
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals for Day 7
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "sort array" / merge halves | Divide, sort halves, merge |
+| "maximum subarray" + recursion | Left, right, **cross** at mid |
+| "split in half" / "midpoint" | `mid = lo + (hi-lo)/2` |
+| "combine results" | Merge or max-of-three |
+| "O(n log n) sort" | Merge sort divide-and-conquer |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `divide` · `conquer` · `combine` · `mid` · `merge` · `cross sum`
 
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Forgetting cross sum in max subarray | Always third candidate at combine |
+| `mid = (lo+hi)/2` overflow in other langs | Use `lo + (hi-lo)/2` |
+| Merge without copying back | Loop `tmp` → `a[lo..hi]` |
+| Only one recursive call | D&C needs **both** halves |
+| Confusing D&C with binary recursion | D&C: two halves of **data**; Day 6: one halved **exponent** |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Sort an array using merge sort recursively."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Base: lo>=hi. Divide at mid. Recurse both halves. Combine: merge into temp. Trace split on [3,1,4,2]."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see split and combine. First quest: merge sort. →*

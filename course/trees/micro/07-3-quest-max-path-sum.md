@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Maximum Path Sum
 
 > **Day 7** · [Binary Tree Maximum Path Sum #124](https://leetcode.com/problems/binary-tree-maximum-path-sum/) · Hard · 25 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Binary Tree Maximum Path Sum on LeetCode](https://leetcode.com/problems/binary-tree-maximum-path-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node draw **global: val+l+r** vs **return: val+max(l,r,0)**. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bottom-Up Path Optimization**.
+Which pattern from today's concept applies? **Bottom-up path optimization** — same dual-role as diameter, but with values: global `ans = max(ans, node.val + l + r)`; return `node.val + max(l, r, 0)` (clamp negatives to 0).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: the best path (e.g. 15→20→7) **bends** at 20 — parent can only take ONE branch upward, so return ≠ global.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Bottom-Up Path Optimization
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **"Maximum path sum"** without "root-to-leaf" → any start, any end
+- **Negative values allowed** → `max(0, dfs(child))` — skip losing branches
+- Path can be a single node → initialize `ans = -∞`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "any node" start/end | Cross-subtree global update |
+| "path sum" + not root-to-leaf | Bottom-up, not Day 6 |
+| "negative node values" | Clamp child gains: `max(0, dfs(child))` |
+| "maximum" across tree | Global tracks best; return offers one branch |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** At node 20, path 15–20–7 uses **both** children — that's the global candidate. Parent -10 can only extend through **one** side — that's the return value.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"null → return 0."*
+2. *"l = max(0, dfs(left)), r = max(0, dfs(right))."*
+3. *"ans = max(ans, node.val + l + r)."*
+4. *"return node.val + max(l, r) — one branch for parent."*
 
 ---
 
@@ -62,12 +61,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Day 6 top-down remainder** | Only root-to-leaf threads — misses bent paths |
+| **Return val+l+r to parent** | Parent can't use both branches — wrong upward contract |
+| **No negative clamp** | Negative subtree drags return below 0 incorrectly |
+| **Global only, no return** | Parent can't extend path through current node |
+| **All paths enumeration O(n²)** | Single post-order O(n) |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Global and return answer **different questions** at the same node — cross-subtree vs single-branch extension.
 
 ---
 
@@ -75,31 +75,46 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Diameter of Binary Tree #543](https://leetcode.com/problems/diameter-of-binary-tree/) | Edge count, no values | `l+r` global, height return |
+| [Longest Univalue Path #687](https://leetcode.com/problems/longest-univalue-path/) | Same-value edges | Dual-role + global |
+| [Path Sum #112](https://leetcode.com/problems/path-sum/) | Root-to-leaf only | **Day 6** — not this pattern |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Diameter is the template; max path sum adds values and negative clamping.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Cross-subtree combine at each node — diagram from concept page.**
 
 ```
-        3
-       / \
-      9    20
+Tree:      -10
           /  \
-         15   7
+         9   20
+            /  \
+           15   7
 
-Apply Bottom-Up Path Optimization step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+At node 20:
+  l = 15,  r = 7
+  GLOBAL: 20 + 15 + 7 = 42  → ans = 42
+  RETURN: 20 + max(15,7) = 35  (up to parent)
+
+At node -10:
+  l = 9,  r = 35
+  GLOBAL: -10 + 9 + 35 = 34  (not better than 42)
+  RETURN: -10 + 35 = 25
+
+Best path: 15 → 20 → 7  (sum 42) — bends at 20, not at root.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+        15 ──┐
+             ├── 20 ── 7     ← ans uses BOTH sides
+             │
+        return to -10 uses ONLY the 35-chain (one branch)
+```
+
+> 💡 **The insight:** `max(0, dfs(child))` means "if subtree hurts, pretend it's empty." Negative -10 at root doesn't kill the 42-path inside the right subtree.
 
 ---
 
@@ -109,16 +124,16 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
     int ans = INT_MIN;
-    int dfs(TreeNode* node) {
+    int gain(TreeNode* node) {
         if (!node) return 0;
-        int l = max(0, dfs(node->left));
-        int r = max(0, dfs(node->right));
+        int l = max(0, gain(node->left));
+        int r = max(0, gain(node->right));
         ans = max(ans, node->val + l + r);
         return node->val + max(l, r);
     }
 public:
     int maxPathSum(TreeNode* root) {
-        dfs(root);
+        gain(root);
         return ans;
     }
 };
@@ -129,51 +144,49 @@ public:
 class Solution:
     def maxPathSum(self, root: Optional[TreeNode]) -> int:
         self.ans = float('-inf')
-        def dfs(node):
-            if not node:
-                return 0
-            l = max(0, dfs(node.left))
-            r = max(0, dfs(node.right))
+        def gain(node):
+            if not node: return 0
+            l = max(0, gain(node.left))
+            r = max(0, gain(node.right))
             self.ans = max(self.ans, node.val + l + r)
             return node.val + max(l, r)
-        dfs(root)
+        gain(root)
         return self.ans
 ```
 
 ### Java
 ```java
 class Solution {
-    int ans = Integer.MIN_VALUE;
+    private int ans = Integer.MIN_VALUE;
     public int maxPathSum(TreeNode root) {
-        dfs(root);
+        gain(root);
         return ans;
     }
-    int dfs(TreeNode node) {
+    private int gain(TreeNode node) {
         if (node == null) return 0;
-        int l = Math.max(0, dfs(node.left));
-        int r = Math.max(0, dfs(node.right));
+        int l = Math.max(0, gain(node.left));
+        int r = Math.max(0, gain(node.right));
         ans = Math.max(ans, node.val + l + r);
         return node.val + Math.max(l, r);
     }
 }
 ```
 
-**Complexity:** O(n) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Bottom-Up Path Optimization"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Path anywhere, not root-to-leaf"** → Day 7 global, not Day 6 remainder.
+- **"val + l + r for ans"** → Cross-subtree through current node.
+- **"val + max(l,r) for return"** → Parent picks one side.
+- **"max(0, child)"** → Negative subtrees optional — skip if they hurt.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you returned `node.val + l + r`, the parent would try to attach through both branches — impossible in a tree path.
 
-> 🎯 **Pattern Unlocked:** Bottom-Up Path Optimization
+> 🎯 **Pattern Unlocked:** Bottom-Up Path Optimization — global cross-subtree, return single-branch gain.
 
 ---
 

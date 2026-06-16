@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Closest BST Value
 
 > **Day 23** · [Closest Binary Search Tree Value #270](https://leetcode.com/problems/closest-binary-search-tree-value/) · Easy · 10 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Closest Binary Search Tree Value on LeetCode](https://leetcode.com/problems/closest-binary-search-tree-value/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Walk the search path toward `target`. Update your best candidate at **every** node — don't stop early just because you passed target. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST Navigation**.
+Which pattern from today's concept applies? **BST closest walk** — descend like search, track the node with minimum `|val - target|` seen so far.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: at each node, compare distance to current best, then go left if `target < val`, else right. Tie-break toward smaller value is handled by `<` comparison in the walk.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** BST Navigation
+**Pattern used:** BST Closest Walk (Early-Exit Path)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Closest" + BST → single downward path, not full traversal
+- Floating `target` vs integer node values → compare as doubles
+- One node on path is closest (or tie) — update as you go
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "closest value" / "nearest" | Track best on search path |
+| "binary search tree" | Ordering guides left/right |
+| "unique values" | No duplicate tie complexity |
+| O(h) expected | One path only |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** All nodes closer to target than the current best must lie on the search path — BST ordering guarantees no better answer hides in the unexplored subtree once you've committed to a direction (with best updated at each step).
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Initialize closest = root.val."*
+2. *"While root: update closest if this node is better."*
+3. *"Go left if target < val, else right."*
+4. *"Return closest — O(h) time, O(1) space."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Inorder all values, scan for min diff** | O(n) — ignores BST structure |
+| **BFS / level order** | Visits nodes out of order — wasteful |
+| **Stop when diff starts increasing** | Closest may be an ancestor you already passed without updating |
+| **Recursive full tree scan** | O(n) when O(h) path suffices |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** BST search path **is** the only relevant corridor. Update best at every node on that corridor.
 
 ---
 
@@ -75,31 +74,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Closest Binary Search Tree Value II #272](https://leetcode.com/problems/closest-binary-search-tree-value-ii/) | Return k closest | Stack + predecessor/successor |
+| [Search in BST #700](https://leetcode.com/problems/search-in-a-binary-search-tree/) | Exact match | Same left/right walk |
+| [Kth Closest #658](https://leetcode.com/problems/find-k-closest-elements/) | Array not tree | Two-pointer / binary search variant |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: ordering collapses search to one path.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Tree: `[4,2,6,1,3,5,7]`, target = 3.7**
 
 ```
-        3
+        4
        / \
-      9    20
-          /  \
-         15   7
+      2   6
+     / \ / \
+    1  3 5  7
 
-Apply BST Navigation step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+At 4: closest=4, 3.7 < 4 → left
+At 2: |2-3.7|=1.7 vs |4-3.7|=0.3 → keep 4, 3.7 > 2 → right
+At 3: |3-3.7|=0.7 vs 0.3 → keep 4, 3.7 > 3 → right → null
+
+Return 4 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**target = 3.2:** same path, at 3: |3-3.2|=0.2 beats 0.8 → closest=3 → return 3 ✓
+
+> 💡 **The insight:** You're doing BST search with a running "best so far." No backtracking.
 
 ---
 
@@ -109,13 +112,14 @@ Watch what gets returned from leaves back to root.
 ```cpp
 class Solution {
 public:
-    double closestValue(TreeNode* root, double target) {
-        double ans = root->val;
+    int closestValue(TreeNode* root, double target) {
+        int closest = root->val;
         while (root) {
-            if (abs(root->val - target) < abs(ans - target)) ans = root->val;
+            if (abs((double)root->val - target) < abs((double)closest - target))
+                closest = root->val;
             root = target < root->val ? root->left : root->right;
         }
-        return ans;
+        return closest;
     }
 };
 ```
@@ -124,45 +128,45 @@ public:
 ```python
 class Solution:
     def closestValue(self, root: Optional[TreeNode], target: float) -> int:
-        ans = root.val
+        closest = root.val
         while root:
-            if abs(root.val - target) < abs(ans - target):
-                ans = root.val
+            if abs(root.val - target) < abs(closest - target):
+                closest = root.val
             root = root.left if target < root.val else root.right
-        return ans
+        return closest
 ```
 
 ### Java
 ```java
 class Solution {
     public int closestValue(TreeNode root, double target) {
-        int ans = root.val;
+        int closest = root.val;
         while (root != null) {
-            if (Math.abs(root.val - target) < Math.abs(ans - target)) ans = root.val;
+            if (Math.abs(root.val - target) < Math.abs(closest - target))
+                closest = root.val;
             root = target < root.val ? root.left : root.right;
         }
-        return ans;
+        return closest;
     }
 }
 ```
 
-**Complexity:** O(h) time · O(1) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST Navigation"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Closest in BST"** → walk search path, update best each step.
+- **"Don't stop early"** → full path to null; best may be last node visited.
+- **"Same as search"** → left/right decision uses target vs val.
+- **"O(1) space"** → iterative while loop, no stack.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you inordered the whole tree, refactor to the path walk — same answer, better complexity.
 
-> 🎯 **Pattern Unlocked:** BST Navigation
+> 🎯 **Pattern Unlocked:** BST closest walk — search path + running minimum distance.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: inorder successor with the case split. →*

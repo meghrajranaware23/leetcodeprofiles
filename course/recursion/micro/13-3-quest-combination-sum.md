@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Combination Sum
 
-> **Day 13** · [Combination Sum #39](https://leetcode.com/problems/combination-sum/) · Medium · 15 min · 25 XP
+> **Day 13** · [Combination Sum #39](https://leetcode.com/problems/combination-sum/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,51 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Combination Sum on LeetCode](https://leetcode.com/problems/combination-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** The critical question: after including `candidates[i]`, do you recurse with `i` or `i+1`? Draw the tree for `[2,3,6], target=7`.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Combination Sum #39](https://leetcode.com/problems/combination-sum/)**
+Given an array of **distinct** integers `candidates` and a `target`, return all unique combinations where the chosen numbers sum to `target`. The **same number may be used unlimited times**. Two combinations are unique by the multiset of elements — `[2,2,3]` not `[2,3,2]`.
 
-Work through the examples on paper before reading further.
+```
+Input:  candidates = [2, 3, 6, 7], target = 7
+Output: [[2,2,3], [7]]
+
+Input:  candidates = [2, 3, 5], target = 8
+Output: [[2,2,2,2], [2,3,3], [3,5]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Unlimited Reuse Combinations**.
+**Hint 1:** Start-index prevents reordering — same as Combinations (#77).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** At index `i`, two branches:
+- **Include** `candidates[i]`: push, recurse with **same `i`** (reuse allowed), pop
+- **Exclude** `candidates[i]`: recurse with `i + 1`
+
+**Hint 3:** Base cases: `rem == 0` → record. `rem < 0` or `i == n` → return.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Unlimited Reuse Combinations
+**Pattern used:** Combination Sum — Include (stay at i) / Exclude (i+1)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+| Branch | Next index | Meaning |
+|---|---|---|
+| Include c[i] | `i` | Reuse same candidate |
+| Exclude c[i] | `i + 1` | Move to next candidate |
 
-| Keyword / phrase | What it signals |
-|---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+This is **not** Subsets (#78) — subsets always advance `j+1` after include. Here include **stays** at `i`.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Combo with reuse → include keeps i, exclude uses i+1."*
+2. *"Start index → no [3,2,2]."*
+3. *"Prune when rem < 0."*
 
 ---
 
@@ -62,38 +63,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Always i+1 after include** | Can't reuse — misses `[2,2,3]` |
+| **Permutation-style used[]** | Generates `[2,3,2]` duplicate combos |
+| **Generate all, filter by sum** | Wasteful; pruning at source is cleaner |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Change |
+|---|---|
+| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Single-use + dedup (Day 15) |
+| [Combination Sum III #216](https://leetcode.com/problems/combination-sum-iii/) | Fixed k digits 1-9 (Day 15) |
+| [Combination Sum IV #377](https://leetcode.com/problems/combination-sum-iv/) | Count orderings — different problem (DP) |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`candidates = [2,3,6,7], target = 7`:
 
 ```
-Apply Unlimited Reuse Combinations step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, rem=7, [])
+  include 2: dfs(i=0, rem=5, [2])
+    include 2: dfs(i=0, rem=3, [2,2])
+      include 2: rem=1 — prune (rem < 0 path dead)
+      exclude 2→i=1: dfs(i=1, rem=3, [2,2])
+        include 3: rem=0 → record [2,2,3] ✓
+    exclude 2→i=1: ...
+  exclude 2→i=1: ...
+  ...
+  i=3 include 7: rem=0 → record [7] ✓
 ```
-
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
 
 ---
 
@@ -156,19 +157,13 @@ class Solution {
 ```
 
 **Complexity:** O(2^target) time · O(target) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Unlimited Reuse Combinations"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Include → stay at `i`** → Unlimited reuse.
+- **Exclude → `i+1`** → Standard forward advance.
+- **Day 11 push/pop** → Only the include branch pushes.
 
 > 🎯 **Pattern Unlocked:** Unlimited Reuse Combinations
 

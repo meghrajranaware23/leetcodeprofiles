@@ -1,117 +1,149 @@
+<!-- hand-authored -->
 # 📝 Helper Functions & Recursion Design
 
-> **Day 10** · Helper Functions & Recursion Design · ★★★☆☆ · 15 XP · 15 min read
+> **Day 10** · Bounded Helpers · Postorder Rewire · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Helper Function Design visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **design a helper** when the public API doesn't carry enough state. Validate BST passes **min/max bounds** down (Day 5 cousin). Flatten tree uses **postorder rewiring** with a `prev` pointer — links to Day 5 bounded DFS and Day 9 postorder modify.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — When You Need a Helper
 
-### 1. What is the pattern?
+### 1. Why helpers exist
 
-**Helper Function Design** — the core technique you'll use in today's quests.
+The main function signature often lacks room for:
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+- **Valid range** for BST check — each node must sit in `(lo, hi)`
+- **Previous pointer** for flatten — stitch current node after right subtree processed
+- **Mirror pair** (Day 9) — two nodes instead of one
 
-### 2. Simple explanation
+Pattern: **public wrapper** sets initial state → **private helper** carries the real recursion.
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+### 2. Link to Day 5 bounded DFS
 
-The call stack is just a line of friends waiting for the next friend to finish.
+Day 5 Range Sum BST: pass `[low, high]`, **prune** when `node.val > high` (skip right) or `node.val < low` (skip left).
 
-### 3. Visual walkthrough
+Validate BST: pass **open interval** `(lo, hi)` — node must satisfy `lo < val < hi`, then **tighten** bounds for children:
 
-```
-pow(2, 10) — binary recursion:
+- Left child: upper bound becomes `node.val`
+- Right child: lower bound becomes `node.val`
 
-              pow(2,10)
-             /        \
-        pow(2,5)      (cached half)
-        /     \
-   pow(2,2)  pow(2,3)
-    /   \
-pow(2,1) pow(2,1)
+**Wrong shortcut:** only compare node to immediate parent — fails on deep violations like `5→3→6` under `5` with `6` in left subtree.
 
-Each level halves the problem → O(log n) calls instead of O(n)
-```
-
-### 4. How the pattern works
+### 3. Visual — BST range tightening
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+Valid BST:       5
+                / \
+               3   8
+              / \   \
+             1   4   9
+
+validate(5, lo=-∞, hi=+∞):  -∞ < 5 < +∞ ✓
+  left: validate(3, lo=-∞, hi=5):  3 < 5 ✓
+    validate(1, -∞, 3) ✓
+    validate(4, 3, 5) ✓
+  right: validate(8, lo=5, hi=+∞) ✓
+    validate(9, 8, +∞) ✓
+
+Invalid:    5
+           / \
+          3   8
+         / \
+        1   6   ← 6 in left of 5 but > 5
+
+validate(6, lo=3, hi=5): 6 < 5? NO → false
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+### 4. Visual — flatten postorder rewire
 
-### 5. What problem does this solve?
+Goal: right-skewed linked list in **preorder** order (1,2,3) using `right` pointers.
 
-| Problem family | How this pattern helps |
+```
+Before:    1
+          / \
+         2   5
+        / \
+       3   4
+
+Postorder processing (right subtree first, then left, then node):
+  Process 5 → prev=5
+  Process 4 → 4.right=5, prev=4
+  Process 3 → 3.right=4, prev=3
+  Process 2 → 2.right=3, prev=2
+  Process 1 → 1.right=2, prev=1
+
+After: 1→2→3→4→5 (all via right pointers, left=null)
+```
+
+**Key:** `prev` tracks last placed node in the flattened list. Visit **right, left, node** so `node.right = prev` stitches correctly.
+
+### 5. Helper templates
+
+**Range-bounded BST:**
+```
+function validate(node, lo, hi):
+    if !node: return true
+    if node.val <= lo || node.val >= hi: return false
+    return validate(node.left, lo, node.val)
+        && validate(node.right, node.val, hi)
+```
+
+**Postorder rewire with prev:**
+```
+prev = null
+function dfs(node):
+    if !node: return
+    dfs(node.right)
+    dfs(node.left)
+    node.right = prev
+    node.left = null
+    prev = node
+```
+
+### 6. Why brute force fails
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **BST: only parent-child compare** | Misses ancestor bound violations |
+| **BST: inorder without recursion design** | Works but today's lesson is bounded helper |
+| **Flatten: preorder stitch top-down** | Hard to find tail of left subtree |
+| **Flatten: collect nodes then relink** | O(n) list — misses postorder rewire |
 
-### 6. Why brute force / iteration fails
-
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
-
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals for Day 10
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "validate BST" | Helper with `(lo, hi)` open interval |
+| "flatten to linked list" | Postorder + `prev` pointer |
+| "each node's left null" | Rewire `right` only |
+| "preorder traversal order" | Process node after children in reverse postorder |
+| bounds / valid range | Day 5 state down — tighten at each node |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `helper` · `lo` · `hi` · `validate` · `prev` · `rewire` · `postorder`
 
-### 9. Common beginner mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| BST: `node.val < parent.val` only on left | Need full `(lo, hi)` from ancestors |
+| BST: `<=` vs `<` on bounds | Use strict open interval consistently |
+| Flatten: left then right then node | **Right, left, node** for this prev trick |
+| Forget `node.left = null` | Flatten requires no left children |
+| Helper without wrapper init | Wrapper sets `(-∞, +∞)` or `prev = null` |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Validate a binary search tree."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Helper validate(node, lo, hi). Strict bounds. Tighten hi on left recurse, lo on right. Day 5 bounded DFS — boolean not sum."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You design helpers with state. First quest: Validate BST. →*

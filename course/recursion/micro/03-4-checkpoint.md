@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ✅ Day 3 Checkpoint
 
-> **Recursion on Linear Structures** · 2 quests completed · ⭐ 40 XP earned
+> **Index-Based Recursion** · 2 quests completed · ⭐ 40 XP earned
 
 ---
 
@@ -10,67 +11,73 @@ Before you move on, practice **hearing the signal** in each phrase below:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "merge two sorted linked lists" | Pick-min head recursion | Smaller head wins; recurse on tails |
+| "reverse linked list" | Pointer rewire on unwind | Fix one `.next` after sub-call returns |
+| "linked list" + "recursion" | Shrink via `head.next` | No index — tail is the smaller subproblem |
+| "return the head" | Return value may come from deep in list | Reverse: old tail; merge: current winner |
+| "base case" on lists | `null` or single node | Empty tail needs no work |
 
 ### 🧠 Quick Recognition Test
 
 Read each mini-problem. Which pattern fires first?
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Merge two sorted linked lists recursively"* → **Pick-min** — compare heads, link winner to merged rest
+2. *"Reverse a singly linked list in-place"* → **Rewire on return** — `head.next.next = head`
+3. *"Add two numbers represented as linked lists"* → **Parallel shrink** — recurse both, combine digit + carry
+4. *"Find middle of linked list"* → **Not today's pattern** — fast/slow pointers (iterative)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've studied merge and reverse. Can you recognize list recursion on problems you've never seen?
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+**Scenario 1:** *"Given two sorted lists, merge them into one sorted list without creating new nodes."*
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+Which pattern? **Pick-min head recursion.** Same skeleton as today's merge quest — base when either list is empty.
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+**Scenario 2:** *"Reverse the links between nodes in pairs: 1→2→3→4 becomes 2→1→4→3."*
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+Which pattern? **Rewire after recursing on pairs.** Base: 0 or 1 nodes. Combine: swap two links, connect to reversed remainder.
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+**Scenario 3:** *"Copy a linked list with random pointer using O(1) extra space."*
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
+Which pattern? **Not pure linear recursion** — interleave copies, then assign random (multi-pass). List shrink alone isn't enough.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 use Day 3's shrink-by-`next` template. The *combine step* changes — pick-min vs flip pointers.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Null base case skipped** — Always handle `head == null` first on any list recursion.
+
+2. **Rewiring before the recursive call (reverse)** — The tail must be fully reversed before you flip your one link.
+
+3. **Returning the wrong head** — After reverse, return `newHead` from the tail, not the original `head`.
+
+4. **Losing the other list in merge** — When `l1` wins, recurse `(l1.next, l2)`, not `(l1, l2.next)`.
+
+5. **Forgetting `head.next = null` in reverse** — Creates a cycle in the reversed segment.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Merge Two Sorted Lists #21](https://leetcode.com/problems/merge-two-sorted-lists/) — trace only
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Without opening the solution, trace merge on paper:
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+```
+l1: 2 → 4
+l2: 1 → 3 → 4
+```
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Write each frame: which head wins, what recursive call comes next, what gets returned on unwind.
+
+**Before you code:** Say *"pick-min, attach `.next`, return winner"* out loud.
+
+> 💡 **Hint:** Frame 1 picks 1 from l2. Frame 2 compares 2 vs 3. When one list empties, base case returns the rest.
 
 ---
 
@@ -78,9 +85,11 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Merge Two Sorted Lists #21](https://leetcode.com/problems/merge-two-sorted-lists/) | Easy | List Recursion |
-| [Reverse Linked List #206](https://leetcode.com/problems/reverse-linked-list/) | Easy | Pointer Recursion |
+| [Merge Two Sorted Lists #21](https://leetcode.com/problems/merge-two-sorted-lists/) | Easy | Pick-min head recursion |
+| [Reverse Linked List #206](https://leetcode.com/problems/reverse-linked-list/) | Easy | Pointer rewire on unwind |
+| [Reverse Linked List II #92](https://leetcode.com/problems/reverse-linked-list-ii/) | Medium | Subrange rewire |
+| [Swap Nodes in Pairs #24](https://leetcode.com/problems/swap-nodes-in-pairs/) | Medium | Recurse + pair swap |
 
 ---
 
-*Day 3 complete! Tomorrow: the next descent of your ascension. →*
+*Day 3 complete! Tomorrow: answers bubble **up** from the leaves of a tree. →*

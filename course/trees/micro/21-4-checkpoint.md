@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 21 Checkpoint
 
 > **Subtree Patterns** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 21 splits **subtree aggregate up** vs **path state down**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "subtree sum" / frequency | Postorder + hashmap | #508 |
+| "most frequent subtree total" | Return sum, count side effect | Bubble up |
+| "good on path from root" | Top-down maxSoFar | #1448 |
+| "path sum from root" | **Day 6** remainder | Same direction down |
+| "diameter / cross-subtree" | **Day 7** bottom-up global | Not path max |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Mode of all subtree sums"* → **Postorder + freq map**
+2. *"Nodes ≥ all ancestors"* → **maxSoFar down**
+3. *"All root-to-leaf paths with target"* → **Day 6 backtrack**
+4. *"Sum of deepest level"* → **Day 22 BFS** — not subtree
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Count subtrees with sum exactly k."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Postorder sum** — increment counter when `s == k`.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Nodes where val equals min on path from root."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Top-down minSoFar** — mirror of good nodes.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Average of all subtree sums."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Postorder sum** — accumulate sum and count of nodes visited.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1 & 3 = postorder aggregate. Scenario 2 = top-down min.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Freq map before children return** — Postorder order matters.
+2. **Good nodes: parent compare only** — Use maxSoFar.
+3. **Good nodes bottom-up** — Path property needs top-down.
+4. **Returning map from dfs instead of sum** — Return int sum.
+5. **Forgetting tie handling in #508** — Return all max-freq keys.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+On one tree, compute subtree sums at every node and list freq map entries. On the same tree, mark good nodes with maxSoFar trace from root.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before coding:** When would you choose postorder vs top-down for a new problem?
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Subtree question → postorder. Root-to-here path question → top-down.
 
 ---
 
@@ -79,4 +73,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 21 complete! Tomorrow: the next branch of your ascension. →*
+*Day 21 complete! Tomorrow: BFS with parent and depth metadata. →*

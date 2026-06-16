@@ -1,76 +1,68 @@
+<!-- hand-authored -->
 # ✅ Day 24 Checkpoint
 
-> **Advanced Backtracking Patterns** · 2 quests completed · ⭐ 115 XP earned
+> **Disguised Backtracking** · 2 quests completed · ⭐ 115 XP earned
 
 ---
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Think... | Key mechanic |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "max gold" / "collect on grid" + no reuse | Collect-and-backtrack | Mark 0, restore gold value |
+| "visit every empty cell" + start/end | Coverage backtrack | `left` counter, ans at end if left==0 |
+| Grid path + mark/unmark | Day 16 DNA | choose → 4 dirs → unchoose |
+| Count valid complete walks/boards | Day 18 DNA | Global counter at leaf |
+| Small grid, path-dependent state | Pure backtrack | Not Day 23 index memo |
+| Word Search | Existential mark/unmark | Today's problems optimize or count |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Maximum gold path, no cell twice"* → **Mark 0, dfs from every gold cell, restore, track best.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Count paths visiting all empties from 1 to 2"* → **`empty = zeros+1`, dfs(sr,sc,empty), ans++ at end if left==0.**
+
+3. *"Unique paths top-left to bottom-right (right/down only)"* → **DP #62 — not today's backtrack.**
+
+4. *"Find word in grid"* → **Day 16 Word Search — match chars, not coverage counter.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Shortest path to collect all keys in a grid (with keys and locks)."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **BFS/state-space — not pure backtrack.** Keys add bitmask state; different from today's counter-only dfs.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Number of islands in a grid."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **Flood-fill DFS — no unmark.** Visit once globally, not path backtracking.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Count Hamiltonian paths in a small graph from node A to B visiting all nodes."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Same as Unique Paths III.** Mark visited, decrement remaining, count at destination when all visited.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 3 → coverage backtrack (today). Scenarios 1–2 → different techniques.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Gold: forget restore after dfs** — `0` cells leak into other start paths.
+2. **Gold: single starting cell** — Must try every positive gold cell.
+3. **Unique Paths: `empty` off by one** — Include start in initial `left`.
+4. **Unique Paths: count at end without `left==0`** — Early arrival on `2` is invalid.
+5. **Applying Day 23 memo on grid paths** — Visit sets differ per path; naive memo wrong.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+From memory, write the mark/unmark core (6 lines) for gold dfs. Then write the end-cell check for Unique Paths III.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Say aloud: *"take, best, zero, four dirs, restore"* and *"at end, left must be zero."*
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Self-check:** Does your Unique Paths dfs restore `grid[r][c]=0` after exploring neighbors?
 
 ---
 
@@ -78,9 +70,16 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Path with Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/) | Medium | Grid Path Enumeration |
-| [Unique Paths III #980](https://leetcode.com/problems/unique-paths-iii/) | Medium | Full Grid Coverage Backtracking |
+| [Path with Maximum Gold #1219](https://leetcode.com/problems/path-with-maximum-gold/) | Medium | Collect-and-backtrack |
+| [Unique Paths III #980](https://leetcode.com/problems/unique-paths-iii/) | Medium | Full grid coverage count |
+| [Word Search #79](https://leetcode.com/problems/word-search/) | Medium | Day 16 — mark/unmark baseline |
 
 ---
 
-*Day 24 complete! Tomorrow: the next descent of your ascension. →*
+## 🔭 A-Rank Preview
+
+Day 25 shifts to **recursive counting** on abstract structures — Catalan numbers for BST shapes, divide-and-conquer splits for parenthesized expressions. Same trust-the-subcall spirit as Day 7 merge sort, but counting combinations instead of sorting.
+
+---
+
+*Day 24 complete. Tomorrow: Catalan splits and parenthesis D&C. →*

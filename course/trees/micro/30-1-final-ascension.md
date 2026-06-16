@@ -1,120 +1,246 @@
+<!-- hand-authored -->
 # 📝 The Final Ascension
 
 > **Day 30** · Final Ascension · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Pattern Decision Tree visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Twenty-nine days. One forest. Today's concept is the **Pattern Decision Tree** — the capstone flowchart that routes any new tree problem to the right template from Days 1–29. Today's quests are **post-order excess/deficit** (#979) and **subtree gene-set aggregation** (#2003) — two bottom-up patterns that look unrelated until you run the decision tree.
+
+This is not new theory. It is **Forest Legend synthesis**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Capstone Pattern Decision Tree
 
-### 1. What is the pattern?
+### 1. The master flowchart
 
-**Pattern Decision Tree** — the core technique you'll use in today's quests.
-
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
-
-### 2. Simple explanation
-
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
-
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
-
-### 3. Visual walkthrough
+When a new tree problem lands, run this tree **before** coding:
 
 ```
-        1
-       / \
-      2    3
-     / \    \
-    4    5    6
-
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+                         NEW TREE PROBLEM
+                                │
+              ┌─────────────────┴─────────────────┐
+              │ Is input a BINARY TREE / BST /     │
+              │ N-ARY TREE node structure?         │
+              └─────────────────┬─────────────────┘
+                           NO  │  YES
+                                ↓
+              ┌─────────────────────────────┐
+              │ GRID / TRIE / DESIGN?       │
+              │ → Day 19/24 trie            │
+              │ → Day 29 quad-tree / magic    │
+              │ → Day 16 serialize            │
+              └─────────────────────────────┘
+                                │
+              (YES — binary/N-ary tree) ──────┐
+                                              ↓
+              ┌─────────────────────────────┐
+              │ Need ALL nodes at each      │
+              │ depth / level?              │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ BFS + QUEUE                 │
+              │ Days 3, 9, 15, 17           │
+              └─────────────────────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Compare TWO trees / mirror  │
+              │ subtrees at once?           │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ PARALLEL RECURSION          │
+              │ Days 5, 21                  │
+              └─────────────────────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ BUILD tree from traversals  │
+              │ or split array?             │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ DIVIDE & CONQUER BUILD      │
+              │ Days 8, 29                  │
+              └─────────────────────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Information flows DOWN      │
+              │ (parent gives child context)│
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ TOP-DOWN DFS                │
+              │ Days 6, 11 (range), 28      │
+              │ path sum, remainder, streak │
+              └─────────────────────────────┘
+                            │
+                       NO ──┤
+                            ↓
+              ┌─────────────────────────────┐
+              │ Children REPORT values UP;  │
+              │ parent COMBINES?            │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+         ┌──────────────────┼──────────────────┐
+         ↓                  ↓                  ↓
+  ┌─────────────┐   ┌──────────────┐   ┌──────────────┐
+  │ Single      │   │ Multi-value  │   │ Global update│
+  │ return      │   │ tuple return│   │ at each node │
+  │ Days 4, 13  │   │ Days 20, 28  │   │ Days 7, 14   │
+  │ height,count│   │ BST tuple    │   │ diameter     │
+  └─────────────┘   │ (sum,count)  │   └──────────────┘
+                    │ Day 30 gene  │
+                    └──────────────┘
+                            │
+              ┌─────────────┴───────────────┐
+              │ Greedy / min moves / excess │
+              │ bubbling through edges?     │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ POST-ORDER EXCESS/DEFICIT   │
+              │ Day 30 Distribute Coins     │
+              └─────────────────────────────┘
+                            │
+              ┌─────────────┴───────────────┐
+              │ Coverage / placement /      │
+              │ 3-state child report?       │
+              └─────────────┬───────────────┘
+                       YES  │  NO
+                            ↓
+              ┌─────────────────────────────┐
+              │ MULTI-STATE BOTTOM-UP       │
+              │ S-Test: Tree Cameras #968   │
+              └─────────────────────────────┘
 ```
 
-### 4. How the pattern works
+### 2. Route to the right day
+
+| Problem shape | Reach for | Example days |
+|---|---|---|
+| Max depth / count / height | Single bottom-up return | 1, 4 |
+| Level order / right side / zigzag | BFS queue | 3, 9, 17 |
+| Path sum / root-to-leaf collect | Top-down + backtrack | 6, 14 |
+| Same tree / symmetric / subtree | Parallel recursion | 5, 21 |
+| Diameter / max path sum | Bottom-up + global | 7, 14 |
+| Construct from pre+in / post+in | Divide build | 8 |
+| Validate / search BST | Range descent or inorder | 11, 12 |
+| LCA | Split detection | 13 |
+| Serialize / deserialize | Preorder + null | 16 |
+| Morris / O(1) space inorder | Threaded traversal | 26 |
+| Tree as graph / distance K | Graph BFS from tree | 22, 25, 27 |
+| Trie / prefix / dictionary | Char-indexed tree | 19, 24, 29 |
+| BST validity + optimize subtree | 4-tuple combine | 28 |
+| Consecutive parent-child streak | Running state down | 28 |
+| Quad-tree from grid | 4-way unify/split | 29 |
+| Coin redistribution moves | Post-order excess | 30 |
+| Subtree gene / value set MEX | Set aggregation up path | 30 |
+| Camera / coverage placement | 3-state child DP | S-Test |
+
+### 3. Today's two capstone patterns
+
+**Distribute Coins #979** — post-order **excess/deficit**:
 
 ```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
+dfs(node) → returns net excess coins to push UP to parent
+  excess = node.coins + dfs(left) + dfs(right) - 1
+  ans += abs(excess)        // every coin crossing an edge = one move
+  return excess
 ```
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
+Each node keeps 1 coin; surplus or deficit flows through the edge to parent. Moves accumulate on `abs(excess)` — greedy because any excess must cross the parent edge exactly once.
 
-### 5. What problem does this solve?
+**Smallest Missing Genetic Value #2003** — **subtree gene-set aggregation** on the path to root:
 
-| Problem family | How this pattern helps |
-|---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+```
+Only nodes on path from unique "1" node up to root matter.
+Walk cur = node_with_1, then cur = parent[cur]:
+  DFS-collect all values in subtree(cur) into global set
+  MEX = smallest positive integer not in set
+  ans[cur] = mex; increment mex while in set
+```
 
-### 6. Why brute force fails
+Brute force DFS every subtree for every node is O(n²). The insight: only ancestors of the `1`-node need non-trivial answers; all others stay `1`.
 
-| Brute force | Problem |
-|---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+### 4. The Forest Legend workflow
 
-### 7. The key observation
+Every S-Rank interview problem:
 
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
+1. **Draw** — sketch the tree or grid
+2. **Route** — run the decision tree → name the day/pattern
+3. **Trace** — one example on paper (post-order unwind or top-down state)
+4. **Code** — template first, special cases second
+5. **Prune** — can a subtree be skipped? (gene problem: only path to root)
 
-### 8. Pattern signals & recognition clues
+> 💡 **The S-Rank skill:** Draw the tree first. Name the pattern second. Code third.
 
-| When the problem says… | Think… |
-|---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
+### 5. Full pack map — where you learned each branch
 
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
+```
+Days  1–2:  compass + DFS visit orders (in/pre/post)
+Days  3–4:  BFS level-order + bottom-up combine
+Days  5–6:  parallel compare + top-down path state
+Days  7–8:  global update + construction divide
+Days  9–10: BFS variants + iterative DFS stack
+Days 11–13: BST range, operations, LCA split
+Days 14–18: path/diameter, views, serialize, manipulate
+Days 19–24: trie + n-ary + advanced trie design
+Days 20–21: tree DP tuples + subtree patterns
+Days 22–27: tree-as-graph, distance, Morris, hybrid
+Days 28–29: synthesis — streak + BST tuple, trie + quad-tree
+Day  30:    capstone — excess post-order + gene aggregation
+S-Test:     cameras (3-state), good paths (DSU), avg subtree (sum,count)
+```
 
-### 9. Common beginner mistakes
+### 6. Common capstone mistakes
 
-| Mistake | Fix |
-|---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Mistake | Pattern | Fix |
+|---|---|---|
+| Distribute Coins: top-down moves | Day 30 | Post-order excess — moves count on unwind |
+| Distribute Coins: count node.coins as moves | Day 30 | Only `abs(excess)` crossing edge |
+| Gene MEX: DFS every node from scratch | Day 30 | Only path from `1`-node to root |
+| Gene MEX: forget global visited set | Day 30 | Subtrees overlap — accumulate once |
+| Skip decision tree, guess traversal | All days | Route first — direction follows dependency |
+| Tree Cameras: greedy top-down | S-Test | 3-state bottom-up — place on uncovered child |
 
-### 10. Recognition drill
+### 7. Recognition drill — capstone edition
 
-Read this problem aloud:
+Read each problem. Route through the tree:
 
-> *"Given a binary tree, find its maximum depth."*
+> *"Minimum moves so every node has exactly one coin."*
+>
+> → **Post-order excess.** Day 30. `ans += abs(excess)`.
 
-Before coding, say:
+> *"Smallest missing genetic value in each subtree."*
+>
+> → **Gene set aggregation.** Day 30. Walk ancestors of node-with-1 only.
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+> *"Minimum cameras to monitor all nodes."*
+>
+> → **3-state bottom-up.** S-Test. Place camera when child uncovered.
+
+> *"Count nodes where value equals subtree average."*
+>
+> → **Multi-value tuple `(sum, count)`.** S-Test. Bottom-up combine.
+
+> *"Number of good paths (non-decreasing values)."*
+>
+> → **DSU + sort by value.** S-Test. Not pure tree DFS — graph on tree.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You have the full decision tree. Quest 1: Distribute Coins — excess flows up. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 19 Checkpoint
 
 > **N-ary Trees & Tries** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,60 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 19 is **char-edge tries** and **N-ary child loops**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "trie" / "prefix tree" | Char edges + isEnd | Not binary |
+| "search word" vs "starts with" | isEnd required vs not | #208 distinction |
+| "N-ary" / `children` list | Loop all children | No left/right |
+| "max depth" on Node* N-ary | max(child depths)+1 | For-loop bubble |
+| "grid + dictionary words" | **B-Rank test** trie+DFS | Day 19 trie base |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Implement insert/search/startsWith"* → **Trie** — isEnd on insert
+2. *"Max depth of tree with arbitrary fan-out"* → **N-ary loop**
+3. *"Max depth binary tree"* → **Day 4** — two children
+4. *"BST search"* → **Day 11** — not trie
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Find shortest prefix replacing words in sentence."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Trie insert + early isEnd** — stop at first word end.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Serialize N-ary tree to string and back."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **N-ary BFS/DFS** — encode child count per node.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Count words sharing prefix 'pre'."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Trie walk to prefix node, DFS count isEnd below**.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three extend Day 19 trie or N-ary structures.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Trie without isEnd** — Prefix nodes look like words.
+2. **startsWith checking isEnd** — Only full search needs it.
+3. **Modeling trie as binary tree** — 26 char branches, not 2.
+4. **N-ary: using .left/.right** — Use `.children` vector.
+5. **Leaf N-ary depth 0** — Single node depth is 1.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Draw trie after inserting `"to"`, `"tea"`, `"ten"`. Circle isEnd nodes. Then draw a 3-level N-ary tree and write each node's returned depth bottom-up.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before coding:** Label one char edge explicitly — what character does it carry?
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Edge label = next character in the word path.
 
 ---
 
@@ -79,4 +73,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 19 complete! Tomorrow: the next branch of your ascension. →*
+*Day 19 complete! Tomorrow: tree DP — rob/skip and zigzag state. →*

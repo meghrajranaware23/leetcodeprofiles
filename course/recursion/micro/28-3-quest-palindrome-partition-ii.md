@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Palindrome Partitioning (Revisited)
 
 > **Day 28** · [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) · Medium · 15 min · 50 XP
@@ -10,51 +11,51 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Palindrome Partitioning on LeetCode](https://leetcode.com/problems/palindrome-partitioning/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Build `isPal[i][j]` first. Then run the Day 14 cut loop — every non-palindrome cut dies in O(1). Trace `"aab"`.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/)**
+Given a string `s`, partition it such that every substring of the partition is a **palindrome**. Return all possible palindrome partitioning schemes.
 
-Work through the examples on paper before reading further.
+```
+Input:  s = "aab"
+Output: [["a","a","b"], ["aa","b"]]
+
+Input:  s = "a"
+Output: [["a"]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Partition with Pruning**.
+**Hint 1:** Day 14 template: `dfs(i, path)` — try every end index `j ≥ i`. If segment is palindrome, push and recurse from `j+1`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** Base case: `i == len(s)` → record path.
+
+**Hint 3 (S-Rank):** Precompute `isPal[i][j]` in O(n²). Fill shorter substrings first: `isPal[i][j] = (s[i]==s[j]) && (j-i<2 || isPal[i+1][j-1])`.
+
+**Hint 4:** Cut loop guard: `if !isPal[i][j]: continue` — skip the entire branch without a two-pointer scan.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Partition with Pruning
+**Pattern used:** Partition with Precomputed Palindrome Table (Day 14 + Day 17 prune mindset)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| Clue | Signal |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| "partition" + "palindrome" | cut loop + pal check |
+| generate all valid partitions | record at `i == n` |
+| S-Rank revisit | `isPal[i][j]` O(1) lookup |
+| long strings | precompute beats per-cut scan |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Build isPal table once — O(n²) setup."*
+2. *"Cut loop identical to Day 14 — only the check is O(1)."*
+3. *"Non-pal cuts never enter dfs — that's the prune."*
 
 ---
 
@@ -62,38 +63,50 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Generate all splits, filter palindromes after** | Explores invalid branches fully |
+| **Reverse substring on every cut** | O(n) per check → O(n³) total |
+| **Recurse from i instead of j+1** | Infinite loop / stuck index |
+| **Forget pop after explore** | Stale path leaks to siblings |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** `isPal[i][j]` turns every cut validation into O(1). The backtracking tree is the same — you just never descend into non-pal branches.
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Validator change |
+|---|---|
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | Octet + length prune (today's quest 1) |
+| [Palindrome Partitioning II #132](https://leetcode.com/problems/palindrome-partitioning-ii/) | Same `isPal` — min cuts via DP |
+| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Dictionary membership (Day 21) |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+**Step 1 — build `isPal` for `s = "aab"`:**
 
 ```
-Apply Partition with Pruning step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+      j=0  j=1  j=2
+i=0    T    T    F
+i=1         T    F
+i=2              T
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+**Step 2 — dfs with O(1) checks:**
+
+```
+dfs(i=0, [])
+  j=0: isPal[0][0]=T → dfs(1, ["a"])
+    j=1: isPal[1][1]=T → dfs(2, ["a","a"])
+      j=2: isPal[2][2]=T → dfs(3, ["a","a","b"]) → record ✓
+    j=2: isPal[1][2]=F → continue (no dfs!)
+  j=1: isPal[0][1]=T → dfs(2, ["aa"])
+    j=2: isPal[2][2]=T → dfs(3, ["aa","b"]) → record ✓
+  j=2: isPal[0][2]=F → skip
+```
+
+Notice `j=1` at `i=0` for cut `"aab"`: one table lookup, zero recursive frames.
 
 ---
 
@@ -167,21 +180,20 @@ class Solution {
 ```
 
 **Complexity:** O(n · 2^n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Partition with Pruning"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Day 14 cut loop — unchanged."** → push/dfs/pop on palindrome segments.
+- **`isPal[i][j]` precompute.** → One O(n²) pass, O(1) per cut forever.
+- **Non-pal = prune.** → Same as Day 17 "cut branch early" on strings.
+- **Two partitions for `"aab"`.** → `[["a","a","b"], ["aa","b"]]`.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried brute force first, that's fine — the breakthrough is **separating precompute from backtrack**, not memorizing one solution.
 
-> 🎯 **Pattern Unlocked:** Partition with Pruning
+> 🎯 **Pattern Unlocked:** Partition with Precomputed Palindrome Table
 
 ---
 

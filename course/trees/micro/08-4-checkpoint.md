@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 8 Checkpoint
 
 > **Tree Construction** · 2 quests completed · ⭐ 60 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 8 is **pick root → split inorder → recurse on ranges** — two arrays, one partition line.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "preorder + inorder" | Root = `pre[0]`, leftSize = k - is | Forward construction |
+| "inorder + postorder" | Root = `post[last]`, rightSize = ie - k | Reverse construction |
+| "construct unique binary tree" | Hash inorder indices | O(1) root lookup |
+| "build left and right subtree" | Range shrink on both arrays | Divide and conquer |
+| "serialize/deserialize" | Often same split skeleton | Root + partition |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Build tree from preorder [3,9,20] and inorder [9,3,20]"* → **Pre+in** — root 3, left [9], right [20]
+2. *"Root is last in postorder"* → **In+post** — build right subtree first
+3. *"Find max depth"* → **Not Day 8** — bottom-up measure, not build
+4. *"Construct from preorder and postorder only"* → **Variant** — need uniqueness / size check (#889)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Construct maximum binary tree from array — max element is root."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Same split idea** — find max index in range, partition left/right, recurse. Root from array max instead of traversal order.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Convert sorted array to balanced BST."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Mid as root** — like inorder split, but pick middle of sorted array as root.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Validate BST with min/max bounds."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Day 5/11 top-down bounds** — NOT construction. Don't confuse traverse with build.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = divide-and-conquer partition. Scenario 3 = different pattern family.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Off-by-one on preorder right segment** — Right starts at `ps + leftSize + 1`.
+2. **Building left before right in postorder variant** — In+post: right first.
+3. **Using leftSize in postorder variant** — Use `rightSize = ie - k`.
+4. **Linear inorder scan each call** — Precompute hash map.
+5. **Empty segment check wrong** — `ps > pe` → null, not `ps >= pe` with careful bounds.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Construct from Preorder and Postorder #889](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try #889 on LeetCode](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Build tree from preorder and postorder only — requires uniqueness assumption (no duplicate values).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Say how you infer left subtree size when inorder isn't given. (Hint: postorder[pe-1] relates to left subtree root.)
+
+> 💡 **Hint:** Same range-recursion skeleton — different root/sizing rule.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 8 complete! Tomorrow: the next branch of your ascension. →*
+*Day 8 complete! Tomorrow: BFS variations on the Day 3 engine. →*

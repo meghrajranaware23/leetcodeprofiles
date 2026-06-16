@@ -1,124 +1,159 @@
+<!-- hand-authored -->
 # 📝 Base Cases & The Recursive Hypothesis
 
-> **Day 2** · Base Cases & Recursive Hypothesis · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 2** · Recursive Hypothesis · ★☆☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Recursive Hypothesis (Trust) visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Your mission today: **trust the recursive call**. Day 1 taught you to trace the call stack and hit base cases. Day 2 adds the leap of faith: assume `f(n-1)` and `f(n-2)` are already correct — your job is only to **combine** them.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Bridge from Day 1
+
+Yesterday you traced frames shrinking inward (Reverse String) or halving (Power of Two). The stack still applies — but today's problems **branch**:
+
+```
+Day 1:  one recursive call per frame     rev(l+1, r-1)
+Day 2:  two recursive calls per frame    f(n-1) + f(n-2)
+```
+
+Same stack mechanics. New skill: **don't expand both branches in your head** — trust the returns and add.
+
+---
+
+## Part 1 — The Recursive Hypothesis
 
 ### 1. What is the pattern?
 
-**Recursive Hypothesis (Trust)** — the core technique you'll use in today's quests.
+**Recursive hypothesis (trust):** When defining `f(n)`, pretend `f(n-1)`, `f(n-2)`, … are already solved. Write `f(n)` using those answers.
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Every solution still needs:
+
+- **Base case(s)** — `f(0)`, `f(1)` (or `n <= 2`) — direct answers
+- **Recursive case** — combine smaller trusted results
+- **Memoization (when needed)** — cache results so overlapping subproblems aren't recomputed
 
 ### 2. Simple explanation
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+Climbing a staircase: to reach step `n`, you either came from step `n-1` (one step) or step `n-2` (two steps).
 
-The call stack is just a line of friends waiting for the next friend to finish.
+You don't enumerate every path from the ground. You say:
 
-### 3. Visual walkthrough
+> *"However many ways exist to reach step n-1, plus however many exist to reach n-2 — that's my answer for step n."*
 
-```
-factorial(3):
+That sentence **is** the recursive hypothesis.
 
-CALL STACK (grows downward):
-┌─────────────────┐
-│ factorial(3)    │  waiting for factorial(2)
-│   n = 3         │
-├─────────────────┤
-│ factorial(2)    │  waiting for factorial(1)
-│   n = 2         │
-├─────────────────┤
-│ factorial(1)    │  BASE CASE → returns 1
-│   n = 1         │
-└─────────────────┘
+### 3. Visual — Fibonacci recursion tree (with overlap)
 
-RETURNS (bubble upward):
-factorial(1) → 1
-factorial(2) → 2 × 1 = 2
-factorial(3) → 3 × 2 = 6
-```
-
-### 4. How the pattern works
+`fib(5)` expands into a tree — notice **`fib(3)` is computed twice**, **`fib(2)` three times**:
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+                         fib(5)
+                        /      \
+                   fib(4)        fib(3)  ← overlap starts
+                  /     \       /    \
+             fib(3)   fib(2) fib(2) fib(1)
+            /    \
+       fib(2)  fib(1)
+
+Without memo: exponential redundant work
+With memo: each fib(k) computed once → O(n) total
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**Base cases:** `fib(0) = 0`, `fib(1) = 1` — return immediately, no further calls.
 
-### 5. What problem does this solve?
+### 4. Visual — Climbing Stairs as `f(n-1) + f(n-2)`
 
-| Problem family | How this pattern helps |
+`n = 5` stairs — each node is "how many ways to reach this step":
+
+```
+Reach step 5 from:
+    step 4 (1-step hop)  ──┐
+                           ├──  ways(5) = ways(4) + ways(3)
+    step 3 (2-step hop)  ──┘
+
+Expand (trust each sub-call):
+
+ways(4) = ways(3) + ways(2)
+ways(3) = ways(2) + ways(1)
+ways(2) = 2        ← base
+ways(1) = 1        ← base
+
+Bottom-up evaluation:
+ways(2)=2, ways(3)=3, ways(4)=5, ways(5)=8  ✓
+```
+
+Same recurrence as Fibonacci — different story, identical skeleton.
+
+### 5. The template
+
+```
+function f(n):
+    if n is base: return base_value
+
+    if n in memo: return memo[n]          // cut overlap
+
+    memo[n] = f(n-1) + f(n-2)             // TRUST both calls
+    return memo[n]
+```
+
+The **hypothesis line** is the assignment: you don't prove `f(n-1)` inside `f(n)` — you assume it.
+
+### 6. Why naive recursion explodes
+
+| Approach | Problem |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **Plain `fib(n-1) + fib(n-2)` with no memo** | O(2^n) — overlapping branches recompute forever |
+| **Nested loops over all step sequences** | O(2^n) paths — same explosion, harder to read |
+| **Expanding the full tree in your head** | Cognitive overload — trust + memo instead |
+| **Forgetting both base cases** | Off-by-one on `n = 0`, `n = 1`, or `n = 2` |
 
-### 6. Why brute force / iteration fails
-
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+Memoization doesn't change the **logic** — it changes **how many times** each subproblem runs.
 
 ### 7. The key observation
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+**Two sub-calls ≠ two independent problems.** They overlap. The recursive hypothesis gives you the formula; memoization makes it fast.
 
-### 8. Pattern signals & recognition clues
+| Problem | Base case(s) | Combine step |
+|---|---|---|
+| Fibonacci | `n <= 1 → n` | `f(n-1) + f(n-2)` |
+| Climbing Stairs | `n <= 2 → n` | `f(n-1) + f(n-2)` |
+
+Different bases, same trust-and-add shape.
+
+### 8. Pattern signals for Day 2
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "nth Fibonacci" / "f(n-1) + f(n-2)" | Binary recursion + memo |
+| "how many ways to climb" / "1 or 2 steps" | Same recurrence — count paths |
+| "overlapping subproblems" | Memo table or hash map |
+| "trust the sub-call" / "assume smaller works" | Recursive hypothesis |
+| Day 1 "call stack" still applies | Frames wait; base unblocks; returns bubble up |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `recursive hypothesis` · `memoization` · `overlapping subproblems` · `f(n-1)` · `base case`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Not trusting sub-calls — trying to unroll entire tree | Write `f(n-1) + f(n-2)` and trace one small `n` on paper |
+| No memo on Fibonacci-style recurrence | Add cache after naive TLE — same code, one map |
+| Wrong base cases | Fibonacci: `n<=1→n`. Stairs: `n<=2→n`. Test `n=1`, `n=2`. |
+| Confusing Fibonacci index with stair count | Same math — verify bases match the problem statement |
+| Stack overflow on large n without memo | Memo reduces call depth work; iterative DP also works later |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"You can climb 1 or 2 steps at a time. How many distinct ways to reach step n?"*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Trust: ways(n) = ways(n-1) + ways(n-2). Base: n<=2 return n. Overlap → memo. Trace n=4 on paper — don't expand the full tree."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You trust the hypothesis. Your first quest puts Fibonacci on the stack. →*

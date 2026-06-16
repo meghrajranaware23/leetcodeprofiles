@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 15 Checkpoint
 
 > **Tree Coordinates** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 15 is **geometric placement** — columns and perimeter.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "vertical order" / "by column" | `(col, row, val)` tag + sort | Not level BFS |
+| "boundary" / "perimeter" | Three-pass: left, leaves, right↓ | Disjoint segments |
+| "top view" / "bottom view" | Column + row extrema | Variant of tagging |
+| "level order traversal" | **Day 9 BFS** | Groups by row, not col |
+| "right side view" | First node per level | Different view rule |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Vertical order traversal with value tie-break"* → **Column map** — sort (col, row, val)
+2. *"Anti-clockwise boundary"* → **Three-pass** — edges skip leaves
+3. *"Zigzag level order"* → **Day 9** — not coordinate columns
+4. *"Nodes at depth k"* → **BFS by depth** — not Day 15
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Top view of binary tree (first node per column)."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Column tagging** — track min row seen per column; BFS/DFS with `(col, row)`.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Print corners of tree (root, leftmost, rightmost, leaves)."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Boundary variant** — subset of three-pass logic.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Maximum width of tree (count nodes at widest level)."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Day 9 BFS** — level width, not column width.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 15 family. Scenario 3 = BFS levels.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Vertical: using level-order output** — Must group by column index.
+2. **Vertical: forgetting value sort on same (col, row)** — #987 requires it.
+3. **Boundary: leaves in edge passes** — Edges require `has child` guard.
+4. **Boundary: right edge not reversed** — Perimeter goes up on right side.
+5. **Column direction inverted** — Standard: left = col-1, right = col+1.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### Draw coordinates on paper
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Sketch a 7-node tree. Label all `(col, row)`. Which nodes share a column? Which appear in boundary pass 2 but not pass 1?
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+**Before coding anything:** Answer without looking at solutions — validates both patterns visually.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Root `(0,0)`. Left-right child of left child shares column with root.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 15 complete! Tomorrow: the next branch of your ascension. →*
+*Day 15 complete! Tomorrow: serialize trees to strings and rebuild BST from preorder. →*

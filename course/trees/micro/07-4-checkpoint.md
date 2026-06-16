@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 7 Checkpoint
 
 > **Bottom-Up DFS** · 2 quests completed · ⭐ 55 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 7 is **returns up + global cross-subtree** — paths may bend at any node.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "diameter" / "longest path between nodes" | Return height, global `l+r` | Cross-subtree through current node |
+| "maximum path sum" (any path) | Return one-branch gain, global `val+l+r` | Parent uses one side only |
+| "may start/end at any node" | Bottom-up global | Not root-to-leaf (Day 6) |
+| "root-to-leaf path sum" | **Day 6** — not today | Prefix flows down |
+| negative node values + max path | `max(0, dfs(child))` | Skip losing branches |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Diameter of binary tree"* → **Bottom-up global** — return height, `ans = max(ans, l+r)`
+2. *"Max path sum anywhere in tree"* → **Bottom-up path opt** — global both branches, return one
+3. *"All paths summing to target root-to-leaf"* → **Day 6 top-down** — not Day 7
+4. *"Maximum depth"* → **Pure bottom-up return** — no global needed
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Find the longest univalue path (same value edges)."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **Dual-role dfs + global.** Return longest same-value chain upward; global tracks best through node.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Binary tree cameras — minimum cameras to cover all nodes."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **Advanced bottom-up** (later rank) — returns encode coverage state; same upward flow idea.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Check if path sum equals target from root to leaf."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **Day 6 top-down remainder** — NOT Day 7. No global, no cross-subtree combine.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = bottom-up with global or state returns. Scenario 3 = Day 6 contrast.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Returning `l + r` to parent** — Parent extends one branch: `val + max(l,r)`.
+2. **Skipping global update** — Cross-subtree winner never reaches `ans`.
+3. **Using top-down for bent paths** — 15→20→7 can't be seen from root-only descent.
+4. **Forgetting `max(0, child)` on negative trees** — Losing subtree should be skippable.
+5. **Confusing diameter edges vs height** — Diameter = `l+r`; height return = `1+max(l,r)`.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Longest Univalue Path #687](https://leetcode.com/problems/longest-univalue-path/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Longest Univalue Path on LeetCode](https://leetcode.com/problems/longest-univalue-path/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Find longest path where all nodes have the same value — same dual-role skeleton as diameter.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Say return vs global aloud. Trace a 3-node same-value chain.
+
+> 💡 **Hint:** Return = longest same-value arm upward. Global = left arm + right arm (if values match).
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 7 complete! Tomorrow: the next branch of your ascension. →*
+*Day 7 complete! Tomorrow: build trees from two traversal arrays. →*

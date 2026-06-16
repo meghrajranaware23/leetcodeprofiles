@@ -1,118 +1,147 @@
-# 📝 Backtracking with Complex State
+<!-- hand-authored -->
+# 📝 Grid Backtracking
 
-> **Day 16** · Backtracking with Complex State · ★★★★☆ · 20 XP · 15 min read
-
----
-
-Your mission today: **understand Grid Backtracking visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+> **Day 16** · Grid Backtracking · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-## Part 1 — Why Does This Work?
+Every backtracking pattern so far walked an **array or string index**. Today the state lives on a **2D grid**: you move cell by cell, mark visited spots, and unmark on retreat.
 
-### 1. What is the pattern?
+The rhythm is unchanged — **choose, explore, unchoose** — but "unchoose" means **restore the cell** you temporarily destroyed.
 
-**Grid Backtracking** — the core technique you'll use in today's quests.
+---
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+## Part 1 — Learn the Pattern
 
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+### 1. Grid DFS backtracking template
 
 ```
-subsets([1,2,3]) — decision tree:
+dfs(board, r, c, step):
+    if step == target_length: return true     // found path
+    if out of bounds or cell used or mismatch: return false
 
-                    []
-           /                  \
-        [1]                  []
-       /   \                /   \
-    [1,2]  [1]           [2]     []
-    /  \   / \          / \    / \
-  ...  ... ... ...     ... ... ... ...
-
-At each index: INCLUDE element or EXCLUDE element
-Backtrack = undo the choice and try the other branch
+    mark cell as visited (e.g. board[r][c] = '#')
+    found = dfs(neighbors...)                  // EXPLORE 4 directions
+    unmark cell (restore original char)        // UNCHOOSE
+    return found
 ```
 
-### 4. How the pattern works
+**Mark/unmark** replaces `path.push/pop` when the path is implicit in `(r,c,step)`.
+
+For problems that build a string path (Letter Case Permutation), push/pop still applies on the index.
+
+### 2. Word Search (#79)
+
+Find if `word` exists as a path of adjacent cells (4-direction, no reuse per path).
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+board = A B C E
+        S F C S
+        A D E E
+
+word = "ABCCED" → true (path exists)
+word = "SEE"    → true
+word = "ABCB"   → false (would reuse B)
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**State:** current cell `(i,j)` + index `k` into `word`.
 
-### 5. What problem does this solve?
+**Mark:** save `board[i][j]`, set to `'#'`.
+**Unmark:** restore saved char before returning to parent.
 
-| Problem family | How this pattern helps |
+Why mark? Without it, the same cell appears twice in one path — `"ABCB"` would incorrectly return true.
+
+### 3. Letter Case Permutation (#784)
+
+Not a grid — but completes Day 16 as **binary choice backtracking** on a string:
+
+```
+s = "a1b2"
+
+At each letter: branch lowercase OR uppercase
+At each digit: only one choice
+
+"a1b2" → "a1B2", "A1b2", "A1B2", "a1b2"
+2 letters → 2² = 4 permutations
+```
+
+```cpp
+if (isalpha(s[i])) {
+    path.push_back(tolower(s[i])); dfs(i+1);   // branch 1
+    path.back() = toupper(s[i]);   dfs(i+1);   // branch 2 (reuse slot)
+    path.pop_back();
+} else {
+    path.push_back(s[i]); dfs(i+1); path.pop_back();
+}
+```
+
+Same push/pop as Day 11 — two branches per letter instead of a loop over candidates.
+
+### 4. Mark/unmark vs used[][]
+
+| Approach | When |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| **In-place mark** (`'#'`) | Mutable board, save space — Word Search |
+| **Separate visited[][]** | Board must stay unchanged |
+| **path push/pop on index** | Building a string — Letter Case |
 
-### 6. Why brute force / iteration fails
+All three follow choose → explore → unchoose.
 
-| Brute force | Problem |
-|---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+### 5. Word Search walkthrough
 
-### 7. The key observation
+```
+board[0][0]='A', word="ABCCED", k=0
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+dfs(0,0,k=0): match 'A', mark → '#'
+  dfs(0,1,k=1): 'B' ✓ mark
+    dfs(0,2,k=2): 'C' ✓
+      dfs(1,2,k=3): 'C' ✓
+        dfs(2,2,k=4): 'E' ✓
+          dfs(2,1,k=5): 'D' ✓
+            k==6 → return true
+          unmark each level on way back
+```
 
-### 8. Pattern signals & recognition clues
+Try every cell as start — outer double loop calls `dfs(i,j,0)`.
+
+### 6. Pattern signals
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "word search" / "path in grid" | Grid DFS + mark/unmark |
+| "4-directionally adjacent" | Explore up/down/left/right |
+| "cannot use same cell twice" | Must mark visited |
+| "letter case permutation" | Binary branch per alpha char |
+| "islands" / "count connected" | DFS without unmark (Day 24+) |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 7. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| No unmark after dfs | `'#'` leaks — other paths blocked |
+| Only 2 directions | Use all 4 neighbors |
+| Forget outer start loop (Word Search) | Word can start anywhere |
+| Mark but never save original char | Can't restore — board corrupted |
 
-### 10. Recognition drill
+### 8. Recognition drill
 
-Read this problem aloud:
+> *"Search a word in a 2D board of characters."*
 
-> *"Given an array, generate all possible subsets."*
+Say: *"Grid DFS from each cell. Match word[k]. Mark with '#', explore 4 dirs, unmark. Base: k==len(word)."*
 
-Before coding, say:
+> *"All strings from changing letter cases."*
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+Say: *"Index backtracking. Alpha → lower/upper branch. Digit → single branch. push/pop."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+## Part 2 — What's Next
+
+1. **Word Search #79** — grid mark/unmark
+2. **Letter Case Permutation #784** — binary string branching
+
+C-Rank ends where exploration meets spatial state. Same push/pop discipline — new surface to mark.
+
+---
+
+*The board is a decision tree laid flat. First quest →*

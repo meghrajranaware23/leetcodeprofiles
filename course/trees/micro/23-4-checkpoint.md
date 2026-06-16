@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 23 Checkpoint
 
 > **BST Augmentation** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,72 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 23 extends **Day 12 inorder** into streaming and navigation. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "BST iterator" / "next() smallest" | Lazy inorder stack | C-Rank #173 / Day 12 iterative |
+| "closest value to target" | Walk path + update best | O(h), not full inorder |
+| "inorder successor/predecessor" | Case split or unified walk | O(h) ancestor or subtree min |
+| "kth smallest" (Day 12) | Inorder early-stop | Same stack as iterator |
+| "average O(1) next()" | Amortized push/pop | Each node once |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 23 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Design BSTIterator with next() and hasNext()"* → **Lazy inorder stack** (pushLeft spine)
+2. *"Find closest BST value to 3.7"* → **Path walk + running closest**
+3. *"Inorder successor of node p"* → **Case A: leftmost-right; Case B: search-path res**
+4. *"Serialize all values sorted"* → **Full inorder** — different goal, same order
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Closest and Successor. Can you extend **BST ordering walks**?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Return the k closest values to target in a BST."*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **Closest walk + stack** — find closest, then iterate predecessor/successor k-1 times. Extends today's closest quest.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Implement a BST iterator with O(1) amortized next and O(h) space."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **C-Rank #173** — constructor pushLeft(root); next pop + pushLeft(right).
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Find inorder predecessor of p in BST."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Mirror successor** — if left child exists, rightmost of left; else walk recording when `p.val > root.val`.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 23 = **inorder machinery without full traversal** — stream, closest, successor all O(h).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Flattening BST in iterator constructor** — O(n) space; use stack of left spines.
+
+2. **Closest: stopping when past target** — must walk to null; update best at every node.
+
+3. **Successor: only Case A (right subtree)** — fails when `p` is rightmost leaf in subtree.
+
+4. **Forgetting pushLeft after pop in iterator** — skips right subtree values.
+
+5. **Confusing successor with delete's copied value** — same node, different operation context.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Binary Search Tree Iterator #173](https://leetcode.com/problems/binary-search-tree-iterator/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try BST Iterator on LeetCode](https://leetcode.com/problems/binary-search-tree-iterator/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Design an iterator over BST with `next()` returning next smallest and `hasNext()`.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Say *"Day 12 iterative inorder without k-stop."* Trace pushLeft on `[7,3,15,null,null,9,20]`.
+
+> 💡 **Hint:** C-Rank test problem — same pattern as today's concept page.
 
 ---
 
@@ -74,9 +80,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Closest Binary Search Tree Value #270](https://leetcode.com/problems/closest-binary-search-tree-value/) | Easy | BST Navigation |
-| [Inorder Successor in BST #285](https://leetcode.com/problems/inorder-successor-in-bst/) | Medium | BST Successor Logic |
+| [Closest Binary Search Tree Value #270](https://leetcode.com/problems/closest-binary-search-tree-value/) | Easy | BST closest walk |
+| [Inorder Successor in BST #285](https://leetcode.com/problems/inorder-successor-in-bst/) | Medium | Successor case split |
 
 ---
 
-*Day 23 complete! Tomorrow: the next branch of your ascension. →*
+*Day 23 complete! Tomorrow: advanced trie — wildcards and prefix replace. →*

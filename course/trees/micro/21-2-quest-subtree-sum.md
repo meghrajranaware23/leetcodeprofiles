@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Most Frequent Subtree Sum
 
 > **Day 21** · [Most Frequent Subtree Sum #508](https://leetcode.com/problems/most-frequent-subtree-sum/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Most Frequent Subtree Sum on LeetCode](https://leetcode.com/problems/most-frequent-subtree-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** For each node, compute subtree sum bottom-up. Track frequencies in a map. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Subtree Sum + Frequency**.
+Which pattern from today's concept applies? **Subtree sum + frequency map** — postorder returns sum; after children, `freq[sum]++`; return sum to parent.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: one DFS. After it finishes, find max count and collect all sums with that count.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Subtree Sum + Frequency
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Subtree sum" for every node
+- "Most frequent" → hashmap count
+- Return all modes (may tie)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "subtree sum" | Postorder: val + left + right |
+| "most frequent" | Map sum → count |
+| "return all values with highest frequency" | Tie collection |
+| "may include negative" | Sums can be negative — map handles |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Each node's subtree sum is computed once from child returns — O(n). Map aggregates frequencies in same pass.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"dfs returns int sum."*
+2. *"null → 0."*
+3. *"s = val + dfs(L) + dfs(R); cnt[s]++; return s."*
+4. *"Scan map for maxFreq keys."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Re-sum subtree per node** | O(n²) |
+| **Separate passes for sum then freq** | One postorder pass suffices |
+| **Sort all sums** | Map is O(1) average per update |
+| **Top-down for subtree total** | Subtree sum needs child answers first |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Return value = subtree sum; map = side effect at each node.
 
 ---
 
@@ -75,31 +74,28 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Subtree of Another Tree #572](https://leetcode.com/problems/subtree-of-another-tree/) | Compare structure | Subtree focus |
+| [Count Univalue Subtrees #250](https://leetcode.com/problems/count-univalue-subtrees/) | Postorder bool | Same bubble shape |
+| [Path Sum III #437](https://leetcode.com/problems/path-sum-iii/) | Prefix map on paths | Different aggregate |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
-
 ```
-        3
+        5
        / \
-      9    20
-          /  \
-         15   7
+      2  -3
 
-Apply Subtree Sum + Frequency step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Postorder:
+  dfs(2):  s=2,  cnt{2:1}
+  dfs(-3): s=-3, cnt{2:1,-3:1}
+  dfs(5):  s=4,  cnt{2:1,-3:1,4:1}
+
+maxFreq=1 → return [2,-3,4] (all tie)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Every node is root of a subtree — one postorder visit records each subtree sum exactly once.
 
 ---
 
@@ -108,20 +104,20 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    unordered_map<int, int> freq;
+    unordered_map<int,int> cnt;
+    int maxFreq = 0;
     int dfs(TreeNode* node) {
         if (!node) return 0;
-        int sum = node->val + dfs(node->left) + dfs(node->right);
-        freq[sum]++;
-        return sum;
+        int s = node->val + dfs(node->left) + dfs(node->right);
+        maxFreq = max(maxFreq, ++cnt[s]);
+        return s;
     }
 public:
     vector<int> findFrequentTreeSum(TreeNode* root) {
         dfs(root);
-        int best = 0;
-        for (auto& [s, c] : freq) best = max(best, c);
         vector<int> res;
-        for (auto& [s, c] : freq) if (c == best) res.push_back(s);
+        for (auto& [s, c] : cnt)
+            if (c == maxFreq) res.push_back(s);
         return res;
     }
 };
@@ -129,55 +125,54 @@ public:
 
 ### Python
 ```python
+from collections import Counter
 class Solution:
     def findFrequentTreeSum(self, root: Optional[TreeNode]) -> List[int]:
-        freq = Counter()
+        counter = Counter()
         def dfs(node):
-            if not node:
-                return 0
+            if not node: return 0
             s = node.val + dfs(node.left) + dfs(node.right)
-            freq[s] += 1
+            counter[s] += 1
             return s
         dfs(root)
-        best = max(freq.values())
-        return [s for s, c in freq.items() if c == best]
+        max_freq = max(counter.values())
+        return [s for s, c in counter.items() if c == max_freq]
 ```
 
 ### Java
 ```java
 class Solution {
-    Map<Integer, Integer> freq = new HashMap<>();
+    private Map<Integer,Integer> cnt = new HashMap<>();
+    private int maxFreq = 0;
     public int[] findFrequentTreeSum(TreeNode root) {
         dfs(root);
-        int best = Collections.max(freq.values());
-        return freq.entrySet().stream().filter(e -> e.getValue() == best).mapToInt(Map.Entry::getKey).toArray();
+        List<Integer> res = new ArrayList<>();
+        for (Map.Entry<Integer,Integer> e : cnt.entrySet())
+            if (e.getValue() == maxFreq) res.add(e.getKey());
+        return res.stream().mapToInt(Integer::intValue).toArray();
     }
-    int dfs(TreeNode node) {
+    private int dfs(TreeNode node) {
         if (node == null) return 0;
-        int sum = node.val + dfs(node.left) + dfs(node.right);
-        freq.put(sum, freq.getOrDefault(sum, 0) + 1);
-        return sum;
+        int s = node.val + dfs(node.left) + dfs(node.right);
+        int c = cnt.merge(s, 1, Integer::sum);
+        maxFreq = Math.max(maxFreq, c);
+        return s;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Subtree Sum + Frequency"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
-
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Subtree sum"** → postorder return.
+- **"Most frequent"** → hashmap side effect.
+- **"Return sum to parent"** → not the freq map.
+- **"Ties return all"** → scan for maxFreq.
 
 > 🎯 **Pattern Unlocked:** Subtree Sum + Frequency
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: good nodes — top-down max from Day 6. →*

@@ -1,118 +1,130 @@
+<!-- hand-authored -->
 # 📝 Combination Sum Variants
 
 > **Day 15** · Combination Sum Variants · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Constraint Variation Backtracking visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Day 13's Combination Sum (#39) allowed **unlimited reuse** with `dfs(i, ...)` on include. Today the constraints tighten:
+
+1. **Combination Sum II (#40)** — each candidate used **at most once**, array may have **duplicates**
+2. **Combination Sum III (#216)** — exactly **k** digits from 1–9 summing to **n**
+
+Both reference Day 13's start-index skeleton. Dedup reuses Day 11's **sort + skip**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
-### 1. What is the pattern?
+### 1. Combination Sum II — single use + dedup
 
-**Constraint Variation Backtracking** — the core technique you'll use in today's quests.
+Compared to #39:
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
-
-```
-subsets([1,2,3]) — decision tree:
-
-                    []
-           /                  \
-        [1]                  []
-       /   \                /   \
-    [1,2]  [1]           [2]     []
-    /  \   / \          / \    / \
-  ...  ... ... ...     ... ... ... ...
-
-At each index: INCLUDE element or EXCLUDE element
-Backtrack = undo the choice and try the other branch
-```
-
-### 4. How the pattern works
-
-```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
-```
-
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
+| Combination Sum (#39) | Combination Sum II (#40) |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| Include → stay at `i` (reuse) | Include → **`i + 1`** (single use) |
+| Distinct candidates | May have duplicates |
+| No dedup | **Sort + skip** duplicate values at same level |
 
-### 6. Why brute force / iteration fails
+```cpp
+// Include branch — always advance (single use)
+path.push_back(c[i]);
+dfs(c, i + 1, rem - c[i], path, res);
+path.pop_back();
 
-| Brute force | Problem |
+// Skip duplicates before exclude branch
+while (i + 1 < c.size() && c[i + 1] == c[i]) i++;
+dfs(c, i + 1, rem, path, res);
+```
+
+**Why the while-loop skip?** After choosing **not** to include `c[i]`, every sibling duplicate of `c[i]` would explore the same "skip this value" subtree. Advance `i` past all equal values.
+
+This is the same dedup philosophy as Subsets II (Day 11): **sort first, skip duplicate siblings**.
+
+Alternative equivalent guard (inside a for-loop):
+```
+if (i > 0 && c[i] == c[i-1] && !included_previous) continue;
+```
+The include/exclude two-call structure with while-skip is the standard interview form.
+
+### 2. Combination Sum III — fixed k + digit range
+
+Pick **exactly k** distinct digits from `{1..9}` that sum to `n`. Pure Day 13 Combinations (#77) + target check:
+
+```cpp
+void dfs(int k, int n, int start, vector<int>& path, vector<vector<int>>& res) {
+    if (k == 0 && n == 0) { res.push_back(path); return; }
+    if (k == 0 || n <= 0) return;
+    for (int i = start; i <= 9; i++) {
+        path.push_back(i);
+        dfs(k - 1, n - i, i + 1, path, res);   // use k-1 digits, sum n-i, forward
+        path.pop_back();
+    }
+}
+```
+
+Two stopping dimensions: **count** (`k`) and **sum** (`n`). Prune when either exhausts.
+
+### 3. Decision tree comparison
+
+```
+#39 target=7, [2,3]:          #40 target=7, [2,2,3] sorted:
+  include 2 → reuse 2            include first 2 → only i+1
+  [2,2,3] ✓                      skip dup 2 with while
+                                 [2,3] ✓ (not [2,2,3] twice)
+
+#216 k=3, n=9:
+  pick 1 → pick 2 → pick 6? sum=9 → [1,2,6] ✓
+  pick 2 → pick 3 → pick 4 → [2,3,4] ✓
+```
+
+### 4. Reference map — Day 11 → Day 15
+
+| Technique | First learned | Reused today |
+|---|---|---|
+| push/pop skeleton | Day 11 | All variants |
+| sort + skip dedup | Day 11 Subsets II | Combination Sum II |
+| start index | Day 11/13 | Combination Sum III |
+| include→i, exclude→i+1 | Day 13 #39 | **Not** in #40 — always i+1 |
+| record at target | Day 13 #39 | #40 same; #216 adds k==0 |
+
+### 5. Pattern signals
+
+| When the problem says… | Variant |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| "each number once" + target | Combination Sum II |
+| "duplicates" in candidates | Sort + while-skip |
+| "exactly k numbers" + sum to n | Combination Sum III |
+| "unlimited reuse" | Day 13 #39 — include stays at i |
 
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
-
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 6. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Reuse `dfs(i,...)` on include for #40 | Single use → always `i+1` |
+| No sort before dedup in #40 | Duplicates must be adjacent |
+| Record when `n==0` but k≠0 in #216 | Both must hit zero |
+| Subsets dedup `j > start` in combo sum | Use while-skip or equivalent |
 
-### 10. Recognition drill
+### 7. Recognition drill
 
-Read this problem aloud:
+> *"Combination sum, each candidate once, may have duplicates."*
 
-> *"Given an array, generate all possible subsets."*
+Say: *"Day 13 combo + Day 11 dedup. Include dfs(i+1). while-skip dupes. Sort first."*
 
-Before coding, say:
+> *"K numbers from 1-9 sum to n."*
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+Say: *"Combinations #77 + target. dfs(k-1, n-i, i+1). Record when k==0 && n==0."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+## Part 2 — What's Next
+
+1. **Combination Sum II #40** — single-use + sort/skip (C-Rank test problem!)
+2. **Combination Sum III #216** — fixed k digits
+
+If Day 13 clicked, these are constraint edits — not new algorithms.
+
+---
+
+*Same tree, tighter rules. First quest →*

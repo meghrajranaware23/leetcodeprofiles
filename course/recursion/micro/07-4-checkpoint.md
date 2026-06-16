@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 7 Checkpoint
 
 > **Divide and Conquer** · 2 quests completed · ⭐ 55 XP earned
@@ -6,71 +7,83 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 7 is **split range → solve both halves → combine**. The combine step is problem-specific.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| "sort array" O(n log n) | Merge sort D&C | Split, sort halves, merge |
+| "merge two sorted" | Merge combine step | Two-pointer compare |
+| "maximum subarray" + recursion | max(left, right, **cross**) | Optimal may span mid |
+| "split at midpoint" | `mid = lo + (hi-lo)/2` | Two disjoint subproblems |
+| "combine results" | Merge or max-of-three | Work happens at combine |
+| "suffix + prefix" at split | Cross sum helper | Max ending at mid + starting at mid+1 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+1. *"Sort using merge sort"* → **Split, recurse both, merge** — base `lo>=hi`
+2. *"Max sum subarray recursively"* → **Three candidates** — never omit cross
+3. *"Count reverse pairs in array"* → **D&C merge** with cross counting in merge
+4. *"Binary search on sorted array"* → **Not D&C combine** — single half, no merge
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Find the k-th largest element by recursively partitioning like quickselect."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Which pattern? **Divide on one half** — not classic merge D&C, but split-at-pivot DNA. One recursive call, not two.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Maximum product subarray — find contiguous subarray with largest product."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
+Which pattern? **D&C with cross** — cross tracks both max and min product (negative flip). Same three-way combine idea.
 
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
+**Scenario 3:** *"Merge k sorted linked lists efficiently."*
 
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
+Which pattern? **Merge sort on lists** — pair up lists, merge recursively. Combine = merge two sorted lists.
 
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 2–3 use **split + combine** like today. The combine logic changes (product vs sum vs list splice).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **Max subarray: no cross term** — Global max often straddles mid.
+
+2. **Merge before children return** — Halves must be sorted first.
+
+3. **Forget copy tmp → nums** — Merge writes to temp then must copy back.
+
+4. **Single recursive call** — D&C on arrays needs **both** halves (except quickselect).
+
+5. **Confuse with Day 6 binary pow** — Day 6: one halved exponent; Day 7: two halved **ranges**.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Maximum Product Subarray #152](https://leetcode.com/problems/maximum-product-subarray/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Maximum Product Subarray on LeetCode](https://leetcode.com/problems/maximum-product-subarray/)**
 
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
+Find contiguous subarray with **largest product**.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  nums = [2, 3, -2, 4]
+Output: 6
+Explanation: [2, 3] has product 6.
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "maximum product" contiguous | Kadane-style OR D&C cross with min/max |
+| "negative flips sign" | Track min product at cross — negatives matter |
+| "contiguous subarray" | Same interval structure as #53 |
+
+**Before you code:** Say *"cross combine — but track min and max product at suffix/prefix."* Or use O(n) Kadane-with-min variant.
+
+> 💡 **Hint:** Same three-way split intuition as Maximum Subarray — product cross needs both extremes.
 
 ---
 
@@ -78,9 +91,10 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Sort an Array #912](https://leetcode.com/problems/sort-an-array/) | Medium | Merge Sort Recursion |
-| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Medium | Divide and Conquer Max |
+| [Sort an Array #912](https://leetcode.com/problems/sort-an-array/) | Medium | Merge sort recursion |
+| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Medium | D&C with cross sum |
+| [Maximum Product Subarray #152](https://leetcode.com/problems/maximum-product-subarray/) | Medium | Cross combine variant |
 
 ---
 
-*Day 7 complete! Tomorrow: the next descent of your ascension. →*
+*Day 7 complete! Tomorrow: grow strings by choosing and extending — generation trees. →*

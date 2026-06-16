@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Delete Node in BST
 
 > **Day 12** · [Delete Node in a BST #450](https://leetcode.com/problems/delete-node-in-a-bst/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Delete Node in a BST on LeetCode](https://leetcode.com/problems/delete-node-in-a-bst/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For the target node, label its child count (0, 1, or 2). Draw the after-picture. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BST Delete Cases**.
+Which pattern from today's concept applies? **BST Delete Cases** — search to key, then 0/1/2 child rewire.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: two children → find leftmost of right subtree (successor), copy its value into target node, recursively delete that successor value from the right subtree.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BST Delete Cases
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Delete node with given key" → search phase (Day 11) + surgery phase
+- Function returns **new subtree root** — parent must capture return value
+- Two-child case uses **successor value copy**, not node swap
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "delete from BST" | Three-case rewire |
+| "maintain BST property" | Successor/predecessor replacement |
+| "return root after deletion" | Recursive return replaces child pointer |
+| "key not in tree" | Search falls off — tree unchanged |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Cases 0 and 1 are pointer bypasses. Case 2 reduces to Case 0/1 by promoting successor value then deleting duplicate position.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Search: key < val → left; key > val → right."*
+2. *"Found: 0 kids → return null; 1 kid → return that child."*
+3. *"2 kids → successor = leftmost(right); copy val; delete successor from right."*
+4. *"Always return node (possibly updated) to parent."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Rebuild BST from inorder array** | O(n) — correct but wasteful |
+| **Swap entire successor node struct** | Pointer nightmare — copy value is simpler |
+| **Only handle leaf delete** | Crashes on internal nodes |
+| **Forget to reassign `root->left = delete(...)`** | Subtree change lost — tree breaks |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Delete is **two phases** — find (search walk) then local fix (one of three templates). The BST property survives if you pick successor correctly.
 
 ---
 
@@ -75,31 +74,43 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Trim a Binary Search Tree #669](https://leetcode.com/problems/trim-a-binary-search-tree/) | Delete a **range** of keys | Same rewire logic per node |
+| [Insert into BST #701](https://leetcode.com/problems/insert-into-a-binary-search-tree/) | Add instead of remove | Search walk to null |
+| [Recover BST #99](https://leetcode.com/problems/recover-binary-search-tree/) | C-Rank test — fix two swapped vals | Inorder property |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: search down, mutate on way back up.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Delete key = 3 from:**
 
 ```
-        3
+        5
        / \
-      9    20
-          /  \
-         15   7
+      3   7
+     / \   \
+    2   4   8
 
-Apply BST Delete Cases step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Search: 3 < 5 → left → found at node 3 (two children: 2 and 4)
+
+Case 2:
+  Successor = leftmost of right subtree = 4
+  Copy 4 into node 3
+  Delete 4 from right subtree (now Case 0 — leaf)
+
+Result:
+        5
+       / \
+      4   7
+     /     \
+    2       8
+
+Inorder still sorted: 2, 4, 5, 7, 8 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Case 2 never removes the target node structurally — it **becomes** the successor value, then successor position is deleted as a simpler case.
 
 ---
 
@@ -111,14 +122,14 @@ class Solution {
 public:
     TreeNode* deleteNode(TreeNode* root, int key) {
         if (!root) return nullptr;
-        if (key < root->val) root->left = deleteNode(root->left, key);
-        else if (key > root->val) root->right = deleteNode(root->right, key);
+        if (key < root->val)       root->left  = deleteNode(root->left,  key);
+        else if (key > root->val)  root->right = deleteNode(root->right, key);
         else {
-            if (!root->left) return root->right;
+            if (!root->left)  return root->right;
             if (!root->right) return root->left;
             TreeNode* succ = root->right;
             while (succ->left) succ = succ->left;
-            root->val = succ->val;
+            root->val   = succ->val;
             root->right = deleteNode(root->right, succ->val);
         }
         return root;
@@ -130,21 +141,17 @@ public:
 ```python
 class Solution:
     def deleteNode(self, root: Optional[TreeNode], key: int) -> Optional[TreeNode]:
-        if not root:
-            return None
+        if not root: return None
         if key < root.val:
-            root.left = self.deleteNode(root.left, key)
+            root.left  = self.deleteNode(root.left, key)
         elif key > root.val:
             root.right = self.deleteNode(root.right, key)
         else:
-            if not root.left:
-                return root.right
-            if not root.right:
-                return root.left
+            if not root.left:  return root.right
+            if not root.right: return root.left
             succ = root.right
-            while succ.left:
-                succ = succ.left
-            root.val = succ.val
+            while succ.left: succ = succ.left
+            root.val   = succ.val
             root.right = self.deleteNode(root.right, succ.val)
         return root
 ```
@@ -154,14 +161,14 @@ class Solution:
 class Solution {
     public TreeNode deleteNode(TreeNode root, int key) {
         if (root == null) return null;
-        if (key < root.val) root.left = deleteNode(root.left, key);
-        else if (key > root.val) root.right = deleteNode(root.right, key);
+        if (key < root.val)       root.left  = deleteNode(root.left,  key);
+        else if (key > root.val)  root.right = deleteNode(root.right, key);
         else {
-            if (root.left == null) return root.right;
+            if (root.left == null)  return root.right;
             if (root.right == null) return root.left;
             TreeNode succ = root.right;
             while (succ.left != null) succ = succ.left;
-            root.val = succ.val;
+            root.val   = succ.val;
             root.right = deleteNode(root.right, succ.val);
         }
         return root;
@@ -169,22 +176,21 @@ class Solution {
 }
 ```
 
-**Complexity:** O(h) time · O(h) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"BST Delete Cases"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Delete in BST"** → search first, then 0/1/2 case.
+- **"Two children"** → copy successor value, delete successor — not full node swap.
+- **"Return root"** → every call returns updated subtree head for parent assignment.
+- **"Same search as Day 11"** → `<` left, `>` right until found or null.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If Case 2 confused you, redraw the three-case diagram from the concept page before reattempting.
 
-> 🎯 **Pattern Unlocked:** BST Delete Cases
+> 🎯 **Pattern Unlocked:** BST Delete Cases — 0/1 bypass, 2 = successor copy + delete.
 
 ---
 

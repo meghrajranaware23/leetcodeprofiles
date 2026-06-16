@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 9 Checkpoint
 
 > **Level-Order Patterns** · 2 quests completed · ⭐ 50 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 9 varies **what you record per BFS level** — same Day 3 queue skeleton, new inner-loop rules.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "right side view" | BFS last per level | `i == sz - 1` |
+| "zigzag" / "spiral" level order | Deque direction flip | Pop front vs back |
+| "each level" / "level order" | Day 3 BFS + level-size loop | Horizontal waves |
+| "root-to-leaf path" | **DFS Day 6** — not BFS | Vertical threads |
+| "maximum width of tree" | BFS + index tracking | D-Rank test #662 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Nodes visible from right side"* → **BFS last per level**
+2. *"Alternate left-to-right and right-to-left per level"* → **Deque zigzag**
+3. *"Average of each level"* → **Day 3 BFS** — sum/count per wave
+4. *"Path sum root to leaf"* → **Day 6 DFS** — not level-order
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Return the left side view of a binary tree."*
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+Which pattern? **BFS first per level** — `i == 0` instead of `i == sz-1`.
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+**Scenario 2:** *"Find the smallest value at each depth."*
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+Which pattern? **BFS level loop** — track min (or first/last) per wave.
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+**Scenario 3:** *"Connect each node to its right neighbor on the same level (perfect tree)."*
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+Which pattern? **BFS level linking** — D-Rank test #116. Use existing `next` pointers as O(1) space bridge.
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three = Day 3 BFS skeleton with different per-level capture.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **No level-size inner loop** — Can't identify level boundaries.
+2. **Recording first node for right view** — Need last (`i == sz-1`).
+3. **Zigzag: wrong push order on reverse level** — Push right before left to front.
+4. **Enqueuing null nodes** — Only push existing children.
+5. **Using DFS when problem says "each level"** — BFS is the natural fit.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Binary Tree Level Order Traversal II #107](https://leetcode.com/problems/binary-tree-level-order-traversal-ii/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Level Order II on LeetCode](https://leetcode.com/problems/binary-tree-level-order-traversal-ii/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Return level order bottom-up — standard BFS, then reverse result (or prepend each level).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Same Day 3 loop — one line change at the end.
+
+> 💡 **Hint:** BFS collect levels → `reverse(res)` or `insert(0, level)`.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 9 complete! Tomorrow: the next branch of your ascension. →*
+*Day 9 complete! Tomorrow: explicit stacks replace the call frame. →*

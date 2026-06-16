@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 5 Checkpoint
 
 > **Tree Comparison** · 2 quests completed · ⭐ 40 XP earned
@@ -6,67 +7,88 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 5 is **⇄ side-by-side recursion** — parallel vs mirror pairing. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "binary tree" + "depth/height" | Bottom-up recursion | Combine child heights |
-| "path sum" / "root to leaf" | Top-down DFS | Carry running state down |
-| "same tree" / "subtree of" | Parallel recursion | Compare two nodes at a time |
-| "level order" / "each level" | BFS with queue | Process breadth-first |
-| "construct from traversals" | Divide and conquer | Preorder root + inorder split |
-| "validate BST" | Range-bounded DFS | Pass min/max down |
+| "same tree" / "identical" | Parallel `(p.left,q.left)`, `(p.right,q.right)` | Corresponding nodes |
+| "symmetric" / "mirror of itself" | Mirror `(a.left,b.right)`, `(a.right,b.left)` | Cross pairing |
+| "two roots" / two trees | Two-parameter DFS | Side-by-side compass |
+| "subtree of another tree" | Search + parallel same() | #572 test pattern |
+| "both null" | true | Empty matches empty |
+| "one null" | false | Shape mismatch |
+| "corresponding" | Parallel | Not cross |
+| "reflection across center" | Mirror | Left vs right subtree |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 5 pattern fires first?
 
-1. *"Find the maximum depth of a binary tree"* → **Bottom-up recursion** (1 + max of children)
-2. *"Check if two trees are identical"* → **Parallel recursion** (compare node + both subtrees)
-3. *"Return values level by level"* → **BFS** (queue + level separation)
-4. *"Find all paths with target sum"* → **Top-down DFS** (carry sum, backtrack at leaves)
+1. *"Check if trees p and q are identical"* → **Parallel** — L-L, R-R
+2. *"Check if tree is symmetric"* → **Mirror** — L-R, R-L
+3. *"same(p.left, q.left) && same(p.right, q.right)"* → **Same Tree #100**
+4. *"mirror(a.left, b.right) && mirror(a.right, b.left)"* → **Symmetric #101**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've mastered Same Tree and Symmetric Tree. Can you wire pairing correctly on variants?
 
-**Scenario 1:** *"Given a binary tree, return the number of nodes."*
+**Scenario 1:** *"Is subRoot a subtree of root?"*
 
-Which pattern? **Bottom-up or simple DFS.** Return 1 + left count + right count. Or just traverse and increment.
+Which pattern? **DFS search on root** + call **parallel same()** when roots align. OR at each node.
 
-**Scenario 2:** *"Given a binary tree, check if it is symmetric."*
+**Scenario 2:** *"Merge two binary trees by adding values at corresponding nodes."*
 
-Which pattern? **Parallel mirror recursion.** Compare left.left with right.right and left.right with right.left.
+Which pattern? **Parallel walk** — `(p.left,q.left)`, `(p.right,q.right)` — but build new nodes instead of `&&`.
 
-**Scenario 3:** *"Given a binary tree, find the bottom-most left value."*
+**Scenario 3:** *"Check if tree B is mirror of tree A (two separate trees)."*
 
-Which pattern? **BFS level-order.** Track the first node at each level; the last level's first node is the answer.
+Which pattern? **Mirror pairing on two roots** — same as symmetric helper, both trees external.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Name **which child pairs with which** before coding. Parallel vs mirror is one line difference.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting null check** — Every tree function starts with `if not node: return`.
-2. **Wrong traversal order** — Draw the tree and trace before coding.
-3. **Using global when return suffices** — Prefer returning values from recursion.
-4. **Not tracing on paper** — Tree problems are visual. Always draw first.
-5. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Return values coming up = bottom-up.
+1. **Mirror pairing in Same Tree** — Left must match left, not right.
+
+2. **Parallel pairing in Symmetric** — Must cross: left vs opposite right.
+
+3. **Compare root to itself for symmetric** — Start with `mirror(root.left, root.right)`.
+
+4. **Ignore null structure** — `[1,2]` vs `[1,null,2]` must be false.
+
+5. **Serialize instead of recurse** — Misses interview-expected two-pointer template.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Subtree of Another Tree #572](https://leetcode.com/problems/subtree-of-another-tree/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Subtree on LeetCode](https://leetcode.com/problems/subtree-of-another-tree/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 4-node tree. Trace your approach by hand.
+Check if `subRoot` is a subtree of `root` (same structure and values).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+```
+Input:  root = [3,4,5,1,2],  subRoot = [4,1,2]
+Output: true
+```
+
+### 🔍 Pattern Recognition for This Challenge
+
+| Clue | Signal |
+|---|---|
+| "subtree of another tree" | Search main + parallel same() |
+| "same structure and values" | Reuse Same Tree #100 logic |
+| Two trees | Side-by-side at candidate roots |
+
+**Before you code:** When do you call `same(root, subRoot)` vs recurse into `root.left`?
+
+> 💡 **Hint:** At every node: `same(root, sub) || dfs(root.left, sub) || dfs(root.right, sub)`.
 
 ---
 
@@ -74,9 +96,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Easy | Parallel Recursion |
-| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Easy | Mirror Recursion |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Easy | Parallel pairing |
+| [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Easy | Mirror pairing |
 
 ---
 
-*Day 5 complete! Tomorrow: the next branch of your ascension. →*
+*Day 5 complete! E-Rank tests next — prove the full compass. →*

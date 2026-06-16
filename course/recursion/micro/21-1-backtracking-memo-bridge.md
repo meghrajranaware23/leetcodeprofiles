@@ -1,117 +1,221 @@
+<!-- hand-authored -->
 # 📝 Backtracking + Memoization Bridge
 
 > **Day 21** · Backtracking + Memoization Bridge · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Overlap Recognition visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+Days 14–20 taught **backtracking**: choose, explore, unchoose on a decision tree. Today you meet a cousin problem that *looks* like string partition backtracking — but the same **starting index** gets asked again and again. That overlap is the bridge to **memoization**.
+
+Your mission: see **index memo** as a cache on the recursion tree before you code Word Break I and II.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
-### 1. What is the pattern?
+### 1. The shared skeleton — partition by index
 
-**Overlap Recognition** — the core technique you'll use in today's quests.
-
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
-
-### 2. Simple explanation
-
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
-
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
+Both Word Break problems share the same recursive shape from Day 14 (Palindrome Partitioning, Restore IP):
 
 ```
-N-Queens row-by-row with pruning:
-
-Row 0: place Q at col 0
-Row 1: try col 0 ✗ (same column)
-       try col 1 ✗ (diagonal)
-       try col 2 ✓
-Row 2: try cols... ✗ all blocked → BACKTRACK to row 1
-       try col 3 ✓
-...
-
-Pruned branches never explored → saves exponential time
+wb(i):  // can we segment s[i..] using the dictionary?
+    if i == len(s): return success / collect answer
+    for j from i+1 to len(s):
+        if s[i..j] is a valid word:
+            if wb(j) succeeds: ...
 ```
 
-### 4. How the pattern works
+**What shrinks?** The start index `i` moves right after each word cut.  
+**Base case:** `i == n` — entire string consumed.
+
+This is **not** push/pop on a path for Word Break I. You're asking a yes/no question: *does the suffix starting at `i` break cleanly?*
+
+### 2. Visual — index memo: wb(0) calls wb(3)
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+s = "leetcode"   dict = {leet, code}
+
+wb(0)
+  cut "l"     → not in dict
+  cut "le"    → not in dict
+  cut "lee"   → not in dict
+  cut "leet"  ✓ → wb(4)
+                  cut "c"   → no
+                  cut "co"  → no
+                  cut "cod" → no
+                  cut "code" ✓ → wb(8) → BASE i==8 ✓
+
+Return true: "leetcode" = "leet" + "code"
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+Now watch **overlap**. On a longer string, two different cut sequences can land on the **same index**:
 
-### 5. What problem does this solve?
+```
+s = "aaaaaab"  (bad dict, illustrative)
 
-| Problem family | How this pattern helps |
+wb(0) tries cuts that eventually ask wb(3)
+wb(1) tries cuts that also ask wb(3)   ← same subproblem!
+
+Without memo: wb(3) recomputed from scratch every time → exponential
+With memo:    wb(3) computed once, cached at memo[3]
+```
+
+**The memo key is the index `i`**, not the path of words chosen. State = *"what suffix remains?"*
+
+```
+memo[i] = can s[i..] be segmented?          (Word Break I)
+memo[i] = all sentence strings from s[i..]  (Word Break II)
+```
+
+### 3. Word Break I (#139) — pure index memo
+
+Question: **boolean** — does *any* valid segmentation exist?
+
+```
+function wb(i):
+    if i == n: return true
+    if memo[i] already known: return memo[i]
+
+    for each cut j > i:
+        if s[i..j] in dict AND wb(j):
+            memo[i] = true; return true
+
+    memo[i] = false; return false
+```
+
+No `path` push/pop. The recursion **returns** truth up the stack. Memo stores `-1/0/1` or `true/false` per index.
+
+**Complexity intuition:** O(n²) cuts × O(1) memo lookup = O(n²) total subproblems.
+
+### 4. Word Break II (#140) — backtracking tree + index memo
+
+Question: **generate all** valid sentences.
+
+The **decision tree** is real again — each valid word at `i` is a branch:
+
+```
+s = "catsanddog"  dict = {cat, cats, and, sand, dog}
+
+wb(0)
+├─ "cat"  → wb(3)
+│   ├─ "sand" → wb(7)
+│   │   └─ "dog" → wb(10) ✓  →  "cat sand dog"
+│   └─ "and" → wb(6) ...
+└─ "cats" → wb(4)
+    └─ "and" → wb(7)
+        └─ "dog" → wb(10) ✓  →  "cats and dog"
+```
+
+**Pure backtracking** (no memo) revisits the same index with the same suffix work:
+
+```
+wb(7) called from "cat sand | dog..."
+wb(7) called again from "cats and | dog..."   ← different path, same index
+```
+
+**Hybrid:** memo[i] = list of all sentence completions from `s[i..]`. First visit computes; later visits return the cached list and **skip re-walking the subtree**.
+
+```
+for word w at cut (i, j):
+    for each tail in memo[j]:          // cached suffix sentences
+        combine w + tail into result
+    store all combinations at memo[i]
+```
+
+| Word Break I | Word Break II |
 |---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+| Return `bool` | Return `List<String>` |
+| Short-circuit on first success | Must explore all branches once per index |
+| Memo = reachable? | Memo = all completions from index |
+| No path variable | Combines cached tails (implicit backtrack) |
 
-### 6. Why brute force / iteration fails
+### 5. Contrast — when memo helps vs pure backtrack
 
-| Brute force | Problem |
+| Signal | Reach for |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| "Can it be done?" / "is it possible?" | Index memo with boolean (WB I) |
+| "Return all ways" + same suffix revisited | Backtracking + memo on index (WB II) |
+| "Return all ways" + no overlapping index states | Pure backtrack (Palindrome Partitioning — each `i` visited once per path) |
+| Count ways with heavy overlap | Memo on index with count (Day 23+) |
 
-### 7. The key observation
+**Palindrome Partitioning** also cuts by index, but every path strictly increases `i` — you never ask *"from index 3, what are all answers?"* from two unrelated branches with identical remaining suffix **unless** you structure it that way. Word Break II's combinatorial explosion makes index memo essential.
 
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
+### 6. Why brute force fails
 
-### 8. Pattern signals & recognition clues
+| Approach | Problem |
+|---|---|
+| Try every split with nested loops | O(2^n) cuts, no structure |
+| WB I without memo | Recomputes `wb(j)` exponentially many times |
+| WB II without memo | Regenerates identical suffix sentences from every path |
+| BFS/DP bottom-up for WB II | Valid — but today's goal is seeing **top-down memo** as backtracking's ally |
+
+### 7. Foreshadow — A-Rank Day 23
+
+Today is the **bridge**: you already know backtracking; you add a **cache keyed by subproblem state**.
+
+Day 23 (A-Rank) generalizes this:
+
+```
+if state in memo: return memo[state]
+... recurse ...
+memo[state] = result
+```
+
+Word Break I is the cleanest intro — state = single index. House Robber, Decode Ways — state = index or (index, flag). Same picture: **overlap recognition → memo → top-down DP**.
+
+> 💡 **B-Rank takeaway:** Draw the tree. Circle repeated `(i)` nodes. That's where memo lives.
+
+### 8. Pattern signals
 
 | When the problem says… | Think… |
 |---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
+| "word break" / "segment string" / dictionary cuts | Index loop `i..j`, recurse from `j` |
+| "true/false" + same suffix asked many times | Boolean memo on index |
+| "return all sentences" + suffix overlap | List memo on index + combine |
+| "partition" without dict | Backtrack + validator (Day 14) |
+| "how many ways" + overlap | Count memo (Day 23 preview) |
 
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
+**Keywords:** `index memo` · `wb(i)` · `suffix` · `overlap` · `cache` · `combine tails`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Memoizing the path of words, not the index | Key = start index `i` only |
+| Using push/pop path for WB I | Return bool — no shared path |
+| Forgetting to store false in memo (WB I) | Cache failures too — prevents recomputation |
+| WB II: building strings without memo[j] | Ask cached suffix first, then prepend word |
+| Confusing WB II with Palindrome Partitioning push/pop | WB II memo replaces re-exploration; path is implicit in combine |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array, generate all possible subsets."*
+> *"Given string `s` and a dictionary, determine if `s` can be segmented into dictionary words."*
 
 Before coding, say:
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Index recursion wb(i). Base: i==n. Loop cuts, dict check, recurse wb(j). Memo[i] = bool. Overlap at same index → cache."*
+
+Read the variant:
+
+> *"Return every valid sentence."*
+
+Before coding, say:
+
+> *"Same cut loop, but memo[i] = list of suffix sentences. Combine word + each memo[j] tail. Cache before backtracking explodes."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+## Part 2 — What's Next
+
+Today's quests are the pair that defines the bridge:
+
+1. **Word Break #139** — boolean index memo (pure overlap recognition)
+2. **Word Break II #140** — backtracking tree + index memo hybrid
+
+Trace `wb(0)` on paper. Mark every call to `wb(j)`. Circle duplicates — that's your memo table.
+
+---
+
+*You see the overlap. First quest: cache yes/no at each index. →*

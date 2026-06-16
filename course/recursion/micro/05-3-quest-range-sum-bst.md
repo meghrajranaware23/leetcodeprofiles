@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Range Sum of BST
 
 > **Day 5** · [Range Sum of BST #938](https://leetcode.com/problems/range-sum-of-bst/) · Easy · 10 min
@@ -10,51 +11,53 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Range Sum of BST on LeetCode](https://leetcode.com/problems/range-sum-of-bst/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. At each node, ask: *"Can left help? Can right help?"* Mark pruned subtrees with an X. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Range Sum of BST #938](https://leetcode.com/problems/range-sum-of-bst/)**
+Given the `root` of a BST and two integers `low` and `high`, return the **sum of values** of all nodes with value in the inclusive range `[low, high]`.
 
-Work through the examples on paper before reading further.
+```
+Input:  root = [10, 5, 15, 3, 7, null, 18],  low = 7,  high = 15
+Output: 32
+Explanation: 7 + 10 + 15 = 32
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bounded DFS**.
+Which pattern from today's concept applies? **Bounded DFS with BST pruning** — pass `[low, high]` down; skip left when `node.val <= low`, skip right when `node.val >= high`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+If you're stuck after 5 minutes: add `node.val` to sum only if it's in range. BST order tells you which side can still contain valid values.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Bounded DFS
+**Pattern used:** Bounded DFS with Pruning (Top-Down Range)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- **BST** + **range [low, high]** → sorted structure enables skipping whole subtrees
+- Sum only **some** nodes → conditional add + conditional recursion
+- Bounds stay the same going down → top-down parameters (not narrowing target like path sum)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "range sum" / "between low and high" | Pass bounds; add if in range |
+| "BST" / "binary search tree" | Prune left/right using ordering |
+| "inclusive range" | `low <= val <= high` for inclusion |
+| "sum of node values" | Accumulate on unwind (`+` child returns) |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Why this pattern works:** In a BST, all left descendants are smaller, all right descendants are larger. If `node.val <= low`, nothing in the left subtree can be ≥ low — skip it. Mirror for the right when `node.val >= high`.
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"null → 0."*
+2. *"Add val if in [low, high], else 0."*
+3. *"Recurse left only if val > low."*
+4. *"Recurse right only if val < high."*
 
 ---
 
@@ -62,12 +65,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **Visit every node, check range** | O(n) always — misses BST prune; still correct but wasteful |
+| **In-order array + two pointers** | O(n) space and time setup |
+| **Prune wrong side** | `val < low` → skip **left**, not right (all left are smaller) |
+| **Bottom-up without bounds** | Subtree sum includes out-of-range nodes — must filter per node or prune |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The insight brute force misses:** BST order turns range queries into **directed search** — you only visit nodes that can still land in `[low, high]`.
 
 ---
 
@@ -75,25 +78,48 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Validate BST #98](https://leetcode.com/problems/validate-binary-search-tree/) | Tighten `(min, max)` per node | Top-down valid interval |
+| [Trim a Binary Search Tree #669](https://leetcode.com/problems/trim-a-binary-search-tree/) | Restructure tree to fit range | Same prune logic + link surgery |
+| [Count BST nodes in range (variants)](https://leetcode.com/problems/range-sum-of-bst/) | Count instead of sum | Identical traversal |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+**Prune subtrees that BST order proves cannot contribute.**
 
 ```
-Apply Bounded DFS step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+BST:        10     range [7, 15]
+           /  \
+          5    15
+         / \     \
+        3   7    18
+
+Visit 10: in range → +10
+  val=10 > low=7  → may visit left
+  val=10 < high=15 → may visit right
+
+Visit 5: NOT in range (5 < 7) → +0
+  val=5 <= low=7 → SKIP LEFT (all left ≤ 5 < 7)  ✂️
+  val=5 < high=15 → visit right
+
+Visit 7: in range → +7
+  7 > low → check left (3 — pruned path from 5's left anyway)
+  7 < high → check right (null)
+
+Visit 15: in range → +15
+  15 > low → visit left (null)
+  15 >= high=15 → SKIP RIGHT (18 > 15)  ✂️
+
+Sum: 10 + 7 + 15 = 32  ✓
+
+Prune diagram at node 5:
+        5  (too small for sum, but right may hold 7)
+       / \
+      ✂️   7   ← left subtree dead (all < 5 < 7)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Pruning is top-down **decision making before the call**. You still **add returns upward**, but whether to recurse left/right depends on state (`low`, `high`) passed from above — Day 5's hallmark.
 
 ---
 
@@ -138,21 +164,20 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(h) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Bounded DFS"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"BST + range"** → Top-down bounds; prune with ordering.
+- **"Skip left when val <= low"** → Everything left is smaller still.
+- **"Skip right when val >= high"** → Everything right is larger still.
+- **"Path sum shrinks one parameter; range sum keeps both"** → Two flavors of Day 5 state.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you visited all nodes anyway, your logic may still be correct — the win is **fewer calls** on large skewed trees.
 
-> 🎯 **Pattern Unlocked:** Bounded DFS
+> 🎯 **Pattern Unlocked:** BST prune DFS — bounds go down; skip subtrees order proves useless.
 
 ---
 

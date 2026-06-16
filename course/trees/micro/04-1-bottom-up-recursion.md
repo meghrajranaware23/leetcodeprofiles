@@ -1,120 +1,131 @@
+<!-- hand-authored -->
 # 📝 Tree Properties via Recursion
 
 > **Day 4** · Tree Properties · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Bottom-Up Recursion visually** before you touch any code. Trace the tree on paper. Watch information flow. Then the recursion becomes obvious.
+Your mission today: **extend bottom-up recursion beyond raw depth** — check structural properties (balanced?) and exploit **complete-tree shape** for faster counting. Same ↑ compass as Day 1 Max Depth, but with **early exit** and **O(log n) math**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Properties Bubble Up (With Smarts)
 
-### 1. What is the pattern?
+### 1. Day 1 vs Day 4 — same direction, harder questions
 
-**Bottom-Up Recursion** — the core technique you'll use in today's quests.
+| | Day 1 Max Depth #104 | Day 4 today |
+|---|---|---|
+| Question | "How deep?" | "Is it balanced?" / "How many nodes?" |
+| Combine | `1 + max(L, R)` | height + check, or `1 + count` |
+| Early exit? | No — need full depth | **Yes** — imbalance propagates failure |
+| Structure hint | Any binary tree | Complete tree → math shortcut |
 
-Every tree problem reduces to one question: *Where does information flow?*
-- **Down** (top-down): carry state as you descend
-- **Up** (bottom-up): ask children, combine at parent
-- **Across** (BFS): process level by level with a queue
-- **Side-by-side** (parallel): compare or merge two trees
+Both use **↑ bottom-up**: children report; parent combines. Day 4 adds **sentinel returns** and **shape-aware optimization**.
 
-### 2. Simple explanation
+### 2. Balanced tree — height with early exit (#110)
 
-Think of a tree like a family tree. You start at the root (the ancestor). To visit everyone, you either:
-- Go **deep first** (DFS) — finish one branch before the next
-- Go **wide first** (BFS) — visit all children before grandchildren
+A tree is **balanced** if every node's left and right subtree heights differ by at most 1.
 
-Recursion is just: *"I'll handle my part, and trust my children to handle theirs."*
-
-### 3. Visual walkthrough
+**Naive:** compute height separately at every node → O(n²).  
+**Smart:** one postorder pass returns height, but **propagate failure** when `|L − R| > 1`.
 
 ```
-        1
+height(node):
+    if null: return 0
+    L = height(left)
+    R = height(right)
+    if |L - R| > 1: mark FAIL (or return -1 sentinel)
+    return 1 + max(L, R)
+```
+
+Once a subtree is imbalanced, ancestors don't need precise height — answer is already false.
+
+**Contrast Day 1 depth:** Max Depth always combines fully. Balanced needs **check at combine time**.
+
+### 3. Complete tree counting — O(log² n) insight (#222)
+
+A **complete** binary tree fills levels left-to-right — no gaps until the last row.
+
+**Key observation:** Walk left spine → `leftHeight`. Walk right spine → `rightHeight`.
+
+```
+If leftHeight == rightHeight:
+    Perfectly filled through bottom → nodes = 2^h - 1   (math, stop recursing)
+
+Else:
+    Last level partial → 1 + count(left) + count(right)
+```
+
+Each mismatch cuts problem size in half → **O(log² n)** instead of O(n) visit every node.
+
+**Contrast Day 1 depth:** Max Depth visits every node. Complete-tree count **skips** whole perfect subtrees with one formula.
+
+### 4. Visual — balanced check on small tree
+
+```
+        3
        / \
-      2    3
-     / \    \
-    4    5    6
+      9  20
+        /  \
+       15   7
 
-Step 1: Start at root [1]
-Step 2: Go left to [2]
-Step 3: Go left to [4] (leaf — return)
-Step 4: Back to [2], go right to [5] (leaf — return)
-Step 5: Back to [1], go right to [3]
-Step 6: Go right to [6] (leaf — return)
+heights bubble up:
+  15 → 1,  7 → 1,  9 → 1
+  20 → 1 + max(1,1) = 2   |1-1| ≤ 1 ✓
+  3  → 1 + max(1,2) = 3   |1-2| ≤ 1 ✓  → balanced
 ```
 
-### 4. How the pattern works
+Imbalanced example — stop early when diff > 1 at any node.
 
-```
-function solve(node):
-    if node is null: return base_case
-    left_result  = solve(node.left)   // trust left subtree
-    right_result = solve(node.right)  // trust right subtree
-    return combine(node, left_result, right_result)
-```
+### 5. Pattern signals — Day 4 only
 
-The magic: you never need to think about the whole tree — just the current node and what your children return.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
+| When the problem says… | Think… |
 |---|---|
-| Traversals | Visit every node in a specific order |
-| Properties (height, depth, count) | Combine child results at each node |
-| Path problems | Carry running state down or gather up |
-| Tree comparison | Mirror recursion on two trees |
-| Construction | Split and rebuild from traversal orders |
+| "balanced binary tree" | ↑ height + abs diff check; early exit |
+| "height difference at most 1" | Combine at parent, not separate passes |
+| "complete binary tree" + count | Left/right spine heights; `2^h - 1` shortcut |
+| "count nodes" + complete guarantee | O(log² n) recursion |
+| "return -1 sentinel" | Propagate failure up without extra pass |
+| "every node" property check | Bottom-up, not BFS levels |
+| "perfect binary tree" (related) | Both spines equal → full formula |
+| "subtree height" reuse | Same bubble as Max Depth + predicate |
+
+**Keywords:** `balanced` · `complete` · `height` · `sentinel` · `2^h - 1` · `early exit`
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Store all paths in an array | O(n²) space — most nodes aren't on the answer path |
-| BFS when DFS suffices | Unnecessary queue overhead |
-| Global traversal without recursion | You lose the natural subtree structure |
-| Iterating without understanding order | Wrong visit order = wrong answer |
+| **Recompute height at every node independently** | O(n²) on skewed trees |
+| **BFS to check balance** | Awkward; height diff is recursive |
+| **Visit all n nodes on complete tree** | Misses `2^h - 1` shortcut |
+| **Global flag without height return** | Still need one pass — combine smartly |
+| **Confuse depth (Day 1) with balance** | Depth = max; balance = compare both sides |
 
-### 7. The key observation
-
-**A tree is defined by its subtrees.** Every node is the root of its own smaller tree. Recursion exploits this: solve the big tree by solving two smaller trees and combining.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "traverse" / "visit all nodes" | DFS or BFS |
-| "depth" / "height" / "max depth" | Bottom-up recursion |
-| "path from root to leaf" | Top-down with running state |
-| "diameter" / "longest path" | Bottom-up + global update |
-| "same tree" / "symmetric" / "subtree" | Parallel recursion |
-| "level order" / "each level" | BFS with queue |
-| "BST" / "sorted" / "validate" | BST invariant + inorder |
-| "lowest common ancestor" | Split detection recursion |
-
-**Keywords:** `binary tree` · `subtree` · `root-to-leaf` · `depth` · `traverse` · `recursive`
-
-### 9. Common beginner mistakes
+### 7. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting null base case | Always check `if not node: return` |
-| Confusing depth vs height | Depth = distance from root; height = distance to deepest leaf |
-| Not returning child results | Bottom-up MUST return combined value |
-| Mixing up traversal orders | Draw the tree and trace by hand first |
-| Using global when return works | Prefer returning values over globals when possible |
+| Two separate height functions | One DFS returns height + checks diff |
+| Forgetting one-child nodes in min depth (test preview) | Different guard than max depth |
+| Using BFS for balance | Property is recursive on subtrees |
+| `2^h` off-by-one | Full level count = `2^h - 1` nodes |
+| No early exit on imbalance | Return sentinel immediately |
 
-### 10. Recognition drill
+### 8. Bridge from Day 1 and Day 3
 
-Read this problem aloud:
+- **Day 1:** ↑ `1 + max(L,R)` — always finish both subtrees.
+- **Day 3:** ↔ BFS levels — horizontal, not property bubble.
+- **Day 4:** ↑ same bubble, but **predicate at combine** (balanced) or **shape math** (complete count).
 
-> *"Given a binary tree, find its maximum depth."*
+### 9. Recognition drill — today's quests
 
-Before coding, say:
+**Quest 1 — Balanced #110:**
+> *"↑ Return height; if |L−R|>1 fail. One pass, early exit."*
 
-> *"Depth = 1 + max(left depth, right depth) → bottom-up recursion, base case null returns 0."*
+**Quest 2 — Count Complete #222:**
+> *"Compare left/right spine heights. Equal → `2^h−1`. Else split."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You extend the depth bubble. Quest 1 checks balance on the way up. →*

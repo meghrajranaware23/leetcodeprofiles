@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 15 Checkpoint
 
 > **Combination Sum Variants** · 2 quests completed · ⭐ 85 XP earned
@@ -6,71 +7,49 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
-
-| When you see... | Think... | Why |
+| When you see... | Include index | Dedup |
 |---|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion | Smaller self-similar subproblem |
-| "how many ways" + overlapping subproblems | Recursion + memoization | Smaller self-similar subproblem |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking | Smaller self-similar subproblem |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking | Smaller self-similar subproblem |
-| "combination sum" / "pick k from n" | Combination backtracking + start index | Smaller self-similar subproblem |
-| "partition" / "split string" / "restore IP" | String partition backtracking | Smaller self-similar subproblem |
-| "word search" / "grid path" / "visit all cells" | Grid backtracking + mark/unmark | Smaller self-similar subproblem |
-| "N-Queens" / "Sudoku" / board constraints | Constraint satisfaction backtracking | Smaller self-similar subproblem |
-| "matchsticks" / "partition equal" / assign to buckets | Partition backtracking + pruning | Smaller self-similar subproblem |
-| "regex" / "wildcard" / pattern matching | Recursive string matching + memo | Smaller self-similar subproblem |
+| Combination sum, unlimited reuse (#39) | Stay at `i` | None |
+| Combination sum, single use (#40) | **`i + 1`** | Sort + while-skip |
+| Exactly k digits sum to n (#216) | `i + 1` | Not needed (1-9 unique) |
+| Subsets with duplicates (#90) | `j + 1` | `j > start` skip |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+1. *"Sum to target, reuse allowed"* → **#39: include→i.**
 
-1. *"Reverse a string in-place using recursion"* → **Linear recursion** (swap ends, recurse middle)
-2. *"Generate all subsets of an array"* → **Subset backtracking** (include/exclude)
-3. *"Find maximum depth of a binary tree"* → **Bottom-up return** (1 + max(children))
-4. *"Search a word in a 2D grid"* → **Grid backtracking** (mark/unmark cells)
+2. *"Sum to target, each once, duplicates in array"* → **#40: include→i+1, sort, while-skip.**
+
+3. *"3 numbers 1-9 sum to 15"* → **#216: dfs(k-1, n-i, i+1).**
+
+4. *"All subsets with duplicates"* → **Day 11: j>start skip — different structure.**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Coin change combos, each coin once, infinite supply types but one coin each pick."*
 
-**Scenario 1:** *"Given a string, generate all permutations of its characters."*
+Combination Sum II structure — single use per index, not unlimited.
 
-Which pattern? **Permutation backtracking.** Used[] array or swap-based. Base case: path length == n.
+**Scenario 2:** *"Pick 4 cards summing to 24 from 1-13 deck."*
 
-**Scenario 2:** *"Given n, compute x^n efficiently."*
-
-Which pattern? **Binary recursion (divide and conquer).** Half the exponent each call. O(log n).
-
-**Scenario 3:** *"Given a grid, find all paths from top-left to bottom-right."*
-
-Which pattern? **Grid backtracking or DFS.** Depends on constraints — backtrack if visiting each cell once.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+Fixed k + target + start index — prune when sum exceeds 24.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Missing base case** — Every recursive function needs a stopping condition.
-2. **Not tracing on paper** — Recursion problems are visual. Always trace first.
-3. **Forgetting to undo (backtracking)** — Pop/remove after exploring a branch.
-4. **Confusing top-down vs bottom-up** — Parameters going down = top-down. Returns coming up = bottom-up.
-5. **Stack overflow** — Add memoization or switch to iteration for deep recursion.
+1. **dfs(i,...) on include for #40** — Reintroduces reuse.
+2. **Forgetting sort before while-skip** — Dedup fails.
+3. **n==0 without k==0 in #216** — Wrong-length combos.
+4. **Confusing #40 with #39** — Read "each once" carefully.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
-
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Trace one example by hand on paper.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+From memory: write Combination Sum II's two dfs calls and the while-skip line.
 
 ---
 
@@ -78,9 +57,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Medium | Single-Use with Dedup |
-| [Combination Sum III #216](https://leetcode.com/problems/combination-sum-iii/) | Medium | Fixed Count Combinations |
+| [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Medium | single use + dedup |
+| [Combination Sum III #216](https://leetcode.com/problems/combination-sum-iii/) | Medium | k + sum |
 
 ---
 
-*Day 15 complete! Tomorrow: the next descent of your ascension. →*
+*Day 15 complete. Tomorrow: backtracking meets grids. →*

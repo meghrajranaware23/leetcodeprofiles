@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Generate Parentheses (Revisited)
 
 > **Day 26** · [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) · Medium · 15 min · 35 XP
@@ -10,51 +11,70 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Generate Parentheses on LeetCode](https://leetcode.com/problems/generate-parentheses/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** This is a **Day 8 revisit** — draw the n=2 open/close tree on paper. Code from memory for 5 minutes before reading hints.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/)**
+Given `n` pairs of parentheses, write a function to generate all **combinations of well-formed parentheses**.
 
-Work through the examples on paper before reading further.
+```
+Input:  n = 3
+Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
+
+Input:  n = 1
+Output: ["()"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Constrained Generation**.
+> **Synthesis check:** This is the **constrained open/close tree** from Day 8 — same push/pop, different branch gates.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 1:** State = `(open, close)` + path. `open` = remaining `(` to place; `close` = `)` count so far.
+
+**Hint 2:** Base when `len(path) == 2 * n` → record.
+
+**Hint 3:** Add `(` if `open > 0`. Add `)` if `open > close` (more opens placed than closes).
+
+**Hint 4:** Pop after each branch — same backtrack rhythm as phone pad.
+
+**Hint 5:** Contrast with quest 1: here **branches are gated**. Invalid `")("` prefixes never exist in the tree.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Constrained Generation
+**Pattern used:** Constrained Open/Close Generation (Day 8 revisit)
 
 **How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
+- "Generate all" + "well-formed" → DFS with **pruning**, not generate-all-then-filter
+- Two choices per step (when valid): `(` or `)`
+- State = how many opens remain + how many closes placed
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
+| "well-formed parentheses" | `open > close` before adding `)` |
+| "n pairs" | Path length `2n`, start `open=n` |
+| "generate all" | Collect at base, backtrack with pop |
+| "balanced" | Never more `)` than `(` at any prefix |
 
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+**Synthesis contrast with Letter Combinations #17:**
+
+| Generate Parentheses #22 | Letter Combinations #17 |
+|---|---|
+| State: `(open, close)` | State: index `i` |
+| ≤2 branches, pruned | 3–4 branches, all valid |
+| Constraint on every prefix | No prefix constraint |
+| Invalid strings never built | All paths are answers |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Day 8 parentheses — open/close counters, not 2^(2n) strings."*
+2. *"Add `)` only when `open > close`."*
+3. *"Add `(` when `open > 0`."*
+4. *"Pop after each dfs — same rhythm as phone pad."*
 
 ---
 
@@ -62,12 +82,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
+| **All 2^(2n) strings of ( and )** | Exponential waste — most invalid |
+| **Generate then validate with stack** | Same waste — filter after build |
+| **Add `)` when `close < n` only** | Allows invalid prefixes like `())` |
+| **No pop after recurse** | Path leaks chars into sibling branches |
 
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+**The synthesis insight:** Phone pad fans out freely; parentheses **prunes at generation**. Same template — different gate function.
 
 ---
 
@@ -75,25 +95,52 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Generate Parentheses #22](https://leetcode.com/problems/generate-parentheses/) | open/close balance | Constrained DFS + pop |
+| [Letter Combinations #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | multi-branch index | Same skeleton, no pruning |
+| [Valid Parenthesis String #678](https://leetcode.com/problems/valid-parenthesis-string/) | `*` wildcard | DFS with lo/hi bounds |
+| [Different Ways to Add Parentheses #241](https://leetcode.com/problems/different-ways-to-add-parentheses/) | Insert ops | Partition + recurse |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`n = 2` — constrained open/close tree (Day 8 revisit):
 
 ```
-Apply Constrained Generation step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+                    ""  open=2 close=0
+                     |
+                    "("  open=1 close=0
+                   /         \
+              "(("           "()"  open=1 close=1
+             open=0           |
+                |            "()(" open=0 close=1
+             "(())" ✓          |
+                            "()()" ✓
+
+Pruned: ")" at root never appears — open > close fails.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Side-by-side with phone pad (`"23"`) from quest 1:
+
+```
+Parentheses n=2:              Phone pad "23":
+  max 2 branches                 3 branches always
+  gated by open/close            no gates
+  2 valid leaves                 9 valid leaves
+  depth = 4                      depth = 2
+```
+
+Code trace — `dfs(open=2, close=0, path="")`:
+
+```
+'(' → dfs(1,0,"(")
+  '(' → dfs(0,0,"((")  ... eventually "(())" ✓
+  ')' → dfs(1,1,"()") when open>close
+    '(' → dfs(0,1,"()(")
+      ')' → dfs(0,2,"()()") → RECORD ✓
+```
+
+> 💡 **The insight:** If you can explain why `")("` never appears in the tree, you understand synthesis. The code is the tree written in syntax.
 
 ---
 
@@ -166,21 +213,20 @@ class Solution {
 ```
 
 **Complexity:** O(4^n / √n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Constrained Generation"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
+- **"Day 8 revisit — open/close tree"** → Prune during DFS, not after.
+- **"Same push/pop as phone pad"** → Only the branch gates differ.
+- **"Well-formed = prefix constraint"** → `open > close` before every `)`.
+- **"Synthesis complete"** → You can name both trees and code both cold.
 
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you mixed up the two templates, re-read today's concept page side-by-side diagram — then retry without notes.
 
-> 🎯 **Pattern Unlocked:** Constrained Generation
+> 🎯 **Pattern Unlocked:** Constrained Open/Close Generation — Day 8 synthesis confirmed.
 
 ---
 

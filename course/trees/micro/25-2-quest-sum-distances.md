@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Sum of Distances in Tree
 
 > **Day 25** · [Sum of Distances in Tree #834](https://leetcode.com/problems/sum-of-distances-in-tree/) · Hard · 25 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Sum of Distances in Tree on LeetCode](https://leetcode.com/problems/sum-of-distances-in-tree/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the tree as adjacency list. Pass 1: compute subtree sizes and sum from node 0. Pass 2: reroot with `ans[child] = ans[parent] - cnt[child] + (n - cnt[child])`. Hints are for *after* your attempt.
 
 ---
 
@@ -24,37 +25,35 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Re-rooting Technique**.
+Which pattern from today's concept applies? **Re-rooting two-pass** — Pass 1 gathers `cnt[u]` and `ans[0]`; Pass 2 propagates answers using the reroot formula when crossing parent→child edge.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If stuck: when moving root from `u` to child `v`, nodes in `v`'s subtree get 1 closer; everyone else gets 1 farther.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Re-rooting Technique
+**Pattern used:** Re-rooting Technique (Pass 1 Sizes / Pass 2 Reroot)
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- "Sum of distances" **for every node** → can't BFS from each node O(n²)
+- Undirected tree as edges → build adjacency list
+- Output array length n → reroot DP
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "each node" / "all nodes as root" | Rerooting, not single-source BFS |
+| "tree with n nodes" | Two DFS passes O(n) |
+| "edges[i] = [u,v]" | Bidirectional graph |
+| Hard + distance sum | Classic #834 reroot |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Moving root across one edge only changes distance to each node by exactly ±1 depending on which side of the edge they lie. Subtree count `cnt[v]` tells you how many move closer vs farther.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"Build undirected graph from edges."*
+2. *"dfs1(0): cnt[u]+=cnt[v], ans[u]+=ans[v]+cnt[v]."*
+3. *"dfs2(0): ans[v]=ans[u]-cnt[v]+(n-cnt[v])."*
+4. *"Return ans array."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **BFS/DFS from every node** | O(n²) — fails on n=3×10⁴ |
+| **All-pairs shortest path** | O(n³) or O(n² log n) — tree structure wasted |
+| **Recompute sum from scratch on reroot** | O(n) per node — Pass 2 formula is O(1) per edge |
+| **Directed tree only one way** | Need undirected adjacency for both passes |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Only **one edge** changes between adjacent roots — adjust the sum in O(1) using subtree size.
 
 ---
 
@@ -75,31 +74,41 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Tree Diameter #1245](https://leetcode.com/problems/tree-diameter/) | Longest path not sum | Two-pass or two BFS |
+| [Min Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Centroids | Trim leaves — different technique |
+| [Max Score After Split #2497](https://leetcode.com/problems/maximum-score-of-a-tree-split/) | Split edge score | Subtree count from Pass 1 |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: subtree counts unlock global tree metrics.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**n=6, edges: [[0,1],[1,2],[1,3],[3,4],[3,5]]**
 
 ```
-        3
+      0
+      |
+      1
+     / \
+    2   3
        / \
-      9    20
-          /  \
-         15   7
+      4   5
 
-Apply Re-rooting Technique step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+Pass 1 from 0:
+  cnt[2]=1, cnt[4]=1, cnt[5]=1
+  cnt[3]=3, ans[3]=2
+  cnt[1]=5, ans[1]=6
+  cnt[0]=6, ans[0]=11
+
+Pass 2:
+  ans[1] = 11 - 5 + 1 = 7
+  ans[3] = 7 - 3 + 3 = 7
+  ans[2] = 7 - 1 + 5 = 11
+  ...
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Pass 1 computes once from node 0; Pass 2 slides the root along every edge.
 
 ---
 
@@ -108,108 +117,121 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    vector<vector<int>> g;
-    vector<int> cnt, sum;
-    void dfs1(int u, int p) {
-        for (int v : g[u]) if (v != p) {
-            dfs1(v, u);
-            cnt[u] += cnt[v];
-            sum[u] += sum[v] + cnt[v];
+    vector<vector<int>> graph;
+    vector<int> cnt, ans;
+    int n;
+    void dfs1(int node, int par) {
+        for (int child : graph[node]) {
+            if (child == par) continue;
+            dfs1(child, node);
+            cnt[node] += cnt[child];
+            ans[node] += ans[child] + cnt[child];
         }
-        cnt[u]++;
     }
-    void dfs2(int u, int p) {
-        for (int v : g[u]) if (v != p) {
-            sum[v] = sum[u] - cnt[v] + (cnt.size() - cnt[v]);
-            dfs2(v, u);
+    void dfs2(int node, int par) {
+        for (int child : graph[node]) {
+            if (child == par) continue;
+            ans[child] = ans[node] - cnt[child] + (n - cnt[child]);
+            dfs2(child, node);
         }
     }
 public:
     vector<int> sumOfDistancesInTree(int n, vector<vector<int>>& edges) {
-        g.assign(n, {});
-        for (auto& e : edges) { g[e[0]].push_back(e[1]); g[e[1]].push_back(e[0]); }
-        cnt.assign(n, 0); sum.assign(n, 0);
+        this->n = n;
+        graph.resize(n);
+        cnt.assign(n, 1);
+        ans.assign(n, 0);
+        for (auto& e : edges) {
+            graph[e[0]].push_back(e[1]);
+            graph[e[1]].push_back(e[0]);
+        }
         dfs1(0, -1);
         dfs2(0, -1);
-        return sum;
+        return ans;
     }
 };
 ```
 
 ### Python
 ```python
+from collections import defaultdict
 class Solution:
     def sumOfDistancesInTree(self, n: int, edges: List[List[int]]) -> List[int]:
-        g = [[] for _ in range(n)]
+        graph = defaultdict(list)
         for u, v in edges:
-            g[u].append(v)
-            g[v].append(u)
-        cnt, res = [0] * n, [0] * n
-        def dfs1(u, p):
-            cnt[u] = 1
-            for v in g[u]:
-                if v != p:
-                    dfs1(v, u)
-                    cnt[u] += cnt[v]
-                    res[u] += res[v] + cnt[v]
-        def dfs2(u, p):
-            for v in g[u]:
-                if v != p:
-                    res[v] = res[u] - cnt[v] + (n - cnt[v])
-                    dfs2(v, u)
+            graph[u].append(v); graph[v].append(u)
+        cnt = [1] * n
+        ans = [0] * n
+        def dfs1(node, par):
+            for child in graph[node]:
+                if child == par: continue
+                dfs1(child, node)
+                cnt[node] += cnt[child]
+                ans[node] += ans[child] + cnt[child]
+        def dfs2(node, par):
+            for child in graph[node]:
+                if child == par: continue
+                ans[child] = ans[node] - cnt[child] + (n - cnt[child])
+                dfs2(child, node)
         dfs1(0, -1)
         dfs2(0, -1)
-        return res
+        return ans
 ```
 
 ### Java
 ```java
 class Solution {
-    List<Integer>[] g;
-    int[] cnt, sum;
+    private List<List<Integer>> graph;
+    private int[] cnt, ans;
+    private int n;
     public int[] sumOfDistancesInTree(int n, int[][] edges) {
-        g = new List[n];
-        for (int i = 0; i < n; i++) g[i] = new ArrayList<>();
-        for (int[] e : edges) { g[e[0]].add(e[1]); g[e[1]].add(e[0]); }
-        cnt = new int[n]; sum = new int[n];
+        this.n = n;
+        graph = new ArrayList<>();
+        cnt = new int[n]; ans = new int[n];
+        Arrays.fill(cnt, 1);
+        for (int i = 0; i < n; i++) graph.add(new ArrayList<>());
+        for (int[] e : edges) {
+            graph.get(e[0]).add(e[1]);
+            graph.get(e[1]).add(e[0]);
+        }
         dfs1(0, -1);
         dfs2(0, -1);
-        return sum;
+        return ans;
     }
-    void dfs1(int u, int p) {
-        cnt[u] = 1;
-        for (int v : g[u]) if (v != p) {
-            dfs1(v, u);
-            cnt[u] += cnt[v];
-            sum[u] += sum[v] + cnt[v];
+    private void dfs1(int node, int par) {
+        for (int child : graph.get(node)) {
+            if (child == par) continue;
+            dfs1(child, node);
+            cnt[node] += cnt[child];
+            ans[node] += ans[child] + cnt[child];
         }
     }
-    void dfs2(int u, int p) {
-        for (int v : g[u]) if (v != p) {
-            sum[v] = sum[u] - cnt[v] + (cnt.length - cnt[v]);
-            dfs2(v, u);
+    private void dfs2(int node, int par) {
+        for (int child : graph.get(node)) {
+            if (child == par) continue;
+            ans[child] = ans[node] - cnt[child] + (n - cnt[child]);
+            dfs2(child, node);
         }
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Re-rooting Technique"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Sum of distances for ALL nodes"** → reroot — not n BFS calls.
+- **"Pass 1"** → cnt + ans rooted at 0.
+- **"Pass 2 formula"** → `- cnt[child] + (n - cnt[child])`.
+- **"Undirected graph"** → add both edge directions.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you BFS'd from every node, replace with two-pass reroot — same answers, O(n).
 
-> 🎯 **Pattern Unlocked:** Re-rooting Technique
+> 🎯 **Pattern Unlocked:** Re-rooting — Pass 1 subtree sizes, Pass 2 reroot formula.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: N-ary diameter with letter state. →*

@@ -1,118 +1,150 @@
+<!-- hand-authored -->
 # 📝 Interview Simulation
 
 > **Day 27** · Interview Simulation · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Speed Pattern Recognition visually** before you touch any code. Trace the call stack on paper. Watch values flow. Then the recursion becomes obvious.
+In real interviews, two memo problems look **almost identical** on first read: both say *"given nums and a target, can/how many ways…"* Both use recursion + memo. But picking the **wrong memo shape** costs you the problem.
+
+Your mission today: learn to distinguish **ordered combination counting** from **0/1 subset knapsack** in under 30 seconds — then code the right template under time pressure.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Two Memos That Look Alike
 
-### 1. What is the pattern?
+### 1. The interview trap
 
-**Speed Pattern Recognition** — the core technique you'll use in today's quests.
+| | Combination Sum IV #377 | Partition Equal Subset Sum #416 |
+|---|---|---|
+| **Question** | How many **ordered** sequences sum to target? | Can array split into **two equal-sum** subsets? |
+| **Reuse elements?** | Yes — same num can appear many times | No — each element once (include or skip) |
+| **Order matters?** | **Yes** — `[1,2]` ≠ `[2,1]` | **No** — subset membership only |
+| **Return type** | Count (integer) | Boolean |
+| **Memo key** | `target` only (1D) | `(index, remaining)` (2D) |
+| **Loop style** | `for x in nums: dfs(target - x)` | `include(nums[i]) OR skip(nums[i])` |
+| **Reduce target?** | Subtract chosen value | Subtract on include; unchanged on skip |
 
-Every recursive problem reduces to one question: *What is the smaller version of this problem?*
-- **Base case** — the smallest input you can answer directly
-- **Recursive case** — call yourself on a smaller input and combine the result
-- **Trust** — assume the recursive call returns the correct answer
+Both shrink a number on each call. Both cache overlapping subproblems. **The memo dimension tells you which problem you're in.**
 
-### 2. Simple explanation
+### 2. Side-by-side — same nums, different questions
 
-Think of recursion like asking a friend to handle the hard part. You say: *"I'll do my one step — you figure out the rest."* When the friend returns an answer, you combine it with your step.
+`nums = [1, 2, 3]`, `target = 4`
 
-The call stack is just a line of friends waiting for the next friend to finish.
-
-### 3. Visual walkthrough
-
-```
-fib(5) WITH memoization:
-
-        fib(5)
-       /      \
-    fib(4)    fib(3) ← already computed!
-    /    \
- fib(3) fib(2)
-  /   \
-fib(2) fib(1)
-
-Memo cache: { fib(3): 2, fib(2): 1, ... }
-Duplicate subtrees skipped → O(n) instead of O(2^n)
-```
-
-### 4. How the pattern works
+**Combination Sum IV** — order matters, reuse allowed:
 
 ```
-function solve(input):
-    if base_case(input):
-        return direct_answer
-    smaller = reduce(input)
-    sub_result = solve(smaller)   // trust this works
-    return combine(input, sub_result)
+ways(4) = ways(3) + ways(2) + ways(1)
+        = ways(4-1) + ways(4-2) + ways(4-3)
+
+ways(3) includes [1,1,1], [1,2], [2,1]  ← [1,2] and [2,1] BOTH count
+ways(4) = 7 total ordered sequences
+
+Memo: memo[target] = sum of memo[target - x] for each x in nums
+Key: just target (1D array size target+1)
 ```
 
-The magic: you never need to think about the whole problem — just the current step and what the smaller call returns.
+**Partition Equal Subset Sum** — each element once, order irrelevant:
 
-### 5. What problem does this solve?
+```
+total = 6 → need subset summing to 3 (half)
 
-| Problem family | How this pattern helps |
-|---|---|
-| Linear reduction | Reverse, factorial, power — shrink input by one |
-| Tree / list structure | Natural subproblems at each node |
-| Generate all possibilities | Decision tree with choose / explore / unchoose |
-| Count / optimize | Memoize overlapping subproblems |
-| Partition / assign | Try each valid choice, backtrack on failure |
+dfs(i, rem): include nums[i] OR skip nums[i]
+  dfs(i+1, rem - nums[i])  OR  dfs(i+1, rem)
 
-### 6. Why brute force / iteration fails
+[1,2] and [2,1] are the SAME subset — only include/skip per index
+
+Memo: memo[i][rem] = boolean
+Key: (index, remaining) — 2D
+```
+
+### 3. Visual — memo tree shapes
+
+**Ordered counting (377)** — fan out from target, reuse nums:
+
+```
+                    ways(4)
+           /         |         \
+      ways(3)     ways(2)     ways(1)
+      / | \       / | \       / | \
+   w(2) w(1) w(0) ...       ...
+   
+Same target reached by different paths → different orderings → all counted
+Memo[target] stores total count
+```
+
+**0/1 subset (416)** — walk index, binary include/skip:
+
+```
+              dfs(0, rem=3)
+             /              \
+    include nums[0]=1      skip
+    dfs(1, rem=2)          dfs(1, rem=3)
+       /    \                 /    \
+  inc  skip              inc   skip
+  ...  ...                ...   ...
+
+Each index visited once — no reuse
+Memo[i][rem] stores true/false
+```
+
+### 4. Recognition in 30 seconds
+
+Before coding, ask three questions:
+
+| Question | If YES → | If NO → |
+|---|---|---|
+| Does **order** of picks matter? | Ordered combo memo (#377) | Subset / 0-1 memo (#416) |
+| Can the **same element** be reused? | Loop all nums at every target (#377) | Advance index `i+1` on both branches (#416) |
+| Need **boolean** or **count**? | Count → sum children; Bool → OR children | — |
+
+**One-liners for interviews:**
+
+> *"Ordered ways to hit target with reuse → 1D memo on target, loop nums each call."*
+
+> *"Split into equal subset → 2D memo on (index, rem), include OR skip, no reuse."*
+
+### 5. Why brute force fails (both)
 
 | Brute force | Problem |
 |---|---|
-| Nested loops for all combinations | O(n!) — misses the recursive structure |
-| Manual stack simulation without understanding | Hard to debug, easy to lose state |
-| Iterating without base case | Infinite loops or stack overflow |
-| Generating then filtering | Explores invalid branches unnecessarily |
+| Enumerate all sequences for #377 | Exponential — overlap on same target |
+| Enumerate all 2^n subsets for #416 | Exponential — overlap on same (i, rem) |
+| Use start-index combo template on #377 | Misses order — treats [1,2] and [2,1] as one |
+| Use 1D target memo on #416 | Loses index — can't enforce single-use |
 
-### 7. The key observation
-
-**Every recursive problem has self-similar substructure.** The art is naming what gets smaller, what the base case is, and what you do with the returned result.
-
-### 8. Pattern signals & recognition clues
-
-| When the problem says… | Think… |
-|---|---|
-| "reverse" / "factorial" / "power of" / single shrinking input | Simple linear recursion |
-| "how many ways" + overlapping subproblems | Recursion + memoization |
-| "all subsets" / "all combinations" / "include or exclude" | Subset backtracking |
-| "all permutations" / "all arrangements" / order matters | Permutation backtracking |
-| "combination sum" / "pick k from n" | Combination backtracking + start index |
-| "partition" / "split string" / "restore IP" | String partition backtracking |
-| "base case" / "smallest input" | Stop recursion — return directly |
-| "trust" / "assume subproblem solved" | Recursive hypothesis |
-
-**Keywords:** `recursive` · `backtrack` · `all combinations` · `generate` · `partition` · `subsets`
-
-### 9. Common beginner mistakes
+### 6. Common interview mistakes
 
 | Mistake | Fix |
 |---|---|
-| Missing base case | Always define the smallest input first |
-| Not trusting the recursive call | Assume f(n-1) is correct; focus on f(n) |
-| Forgetting to undo (backtracking) | Remove choice after exploring branch |
-| Confusing parameters vs return values | Down = parameters, up = return values |
-| Stack overflow on large input | Add memoization or convert to iteration |
+| Start-index combo on #377 | Order matters — loop ALL nums every call, no start index |
+| Allow reuse on #416 | Each index once — always `i+1` on both branches |
+| Forget odd-sum early exit (#416) | `sum % 2 != 0` → false immediately |
+| No memo on either | Both have overlapping subproblems — cache results |
+| Confuse #377 with #39 | #39 = unordered combos (start index); #377 = ordered (no start index) |
 
-### 10. Recognition drill
+### 7. Pattern signals — speed drill
 
-Read this problem aloud:
+| When the problem says… | Memo type | Key |
+|---|---|---|
+| "combination sum IV" / "ordered" / "permutation of sums" | Ordered combo | `memo[target]` |
+| "how many ways" + reuse + order matters | Ordered combo | 1D on target |
+| "partition equal subset" / "split into two" | 0/1 subset | `memo[i][rem]` |
+| "can you partition" / "subset sum" | 0/1 subset | include OR skip |
+| "each element used once" | 0/1 subset | index advances |
 
-> *"Given an array, generate all possible subsets."*
+**Keywords:** `ordered` · `reuse` · `1D memo` · `include/skip` · `0/1` · `2D memo` · `partition`
 
-Before coding, say:
+### 8. Recognition drill — say it aloud
 
-> *"Include/exclude each element → backtracking template. Base case: index == n. Choose: add nums[i] or skip. Unchoose: pop after explore."*
+> *"Count ordered sequences from nums that sum to target, reuse allowed."*
+>
+> → **Combination Sum IV.** `dfs(target)`: base `target==0 → 1`, loop all nums, `sum dfs(target-x)`. Memo on target.
+
+> *"Can nums partition into two subsets with equal sum?"*
+>
+> → **Partition Equal Subset Sum.** `sum/2` target. `dfs(i, rem)`: include OR skip, memo on `(i, rem)`.
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You know both memos. Quest 1 is ordered counting under time pressure. →*

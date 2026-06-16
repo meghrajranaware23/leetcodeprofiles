@@ -1,6 +1,7 @@
+<!-- hand-authored -->
 # ⚔ Quest: Restore IP Addresses
 
-> **Day 14** · [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) · Medium · 15 min · 25 XP
+> **Day 14** · [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) · Medium · 15 min · 20 XP
 
 ---
 
@@ -10,51 +11,53 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Restore IP Addresses on LeetCode](https://leetcode.com/problems/restore-ip-addresses/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Trace the call stack on paper. Mark each frame push and pop. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same cut loop as Palindrome Partition — but segments must be valid octets and you need **exactly 4**. Trace `"25525511135"`.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/)**
+Given a string `s` containing only digits, return all possible valid IP addresses that can be formed by inserting dots into `s`. You cannot reorder or drop digits.
 
-Work through the examples on paper before reading further.
+A valid IP address consists of exactly four integers (0–255) separated by dots, with no leading zeros except `"0"` itself.
+
+```
+Input:  s = "25525511135"
+Output: ["255.255.11.135", "255.255.111.35"]
+
+Input:  s = "0000"
+Output: ["0.0.0.0"]
+
+Input:  s = "101023"
+Output: ["1.0.10.23", "1.0.102.3", "10.1.0.23", "10.10.2.3", "101.0.2.3"]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Fixed-Segment Partition**.
+**Hint 1:** Same partition skeleton: try cuts `s[i..j]` for `j` in `[i, min(i+2, n-1)]` — at most 3 digits per octet.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the call stack on paper. Mark each frame push and pop.
+**Hint 2:** `valid(seg)`: non-empty, length ≤ 3, no leading zero (unless seg is `"0"`), value ≤ 255.
+
+**Hint 3:** Track `parts` count. Success only when `parts == 4` **and** `i == len(s)` — all digits used, exactly four octets.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Fixed-Segment Partition
+**Pattern used:** Fixed-Segment Partition (4 parts)
 
-**How to identify this from the problem statement:**
-- Can the problem be broken into a smaller version of itself?
-- Is there a clear base case when the input is small enough?
-- Do you need to generate all valid choices or just compute one answer?
-
-| Keyword / phrase | What it signals |
+| vs Palindrome Partition | Change |
 |---|---|
-| "reverse" / "factorial" / "power" | Linear recursion — shrink by one |
-| "all subsets" / "all combinations" | Backtracking — include/exclude |
-| "all permutations" / "arrangements" | Backtracking — used[] or swap |
-| "partition" / "split" / "restore" | String backtracking |
-| "word search" / "grid" | Grid DFS + mark/unmark |
-| "how many ways" + overlap | Recursion + memoization |
-
-**Why this pattern works:** Recursive problems have self-similar structure. Name what shrinks, define the base case, trust the sub-call.
+| Variable parts until end | Exactly 4 parts |
+| Palindrome validator | Numeric octet validator |
+| Record when `i == n` | Record when `parts == 4 && i == n` |
 
 **How a strong solver thinks before coding:**
-1. *"What is the base case?"*
-2. *"What gets smaller on each call?"*
-3. *"Do I pass state down or return results up?"*
-4. *"Trace one example on paper before coding."*
+1. *"Partition template — bounded cut width (max 3)."*
+2. *"Reject '01', '256' before push."*
+3. *"Must consume entire string in 4 cuts."*
 
 ---
 
@@ -62,38 +65,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Nested loops for all combinations** | O(n!) — misses pruning and structure |
-| **Iterating without recursive insight** | Hard to handle tree/backtracking shape |
-| **No memoization on overlapping subproblems** | Exponential time on Fibonacci-style problems |
-| **Forgetting to backtrack (undo)** | Wrong state leaks into sibling branches |
-
-**The insight brute force misses:** Recursion names the substructure. Backtracking prunes invalid branches early.
+| **Three nested loops for dot positions** | Works for IP specifically but doesn't generalize; same O(1) search space here |
+| **Allow 3 or 5 parts** | Invalid IP format |
+| **Accept leading zeros** | `"01.2.3.4"` is not valid |
+| **Stop at first valid IP** | Problem asks for all |
 
 ---
 
 ## 🔗 Same Pattern, Other Problems
 
-| Problem | What changes | Pattern stays the same |
-|---|---|---|
-| Related recursive problems | Different combine logic | Same skeleton: base + recurse + combine |
-| Same backtracking family | Different constraints | Same choose / explore / unchoose |
-| Variant constraints | Extra pruning or state | Same decision tree shape |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| Problem | Segment rule |
+|---|---|
+| [Palindrome Partitioning #131](https://leetcode.com/problems/palindrome-partitioning/) | Palindrome substring |
+| [Restore IP Addresses #93](https://leetcode.com/problems/restore-ip-addresses/) | 4 octets, 0–255 |
+| [Split Array into Fibonacci Sequence #842](https://leetcode.com/problems/split-array-into-fibonacci-sequence/) | C-Rank test — Fibonacci constraint on segments |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the call stack on paper. Mark each frame push and pop.
+`s = "25525511135"` (partial):
 
 ```
-Apply Fixed-Segment Partition step by step on the example from the problem.
-Mark the current call frame at each step.
-Watch what gets returned (or what choices get made) at each level.
+dfs(i=0, parts=0, [])
+  cut "255" valid → dfs(i=3, parts=1, ["255"])
+    cut "255" valid → dfs(i=6, parts=2, ["255","255"])
+      cut "11" valid → dfs(i=8, parts=3, ["255","255","11"])
+        cut "135" valid → dfs(i=11, parts=4) → i==len → "255.255.11.135" ✓
+      cut "111" valid → ...
+        cut "35" → "255.255.111.35" ✓
 ```
-
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
 
 ---
 
@@ -178,19 +179,13 @@ class Solution {
 ```
 
 **Complexity:** O(1) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a recursive problem"** → Trace it. Don't start coding blind.
-- **"Fixed-Segment Partition"** → Name the pattern from the concept page.
-- **"What's my base case?"** → Define it before the recursive call.
-- **"What does the smaller call return?"** → Trust it and combine.
-
-If you tried brute force first, that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **Same cut loop as #131** → Different validator + fixed part count.
+- **Max 3 chars per cut** → Loop bound `min(i+2, n-1)`.
+- **parts==4 && i==n** → All digits used, valid IP shape.
 
 > 🎯 **Pattern Unlocked:** Fixed-Segment Partition
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Construct from Inorder & Postorder
 
 > **Day 8** · [Construct Binary Tree from Inorder and Postorder Traversal #106](https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Construct Binary Tree from Inorder and Postorder Traversal on LeetCode](https://leetcode.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the tree. Trace the recursion. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Root = `post[pe]` (last). Build **right subtree before left**. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Reverse Construction**.
+Which pattern from today's concept applies? **Reverse construction** — root = `post[pe]`; find in inorder; `rightSize = ie - k`; build **right** first (`post[pe-rightSize .. pe-1]`), then left.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Trace the tree by hand before looking at the solution structure.
+If you're stuck after 5 minutes: postorder reads root **last**, so you consume from the end — right subtree appears before left in the postorder tail. Same inorder split as #105, reversed build order.
 
 ---
 
@@ -35,26 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Reverse Construction
 
 **How to identify this from the problem statement:**
-- Look for tree structure keywords — "binary tree", "root", "subtree", "node"
-- Ask: does information flow **down** (carry state) or **up** (combine child results)?
-- Check if you need to compare two trees or build a new one
+- **Postorder last element = root** — mirror of preorder first
+- **Inorder still splits** left | root | right
+- Build right before left — postorder processes children before parent
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "maximum depth" / "height" | Bottom-up: return 1 + max(children) |
-| "path sum" / "root to leaf" | Top-down: carry running sum |
-| "same tree" / "symmetric" | Parallel recursion on two trees |
-| "level order" / "each level" | BFS with queue |
-| "construct from traversals" | Divide and conquer with traversal split |
-| "validate BST" | Range checking during DFS |
+| "inorder and postorder" | Root = post[last], rightSize = ie - k |
+| "last node in postorder" | Root at `pe` index |
+| "construct" + two arrays | Hash inorder, range recurse |
+| Same tree as pre+in variant | Split identical; build order reversed |
 
-**Why this pattern works:** Trees are recursive structures. Each subtree is a smaller instance of the same problem. The pattern names which direction information flows.
+**Why this pattern works:** Postorder ends with root. Everything before root in postorder is children — right subtree occupies the **tail** before root, sized by `rightSize = ie - k`.
 
 **How a strong solver thinks before coding:**
-1. *"What does my function return? What do my children return?"*
-2. *"What's the base case? (usually null)"*
-3. *"Draw a 3-node tree and trace by hand."*
-4. *"One pass or do I need a global variable?"*
+1. *"root = post[pe]; k = idx[root]."*
+2. *"rightSize = ie - k."*
+3. *"Build RIGHT: in[k+1..ie], post[pe-rightSize..pe-1]."*
+4. *"Build LEFT: in[is..k-1], post[ps..pe-rightSize-1]."*
 
 ---
 
@@ -62,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Store all paths/nodes** | O(n²) space when O(h) recursion suffices |
-| **BFS for depth/height** | DFS bottom-up is simpler and O(h) space |
-| **Iterating without recursion** | Loses natural subtree decomposition |
-| **Nested loops on nodes** | O(n²) when O(n) single-pass recursion works |
+| **Same code as pre+in without swapping order** | Wrong child assignment |
+| **leftSize instead of rightSize** | Postorder variant sizes from the right |
+| **Build left before right** | Consumes wrong postorder segment |
+| **Scan inorder linearly** | O(n²) — use hash map |
 
-**The insight brute force misses:** Trust the recursion. You don't need to track everything — just combine what your children return.
+**The insight brute force misses:** Pre+in grows preorder from the front; in+post shrinks postorder from the back — symmetric but reversed consumption direction.
 
 ---
 
@@ -75,31 +74,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Construct from Preorder and Inorder #105](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) | Root = pre[0], left first | Same inorder split |
+| [Construct from Preorder and Postorder #889](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/) | Unique tree constraint | Variant sizing |
+| [Serialize and Deserialize BT #297](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/) | String format | Same recursive build idea |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Mirror pair: **#105 front-root**, **#106 back-root**.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small tree before reading the code:
+**Reverse construction — root from post tail, right before left.**
 
 ```
+inorder:   [9, 3, 15, 20, 7]
+postorder: [9, 15, 7, 20, 3]
+
+root = post[4] = 3
+inorder:   [9 | 3 | 15, 20, 7]
+rightSize = 4 - 1 = 2
+
+RIGHT first: in[2..4], post[2..3] = [15,7,20] → subtree 20
+LEFT second: in[0..0], post[0..0] = [9]       → node 9
+
         3
        / \
-      9    20
-          /  \
-         15   7
-
-Apply Reverse Construction step by step on this tree.
-Draw it. Mark the current node at each step.
-Watch what gets returned from leaves back to root.
+      9   20
+         /  \
+        15   7
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+Compare to #105 — same tree, root discovered from opposite end of the "root list."
+
+> 💡 **The insight:** `rightSize = ie - k` plays the same role as `leftSize = k - is` in preorder variant — it sizes the **first** recursive call (right, here).
 
 ---
 
@@ -108,19 +115,21 @@ Watch what gets returned from leaves back to root.
 ### C++
 ```cpp
 class Solution {
-    unordered_map<int, int> idx;
-    TreeNode* build(vector<int>& in, int is, int ie, vector<int>& post, int ps, int pe) {
-        if (is > ie) return nullptr;
-        TreeNode* root = new TreeNode(post[pe]);
-        int k = idx[post[pe]], rightSize = ie - k;
-        root->right = build(in, k + 1, ie, post, pe - rightSize, pe - 1);
-        root->left = build(in, is, k - 1, post, ps, pe - rightSize - 1);
-        return root;
+    unordered_map<int,int> idx;
+    int post;
+    TreeNode* build(vector<int>& postorder, int l, int r) {
+        if (l > r) return nullptr;
+        int val = postorder[post--];
+        TreeNode* node = new TreeNode(val);
+        node->right = build(postorder, idx[val] + 1, r);
+        node->left  = build(postorder, l, idx[val] - 1);
+        return node;
     }
 public:
     TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
-        for (int i = 0; i < (int)inorder.size(); ++i) idx[inorder[i]] = i;
-        return build(inorder, 0, (int)inorder.size() - 1, postorder, 0, (int)postorder.size() - 1);
+        post = postorder.size() - 1;
+        for (int i = 0; i < (int)inorder.size(); i++) idx[inorder[i]] = i;
+        return build(postorder, 0, inorder.size() - 1);
     }
 };
 ```
@@ -130,53 +139,52 @@ public:
 class Solution:
     def buildTree(self, inorder: List[int], postorder: List[int]) -> Optional[TreeNode]:
         idx = {v: i for i, v in enumerate(inorder)}
-        def build(is_, ie, ps, pe):
-            if is_ > ie:
-                return None
-            root = TreeNode(postorder[pe])
-            k = idx[postorder[pe]]
-            right = ie - k
-            root.right = build(k + 1, ie, pe - right, pe - 1)
-            root.left = build(is_, k - 1, ps, pe - right - 1)
-            return root
-        return build(0, len(inorder) - 1, 0, len(postorder) - 1)
+        def build(l, r):
+            if l > r: return None
+            val = postorder.pop()
+            node = TreeNode(val)
+            node.right = build(idx[val] + 1, r)
+            node.left  = build(l, idx[val] - 1)
+            return node
+        return build(0, len(inorder) - 1)
 ```
 
 ### Java
 ```java
 class Solution {
-    Map<Integer, Integer> idx = new HashMap<>();
+    private Map<Integer,Integer> idx = new HashMap<>();
+    private int post;
     public TreeNode buildTree(int[] inorder, int[] postorder) {
+        post = postorder.length - 1;
         for (int i = 0; i < inorder.length; i++) idx.put(inorder[i], i);
-        return build(inorder, 0, inorder.length - 1, postorder, 0, postorder.length - 1);
+        return build(postorder, 0, inorder.length - 1);
     }
-    TreeNode build(int[] in, int is, int ie, int[] post, int ps, int pe) {
-        if (is > ie) return null;
-        TreeNode root = new TreeNode(post[pe]);
-        int k = idx.get(post[pe]), right = ie - k;
-        root.right = build(in, k + 1, ie, post, pe - right, pe - 1);
-        root.left = build(in, is, k - 1, post, ps, pe - right - 1);
-        return root;
+    private TreeNode build(int[] postorder, int l, int r) {
+        if (l > r) return null;
+        int val = postorder[post--];
+        TreeNode node = new TreeNode(val);
+        node.right = build(postorder, idx.get(val) + 1, r);
+        node.left  = build(postorder, l, idx.get(val) - 1);
+        return node;
     }
 }
 ```
 
-**Complexity:** O(n) time · O(n) space
-
+**Complexity:** undefined
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a tree problem"** → Draw it. Don't start coding blind.
-- **"Reverse Construction"** → Name the pattern from the concept page.
-- **"What do my children return?"** → Define the return value first.
-- **"Null is my base case"** → Every recursive tree function starts here.
+- **"Postorder last = root"** → `post[pe]`, not `post[0]`.
+- **"rightSize = ie - k"** → Mirror of leftSize in #105.
+- **"Right before left"** → Postorder reads children before parent, right subtree in tail.
+- **"Same inorder split"** → Only root discovery and build order differ from #105.
 
-If you tried BFS when DFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If left and right swap, you likely built left first or used leftSize instead of rightSize.
 
-> 🎯 **Pattern Unlocked:** Reverse Construction
+> 🎯 **Pattern Unlocked:** Reverse Construction — post[last] root, rightSize split, build right first.
 
 ---
 
