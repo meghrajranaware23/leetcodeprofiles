@@ -1,125 +1,133 @@
+<!-- hand-authored -->
 # 📝 Boundary DFS / Outside-In Thinking
 
 > **Day 7** · Boundary Traversal · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand Boundary DFS visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 4 counted islands from the **inside out** (find a 1, flood it). Day 7 flips the camera: start from the **border** and ask *what can escape to the edge?* Flood from all boundary cells inward; whatever land **never** gets visited is trapped — an **enclave**.
+
+> **Preview contrast (Day 4 vs Day 7):** Day 4 = DFS from each unvisited land component. Day 7 = one border flood marks "outside-connected" land; **enclave count = remaining 1s** — NOT generic BFS from water/0.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Boundary DFS** — the core technique you'll use in today's quests.
+**Boundary DFS / outside-in flood** — seed traversal from every **edge cell** of the grid; mark everything reachable; answer comes from what's **left unmarked**.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+- **Border seed** — all cells on row 0, row m-1, col 0, col n-1
+- **Condition** — Pacific Atlantic: move to neighbor with **height ≥ current** (water flows uphill in reverse)
+- **Enclaves** — land connected to border gets erased; **sum remaining 1s** = enclave area
+- **Two oceans** — run two border floods (Pacific edges, Atlantic edges); intersection = both reachable
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+Picture a fortress on a map. Instead of asking "how big is each castle?" you ask "which rooms have a door to the outside wall?" Walk from every **outer wall tile** inward through connected rooms. Any room you never enter is a sealed inner chamber — an enclave. You don't start from empty cells (0) or from random land; you start from the **frame** of the grid.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
+### 3. Visual — border flood marks outside-connected land
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+grid:              After border DFS (mark 0):
+1 1 1 0 0          0 0 0 0 0
+1 1 1 0 0    →     0 0 0 0 0
+1 1 1 0 0          0 0 0 0 0
+1 1 1 1 1          0 0 0 1 1   ← bottom-right 1s NOT reached from border
+0 0 0 1 1          0 0 0 1 1
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+Border land at (0,0) floods all top-left 1s.
+Isolated block at (3,3)-(4,4) never touched → enclave count = 4
 ```
 
-### 4. How the pattern works
+### 4. Visual — Pacific Atlantic (reverse flow from oceans)
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Heights — oceans touch borders:
+
+  Pac ←  1 2 2 3 5
+         3 2 3 4 4
+  Atl →  2 4 5 3 1
+
+DFS from Pacific border cells (top row + left col) moving to ≥ height
+DFS from Atlantic border (bottom row + right col) same rule
+Cell in BOTH reach sets → water can drain to both oceans ✓
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Don't simulate water downhill from each cell — **flood uphill from the ocean inward**.
 
-### 5. What problem does this solve?
+### 5. The universal template
 
-| Problem family | How this pattern helps |
+```
+function borderFlood(grid):
+    for each cell on the border:
+        if cell qualifies (land / valid height):
+            dfs(r, c)
+
+    function dfs(r, c):
+        mark visited (grid[r][c] = 0 or reach[r][c] = true)
+        for each neighbor:
+            if unvisited and passes condition:
+                dfs(nr, nc)
+
+    // Enclaves: return count of remaining 1s
+    // Pacific Atlantic: return cells in both reach sets
+```
+
+### 6. Why inside-out island DFS fails for enclaves
+
+| Count islands (Day 4) | Problem for enclaves |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| DFS from each unvisited 1 | Counts components, not border-trapped ones |
+| BFS from all 0 cells | Wrong seed — 0 isn't the question |
+| Check if component touches border during inner DFS | Works but border-first is cleaner and reusable |
 
-### 6. Why brute force fails
+| Brute force: for each land cell, BFS to border | O(cells²) — border flood is O(cells) once |
 
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+**The insight:** "Not connected to boundary" = **erase everything that IS connected**, count the rest.
 
-### 7. The key observation
+### 7. Day 4 vs Day 7 — the contrast
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 4 — Inside-Out** | **Day 7 — Outside-In** |
+|---|---|---|
+| Start | First unvisited land cell | **All border** qualifying cells |
+| Question | How many components? | What **can't** reach the edge? |
+| Marking | Each component once | Border-connected region erased |
+| Enclaves | Wrong tool | **Remaining land count** |
+| Example | Number of Islands | Enclaves, Closed Islands (test) |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "enclave" / "not connected to border" | Border flood → count remaining land |
+| "closed island" / "surrounded by water" | Border flood on 1s (D-Rank test) |
+| "flow to Pacific and Atlantic" | Two border floods, intersect |
+| "can reach the boundary" | Outside-in, not center-out |
+| "surrounded region" (letter O) | Similar border trick — E-Rank cousin |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `border` · `edge cells` · `outside-in` · `remaining 1s` · `reverse flow` · `reach set`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| BFS from every 0 cell | Seed **border land**, not water |
+| Simulate water flowing down from each cell | Flood **uphill from ocean** (Pacific Atlantic) |
+| Count components instead of remaining cells | Enclaves = **sum of unvisited 1s** |
+| Forget corner cells on border loop | Four edges: top, bottom, left, right |
+| One ocean flood only | Pacific Atlantic needs **two** reach grids/sets |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Return the number of land cells that cannot reach the grid border."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Border DFS: flood from all edge 1s, mark 0; return sum of remaining 1s. Not island count — not BFS from water."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Start at the walls. First quest: which cells drain to both oceans? →*

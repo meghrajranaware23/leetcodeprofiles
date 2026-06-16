@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: House Robber II
 
 > **Day 9** · [House Robber II #213](https://leetcode.com/problems/house-robber-ii/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open House Robber II on LeetCode](https://leetcode.com/problems/house-robber-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** The circle breaks single-pass robber. Plan **two linear ranges** before coding — exclude last, exclude first.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Circular Constraint DP**.
+**Pattern:** Day 9 **Circular Constraint DP** = Day 6 twice.
 
-What is the state? What does dp[i] represent for this problem?
+- Can't rob house `0` and house `n-1` together
+- **Pass A:** `robRange(0, n-2)` — last house forbidden
+- **Pass B:** `robRange(1, n-1)` — first house forbidden
+- Answer: `max(passA, passB)`; if `n==1`, return `nums[0]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Inside `robRange`: identical `prev2`/`prev1` from House Robber.
 
 ---
 
@@ -37,26 +41,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Circular Constraint DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Same as House Robber but array is a **circle**
+- Adjacency wraps: `(n-1)` neighbors `0`
+- Reduce to linear subarrays
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "adjacent houses" + "circle" | Two-pass split |
+| "first and last are neighbors" | Can't take both ends |
+| linear only | **Day 6** one pass |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why two passes work:** Any optimal set on a circle either omits index 0 or omits index n−1 (or both). Those cases cover all valid circular selections.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Edge: n==1."*
+2. *"Helper rob(lo, hi) — Day 6 on slice."*
+3. *"Return max(rob(0,n-2), rob(1,n-1))."*
+4. *"Don't modify nums — index ranges only."*
 
 ---
 
@@ -64,61 +65,57 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Day 6 one pass on full array** | May rob both 0 and n−1 |
+| **Try all subsets with bitmask** | O(2^n) |
+| **Remove one house arbitrarily** | Must try **both** exclusions |
+| **Rotate array trick without two passes** | Still need explicit case split |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Circular = **two linear problems**. No new recurrence — just **two calls**.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+[1,2,3,1] circle
+  Pass1 [1,2,3] → 4
+  Pass2 [2,3,1] → 4
+  max = 4
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant | Pattern |
+|---|---|---|
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | Linear | Day 6 base |
+| [Maximum Sum Circular Subarray #918](https://leetcode.com/problems/maximum-sum-circular-subarray/) | Circle + **subarray** | D-Rank test — Kadane bridge |
+| [Delete and Earn #740](https://leetcode.com/problems/delete-and-earn/) | Value line | Compress + Day 6 |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `nums = [2, 3, 2]`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Pass A (0..1): houses 2,3 → max = 3? 
+  i=0: prev1=2
+  i=1: max(2, 0+3)=3 → 3
+
+Pass B (1..2): houses 3,2
+  → max(3, 0+2)=3 vs max(2,3+2)=5? 
+  i=1: prev1=3
+  i=2: max(3, 0+2)=3
+
+Wait recalc Pass B:
+  lo=1, hi=2
+  num=3: curr=max(0,0+3)=3, prev2=0,prev1=3
+  num=2: curr=max(3,0+2)=3
+  Pass B = 3
+
+Pass A same = 3
+Answer max(3,3)=3 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** You already know the inner loop — the circle only decides **which indices to include**.
 
 ---
 
@@ -178,22 +175,17 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Circular Constraint DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Circle + non-adjacent"** → two linear rob passes.
+- **"Exclude first OR last"** → covers wrap adjacency.
+- **"Inner loop = Day 6"** → no new transition.
+- **"n==1"** → skip two-pass logic.
 
 > 🎯 **Pattern Unlocked:** Circular Constraint DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: dual state for product — not two-pass. →*

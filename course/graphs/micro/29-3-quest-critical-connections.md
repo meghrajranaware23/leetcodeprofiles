@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Critical Connections
 
 > **Day 29** · [Critical Connections in a Network #1192](https://leetcode.com/problems/critical-connections-in-a-network/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Critical Connections in a Network on LeetCode](https://leetcode.com/problems/critical-connections-in-a-network/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace disc/low on paper for a small graph. Mark tree edges; bridge when `low[v] > disc[u]`. Not BFS — timestamp DFS only.
 
 ---
 
@@ -24,9 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Tarjan's Bridges**.
+**Tarjan's bridges** — undirected graph, find edges whose removal disconnects.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `disc[u]`, `low[u]` — discovery time and earliest reachable disc from subtree.
+- Tree edge to child v: after `dfs(v,u)`, if `low[v] > disc[u]` → `(u,v)` is critical.
+- Back edge to visited v (v ≠ parent): `low[u] = min(low[u], disc[v])`.
+- Run from every unvisited node (graph may be connected, but template handles all).
+
+Not Union-Find. Not BFS level order.
 
 ---
 
@@ -35,27 +41,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Tarjan's Bridges
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Critical connection" / "removing disconnects" → bridge detection
+- Undirected network → adjacency both ways
+- Output edge list → Tarjan, not connectivity count
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "critical" / "bridge" | low-link bridge test |
+| "if removed, some nodes unreachable" | Edge cut — not articulation point (node) |
+| Undirected edges | DFS tree + back edges update low |
+| n up to 10⁵ | O(V+E) Tarjan required |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** `low[v] > disc[u]` means v's entire subtree has no back edge to u or above — the only link is tree edge `(u,v)`.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Edge removal problem on undirected graph?"* → Tarjan bridges.
+2. *"Assign disc/low on DFS entry; propagate min on backtrack."*
+3. *"Back edge: low[u] = min(low[u], disc[v]) — not low[v]."*
+4. *"Skip parent to avoid false back edge."*
 
 ---
 
@@ -63,12 +66,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Remove each edge, BFS connectivity** | O(E · (V+E)) — too slow |
+| **Union-Find only** | Finds MST/cycles, not bridges directly |
+| **BFS from each node** | Doesn't identify cut edges |
+| **Tarjan without parent skip** | Treats tree edge as back edge — wrong low |
+| **Compare low[v] with disc[v] for bridges** | Correct test is `low[v] > disc[u]` |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** One DFS pass records enough structure (disc/low) to classify every tree edge as bridge or not.
 
 ---
 
@@ -76,29 +80,29 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Critical Connections #1192](https://leetcode.com/problems/critical-connections-in-a-network/) | Undirected, list bridges | Tarjan low-link |
+| [1192 variant — articulation points](https://leetcode.com/problems/critical-connections-in-a-network/) | Node cuts vs edge cuts | Related Tarjan (root rule differs) |
+| [Redundant Connection #684](https://leetcode.com/problems/redundant-connection/) | Day 17 UF | Different tool — cycle not bridge |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Chain: 0 — 1 — 2 — 3
 
-Apply Tarjan's Bridges step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+dfs(0,-1): disc[0]=1, low[0]=1
+  dfs(1,0): disc[1]=2, low[1]=2
+    dfs(2,1): disc[2]=3, low[2]=3
+      dfs(3,2): disc[3]=4, low[3]=4
+      backtrack: (2,3) low[3]=4 > disc[2]=3 → BRIDGE
+    backtrack: (1,2) low[2]=3 > disc[1]=2 → BRIDGE
+  backtrack: (0,1) low[1]=2 > disc[0]=1 → BRIDGE
+
+All three edges critical in a chain.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Trace disc/low numbers on paper — bridge test is one comparison per tree edge.
 
 ---
 
@@ -204,19 +208,14 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Tarjan's Bridges"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Removing this edge disconnects"** → bridge → Tarjan `low[v] > disc[u]`.
+- **Undirected DFS** — pass parent, skip back to parent.
+- **Back edge updates low with disc[v]** — not low[v].
+- **Not BFS** — timestamps come from depth-first tree.
 
 > 🎯 **Pattern Unlocked:** Tarjan's Bridges
 

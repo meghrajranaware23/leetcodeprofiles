@@ -1,125 +1,144 @@
+<!-- hand-authored -->
 # 📝 Union-Find DSU
 
 > **Day 17** · Union-Find Fundamentals · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Union-Find DSU visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Days 1–16 explored graphs by **walking** them — BFS waves, DFS trails, topo peels. Today you stop traversing and start **merging groups**. Union-Find (Disjoint Set Union) answers connectivity with near-constant-time `find` and `union`. No queue. No stack. Just a `parent[]` forest that collapses into representatives.
+
+> **Preview contrast (BFS vs UF):** BFS/DFS visit nodes one by one to discover components. UF **merges** components as edges arrive — perfect when the question is "are these already connected?" not "visit every node."
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Union-Find DSU** — the core technique you'll use in today's quests.
+**Union-Find (DSU)** — maintain disjoint sets with two operations:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Operation | Meaning |
+|---|---|
+| **find(x)** | Return the representative (root) of x's set |
+| **union(a, b)** | Merge the sets containing a and b |
+
+Core arrays:
+- **`parent[i]`** — parent of node i; `parent[i] == i` means i is a root
+- **`rank[i]`** (optional) — tree height hint for union-by-rank
+
+**Cycle detection rule:** Before `union(u, v)`, if `find(u) == find(v)`, edge `(u,v)` closes a cycle.
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+Imagine friend groups at a party. Everyone starts alone (`parent[i] = i`). When two people become friends, you merge their entire groups by pointing one leader at the other. To ask "are Alice and Bob in the same group?" — follow each person's chain of "who's my group leader?" until you hit a root. Same root → same group.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Path compression** is the shortcut: while finding Alice's root, every person on the path points directly to the root. Next lookup is instant.
 
-### 3. Visual walkthrough
+### 3. Visual — parent[] forest with path compression
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Start:  parent = [0, 1, 2, 3, 4]   (each node is its own root)
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+union(0,1):  0 ← 1        parent = [0, 0, 2, 3, 4]
+union(1,2):  0 ← 1 ← 2     parent = [0, 0, 0, 3, 4]  (rank: attach 2 under 0)
+
+find(2) with path compression:
+  walk 2→0, then set parent[2]=0, parent[1]=0
+  parent = [0, 0, 0, 3, 4]   ← flat tree under root 0
+
+Cycle check — edge (0,2):
+  find(0)=0, find(2)=0  → SAME ROOT → cycle edge ✗
 ```
 
-### 4. How the pattern works
+### 4. Visual — union by rank
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Without rank: chain 0←1←2←3←4  → find(4) walks 4 steps
+
+With rank:
+  union(0,1): rank equal → attach 1 under 0, rank[0]++
+  union(2,3): attach 3 under 2, rank[2]++
+  union(0,2): rank[0] > rank[2] → attach 2 under 0
+
+Result: balanced trees, find stays O(α(n))
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+### 5. The universal template
 
-### 5. What problem does this solve?
+```
+function find(x):
+    if parent[x] != x:
+        parent[x] = find(parent[x])   // path compression
+    return parent[x]
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+function union(a, b):
+    ra = find(a), rb = find(b)
+    if ra == rb: return false          // cycle / already connected
+    if rank[ra] < rank[rb]: swap(ra, rb)
+    parent[rb] = ra
+    if rank[ra] == rank[rb]: rank[ra]++
+    return true
+
+// Cycle edge in edge list:
+for each edge (u, v):
+    if not union(u, v): return edge     // first edge that closes cycle
+```
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| DFS/BFS per connectivity query | O(V+E) per query — too slow for streaming edges |
+| Rebuild adjacency + DFS for each edge | O(E · (V+E)) on Redundant Connection |
+| Floyd-Warshall for "same component?" | O(V³) when UF is O(E · α(V)) |
+| Ignore path compression | Degenerate chains → find becomes O(V) |
 
-### 7. The key observation
+**The insight:** When edges arrive online and you only need "same group?" or "first cycle edge," UF beats traversal.
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 7. BFS/DFS vs Union-Find — the contrast
+
+| | **BFS / DFS (Days 1–16)** | **Union-Find (Day 17+)** |
+|---|---|---|
+| Question | Visit all nodes? Shortest path? | Are u and v connected? Merge groups? |
+| Structure | Queue / stack / recursion | `parent[]` + optional `rank[]` |
+| Cycle detect | Gray DFS, topo sort | `find(u) == find(v)` before union |
+| Best for | Traversal, ordering, layers | Dynamic connectivity, Kruskal's MST |
+| Visual | Wavefront / depth trail | Forest of roots |
+
+Day 17 is the **first B-Rank concept without a BFS wavefront.** Embrace the parent array.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "redundant edge" / "edge that creates a cycle" | UF — first edge with same root |
+| "connect all computers" / "minimum cables" | UF component count |
+| "merge groups" / "equivalent" / "same set" | UF |
+| "shortest path in unweighted graph" | **BFS** — not UF |
+| "minimum total cost connecting all points" | **Kruskal MST** (Day 21) — UF + sorted edges |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `parent[]` · `find` · `union` · `path compression` · `rank` · `same root` · `cycle edge`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Forgetting path compression in `find` | Always flatten: `parent[x] = find(parent[x])` |
+| Union without checking roots first | `find(a) == find(b)` before merging — or detect cycle |
+| 0-indexed vs 1-indexed nodes | Redundant Connection uses 1..n — size arrays accordingly |
+| Using BFS to detect cycle in **undirected** edge list | UF is simpler: same root = cycle |
+| Confusing UF with BFS "visited" | UF merges sets; BFS explores paths |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given an undirected graph built by adding edges one at a time, return the edge that completes the first cycle."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Union-Find: process edges in order; if find(u)==find(v) before union, that edge is redundant. Path compression + union by rank. Not BFS — no traversal needed."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*No queue today — just roots and ranks. First quest: Redundant Connection #684. →*

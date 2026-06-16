@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Rotting Oranges
 
 > **Day 2** · [Rotting Oranges #994](https://leetcode.com/problems/rotting-oranges/) · Medium · 15 min
@@ -10,52 +11,68 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Rotting Oranges on LeetCode](https://leetcode.com/problems/rotting-oranges/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Circle all rotten (`2`) cells, count fresh (`1`), then simulate minute-by-minute spread. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Rotting Oranges #994](https://leetcode.com/problems/rotting-oranges/)**
+Each minute, every fresh orange **4-adjacent** to a rotten orange becomes rotten.
 
-Work through the examples on paper before reading further.
+Given an `m×n` grid where `0` = empty, `1` = fresh, `2` = rotten:
+- Return the **minimum minutes** until no fresh orange remains
+- Return `-1` if impossible
+
+```
+Input:  grid = [[2,1,1],[1,1,0],[0,1,1]]
+Output: 4
+
+Input:  grid = [[2,1,1],[0,1,1],[1,0,1]]
+Output: -1
+Explanation: Bottom-left fresh orange is never adjacent to rot.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Multi-Source BFS Preview**.
+Which pattern from today's concept applies? **Multi-source BFS with level timeline** — same `len(q)` batch as Trees level-order, but each batch = one minute.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** First pass: enqueue every `(r,c)` with `grid[r][c]==2`; count `fresh` cells with value `1`.
+
+**Hint 2:** While queue non-empty **and** `fresh > 0`: process exactly `len(q)` cells (one minute), rot each fresh 4-neighbor, decrement `fresh`, enqueue newly rotten.
+
+**Hint 3:** Increment `mins` after each batch. When loop ends: return `-1` if `fresh > 0`, else `mins`.
+
+**Hint 4:** Oranges rot in parallel each minute — that's why you batch the whole queue, not one cell at a time.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Multi-Source BFS Preview
+**Pattern used:** Multi-Source BFS (level = minute)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Simultaneous spread from many sources → enqueue all `2`s first
+- "Minimum minutes" / time steps → BFS level count, not DFS
+- Grid + 4-direction → `(r,c)` queue
+- Global "all fresh rotten?" → track `fresh` counter
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "each minute" / "simultaneously" | BFS batch = one time step |
+| Multiple rotten starting cells | Multi-source initialization |
+| "minimum time" unweighted | BFS — first rot time is shortest |
+| 4-adjacent | Standard DIRS array |
+| Return -1 if stuck | Some fresh never reached |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** BFS explores by distance from nearest rotten cell. All cells at distance `d` rot in minute `d`. Batching the queue matches parallel rot per minute.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Collect all rotten into queue; count fresh."*
+2. *"while q and fresh: for _ in range(len(q)): spread to neighbors."*
+3. *"mins++ each outer iteration."*
+4. *"fresh==0 at end → return mins; else -1."*
 
 ---
 
@@ -63,12 +80,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **DFS from each rotten orange separately** | Doesn't model simultaneous minutes correctly |
+| **Process one cell per minute without batching** | Wrong timeline — parallel spread broken |
+| **Simulate with nested loops per minute rescanning grid** | O(m·n·minutes) redundant; BFS is O(m·n) |
+| **Forget to decrement fresh** | Can't detect stuck fresh at end |
+| **Increment mins when queue empty but fresh remain** | Should return -1, not mins |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Time = **BFS depth** from multi-source frontier. One batch loop = one clock tick.
 
 ---
 
@@ -76,29 +94,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Trees Level Order #102 | Tree children instead of grid | `len(q)` batch |
+| Walls and Gates (premium) | Multi-source BFS from gates | Same init-all-sources |
+| 01 Matrix (later) | Distance to nearest 0 | Multi-source BFS levels |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Trees Day 3 taught the batch skeleton; this quest applies it to **grid time**.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**All rotten in queue → batch per minute → track fresh.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Grid:
+  2 1 1
+  1 1 0
+  0 1 1
 
-Apply Multi-Source BFS Preview step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Init: q = [(0,0)], fresh = 6
+
+Minute 1 batch: rot (0,1),(1,0)     fresh = 4
+Minute 2 batch: rot (0,2),(1,1)   fresh = 2
+Minute 3 batch: rot (1,2),(2,1)   fresh = 0
+Minute 4 batch: queue processes but fresh already 0
+
+Return mins = 4 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `for _ in range(len(q))` is the minute hand. Same idiom as tree level-order — different domain.
 
 ---
 
@@ -194,21 +218,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Each minute"** → `len(q)` batch loop (Trees Day 3 déjà vu).
+- **All rotten start together** → multi-source enqueue before `while`.
+- **BFS not DFS** → minimum time = wavefront distance.
+- **`fresh` counter** → quick impossible check at end.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Multi-Source BFS Preview"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If level-order on trees clicked, this is that queue batch on a grid with a clock.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Multi-Source BFS Preview
+> 🎯 **Pattern Unlocked:** Multi-source BFS timeline — batch = minute, track remaining fresh.
 
 ---
 

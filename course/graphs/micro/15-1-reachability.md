@@ -1,125 +1,125 @@
+<!-- hand-authored -->
 # 📝 Multi-Hop Reachability
 
 > **Day 15** · Graph Reachability · ★★★★☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Multi-Hop Reachability visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+**Reachability:** can you get from A to B following edges? One hop is easy; **multi-hop** (transitive) reachability asks about paths of any length. Precompute a **reachability matrix** or closure, then answer queries in O(1).
+
+Second flavor today: a **tree-shaped DAG** (each node has one parent) — time bubbles **down** the hierarchy. Inform employees: max depth path sum, not BFS levels.
+
+> **Contrast (Day 14):** Day 14 listed ancestors per node. Day 15 **precomputes** reachability for batch queries, and handles **weighted tree propagation**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Multi-Hop Reachability** — the core technique you'll use in today's quests.
+Two reachability modes:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Mode | Structure | Technique |
+|---|---|---|
+| **Transitive closure** | General DAG, many queries | DFS from each node → `reach[u][v]` |
+| **Tree-DAG time bubble** | Single parent per node | DFS/postorder: `time[u] = informTime[u] + max(child times)` |
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**Transitive closure:** "Is B a prerequisite of A (directly or indirectly)?" Run DFS from every course; mark everything reachable. Store in a boolean matrix. Each query is one lookup.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Tree-DAG inform:** The CEO calls direct reports sequentially (each call takes `informTime[manager]`). Sub-managers run their subtrees in parallel. Total time = longest root-to-leaf **weighted** path where edge weight = manager's inform time.
 
-### 3. Visual walkthrough
+### 3. Visual — transitive closure
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Prereqs: 2→3, 2→4, 3→5, 4→5
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+    2 → 3 → 5
+    └──→ 4 → 5
+
+reach[2][*]: 3✓ 4✓ 5✓
+reach[3][5]: ✓   (3 before 5)
+reach[4][5]: ✓
+
+Query (5,2): is 2 prereq of 5? → reach[2][5] = true
+Query (5,4): reach[4][5] = true
+Query (3,4): reach[4][3] = false
 ```
 
-### 4. How the pattern works
+### 4. Visual — tree-DAG time bubble
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
-```
+        head (inform=1)
+       /    \
+   mgr A(2)  mgr B(1)
+   /          \
+ emp(0)      emp(0)
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Time from head:
+  Path head→A→emp: 1 + 2 + 0 = 3
+  Path head→B→emp: 1 + 1 + 0 = 2
+  Answer: max = 3  (parallel subtrees → take longest)
+```
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
+| Problem family | Technique |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| "Is X ancestor of Y?" queries | Transitive closure |
+| Prerequisite batch queries | Precompute reach matrix |
+| Org-tree notification time | Weighted DFS max path |
+| Loud and Rich (C-test) | DAG DFS + memo — variant |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| BFS per query | O(Q · (V+E)) — precompute once |
+| Floyd-Warshall on large sparse DAG | O(V³) — DFS per node often better for sparse |
+| BFS levels for inform time | Ignores parallel subtrees — need max child path |
+| Sum all inform times | Overcounts — subtrees run in parallel |
 
-### 7. The key observation
+### 7. Day 15 vs Day 14
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 14** | **Day 15** |
+|---|---|---|
+| Output | List ancestors per node | Boolean queries / max time |
+| Queries | One-shot build | Many lookups → precompute |
+| Tree case | General DAG DFS | Single-parent weighted bubble |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "is u prerequisite of v" (many queries) | Transitive closure |
+| "direct or indirect prerequisite" | Multi-hop reachability |
+| "time to inform all employees" | Tree DAG, max child path + informTime |
+| "manager hierarchy" | Build parent→children adj |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `reachability` · `transitive closure` · `reach[u][v]` · `inform time` · `max subtree`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| BFS per query on Course Schedule IV | Precompute reach matrix |
+| Sum inform times on all nodes | Max over root-to-leaf weighted paths |
+| Reversing query (u,v) vs (v,u) | Read: is u before v? → reach[u][v] |
+| Forgetting parallel subtrees | Return max, not sum, of child times |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given prerequisites and queries `[u, v]`, return whether u is a prerequisite of v (direct or indirect)."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Build prereq graph → DFS from each node marking reach → answer queries from reach[u][v]."*
+
+**Not** Kahn peel per query. **Not** bipartite. **Transitive closure.**
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Precompute reachability; bubble time down trees. First quest: Course Schedule IV. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Shortest Path Visiting All Nodes
 
 > **Day 30** · [Shortest Path Visiting All Nodes #847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/) · Hard · 25 min · 50 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Shortest Path Visiting All Nodes on LeetCode](https://leetcode.com/problems/shortest-path-visiting-all-nodes/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** State is `(node, mask)` — which nodes you've visited. Multi-source BFS from every node. Draw a 4-node graph and trace bitmask growth.
 
 ---
 
@@ -24,9 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bitmask BFS**.
+**Bitmask BFS** — `(node, mask, dist)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `mask` bit i set ⟺ node i has been visited on this walk.
+- Initialize **every** node i: queue `(i, 1<<i, 0)`, `dist[i][1<<i] = 0`.
+- Move to neighbor v: `nmask = mask | (1<<v)`.
+- If `nmask == (1<<n) - 1` → return `dist + 1`.
+- `dist[u][mask]` prevents revisiting same state.
+
+Not plain Day 8 BFS — you can revisit a node with a **different mask**.
 
 ---
 
@@ -35,27 +42,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Bitmask BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Visit all nodes" on small n (≤ 12) → bitmask over subsets
+- "Shortest path" → BFS on expanded state graph
+- Undirected graph adjacency list → standard neighbor loop
+- Revisiting same node OK if mask differs → 2D dist `[node][mask]`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "visit all nodes" / "every node at least once" | Bitmask goal = all bits set |
+| "shortest path" | BFS layers on `(node, mask)` |
+| n ≤ 12 | 2^n masks feasible |
+| Can start anywhere | Multi-source BFS init |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** State space is `(node, subset of visited)`. BFS finds minimum steps to `(any node, full_mask)`. First completion = shortest tour length.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Visit all nodes → mask with n bits."*
+2. *"Same node, different mask → different BFS state."*
+3. *"Start anywhere → enqueue all (i, 1<<i, 0)."*
+4. *"Goal check on nmask, not on node alone."*
 
 ---
 
@@ -63,12 +68,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS with visited[node] only** | Can't revisit node to complete missing visits |
+| **DFS try all permutations** | Factorial — bitmask BFS is O(n² · 2^n) |
+| **Single-source from node 0 only** | Optimal tour may start elsewhere |
+| **TSP DP without BFS** | Valid but bitmask BFS is simpler at this n |
+| **Forget multi-source init** | Wrong answer if best start ≠ 0 |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** The bitmask **is** the visited set — encoded in the state, not a global array.
 
 ---
 
@@ -76,29 +82,29 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Visit All Nodes #847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/) | Undirected, any start | `(node, mask)` BFS |
+| [Can I Win #464](https://leetcode.com/problems/can-i-win/) | Game state mask | Same bitmask idea |
+| Day 28 `(r,c,k)` | Spatial + counter | Same expanded-state BFS |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Graph: 0—1—2  (n=3)
 
-Apply Bitmask BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Init: (0,001,0), (1,010,0), (2,100,0)
+
+From (0,001,0) → neighbor 1:
+  nmask = 001|010 = 011, dist=1
+
+From (1,011,1) → neighbor 2:
+  nmask = 011|100 = 111 = full! → return 1+1=2
+
+Shortest path length: 2 (e.g. 0→1→2)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You're BFS-ing on an implicit graph of `(node, subset)` pairs — not on nodes alone.
 
 ---
 
@@ -190,22 +196,17 @@ class Solution {
 ```
 
 **Complexity:** O(n² · 2^n) time · O(n · 2^n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Bitmask BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Visit every node" + small n** → bitmask over visited set.
+- **"(node, mask)" BFS** — Day 30 capstone state pattern.
+- **Multi-source init** — any node can start the optimal tour.
+- **Goal = all bits set** — check `nmask`, not current node.
 
 > 🎯 **Pattern Unlocked:** Bitmask BFS
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: dual UF Alice/Bob edge ordering. →*

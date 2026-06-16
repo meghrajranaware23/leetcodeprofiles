@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Min Cost to Connect All Points
 
 > **Day 21** · [Min Cost to Connect All Points #1584](https://leetcode.com/problems/min-cost-to-connect-all-points/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Min Cost to Connect All Points on LeetCode](https://leetcode.com/problems/min-cost-to-connect-all-points/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** MST problem — connect all points at minimum Manhattan cost. Prim-style: min-heap edges from current tree + UF skip if already connected.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Kruskal's MST**.
+Which pattern from today's concept applies? **Kruskal's MST** (Prim variant) — grow connected set; push `(dist, nextPoint)` from each newly added point; skip if `find(0)==find(v)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Alternative: sort all O(n²) edges + Kruskal UF. Same MST answer.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Kruskal's MST
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Connect **all** nodes minimum total cost
+- Edge weight = Manhattan distance between points
+- Complete graph implicit — don't materialize all edges upfront if using Prim+heap
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "min cost connect all points" | MST |
+| "Manhattan distance" | Edge weight formula |
+| "shortest path A to B" | Dijkstra — not MST |
+| "redundant edge" | Cycle detect — Day 17 |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** MST picks n−1 cheapest safe edges spanning all nodes — Kruskal/Prim with UF cycle avoidance.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Need n-1 edges total."*
+2. *"Start point 0 in tree; heap edges to other points."*
+3. *"Pop min; if already connected skip; else add cost, push new edges."*
+4. *"UF or visited set tracks components."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Dijkstra from one point** | Doesn't span all nodes at min total |
+| **Connect greedily without cycle check** | May form loops |
+| **Try all spanning trees** | Exponential |
+| **BFS** | Unweighted — edges have Manhattan cost |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Global minimum wiring = MST — sort/grow by edge weight with UF.
 
 ---
 
@@ -76,29 +74,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Smallest String With Swaps #1202](https://leetcode.com/problems/smallest-string-with-swaps/) | UF group + sort | UF components |
+| Classic Kruskal | Sort all edges | UF merge |
+| [Connecting Cities #1135](https://leetcode.com/problems/connecting-cities-with-minimum-cost/) | Explicit edges | Kruskal |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same MST spirit — **cheapest edges that don't cycle.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+3 points: (0,0), (1,1), (2,2)
+Costs: 0—1: 2, 1—2: 2, 0—2: 4
 
-Apply Kruskal's MST step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+MST picks 0—1 (2) and 1—2 (2) → total 4
+Skip 0—2 (4) — would be redundant with cheaper path through 1
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You're not finding shortest path between two cities — you're wiring the whole network cheapest.
 
 ---
 
@@ -203,22 +197,21 @@ class Solution {
 ```
 
 **Complexity:** O(n² log n) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Kruskal's MST"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Connect ALL points minimum cost"** → MST, not Dijkstra.
+- **"Manhattan = edge weight"** → Kruskal sort or Prim heap.
+- **"Skip if same component"** → UF from Day 17.
+- **"n−1 edges"** → stop when tree spans all.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you ran Dijkstra from one point, you'd only get shortest paths from that source.
 
 > 🎯 **Pattern Unlocked:** Kruskal's MST
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: UF components + char sort. →*

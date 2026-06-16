@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Course Schedule IV
 
 > **Day 15** · [Course Schedule IV #1462](https://leetcode.com/problems/course-schedule-iv/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Course Schedule IV on LeetCode](https://leetcode.com/problems/course-schedule-iv/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Precompute `reach[u][v]` for all pairs. Query `[u,v]` → is u a (direct/indirect) prereq of v?
 
 ---
 
@@ -24,38 +25,31 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Transitive Closure**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Same graph as Course Schedule: edge b→a for prereq `[a,b]`. DFS from each course `i`, mark all reachable courses in `reach[i][*]`. Query checks one matrix cell.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Transitive Closure
+**Pattern used:** Transitive Closure (reachability matrix)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Prerequisite DAG + batch queries
+- "Direct or indirect" = transitive reachability
+- n ≤ 200 — O(n · (V+E)) precompute fits
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "is u prerequisite of v" | reach[u][v] |
+| Multiple queries | Precompute, don't BFS per query |
+| Same prereq format as #207 | Edge b → a |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** All queries share one static graph — pay O(n·(V+E)) once, answer each query in O(1).
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build adj, reach[n][n] = false."*
+2. *"For each i: dfs(i,i) marking reach[i][v]=true."*
+3. *"Query [u,v]: return reach[u][v]."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS/DFS per query** | O(Q · (V+E)) redundant |
+| **Kahn peel per query** | Absurd — graph is static |
+| **Union-Find** | Undirected — wrong |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Day 14's per-node DFS, stored in a matrix, reused for all queries.
 
 ---
 
@@ -76,29 +69,28 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [All Ancestors in DAG #2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) | List not boolean | Day 14 |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Pick min quiet in reachable set | C-test 3 |
+| [Floyd Warshall](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm) | All-pairs shortest path | Related closure idea |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+numCourses=3, prereqs=[[1,0],[2,1]]
+Queries: [[0,1],[0,2],[1,2],[2,0]]
 
-Apply Transitive Closure step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Graph: 0→1→2
+
+reach[0]: [1,2]
+reach[1]: [2]
+reach[2]: []
+
+[0,1]→false  [0,2]→false  [1,2]→true  [2,0]→false
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Query [u,v] asks "must u come before v?" → reach[u][v].
 
 ---
 
@@ -175,22 +167,19 @@ class Solution {
 ```
 
 **Complexity:** O(V² + V · E) time · O(V²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Transitive Closure"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Many queries, static graph."** → precompute closure.
+- **"Same prereq graph as #207."** → edge b→a.
+- **"reach[u][v] not reach[v][u]."** → direction matters.
+- **"Day 14 ancestor DFS → boolean matrix."**
 
 > 🎯 **Pattern Unlocked:** Transitive Closure
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: weighted time bubble on a tree-DAG. →*

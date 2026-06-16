@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Keys and Rooms
 
 > **Day 3** · [Keys and Rooms #841](https://leetcode.com/problems/keys-and-rooms/) · Medium · 15 min
@@ -10,23 +11,39 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Keys and Rooms on LeetCode](https://leetcode.com/problems/keys-and-rooms/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw rooms as nodes; draw arrows to keys held in each room. Trace DFS from room 0. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Keys and Rooms #841](https://leetcode.com/problems/keys-and-rooms/)**
+There are `n` rooms labeled `0` to `n-1`. `rooms[i]` lists keys (room numbers) found inside room `i`.
 
-Work through the examples on paper before reading further.
+You start in room `0` (which is unlocked). Return `true` if you can enter **every** room, else `false`.
+
+```
+Input:  rooms = [[1],[2],[3],[]]
+Output: true
+Explanation: 0 → 1 → 2 → 3
+
+Input:  rooms = [[1,3],[3,0,1],[2],[0]]
+Output: false
+Explanation: Room 2 never reachable from 0.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DFS Reachability**.
+Which pattern from today's concept applies? **DFS reachability** — one flood from node 0, then check if every room was visited.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** `visited = [False]*n`. Call `dfs(0)`.
+
+**Hint 2:** `dfs(u)`: set `visited[u]=True`. For each key `v` in `rooms[u]`, if not `visited[v]`, call `dfs(v)`.
+
+**Hint 3:** Return `all(visited)` — not just "can I reach room n-1?"
+
+**Hint 4:** Graph is **directed** — key in room `i` opens room `j` means edge `i → j` only.
 
 ---
 
@@ -35,27 +52,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** DFS Reachability
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Single start node `0` → one DFS, not component restart loop
+- "Visit all rooms" → boolean visited array, check completeness
+- Adjacency given explicitly as `rooms[i]` → neighbor list
+- Directed edges (keys are one-way access)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "can you visit all" / "enter every room" | Full reachability from start |
+| `rooms[i]` = list of keys | `adj[i]` neighbors |
+| Start at room 0 | `dfs(0)` only |
+| Return true/false | `all(visited)` |
+| Keys only open forward | Directed DFS |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** DFS from 0 marks every room reachable along directed edges. If any room stays unvisited, it's impossible.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Graph: edge i→v for each key v in rooms[i]."*
+2. *"dfs(0) with visited array."*
+3. *"Return whether every index is True in visited."*
+4. *"Example 2: room 2 never entered → false."*
 
 ---
 
@@ -63,12 +79,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Follow keys greedily without visited** | Cycles (0→1→0) cause infinite loop |
+| **Only check path to last room** | Middle rooms might be skipped |
+| **BFS only from room 0 without visited** | Same cycle issue |
+| **Treat keys as undirected edges** | Can't model one-way access |
+| **Restart DFS from every unvisited room** | You can't enter locked rooms without keys — must start at 0 only |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** One DFS flood from 0 marks the **reachable set**. Answer = entire set equals all rooms.
 
 ---
 
@@ -76,29 +93,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Find if Path Exists #1971 (Day 1) | Undirected, two endpoints | Connectivity check |
+| Number of Provinces #547 (Quest 1) | Count all components | Restart loop variant |
+| Course Schedule (later) | Cycle detection on directed graph | DFS with state colors |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same DFS skeleton — different stopping condition and graph direction.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**DFS from 0 — stack chases keys until exhausted.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+rooms = [[1], [2], [3], []]
 
-Apply DFS Reachability step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Graph:  0 → 1 → 2 → 3
+
+dfs(0): vis[0]=T → key 1 → dfs(1)
+dfs(1): vis[1]=T → key 2 → dfs(2)
+dfs(2): vis[2]=T → key 3 → dfs(3)
+dfs(3): vis[3]=T → no keys
+
+all(visited) = true ✓
+
+rooms = [[1,3], [3,0,1], [2], [0]]
+From 0: reach 1,3,0,… but room 2 never gets a key path → false ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Keys define directed edges. DFS visit order shows the exploration path — depth-first, not level-by-level.
 
 ---
 
@@ -152,21 +175,18 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Visit all from room 0"** → single DFS reachability, not component count.
+- **`rooms[i]` is adj[i]** → Day 1 representation, Day 3 traversal.
+- **`all(visited)`** → every room index must be True.
+- **Directed graph** → can't restart from locked rooms.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"DFS Reachability"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+Provinces counts groups; Keys and Rooms asks if **one** flood covers everything.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** DFS Reachability
+> 🎯 **Pattern Unlocked:** DFS from source — visited set proves reachability.
 
 ---
 

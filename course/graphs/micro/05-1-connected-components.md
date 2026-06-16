@@ -1,125 +1,149 @@
+<!-- hand-authored -->
 # 📝 Connected Component Discovery
 
 > **Day 5** · Component Exploration · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Connected Components visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Your mission today: **extend component floods with a counter** (max island area) and **clone graphs with an old→new map** (BFS/DFS copy). Day 4 counted islands; Day 5 asks *how big* and *how to duplicate*.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Count During Flood, Copy With a Map
 
-### 1. What is the pattern?
+### 1. Component area counter
 
-**Connected Components** — the core technique you'll use in today's quests.
+Same restart loop as Number of Islands #200 — but `dfs` **returns** the number of cells sunk:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+```python
+def dfs(r, c):
+    grid[r][c] = 0
+    area = 1
+    for each 4-neighbor still land:
+        area += dfs(nr, nc)
+    return area
 
-### 2. Simple explanation
-
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
-
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
-
-```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
-
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+best = max(best, dfs(r,c))   # when discovering new island
 ```
 
-### 4. How the pattern works
+Quest 1 (#695 Max Area): track **maximum** area across all components.
+
+### 2. Clone graph — old node → new node map
+
+Given a linked graph (`Node` with `val` and `neighbors`), build a **deep copy**.
+
+Critical tool: `map[old_node] = new_node`
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Visit old node u:
+  if u already in map: return map[u]
+  create copy with same val
+  map[u] = copy
+  for each neighbor v of u:
+    copy.neighbors.append(clone(v))
+  return copy
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Quest 2 (#133): BFS or DFS both work — map prevents infinite loops on cycles.
 
-### 5. What problem does this solve?
+### 3. Visual — area flood on grid
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+```
+Grid:
+  1 1 0
+  1 0 0
+  0 0 1
 
-### 6. Why brute force fails
+Island 1 flood from (0,0): area = 3
+Island 2 flood from (2,2): area = 1
+Max area = 3
+```
 
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+Same walk as #200 — add **accumulation** during recursion.
 
-### 7. The key observation
+### 4. Visual — clone with map (cycle-safe)
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+```
+Original:  1 — 2
+           |   |
+           4 — 3   (cycle 1-2-3-4-1)
 
-### 8. Pattern signals & recognition clues
+clone(1):
+  create copy1, map[1]=copy1
+  clone(2): create copy2, map[2]=copy2
+    clone(3) …
+    clone(4) …
+    when edge back to 1: map[1] already exists → reuse copy1
+```
+
+Without `map`, you'd recreate node 1 forever on the cycle.
+
+### 5. BFS clone variant
+
+```python
+q = deque([start])
+map[start] = Node(start.val)
+while q:
+    u = q.popleft()
+    for v in u.neighbors:
+        if v not in map:
+            map[v] = Node(v.val)
+            q.append(v)
+        map[u].neighbors.append(map[v])
+```
+
+Quest solution uses DFS; BFS is equivalent — pick one traversal, keep the map.
+
+### 6. Pattern signals — Day 5 only
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "max area" / "largest island" | Restart + dfs returns size |
+| "clone" / "copy graph" | `map[old]=new` before recursing neighbors |
+| `Node` with `neighbors` list | Explicit graph, not grid |
+| Cycles in graph | Map breaks infinite recreation |
+| "deep copy" | New nodes, same structure |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `area` · `max` · `clone` · `map` · `old→new` · `neighbors` · `component size`
 
-### 9. Common beginner mistakes
+### 7. Why brute force fails
+
+| Brute force | Problem |
+|---|---|
+| Count area with global variable only, no return | Works but messy; returning area is cleaner |
+| Clone without map on cyclic graph | Infinite recursion |
+| Serialize graph to string and parse back | Overkill; O(V+E) traverse suffices |
+| Scan grid without restart for max area | Misses islands not at origin |
+| Deep copy by value without tracking old nodes | Duplicate nodes for shared neighbors |
+
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Forget `map[old]` before recursing neighbors | Cycle stack overflow |
+| Max area: forget `max()` across components | Only measure first island |
+| Clone: append neighbor before copy exists | Create copy first, then link |
+| Grid area: not sinking visited cells | Double-count cells |
+| Use grid dfs on `Node` graph | Different input — follow `neighbors` |
 
-### 10. Recognition drill
+### 9. E-Rank synthesis
 
-Read this problem aloud:
+| Day | Skill |
+|---|---|
+| 1 | Build graph, degrees, connectivity |
+| 2 | Grid BFS, multi-source time |
+| 3 | DFS, restart loop, reachability |
+| 4 | Grid perimeter, island count |
+| **5** | **Sized components + graph clone** |
 
-> *"Given an m×n grid, count the number of islands."*
+### 10. Recognition drill — today's quests
 
-Before coding, say:
+**Quest 1 — Max Area of Island #695:**
+> *"Same as #200, but dfs returns area; track `best = max(best, area)`."*
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+**Quest 2 — Clone Graph #133:**
+> *"`map[old]=new`; clone neighbors recursively; map handles cycles."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Day 5 closes E-Rank: size your floods, duplicate your graphs. Then the rank tests. →*

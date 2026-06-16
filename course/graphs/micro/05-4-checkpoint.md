@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 5 Checkpoint
 
 > **Component Exploration** · 2 quests completed · ⭐ 40 XP earned
@@ -6,67 +7,73 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 5 extends components: **measure size during flood** and **clone nodes with a map**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "max area" / "largest island" | #200 + dfs returns size | Track max across floods |
+| "clone" / "copy graph" | `map[old]=new` | One copy per original node |
+| Grid `1` cells, size question | Returning dfs area | Same 4-dir as Day 4 |
+| `Node` with `neighbors` | Graph traversal + map | Not a matrix |
+| Cycles in graph | Map before recurse | Prevents infinite clone |
+| "deep copy" | New objects + same edges | Shallow copy fails |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 5 pattern fires first?
 
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Largest connected land region in binary grid"* → **Component area counter**
+2. *"Duplicate a graph with cycles"* → **Clone with old→new map**
+3. *"Number of Islands but return max size not count"* → **Max area template**
+4. *"When cloning, neighbor points to already-copied node"* → **Return map[old] immediately**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Max Area and Clone Graph. Can you apply **Day 5 patterns** to new problems?
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+**Scenario 1:** *"Return the number of cells in each island, sorted descending."*
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+Which pattern? **Restart + returning dfs** — collect areas in a list.
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+**Scenario 2:** *"Copy a linked list with random pointers."*
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+Which pattern? **Old→new map** — same clone idea, different node type.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+**Scenario 3:** *"Two grids — count islands in grid2 that exactly match islands in grid1."*
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
+Which pattern? **Matched flood** — E-Rank Test #1905; dfs both grids in sync.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Sized floods use **returning dfs**; copy problems use **map before expand**.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Max area: void dfs like #200** — Must return or accumulate area correctly.
+
+2. **Clone: wire neighbors before registering copy** — Map entry must exist for back-edges.
+
+3. **Clone: no null check on input node** — Empty graph → return null.
+
+4. **Max area: global count without per-island boundary** — Only count one flood at a time.
+
+5. **Confuse clone with invert/reverse** — Structure preserved, new node objects.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### E-Rank Test Prep
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+You are ready for the rank tests when you can name the pattern in 30 seconds:
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+- **Star center** → degree / common node in first edges
+- **Sub-islands** → dual-grid matching flood
+- **Surrounded regions** → border DFS, flip interior
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Review Day 1 degrees, Day 4 grid flood, Day 3 DFS before opening test 1.
 
 ---
 
@@ -79,4 +86,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 5 complete! Tomorrow: the next territory of your ascension. →*
+*Day 5 complete! E-Rank tests next — prove the full foundation. →*

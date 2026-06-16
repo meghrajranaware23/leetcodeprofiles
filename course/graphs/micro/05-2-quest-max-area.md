@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Max Area of Island
 
 > **Day 5** · [Max Area of Island #695](https://leetcode.com/problems/max-area-of-island/) · Medium · 15 min
@@ -10,23 +11,35 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Max Area of Island on LeetCode](https://leetcode.com/problems/max-area-of-island/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Use the Number of Islands restart loop — but this time count cells in each flood. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Max Area of Island #695](https://leetcode.com/problems/max-area-of-island/)**
+Given a binary grid (`0` water, `1` land), return the **maximum area** of an island. If no land, return `0`.
 
-Work through the examples on paper before reading further.
+```
+Input:  grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],...]
+Output: 6
+
+Input:  grid = [[0,0,0,0,0,0,0,0]]
+Output: 0
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Component Size Tracking**.
+Which pattern from today's concept applies? **Component size tracking** — dfs returns area of one flood.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Same double loop as #200: when `grid[i][j]==1`, call `area = dfs(i,j)`.
+
+**Hint 2:** Inside dfs: mark cell `0`, start `area=1`, add dfs results from each 4-neighbor still `1`.
+
+**Hint 3:** Update `best = max(best, area)` after each discovery.
+
+**Hint 4:** Empty grid / all water → return 0 (default max).
 
 ---
 
@@ -35,27 +48,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Component Size Tracking
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Grid + islands → flood fill family
+- "Maximum area" → compare sizes across components
+- 4-direction implied → standard DIRS
+- Binary values → int 0/1 grid
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "max area of island" | Restart + returning dfs |
+| "size" / "area" / "number of cells" | Accumulate during flood |
+| Same grid as #200 | Extend count → max size |
+| Return 0 if none | Initialize best = 0 |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each island's area equals cells visited in one dfs. Outer loop ensures every island measured once.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Copy #200 skeleton."*
+2. *"dfs returns int area instead of void."*
+3. *"best = max(best, dfs(r,c)) when finding new land."*
+4. *"Trace small 3-cell L-shape — area 3."*
 
 ---
 
@@ -63,12 +74,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Count all land cells globally** | One giant connected region — not max among islands |
+| **BFS without marking visited** | Revisit cells; area wrong |
+| **Only measure first island found** | Max might be later in scan |
+| **8-direction area** | Inflates area vs problem's 4-dir |
+| **Separate visited array when sinking works** | Extra space unnecessarily |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** #200 counts components; #695 takes **max of component sizes** — one line change in the combine step.
 
 ---
 
@@ -76,29 +88,31 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Number of Islands #200 (Day 4) | Count not size | Same dfs flood |
+| Count Sub Islands #1905 (E-Rank test) | Two grids, matching flood | Area + validity check |
+| Largest Perimeter Triangle (unrelated) | Don't confuse perimeter with area | Grid flood family |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Max area = #200 + return value + max tracker.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Restart scan → dfs returns island size → keep global max.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+grid:
+  1 1 0
+  1 0 0
+  0 0 1
 
-Apply Component Size Tracking step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Find (0,0): dfs → sinks 3 cells → area=3, best=3
+Find (2,2): dfs → area=1, best=max(3,1)=3
+
+Answer: 3 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** The recursion **returns** aggregated size bottom-up — like tree depth returning int, but on a grid flood.
 
 ---
 
@@ -173,22 +187,19 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Max area"** → #200 + dfs returns cell count.
+- **`best = max(best, dfs(...))`** → one line beyond island counting.
+- **Sink to 0** → same visited trick as Day 4.
+- **default=0 / best=0** → all-water grid.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Component Size Tracking"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If Number of Islands is muscle memory, this quest is a five-minute extension.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Component Size Tracking
+> 🎯 **Pattern Unlocked:** Component area — returning flood size, track maximum.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: clone an entire graph — old node to new node map. →*

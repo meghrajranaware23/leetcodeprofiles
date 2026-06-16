@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Increasing Path in Matrix
 
 > **Day 26** · [Longest Increasing Path in a Matrix #329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) · Hard · 25 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Increasing Path in a Matrix on LeetCode](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Only move to **strictly larger** neighbors → implicit DAG. `dfs(r,c)` with memo — no cycle fear.
 
 ---
 
@@ -24,38 +25,40 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DFS + Memo on DAG**.
+**DFS + memo on value-increasing DAG.**
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `dp[r][c]` = longest path starting at (r,c), including self.
+- 4 directions; relax only if `matrix[nr][nc] > matrix[r][c]`.
+- `dfs`: if `dp[r][c]` set, return; else `1 + max(dfs(neighbors))`.
+- Answer = max `dfs(i,j)` over all cells.
+
+No global visited — memo handles subproblem reuse.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** DFS + Memo on DAG
+**Pattern used:** DFS + Memo on Implicit DAG
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Increasing path" → directed edges to larger values
+- Matrix grid → 4-neighbor moves
+- "Longest" on DAG → DFS + memo, not BFS
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Strictly increasing" | DAG property |
+| "Longest path" | DP/memo on DAG |
+| "Matrix" | (r,c) state |
+| Hard but m,n ≤ 200 | O(mn) memo fills once per cell |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Values strictly increase along paths → finite DAG → memo converges.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"dp[m][n] initialized 0."*
+2. *"dfs(r,c): if dp return; try 4 dirs with > check."*
+3. *"dp[r][c]=best; return best."*
+4. *"Global max over all starts."*
 
 ---
 
@@ -63,12 +66,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **DFS without memo** | Exponential recomputation |
+| **BFS** | Finds shortest, not longest |
+| **Allow ≥ neighbor** | Cycles — infinite paths |
+| **Topo sort explicit** | Unnecessary — value order guarantees DAG |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** `>` constraint **is** the acyclicity proof.
 
 ---
 
@@ -76,29 +79,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Longest Path in DAG](https://leetcode.com/problems/maximum-height-of-a-triangle-with-the-same-base/) | Explicit DAG | Topo + DP |
+| [Pacific Atlantic #417](https://leetcode.com/problems/pacific-atlantic-water-flow/) | Decreasing DFS from borders | Day 7 |
+| [LIP Matrix #329](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) | Increasing memo | Day 26 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+[9, 9, 4]
+[6, 6, 8]
+[2, 3, 1]
 
-Apply DFS + Memo on DAG step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+From (2,0)=2: →3→6→9→... 
+Longest: 2→3→6→9 (length 4) or via 8
+
+dfs memo fills bottom-up by value layers
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Each cell computed once — O(m·n) total.
 
 ---
 
@@ -179,22 +179,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Strictly increasing"** → DAG, memo safe.
+- **"Longest path"** → DFS+memo, not BFS.
+- **"Only greater neighbors"** → 4-dir with `>` test.
+- **"Start anywhere"** → outer double loop max.
+- **"No visited set"** → dp cache is enough.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"DFS + Memo on DAG"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** DFS + Memo on DAG
+> 🎯 **Pattern Unlocked:** DFS + Memo on Implicit DAG
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: tree idle bottleneck BFS. →*

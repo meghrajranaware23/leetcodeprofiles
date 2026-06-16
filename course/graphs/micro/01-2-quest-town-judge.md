@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find the Town Judge
 
 > **Day 1** · [Find the Town Judge #997](https://leetcode.com/problems/find-the-town-judge/) · Easy · 10 min
@@ -10,52 +11,70 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find the Town Judge on LeetCode](https://leetcode.com/problems/find-the-town-judge/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For each trust pair `[a,b]`, mark an arrow `a → b`. Count arrows in and out of every person. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Find the Town Judge #997](https://leetcode.com/problems/find-the-town-judge/)**
+In a town of `n` people labeled `1` to `n`, trust is **directed**: `[a, b]` means `a` trusts `b`.
 
-Work through the examples on paper before reading further.
+The **town judge** exists iff:
+- Everyone else trusts the judge (`n - 1` incoming trust edges)
+- The judge trusts nobody (`0` outgoing trust edges)
+
+Return the judge's label, or `-1` if no such person exists.
+
+```
+Input:  n = 3, trust = [[1,3],[2,3]]
+Output: 3
+
+Input:  n = 3, trust = [[1,3],[2,3],[3,1]]
+Output: -1
+Explanation: Person 3 is trusted by 2 people but also trusts person 1.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Degree Analysis**.
+Which pattern from today's concept applies? **In-degree / out-degree counting** — no BFS needed.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Create two arrays `in[1…n]` and `out[1…n]`, initialized to zero.
+
+**Hint 2:** For each `[a, b]` in `trust`: `out[a]++` and `in[b]++`.
+
+**Hint 3:** Scan `i` from `1` to `n`. Candidate judge: `in[i] == n - 1` **and** `out[i] == 0`.
+
+**Hint 4:** If multiple people could match (they can't both have `in = n-1` in a valid judge scenario), return the one you find — or `-1` if none.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Degree Analysis
+**Pattern used:** Degree Analysis (directed graph)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Directed pairs `[a,b]` → one-way edges, not undirected adjacency
+- "Everyone trusts X" → high **in-degree** on X
+- "X trusts nobody" → zero **out-degree** on X
+- No path/walk language → skip DFS/BFS entirely
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "trust" / "a trusts b" | Directed edge a → b |
+| "everyone else trusts" | in-degree = n − 1 |
+| "trusts nobody" | out-degree = 0 |
+| "find the person" / single answer | Linear scan after counting |
+| Small n, edge list input | O(E) count, O(n) scan |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** The judge is defined purely by edge counts. Counting once over `trust` gives all the information — no graph traversal required.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Directed edges → in[] and out[] arrays."*
+2. *"For [a,b]: out[a]++, in[b]++."*
+3. *"Find i with in[i]=n-1 and out[i]=0."*
+4. *"Trace Example 1: only node 3 qualifies."*
 
 ---
 
@@ -63,12 +82,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Build adjacency list + BFS from every node** | Massive overkill — degrees answer directly |
+| **Check if each person is trusted by all others with nested loops** | O(n²) per candidate vs O(E) total count |
+| **Treat trust as undirected** | `[3,1]` would wrongly boost 3's out-degree logic |
+| **Only count in-degree, forget out-degree** | Example 2: node 3 has in=2 but out=1 — not a judge |
+| **Return first person with in=n-1 without checking out** | Someone who trusts others fails the definition |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** The judge is a **degree signature**, not a reachability question. Two arrays, one pass.
 
 ---
 
@@ -76,29 +96,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Course Schedule (in-degree preview) | Count prerequisites per course | in-degree array from edges |
+| Network Delay (later ranks) | Weighted edges | Still build structure from edge list first |
+| Find Eventual Safe States | Out-edges to follow | Directed degree / reachability hybrid |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same Day 1 habit: read edges → update counters → scan for the answer.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Trust pairs → degree arrays → scan for judge.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n = 4, trust = [[1,3],[1,4],[2,3],[2,4],[4,3]]
 
-Apply Degree Analysis step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+After counting:
+  person | in | out
+  -------+----+----
+     1   |  0 |  2   (trusts 3 and 4)
+     2   |  0 |  2   (trusts 3 and 4)
+     3   |  3 |  0   (trusted by 1,2,4)  ← in=3=n-1, out=0 ✓
+     4   |  0 |  1   (trusts 3 only)
+
+Return 3.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Trust is one-way. The judge sits at the sink of all trust arrows — everyone points in, nothing points out.
 
 ---
 
@@ -147,22 +171,19 @@ class Solution {
 ```
 
 **Complexity:** O(E) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Trust is directed"** → `out[a]++`, `in[b]++` on `[a,b]`.
+- **"Everyone trusts the judge"** → `in[judge] == n - 1`.
+- **"Judge trusts nobody"** → `out[judge] == 0`.
+- **No traversal** → Day 1 degree pattern; save BFS for Day 2.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Degree Analysis"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If you started building an adjacency list, that's good practice — but this problem stops at the counters.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Degree Analysis
+> 🎯 **Pattern Unlocked:** Degree analysis — two arrays, one edge pass, one scan.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same town, different question — can you walk from A to B? →*

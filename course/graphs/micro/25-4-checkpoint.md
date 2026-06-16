@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 25 Checkpoint
 
 > **Advanced Shortest Paths** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,65 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 25 extends Day 19 Dijkstra — **same PQ relax loop**, different output aggregation.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "Number of ways" + "minimum time" | Dijkstra + `ways[]` | Add on `nd == dist[v]` |
+| "Within threshold" from **each** city | All-pairs (Floyd) | Row count in dist matrix |
+| "Network delay" / max time from source | **Day 19** | dist only, no ways |
+| "Max probability path" | **Day 19** | max product Dijkstra |
+| Unweighted minimum steps | **BFS** | Not Dijkstra |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Count shortest paths from 0 to n-1 on weighted roads"* → **Dijkstra + ways, mod 1e9+7**
+2. *"City with fewest neighbors within distance T"* → **Floyd, count dist[i][j]≤T, tie max i**
+3. *"Time for signal to reach all nodes"* → **Day 19 Dijkstra max dist**
+4. *"Relax u→v, nd equals dist[v]"* → **`ways[v] += ways[u]`** — Day 25 signature
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Count shortest paths in DAG with edge weights (already topo sorted)."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **DP on DAG** — or Dijkstra+ways if graph general. Same equal-dist accumulation idea.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"How many pairs of cities have distance ≤ K?"*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **All-pairs Floyd** then double loop count — same matrix as #1334.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Cheapest flight with at most k stops."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 20 Bellman-Ford / k-layer** — not Day 25.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 25 matrix/count extensions. Scenario 3 = Day 20.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Plain Dijkstra without ways** on #1976 — missing the `else if nd == dist[v]` branch.
+2. **Single-source on #1334** — need every row of dist matrix.
+3. **Wrong tie-break** — largest city index, not smallest.
+4. **BFS on weighted roads** — breaks optimality.
+5. **Adding ways when nd > dist[v]** — only reset or accumulate on equal.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Fill in the relax logic:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+```
+if (nd < dist[v])  → dist[v]=___ ; ways[v]=___
+else if (nd == dist[v]) → ways[v]=___
+```
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Answer: `nd`; `ways[u]`; `(ways[v]+ways[u])%MOD`
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Then: for n=4 Floyd, what does row 2 count if threshold=5?
 
 ---
 
@@ -75,8 +74,8 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
 | [Number of Ways to Arrive at Destination #1976](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/) | Medium | Dijkstra + DP Count |
-| [Find the City With the Smallest Number of Neighbors at a Threshold Distance #1334](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/) | Medium | Dijkstra from Each Node |
+| [Find the City With the Smallest Number of Neighbors at a Threshold Distance #1334](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/) | Medium | All-Pairs Threshold Count |
 
 ---
 
-*Day 25 complete! Tomorrow: the next territory of your ascension. →*
+*Day 25 complete! Tomorrow: DAG memo and tree bottleneck BFS. →*

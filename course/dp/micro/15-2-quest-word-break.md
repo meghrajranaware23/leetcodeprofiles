@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Break
 
 > **Day 15** · [Word Break #139](https://leetcode.com/problems/word-break/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Break on LeetCode](https://leetcode.com/problems/word-break/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the **prefix dp** array — `dp[i]` = can first `i` chars be segmented? Try every cut `j` before `i`.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **String Partition DP**.
+Which DP pattern from today's concept applies? **String Partition DP** — `dp[i]` for prefix length `i`.
 
-What is the state? What does dp[i] represent for this problem?
+For each `i`, try `j` from `0` to `i-1`: if `dp[j]` and `s[j:i]` is in `wordDict`, set `dp[i]=true`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: trace `"leetcode"` with words `{leet, code}` — mark which `dp[i]` flip to true.
 
 ---
 
@@ -37,26 +38,21 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** String Partition DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Segment entire string into dictionary words
+- Order preserved, words concatenated
+- Boolean — can we reach full length?
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "word break" / "segmented" | Prefix DP `dp[i]` |
+| "dictionary" / "wordDict" | Check substring `s[j:i]` in set |
+| "can be segmented" | Reachability — `dp[n]` |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[0]=true — empty string valid."*
+2. *"For each end i, try every start j."*
+3. *"Need dp[j] true AND word in dict."*
+4. *"Return dp[n]."*
 
 ---
 
@@ -64,61 +60,47 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try every partition of s** | O(2^n) splits |
+| **Greedy: longest dict match from left** | `"cars"` vs `car+s` — greedy can fail |
+| **DFS without memo on start index** | Exponential revisit of same prefix |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Only `n+1` prefix states — each `dp[i]` solved once.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+"catsandog" with dict — greedy "cat" first may block "cats" + "and" + "og" path
+Prefix DP explores all valid cut points.
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Word Break II #140](https://leetcode.com/problems/word-break-ii/) | Return all segmentations | Prefix DP + backtrack |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Count partitions by digit rules | Prefix counting DP |
+| [Longest Palindromic Subsequence #516](https://leetcode.com/problems/longest-palindromic-subsequence/) | Today's second quest — interval | Different state |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**s = "leetcode", dict = {leet, code}**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=T
+i=4: j=0, "leet" in dict, dp[0]=T → dp[4]=T
+i=8: j=4, "code" in dict, dp[4]=T → dp[8]=T
+Answer: true
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+```
+for i in 1..n:
+  for j in 0..i-1:
+    if dp[j] and s[j:i] in words: dp[i]=true
+```
+
+> 💡 **The insight:** Prefix reachability — same skeleton as climbing stairs with variable step sizes (word lengths).
 
 ---
 
@@ -174,22 +156,19 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"String Partition DP"** → Name the DP pattern from the concept page.
+- **"Prefix dp[i]"** — Not interval palindrome — partition cuts.
+- **"dp[0]=true"** — Empty prefix always valid.
+- **"Try all j before i"** — Word length variable.
+- **"Not LPS"** — No `dp[i][j]` interval on Day 15 quest 1.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** String Partition DP
+> 🎯 **Pattern Unlocked:** String Partition DP — prefix reachability via dictionary words.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: LPS — subsequence, not substring. →*

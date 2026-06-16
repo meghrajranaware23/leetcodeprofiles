@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Time When Network Becomes Idle
 
 > **Day 26** · [The Time When the Network Becomes Idle #2039](https://leetcode.com/problems/the-time-when-the-network-becomes-idle/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open The Time When the Network Becomes Idle on LeetCode](https://leetcode.com/problems/the-time-when-the-network-becomes-idle/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** BFS `dist[]` from server 0 on tree. Each node `i`: last resend + round-trip = bottleneck. Answer = max + 1.
 
 ---
 
@@ -24,38 +25,40 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Tree BFS + Bottleneck**.
+**Tree BFS + bottleneck timing** — not Dijkstra, not DFS memo.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- BFS from 0 → `dist[i]` = hops to server (each edge = 1 sec one way).
+- For node `i ≥ 1`: `roundTrip = 2 * dist[i]`.
+- Last send before reply: `lastSend = ((roundTrip - 1) / patience[i]) * patience[i]`.
+- Node `i` quiet at `lastSend + roundTrip`; answer = `max(...) + 1`.
+
+Tree structure guarantees unique paths — BFS dist is exact.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Tree BFS + Bottleneck
+**Pattern used:** Tree BFS + Bottleneck Max
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Connected tree, server at node 0
+- Each node retransmits on patience schedule until reply
+- Ask when **all** nodes finished — max over bottlenecks
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Tree" + "edges" | BFS dist from root |
+| "patience[i]" | Resend interval math |
+| "Network becomes idle" | Max finish time |
+| Unit edge time | BFS not Dijkstra |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Nodes don't interfere after BFS — each has independent last-send timeline bounded by round-trip.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build adj; BFS dist from 0."*
+2. *"For i=1..n-1: rt=2*dist[i]."*
+3. *"lastSend = ((rt-1)/patience[i])*patience[i]."*
+4. *"ans = max(lastSend+rt); return ans+1."*
 
 ---
 
@@ -63,12 +66,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Simulate every second globally** | Too slow — use closed form |
+| **DFS for dist on tree** | BFS simpler for unweighted |
+| **Dijkstra** | All weights 1 — overkill |
+| **Forget +1 at end** | Off-by-one on idle second |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** After BFS, problem is **arithmetic per node**, not graph traversal.
 
 ---
 
@@ -76,29 +79,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | Weighted general graph | Day 19 |
+| [Inform Employees #1376](https://leetcode.com/problems/time-needed-to-inform-all-employees/) | Tree max depth + inform time | Day 15 |
+| [Network Idle #2039](https://leetcode.com/problems/the-time-when-the-network-becomes-idle/) | Patience bottleneck | Day 26 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Tree: 0—1—2, patience[1]=2, patience[2]=3
+dist[1]=1, dist[2]=2
 
-Apply Tree BFS + Bottleneck step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Node 1: rt=2, lastSend=0, finish=2
+Node 2: rt=4, lastSend=3, finish=7
+
+ans = max(2,7)+1 = 8
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** BFS gives geometry; patience formula gives schedule.
 
 ---
 
@@ -185,21 +184,17 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Tree + server at 0"** → BFS dist.
+- **"Patience retransmission"** → lastSend formula.
+- **"All nodes quiet"** → max bottleneck.
+- **"+1 for idle second"** → easy off-by-one.
+- **"Not matrix DAG quest"** → schedule math after one BFS.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Tree BFS + Bottleneck"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Tree BFS + Bottleneck
+> 🎯 **Pattern Unlocked:** Tree BFS + Bottleneck Max
 
 ---
 

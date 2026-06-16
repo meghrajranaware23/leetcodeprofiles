@@ -1,125 +1,134 @@
+<!-- hand-authored -->
 # 📝 BFS: Breadth-First Search
 
 > **Day 2** · BFS — Breadth-First Search · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand BFS Template visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Your mission today: **learn grid BFS on `(r, c)` coordinates** — the queue goes **wide before deep**. If you completed the Trees pack Day 3 (level-order), you already know the FIFO queue and `len(q)` level batches. Here we apply that same skeleton to **grids and graphs**, not binary tree children.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Queue Expands a Wavefront
 
-### 1. What is the pattern?
+### 1. What is BFS on a grid?
 
-**BFS Template** — the core technique you'll use in today's quests.
+Each cell `(r, c)` is a node. Edges connect **4-directional** neighbors (up, down, left, right) that pass your condition (same color, fresh orange, etc.).
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+Tool: a **FIFO queue** of coordinates.
+- Dequeue `(r, c)`, process cell
+- Enqueue valid unvisited neighbors
 
-### 2. Simple explanation
+**Visit order:** all cells at distance 1 before distance 2 — same "level" idea as tree BFS, but neighbors are `(r±1, c±1)` instead of `left`/`right` children.
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+### 2. Bridge from Trees Day 3 (no repeat lesson)
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
-
-```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
-
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
-```
-
-### 4. How the pattern works
-
-```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
-```
-
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
+| Trees BFS (#102) | Graphs BFS (today) |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Queue of `TreeNode*` | Queue of `(r, c)` pairs |
+| Enqueue `node.left`, `node.right` | Enqueue 4 grid neighbors |
+| `for _ in range(len(q))` = one level | Same batch loop = **one minute** in Rotting Oranges |
+| Output grouped by depth | Distance / time = number of batches |
 
-### 6. Why brute force fails
+You already know **why** `level_size = len(queue)` — newly enqueued cells belong to the **next** wave. Today you only change **what** gets enqueued.
 
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+### 3. Visual — grid BFS from `(1,1)` (no DFS)
 
-### 7. The key observation
+```
+Grid (1 = land, 0 = water):
+  0 1 0
+  1 1 1
+  0 1 0
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+Start queue = [(1,1)]
 
-### 8. Pattern signals & recognition clues
+Wave 0: process (1,1) → enqueue (0,1), (2,1), (1,0), (1,2)
+Wave 1: process those 4 neighbors (all valid 1-cells)
+Wave 2: enqueue from wave 1 … until queue empty
+
+Visit order (BFS): (1,1) → (0,1),(2,1),(1,0),(1,2) → …
+```
+
+**Read it as:** center cell first, then ring by ring — not drilling down one branch.
+
+### 4. The grid BFS skeleton
+
+```python
+DIRS = (1,0), (-1,0), (0,1), (0,-1)
+q = deque([(sr, sc)])
+visited or mutate grid in-place
+
+while q:
+    r, c = q.popleft()
+    for dr, dc in DIRS:
+        nr, nc = r + dr, c + dc
+        if in_bounds(nr, nc) and not_yet_visited(nr, nc):
+            mark visited
+            q.append((nr, nc))
+```
+
+**Bounds check:** `0 <= nr < m and 0 <= nc < n` — every grid quest needs this.
+
+### 5. Multi-source BFS — level timeline (Rotting Oranges preview)
+
+Some problems start BFS from **many cells at once** (all rotten oranges). Enqueue every source before the loop; each `len(q)` batch = **one time step**.
+
+```
+Minute 0: queue = all rotten cells
+Minute 1: process entire batch → newly rotten neighbors join queue
+Minute 2: next batch …
+```
+
+Quest 2 (#994) counts minutes with exactly this pattern — same Trees level batch, different meaning (time instead of tree depth).
+
+### 6. Pattern signals — Day 2 only
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "shortest path" / "minimum steps" (unweighted grid) | BFS from source |
+| "spread" / "minutes" / "levels" on grid | Multi-source BFS + batch count |
+| "fill" / "flood" connected cells | BFS/DFS from click; BFS if levels matter |
+| `m×n` matrix + 4-direction | `(r,c)` queue + DIRS |
+| "nearest" / "minimum time" (no weights) | BFS — first visit wins |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `queue` · `(r,c)` · `BFS` · `len(q)` · `4-direction` · `deque`
 
-### 9. Common beginner mistakes
+### 7. Why brute force fails
+
+| Brute force | Problem |
+|---|---|
+| DFS for "minimum minutes to spread" | DFS doesn't guarantee shortest time — BFS does |
+| Process queue without batching for time | Can't count minutes / levels |
+| No bounds check on `(nr, nc)` | Index out of range |
+| Revisit cells without marking | Infinite queue growth |
+| Nested loops simulating waves | O(n²) passes; one BFS is O(m·n) |
+
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Using stack (LIFO) instead of queue | That's DFS, not BFS |
+| Forgetting `len(q)` batch for timeline | Rotting Oranges needs per-minute loop |
+| 8-direction when problem says 4 | Read problem — today's grids are 4-dir |
+| Not marking visited on enqueue | Duplicate cells in queue |
+| Confusing Flood Fill quest pattern name with required algo | #733 solution uses DFS — both flood the component |
 
-### 10. Recognition drill
+### 9. BFS vs DFS on grids (when to pick)
 
-Read this problem aloud:
+| Signal | Pick |
+|---|---|
+| Minimum steps / minutes / shortest | **BFS** |
+| Just recolor / explore component / count area | BFS or DFS (Day 3 owns DFS intro) |
+| Level-by-level timeline | **BFS** with batch loop |
 
-> *"Given an m×n grid, count the number of islands."*
+### 10. Recognition drill — today's quests
 
-Before coding, say:
+**Quest 1 — Flood Fill #733:**
+> *"From `(sr,sc)`, recolor connected same-value cells — 4-dir flood (DFS or BFS both work)."*
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+**Quest 2 — Rotting Oranges #994:**
+> *"Multi-source BFS. Batch `len(q)` = one minute. Track fresh count."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You know the queue on grids. Quest 1 floods a region; Quest 2 counts a timeline. →*

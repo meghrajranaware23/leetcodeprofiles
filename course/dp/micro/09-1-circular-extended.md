@@ -1,145 +1,153 @@
+<!-- hand-authored -->
 # 📝 Circular & Extended Decisions
 
 > **Day 9** · Circular & Extended Decisions · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Variant Decision DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 6's take/skip assumed a **line with endpoints**. Today the line **wraps** — first and last houses are neighbors. You can't run one pass; you **split the circle into two linear problems**. The second quest keeps a line but **negative numbers flip the story** — track **both** max and min product at every index.
+
+> **Preview contrast (Day 6 vs Day 9):** Day 6 = one linear `max(skip, take)`. Day 9a = **two rob passes** (exclude first OR exclude last). Day 9b = **two rolling values** `(maxProd, minProd)` — not take/skip at all.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Variant Decision DP** — the core technique you'll use in today's quests.
+**Variant Decision DP** — same recurrence as an earlier day, but the **constraint changes** (circle, sign) so you extend the state or run multiple passes.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**Branch A — Circular constraint (House Robber II):**
+- Circle = first and last **both** can't be taken if adjacent rule applies
+- **Two-pass reduction:** `max( rob(0..n-2), rob(1..n-1) )`
+- Each pass is Day 6 take/skip unchanged
+
+**Branch B — Dual-state tracking (Maximum Product Subarray):**
+- Negative × negative → positive product surprise
+- **`maxProd[i]`** = best product ending at `i`
+- **`minProd[i]`** = worst (most negative) product ending at `i`
+- At each step: extend or restart; **swap max/min before multiply** when `nums[i] < 0`
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Circle:** If you rob house 0, you can't rob house n−1. So either the optimal set includes house 0 and excludes n−1, or excludes 0 and maybe includes n−1. Run the street robber twice on those two ranges and take the better total.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Product:** A huge negative product ending at `i-1` becomes a huge **positive** after multiplying a negative `nums[i]`. If you only track max, you miss this. Keep the min product too — it's tomorrow's comeback.
 
-### 3. Visual walkthrough
-
-```
-Decision diagram — take or skip:
-
-Item:    [3]   [4]   [2]   [8]
-          │     │     │     │
-          ▼     ▼     ▼     ▼
-  TAKE ──→ ■   SKIP ──→ ■   TAKE ──→ ■   TAKE ──→ ■
-  SKIP ──→ □   TAKE ──→ □   SKIP ──→ □   SKIP ──→ □
-
-DP array fills left-to-right:
-
-  dp[0]  dp[1]  dp[2]  dp[3]  dp[4]
-  ┌──────┬──────┬──────┬──────┬──────┐
-  │  0   │  3   │  4   │  5   │  12  │
-  └──────┴──────┴──────┴──────┴──────┘
-    ↑      ↑      ↑      ↑      ↑
-   base  max(   max(   max(   max(
-         take,  take,  take,  take,
-         skip)  skip)  skip)  skip)
-
-dp[i] = max(dp[i-1], dp[i-2] + nums[i])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — circular two-pass
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+Circle:  [2] — [3] — [2]
+          ↑               ↑
+       house 0         house n-1  (neighbors!)
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Variant Decision DP" has overlapping subproblems because...
+Pass 1: rob houses 0 .. n-2   (forbid last)
+Pass 2: rob houses 1 .. n-1   (forbid first)
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Answer: max(pass1, pass2)
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Example [2,3,2]: pass1 on [2,3]=5, pass2 on [3,2]=5 → 5
+Example [1,2,3,1]: pass1 on [1,2,3]=4, pass2 on [2,3,1]=4 → 4
+Single house: just return nums[0]
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Variant Decision DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — (maxProd, minProd) dual arrays
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+nums:  [2, 3, -2, 4]
+
+At each i, track best AND worst product ENDING here:
+
+  i=0: maxP=2,  minP=2
+  i=1: max(3, 2*3)=6,  min(3, 2*3)=6
+  i=2: max(-2, 6*(-2))=6→-2? 6*(-2)=-12, max(-2,-12)=-2
+       min( -2, 6*(-2) ) = -12
+       (with swap-on-negative pattern in code)
+  i=3: extending from -12 * 4 = -48 vs fresh 4 → maxP=4
+
+Global ans = max over all maxP
+
+Key idea:
+  maxP = max(nums[i], maxP*nums[i], minP*nums[i])
+  minP = min(nums[i], maxP*nums[i], minP*nums[i])
+  (swap maxP/minP when nums[i] < 0 before update — equivalent form)
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Circular robber:**
+```
+if n == 1: return nums[0]
+return max( robRange(0, n-2), robRange(1, n-1) )
 
-### 8. Pattern signals & recognition clues
+robRange(lo, hi):  // Day 6 inside
+    prev2, prev1 = 0, 0
+    for i in lo..hi:
+        curr = max(prev1, prev2 + nums[i])
+        prev2, prev1 = prev1, curr
+    return prev1
+```
+
+**Dual product:**
+```
+ans = maxP = minP = nums[0]
+for i = 1..n-1:
+    if nums[i] < 0: swap(maxP, minP)
+    maxP = max(nums[i], maxP * nums[i])
+    minP = min(nums[i], minP * nums[i])
+    ans = max(ans, maxP)
+return ans
+```
+
+### 6. Day 6 vs Day 9 — side by side
+
+| | **Day 6 Linear** | **Day 9 Circular** | **Day 9 Product** |
+|---|---|---|---|
+| Constraint | no adjacent on line | no adjacent on **circle** | subarray product |
+| State count | 1 scalar (prev1) | 2 linear passes | **2 scalars** max+min |
+| Transition | max skip/take | same inside range | max/min extend or reset |
+| Trick | prev2/prev1 | split range | swap on negative |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "circular array" / "first and last adjacent" | Two-pass robber |
+| "maximum product subarray" | Dual max/min product |
+| "linear rob houses" | Day 6 — one pass |
+| "all positive nums" | Product = Kadane on logs; dual state optional |
+| "circular subarray max sum" | **D-Rank test** — Kadane + total−min (bridge from E5) |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `two pass` · `robRange` · `maxProd minProd` · `swap on negative` · `circle split`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| One rob pass on circle | Must exclude first **or** last |
+| Forgetting `n==1` | Return sole element |
+| Product: only track max | Keep **minProd** for sign flip |
+| Product: not resetting at nums[i] | `max(nums[i], maxP*nums[i])` — start fresh at i |
+| Applying circle split to product | Product is **not** two-pass — dual state instead |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Houses in a circle — max loot without robbing adjacent houses."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 9 circular: max( rob(0..n-2), rob(1..n-1) ). Each rob is Day 6. Not one pass."*
+
+Read this one:
+
+> *"Maximum product of any contiguous subarray."*
+
+Before coding, say:
+
+> *"Day 9 dual: track maxP and minP ending at i; swap on negative; ans = max maxP."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Break the line's assumptions. First quest: the circular street. →*

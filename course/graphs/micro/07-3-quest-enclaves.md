@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Enclaves
 
 > **Day 7** · [Number of Enclaves #1020](https://leetcode.com/problems/number-of-enclaves/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Number of Enclaves on LeetCode](https://leetcode.com/problems/number-of-enclaves/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** DFS from every **border land cell** (1 on the edge). Flip visited land to 0. Sum what's left — that's the enclave count. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Outside-In Flood Fill**.
+Which pattern from today's concept applies? **Outside-In Flood Fill** — border land connects to the "outside"; flood it all away. **Enclave = unvisited land count** = sum of remaining 1s. NOT BFS from water (0).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: you don't count island components. You **remove** everything touching the frame, then count leftover 1s.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Outside-In Flood Fill
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Cannot walk off the boundary" → land that **does** touch boundary is NOT enclave
+- Return **count of cells**, not number of regions
+- Binary grid → mark by setting `grid[r][c] = 0`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "enclave" | Trapped land — border flood then sum 1s |
+| "move off the grid" | Border-connected = safe, erase it |
+| "return the number of land cells" | Count cells, not components |
+| "4-directionally" | Standard grid DFS |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Any land path to the edge escapes. Border DFS marks all escapable land; what remains is fully enclosed.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"For each border cell (i,j) with grid[i][j]==1: dfs."*
+2. *"dfs: set grid[r][c]=0; recurse to neighbor 1s."*
+3. *"Return sum(grid) or count 1s in final grid."*
+4. *"Do NOT start from 0 cells."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Count islands, check each touches border** | Extra component logic — border flood is one pass |
+| **BFS from all 0 cells inward** | Wrong seed — water isn't connected to outside frame the same way |
+| **For each land cell, BFS to border** | O(cells²) per enclave check |
+| **Union-Find on components** | Overkill for "remaining after erase" |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Erase outside-connected land once; **enclave count = unvisited land count**.
 
 ---
 
@@ -76,29 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Number of Closed Islands #1254](https://leetcode.com/problems/number-of-closed-islands/) | Count closed **components** after border erase | Border flood + inner scan |
+| [Pacific Atlantic #417](https://leetcode.com/problems/pacific-atlantic-water-flow/) | Two oceans, height rule | Border seed, different condition |
+| [Surrounded Regions #130](https://leetcode.com/problems/surrounded-regions/) | Border 'O' flood, flip inner | Outside-in erase |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Border land erased; count survivors.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+grid:                    After border DFS (1→0):
+0 0 0 0                  0 0 0 0
+1 0 1 0          →       0 0 0 0
+1 1 1 0                  0 1 1 0   ← inner 1s trapped
+0 1 1 0                  0 1 1 0
 
-Apply Outside-In Flood Fill step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Border (1,0) and (2,0) land → flood clears left column connection
+Remaining 1s at (1,1),(2,1),(2,2),(1,2) → count = 4? Trace your example carefully on paper.
+
+Template:
+  for i in 0..m-1: dfs(i,0); dfs(i,n-1)
+  for j in 0..n-1: dfs(0,j); dfs(m-1,j)
+  return sum of 1s
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You're not finding islands — you're deleting everything that **isn't** an enclave, then counting.
 
 ---
 
@@ -170,21 +172,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Outside-In Flood Fill"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Land that can't reach border"** → Erase border-connected land first.
+- **"Enclave = remaining 1s"** → Sum grid — not component count from Day 4.
+- **"Seed border land only"** → NOT BFS from 0/water.
+- **"Same border loop as Pacific"** → Different condition (any land vs height).
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Outside-In Flood Fill
+> 🎯 **Pattern Unlocked:** Outside-In Flood Fill — border erases escapable land; count what's trapped.
 
 ---
 

@@ -1,145 +1,136 @@
+<!-- hand-authored -->
 # 📝 Cost Optimization
 
 > **Day 8** · Cost Optimization · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Min/Max Cost DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 7 asked **"how many ways?"** — **`+`**. Today asks **"what's the cheapest?"** — **`min` + cost**. Same grid-neighbor shape as Unique Paths, but you accumulate **path cost**, not path count. Triangle adds a twist: fill **bottom-up** because the next row sits below.
+
+> **Preview contrast (Day 7 vs Day 8):** Day 7 Unique Paths = `dp[i][j] = dp[i-1][j] + dp[i][j-1]`. Day 8 Min Path Sum = `dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])`. **Same grid; operator flips from sum to min.**
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Min/Max Cost DP** — the core technique you'll use in today's quests.
+**Min/Max Cost DP** — optimize total cost to reach a cell or state by taking the best predecessor plus local cost.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[i][j]` = minimum cost to reach `(i,j)` (or min path sum ending there)
+- **Transition** — `cost[i][j] + min/neighbor options` from already-solved cells
+- **Grid fill** — usually top-left → bottom-right (depends on move directions)
+- **Triangle** — bottom row → top: each cell picks min of **two children below**
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+You're hiking on a grid where every tile charges a toll. To find the cheapest route to the southeast corner, you only need the cheapest way to reach the tile above you and the tile to your left — pick the cheaper of those, add today's toll. For a triangle, stand on the bottom row (cost known), then walk upward asking: *"Which of my two landing spots below is cheaper?"*
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — Day 7 count vs Day 8 min (same grid shape)
 
 ```
-Decision diagram — take or skip:
+Same 3×3 grid, different question:
 
-Item:    [3]   [4]   [2]   [8]
-          │     │     │     │
-          ▼     ▼     ▼     ▼
-  TAKE ──→ ■   SKIP ──→ ■   TAKE ──→ ■   TAKE ──→ ■
-  SKIP ──→ □   TAKE ──→ □   SKIP ──→ □   SKIP ──→ □
+DAY 7 — COUNT paths:              DAY 8 — MIN cost (example costs):
 
-DP array fills left-to-right:
+  1  1  1                           1  3  1
+  1  2  3      dp = sum             1  5  1   dp = min(top,left)+cell
+  1  3  6                           4  2  1
 
-  dp[0]  dp[1]  dp[2]  dp[3]  dp[4]
-  ┌──────┬──────┬──────┬──────┬──────┐
-  │  0   │  3   │  4   │  5   │  12  │
-  └──────┴──────┴──────┴──────┴──────┘
-    ↑      ↑      ↑      ↑      ↑
-   base  max(   max(   max(   max(
-         take,  take,  take,  take,
-         skip)  skip)  skip)  skip)
-
-dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+  "how many routes?"                "cheapest route toll?"
+  operator: +                       operator: min + cost
 ```
 
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 4. Visual — grid min-cost fill
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+grid:          dp (min cost to reach):
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Min/Max Cost DP" has overlapping subproblems because...
+1  3  1        1  4  5
+1  5  1   →    2  7  6
+4  2  1        6  8  7
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+(1,1): 5 + min(4,2) = 7
+(2,2): 1 + min(6,6) = 7  ← answer
+First row/col: cumulative sum along edge
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Min/Max Cost DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 5. Visual — triangle bottom-up
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Triangle:          Start dp from bottom row:
+
+    2                  dp after bottom-up:
+   3 4       →            11
+  6 5 7                  9  10
+ 4 1 8 1               7  6  10
+
+Bottom row copied → row i: dp[j] = tri[i][j] + min(dp[j], dp[j+1])
+Answer: dp[0] at apex
 ```
 
-### 7. Base cases & answer extraction
+**Fill direction matters:** triangle goes **up**; grid min-path goes **down-right**.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 6. The universal templates
+
+**Grid min-cost (top-left start, R/D moves):**
+```
+dp[0][0] = grid[0][0]
+fill first row/col cumulatively
+for i,j:
+    dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])
+return dp[m-1][n-1]
+```
+
+**Triangle bottom-up:**
+```
+dp = last row of triangle
+for i from n-2 down to 0:
+    for j in 0..i:
+        dp[j] = triangle[i][j] + min(dp[j], dp[j+1])
+return dp[0]
+```
+
+### 7. Aggregation ladder (Days 6–8)
+
+| Day | Operator | Example |
+|---|---|---|
+| Day 6 | `max` | House Robber |
+| Day 7 | `+` | Unique Paths count |
+| **Day 8** | **`min` + cost** | Minimum Path Sum |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "minimum path sum" / "cheapest route" | Grid min-cost |
+| "minimum total" on triangle | Bottom-up min |
+| "how many paths" | **Day 7 +** |
+| "maximum sum non-adjacent" | **Day 6 max** |
+| "each cell has a cost/weight" | Add cost after min/max of predecessors |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `minimum` · `min(top,left)` · `bottom-up` · `triangle` · `path sum`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using `+` like Unique Paths | Min-cost uses **`min`** |
+| Top-down triangle without memo | Bottom-up 1D row is simpler |
+| Forgetting first row/col base | Cumulative min along edges |
+| Starting triangle from apex down | Start **last row**, move up |
+| `min` without adding cell cost | `grid[i][j] + min(...)` |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Find a path from top-left to bottom-right minimizing the sum of cell values."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 8 grid min-cost: dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1]). Not Day 7 count — min, not sum of ways."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Optimize cost, not count. First quest: cheapest grid path. →*

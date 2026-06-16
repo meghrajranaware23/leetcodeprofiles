@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 3 Checkpoint
 
 > **DFS — Depth-First Search** · 2 quests completed · ⭐ 40 XP earned
@@ -6,55 +7,59 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 3 is **DFS first introduction**: recursion stack, visit order, and the **component restart loop**. No BFS queue today.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "connected components" / "provinces" | Outer loop + `dfs(i)` | Each restart = one group |
+| "visit all rooms from start" | Single `dfs(0)` + `all(visited)` | Reachability, not counting |
+| Explicit neighbor lists | `for v in adj[u]` | Same as adjacency from Day 1 |
+| Undirected connectivity matrix | Symmetric edges | Scan row for neighbors |
+| Directed keys / one-way edges | DFS follows arrow direction | Can't enter without path |
+| Need shortest steps | **Not Day 3** — use BFS (Day 2) | DFS goes deep, not level-first |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 3 pattern fires first?
 
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"How many disconnected groups in an undirected graph?"* → **Restart loop + DFS**
+2. *"Can you reach every node from node 0 in a directed graph?"* → **Single-source DFS reachability**
+3. *"Trace recursion stack during DFS from node 0"* → **Depth-first visit order**
+4. *"Minimum steps from A to B on unweighted grid"* → **BFS (Day 2)** — not DFS
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Provinces and Keys and Rooms. Can you apply **DFS patterns** to new problems?
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+**Scenario 1:** *"Given an undirected graph, return the size of the largest connected component."*
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+Which pattern? **Restart loop + DFS** — same as Provinces, but track max size during each flood.
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+**Scenario 2:** *"Starting at webpage 0, can you reach all pages following hyperlinks?"*
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+Which pattern? **Keys and Rooms template** — directed adjacency, `dfs(0)`, check all visited.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+**Scenario 3:** *"Count islands in a binary grid."*
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
+Which pattern? **Restart loop on grid** — Day 4 formalizes; each unvisited `1` triggers `dfs(r,c)`.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Questions 1 and 3 use **restart**; question 2 uses **single-source reachability**.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Using BFS visual for DFS problems** — Think stack/recursion, not queue levels.
+
+2. **Component count without outer loop** — One DFS from 0 misses other provinces.
+
+3. **Keys and Rooms: restart from every room** — Only room 0 is initially open.
+
+4. **Forgetting visited before recurse** — Cycles cause infinite DFS.
+
+5. **Provinces: treating matrix as directed** — `isConnected[i][j]` implies both ways.
 
 ---
 
@@ -62,11 +67,11 @@ Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
 
 ### Related LeetCode Practice
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[Reorder Routes to Make All Paths Lead to the City Zero #1466](https://leetcode.com/problems/reorder-routes-to-make-all-paths-lead-to-the-city-zero/)** — DFS/BFS from 0 on directed roads (reachability with edge flips).
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Before you code:** Draw directed edges from 0 outward. Mark what DFS would visit.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Re-read the restart-loop walkthrough in Provinces if component counting still feels fuzzy.
 
 ---
 
@@ -79,4 +84,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 3 complete! Tomorrow: the next territory of your ascension. →*
+*Day 3 complete! Tomorrow: grids as graphs — perimeter math and island counting. →*

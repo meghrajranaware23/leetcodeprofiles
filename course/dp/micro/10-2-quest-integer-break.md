@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Integer Break
 
 > **Day 10** · [Integer Break #343](https://leetcode.com/problems/integer-break/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Integer Break on LeetCode](https://leetcode.com/problems/integer-break/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** For n=10, write all first cuts j=1..9 and whether you use j*(i-j) or j*dp[i-j]. Inner loop is the whole pattern.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Partition Maximization DP**.
+**Pattern:** Day 10 **Partition Maximization DP**.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+- `dp[i]` = max product splitting `i` (must break — at least 2 factors for answer at n, but table builds all i)
+- For each `j` from `1` to `i-1`:
+  - `j * (i - j)` — one split into two parts only
+  - `j * dp[i - j]` — split `j` off, optimally break the rest
+- `dp[i] = max` over all j
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Partition Maximization DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Split integer into **parts** — choice of cut position
+- **Maximize product** — inner loop + max
+- Overlapping subproblems on smaller integers
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "break into at least two" | Partition DP |
+| "maximize product" | max over inner splits |
+| "integer n" | 1D dp[2..n] |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why inner loop:** Cut location is the multi-option — not just two fixed branches.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[i] = best product for integer i."*
+2. *"Try every first piece j."*
+3. *"Compare j*(i-j) vs j*dp[i-j]."*
+4. *"dp[1]=1 as multiplicative identity base."*
 
 ---
 
@@ -64,61 +64,45 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all partitions recursively** | Exponential — O(2^n) splits |
+| **Only j*(i-j), never dp[i-j]** | Misses 3+ factor splits (e.g. 10 = 3+3+4) |
+| **Greedy: always split in half** | Not globally optimal product |
+| **Day 6 take/skip** | Wrong model — must use **all** parts of n |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Each first piece `j` reduces to a **smaller integer** already in the table.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=10: optimal 3*3*4 = 36
+Needs j=3, dp[7] path — not just 3*7=21
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Objective | Inner loop |
+|---|---|---|
+| [Perfect Squares #279](https://leetcode.com/problems/perfect-squares/) | min squares | j² ≤ i |
+| [Coin Change #322](https://leetcode.com/problems/coin-change/) | min coins | denominations |
+| [Integer Break #343](https://leetcode.com/problems/integer-break/) | max product | j = 1..i-1 |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `n = 10`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Build dp[2..10]:
+
+dp[2]=1 (1*1)
+dp[3]=max(1*2, 2*1)=2
+dp[4]=max(1*3, 2*2, 3*1)=4
+...
+dp[10]=36 via j=3: 3*dp[7]=3*12=36
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Two-term split and multi-term split compete in the same inner loop.
 
 ---
 
@@ -166,22 +150,17 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Partition Maximization DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Max product partition"** → inner loop over cut j.
+- **"j * dp[i-j]"** → break remainder further.
+- **"Not take/skip"** — must account for all pieces of n.
+- **"O(n²) table"** — multi-option cost.
 
 > 🎯 **Pattern Unlocked:** Partition Maximization DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: min layers with square peels. →*

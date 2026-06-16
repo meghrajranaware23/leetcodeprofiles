@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Unique Paths II
 
 > **Day 11** · [Unique Paths II #63](https://leetcode.com/problems/unique-paths-ii/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Unique Paths II on LeetCode](https://leetcode.com/problems/unique-paths-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** You solved the clean version on Day 7 ([Unique Paths #62](https://leetcode.com/problems/unique-paths/)). What's the **one line** that changes when a cell is blocked? Fill a small grid on paper before peeking.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Grid DP with Obstacles**.
+Which DP pattern from today's concept applies? **Grid DP with Obstacles** — same as Day 7 #62, but `dp[i][j] = 0` when `grid[i][j] == 1`.
 
-What is the state? What does dp[i] represent for this problem?
+What is the state? `dp[j]` (rolling row) = number of paths to reach column `j` in the current row.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+If you're stuck after 5 minutes: draw the 3×3 example from LeetCode. Mark obstacle cells as 0; propagate sums from top-left.
 
 ---
 
@@ -37,26 +38,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** Grid DP with Obstacles
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Grid traversal, only right/down
+- Count paths (sum transitions, not min/max)
+- Obstacle cells invalidate any path through them
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "obstacle" / "blocked" | Zero that cell in the DP table |
+| "unique paths" / "how many ways" | Sum of parent cells |
+| "top-left to bottom-right" | Fill row-by-row, rolling one row |
+| "grid" | 2D DP — Day 11 pattern |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 7 bridge:** #62 had no obstacles. #63 is literally #62 + `if obstacle → 0`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Same rolling row as Day 7."*
+2. *"dp[0] = 1 unless start is obstacle."*
+3. *"Each row: if blocked dp[j]=0; else if j>0 dp[j]+=dp[j-1]."*
+4. *"Return dp[n-1]."*
 
 ---
 
@@ -64,61 +63,42 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Enumerate all right/down paths** | Exponential — C(m+n) paths in worst case |
+| **DFS without memo** | Revisits same (i,j) millions of times |
+| **Greedy "always go down then right"** | Obstacles break any fixed direction rule |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Each cell's path count depends only on counts from **above and left** — O(m·n) unique subproblems, one fill pass.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+Brute: try every path → O(2^(m+n))
+Grid DP: each cell once     → O(m·n)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | No obstacles | Day 7 — same rolling row |
+| [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) | `min` instead of `sum` | Grid DP, right+down |
+| [Minimum Falling Path Sum #931](https://leetcode.com/problems/minimum-falling-path-sum/) | Three parents above | Today's second quest |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**Example:** `grid = [[0,0,0],[0,1,0],[0,0,0]]`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+After row 0:  dp = [1, 1, 1]
+After row 1:  obstacle at (1,1) → dp = [1, 0, 1]
+After row 2:  dp = [2, 1, 3]   → answer 3
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+Rolling row: only `dp[j]` array needed — no full `m×n` table.
+
+> 💡 **The insight:** Day 7 taught the fill order. Day 11 teaches the obstacle guard. Together they're one pattern.
 
 ---
 
@@ -176,22 +156,19 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Grid DP with Obstacles"** → Name the DP pattern from the concept page.
+- **"I did #62 on Day 7"** → Same rolling row; add obstacle check.
+- **"State is dp[j]"** → Paths to column j in current row.
+- **"Obstacle → 0"** → No path can stand on a blocked cell.
+- **"Start blocked?"** → dp[0] becomes 0 on first row — answer 0.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Grid DP with Obstacles
+> 🎯 **Pattern Unlocked:** Grid DP with Obstacles — Day 7 #62 + zero on blocked cells.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: min cost when you can fall diagonally. →*

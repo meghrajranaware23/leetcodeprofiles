@@ -133,7 +133,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(d*n^2), Space: O(d*n)
+**Complexity:** O(d · n²) time · O(n) space
 
 </details>
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Min Cost Climbing Stairs
 
 > **Day 2** · [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Min Cost Climbing Stairs on LeetCode](https://leetcode.com/problems/min-cost-climbing-stairs/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** You can **start** at index 0 or 1 for free. Trace `cost = [10,15,20]` — which path is cheaper? Then write the min recurrence.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Decision + Cost Memoization**.
+**Pattern:** Decision + Cost Memoization — same 2-step skeleton as Climbing Stairs, but **min** replaces **sum**.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** `dp[i]` = minimum cost to **reach step i** (pay `cost[i]` when you land on i). You may start at 0 or 1 with no upfront payment.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** Transition: `dp[i] = cost[i] + min(dp[i-1], dp[i-2])` — pick the cheaper predecessor.
+
+**Hint 3:** Answer is **beyond** the last index: min cost to finish = `min(dp[n-1], dp[n-2])` where n = cost.length — or extend dp to index n with cost 0.
 
 ---
 
@@ -37,26 +40,24 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Decision + Cost Memoization
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Same movement rules as Climbing Stairs (1 or 2 steps)
+- Optimize **minimum cost**, not count ways
+- Cost paid on the step you **land on**
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "minimum cost" | min over choices |
+| "climb one or two steps" | Two predecessors |
+| "can start at index 0 or 1" | dp[0]=0, dp[1]=0 or free start |
+| "reach the top" past last index | Answer at n, not n-1 |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Try all 2^n path combinations — same exponential tree as Climbing Stairs, but min merge instead of sum.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Same graph as Climbing Stairs — edge costs on nodes."*
+2. *"min instead of + for combining subproblems."*
+3. *"Free start → dp[0]=dp[1]=0 before loop."*
+4. *"Return min to step n (top beyond array)."*
 
 ---
 
@@ -64,61 +65,50 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Enumerate all paths** | O(2^n) paths |
+| **Greedy: always take cheaper neighbor** | Fails — cheap step now may force expensive step later |
+| **Memo on min cost to i** | O(n) — optimal substructure ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+cost = [10, 15, 20]
+dp[0]=0, dp[1]=0
+dp[2]=10+min(0,0)=10
+Top: min(dp[1], dp[2]) = min(0+15?, 10) → pay from step 2 only = 15? 
+
+Trace carefully: dp[2]=10, finish from 1: cost[1]+0=15, from 2: 10 → answer 15
+Example output: 15 ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Combine with | Transition |
+|---|---|---|
+| Climbing Stairs #70 | **sum** | ways[i-1]+ways[i-2] |
+| **Min Cost Climbing #746** | **min** | cost[i]+min(dp[i-1],dp[i-2]) |
+| House Robber (later) | max | max(take, skip) — Day 5 cousin |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**cost = [1, 100, 1, 1, 100, 1]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0] = 0   (free start)
+dp[1] = 0   (free start)
+dp[2] = 1 + min(0,0) = 1
+dp[3] = 100 + min(0,1) = 100
+dp[4] = 1 + min(1,100) = 2      ← cheap route via step 2
+dp[5] = 1 + min(100,2) = 3
+Finish: min(dp[4], dp[5]) = min(2, 3) = 2
+
+Path: start 0 → step 2 (cost 1) → step 4 (cost 1) → top = 2 ✓
+Avoided the 100-cost steps.
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Memo/tabulate the **same indices** as Climbing Stairs — only the merge operator changes (+ vs min).
 
 ---
 
@@ -164,19 +154,14 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Decision + Cost Memoization"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Same stairs, min not count"** → min merge on same recurrence graph.
+- **"Free start at 0 or 1"** → dp[0]=dp[1]=0; loop from i=2.
+- **"Answer past last index"** → rolling `b` at i=n is min cost to top.
+- **"Memo would cache minCost(i)"** → Top-down works; solution shows bottom-up roll.
 
 > 🎯 **Pattern Unlocked:** Decision + Cost Memoization
 

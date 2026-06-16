@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 4 Checkpoint
 
 > **Grids as Graphs** · 2 quests completed · ⭐ 40 XP earned
@@ -6,55 +7,59 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 4 is **4-direction grid graphs**: perimeter edge math and **restart flood** for island counting.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "island perimeter" / "boundary length" | +4/−2 or +1 per water edge | Local arithmetic |
+| "number of islands" | Scan + `count++` + dfs sink | Component restart on grid |
+| Binary `m×n` grid | DIRS + bounds | Standard grid graph |
+| Land cells share edge | Subtract 2 in perimeter formula | Internal edge not on boundary |
+| `'1'`/`'0'` or `1`/`0` | Match type in code | Char vs int grids |
+| "4-directionally connected" | No diagonals | Corner-touch ≠ connected |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 4 pattern fires first?
 
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Return perimeter of shapes in a binary grid"* → **Boundary counting (+4/−2)**
+2. *"How many separate land regions in the grid?"* → **Restart flood from each `1`**
+3. *"Single land cell in 1×1 grid perimeter?"* → **4**
+4. *"Two horizontally adjacent land cells — shared edge?"* → **Subtract from perimeter, not counted twice**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Island Perimeter and Number of Islands. Can you apply **grid patterns** to new problems?
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+**Scenario 1:** *"Return the area of the largest island in a binary grid."*
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+Which pattern? **Restart flood + accumulate size** — Day 5 Max Area (#695) formalizes this.
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+**Scenario 2:** *"Flip all `'O'` surrounded by `'X'` to `'X'`."*
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+Which pattern? **Border DFS first** — E-Rank Test #130; flood from boundary `'O'`s, flip interior.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+**Scenario 3:** *"Count land cells in each island and return the distribution."*
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
+Which pattern? **Same as #200** — each flood returns a size count.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use **4-dir grid traversal**; perimeter is the odd one out ( arithmetic not flood).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Perimeter: land × 4 without −2** — Shared edges inflate the answer.
+
+2. **Islands: count cells not components** — One island, many cells → count is 1.
+
+3. **Diagonal connectivity** — Unless problem says 8-dir, corners don't connect.
+
+4. **Forget to mark visited during flood** — Revisit → infinite DFS or wrong count.
+
+5. **Perimeter DFS when scan formula suffices** — O(m·n) scan is simpler than flood for #463.
 
 ---
 
@@ -62,11 +67,11 @@ Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
 
 ### Related LeetCode Practice
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[Max Area of Island #695](https://leetcode.com/problems/max-area-of-island/)** — tomorrow's quest; try it early if #200 felt easy.
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Before you code:** Same restart loop — but dfs **returns** cell count instead of void.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Re-read the sink walkthrough in Number of Islands if restart timing is unclear.
 
 ---
 
@@ -79,4 +84,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 4 complete! Tomorrow: the next territory of your ascension. →*
+*Day 4 complete! Tomorrow: measure components and clone a graph node-by-node. →*

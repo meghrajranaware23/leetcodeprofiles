@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Shortest Path with Obstacles Elimination
 
 > **Day 28** · [Shortest Path in a Grid with Obstacles Elimination #1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Shortest Path in a Grid with Obstacles Elimination on LeetCode](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Your node is `(r, c, k)` — row, column, eliminations left. Draw a small grid and trace states by hand. A 2D visited array is wrong here.
 
 ---
 
@@ -24,9 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **3D State BFS**.
+**3D state BFS** — `(r, c, rem, dist)` where `rem` = obstacles you can still eliminate.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- Queue `(0, 0, k, 0)`; mark `vis[0][0][k] = true`.
+- Stepping onto obstacle costs 1 from `rem`: `nrem = rem - grid[nr][nc]`.
+- If `nrem < 0` → can't enter. If `vis[nr][nc][nrem]` → skip.
+- Goal `(m-1, n-1)` → return `d`.
+
+Not Day 8 `(r,c)` only — same cell with different `rem` is a different node.
 
 ---
 
@@ -35,27 +41,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** 3D State BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Eliminate at most k obstacles" → budget dimension in state
+- "Shortest path" on grid → BFS with step count
+- Same cell reachable with different remaining k → 3D visited
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "eliminate" / "at most k obstacles" | State includes remaining budget |
+| "shortest path" in grid | BFS, not DFS |
+| Obstacle = 1, free = 0 | Pay 1 from rem when entering obstacle |
+| Return -1 if impossible | BFS exhausts without reaching goal |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** BFS on `(r,c,rem)` treats each triple as a distinct node. First visit to goal = minimum steps. `vis[r][c][rem]` prevents redundant queue work.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"What's my state beyond (r,c)?"* → remaining eliminations `rem`.
+2. *"vis must be 3D: vis[r][c][rem]."*
+3. *"nrem = rem - grid[nr][nc]; skip if nrem < 0."*
+4. *"Not Day 10 string state — spatial + counter."*
 
 ---
 
@@ -63,12 +66,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **2D visited `[r][c]` only** | Misses path that needs different rem at same cell |
+| **DFS** | Doesn't guarantee shortest steps |
+| **Try all subsets of k obstacles to remove** | Exponential — BFS with state is O(m·n·k) |
+| **Dijkstra** | Unweighted steps — plain BFS suffices |
+| **BFS without tracking rem** | Can't distinguish "arrived with 0 left" vs "1 left" |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** The obstacle budget is part of the **node identity**, not a post-hoc check.
 
 ---
 
@@ -76,29 +80,32 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Obstacles Elimination #1293](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) | Grid + k budget | `(r,c,rem)` BFS |
+| [Shortest Path in a Grid with Obstacles Elimination](https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/) | Same | 3D vis |
+| [Open the Lock #752](https://leetcode.com/problems/open-the-lock/) | Day 10 — string state | Different state shape, same BFS skeleton |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Grid (0=free, 1=obstacle), k=1:
 
-Apply 3D State BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+  0  0  1
+  0  1  0
+  0  0  0
+
+Start (0,0,k=1,d=0)
+  → (0,1,k=1,d=1) free
+  → (0,2,k=0,d=2) obstacle — used 1 elimination
+  → (1,2,k=0,d=3)
+  → (2,2,k=0,d=4) goal ✓
+
+State (0,2,k=1) might also exist via another route —
+that's separate from (0,2,k=0). Both can be in queue.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Think of k+1 copies of the grid stacked — BFS across the stack.
 
 ---
 
@@ -181,19 +188,14 @@ class Solution {
 ```
 
 **Complexity:** O(m · n · k) time · O(m · n · k) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"3D State BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"At most k obstacles"** → `rem` in every queue entry and visited cell.
+- **"Same (r,c) twice with different rem"** → both valid, both needed.
+- **"Shortest path"** → BFS on expanded state graph, not DFS.
+- **vis[r][c][rem]** — three indices, not two.
 
 > 🎯 **Pattern Unlocked:** 3D State BFS
 

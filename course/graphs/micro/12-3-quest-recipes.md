@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find All Possible Recipes
 
 > **Day 12** · [Find All Possible Recipes from Given Supplies #2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find All Possible Recipes from Given Supplies on LeetCode](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Supplies are your initial in-degree-0 nodes. Each ingredient not in supplies adds to the recipe's in-degree. Peel forward.
 
 ---
 
@@ -24,38 +25,31 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Topological Dependency Chain**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Map strings to graph nodes. For each recipe, count ingredients **not** already in `have` (supplies). Edge: ingredient → recipe. When a recipe is crafted, add it to `have` — newly unlocked ingredient for other recipes.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Topological Dependency Chain
+**Pattern used:** Topological Dependency Chain (forward Kahn)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Items unlock other items over time
+- Initial "free" items = supplies (indeg 0)
+- Crafting order matters; no cycles in valid input
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "supplies" / "ingredients" | Seeds for Kahn queue |
+| "recipes" depend on ingredients | Edge ing → recipe |
+| "find all possible" | Peel until queue empty |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** A recipe becomes craftable when all non-supply dependencies are satisfied — exactly when in-degree drops to 0.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"have = set(supplies)."*
+2. *"For each recipe, indeg = count of ings not in have."*
+3. *"Queue recipes with indeg 0, craft, add to have, decrement."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Try recipes in every order** | O(n!) |
+| **Greedy without indeg tracking** | May attempt recipe before ingredient ready |
+| **DFS without memo** | Re-explores same dependency chains |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Same Kahn skeleton as Course Schedule — nodes are just strings.
 
 ---
 
@@ -76,29 +69,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Course Schedule II #210](https://leetcode.com/problems/course-schedule-ii/) | Integer nodes | Forward Kahn |
+| [Find Eventual Safe States #802](https://leetcode.com/problems/find-eventual-safe-states/) | Reverse peel | Previous quest |
+| [Design Twitter #355](https://leetcode.com/problems/design-twitter/) | Different domain | Feed ordering — not Kahn |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+recipes = ["bread"], ingredients = [["yeast","flour"]]
+supplies = ["yeast","flour"]
 
-Apply Topological Dependency Chain step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+have = {yeast, flour}
+bread indeg = 0 (both ings in have) → queue [bread]
+Craft bread → have += bread → output ["bread"]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Crafting a recipe adds a new "supply" — may unlock further recipes in same peel chain.
 
 ---
 
@@ -194,19 +182,16 @@ class Solution {
 ```
 
 **Complexity:** O(R + I) time · O(R + I) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Topological Dependency Chain"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Supplies = Day 11's indeg-0 courses."**
+- **"Ingredient → recipe edges."** → forward Kahn.
+- **"Add crafted recipe to have."** → dynamic new supplies.
+- **"String hash map instead of int array."** → same algorithm, different labels.
 
 > 🎯 **Pattern Unlocked:** Topological Dependency Chain
 

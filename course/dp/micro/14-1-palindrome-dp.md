@@ -1,144 +1,123 @@
+<!-- hand-authored -->
 # 📝 Palindrome DP
 
 > **Day 14** · Palindrome DP · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Palindrome State Design visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 13 matched **two different sequences** (LCS grid). Day 14 asks whether a string **reads the same forward and backward** — two tools: **expand around center** for contiguous substrings, or **interval DP `dp[i][j]`** when you need subsequence structure. **Do not** reuse the LCS table visual — palindrome state is about **symmetry** inside one string.
+
+> **Preview contrast (Day 14 vs Day 15):** Day 14 = **substring** (contiguous) via expand, or count substrings. Day 15 = **subsequence** LPS with `dp[i][j]` on intervals — characters can be skipped.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Palindrome State Design** — the core technique you'll use in today's quests.
+**Palindrome DP** — exploit symmetry: inner answer depends on whether outer characters match.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **Expand around center** — for each center, grow while `s[l]==s[r]`; O(n²) substrings, O(1) space
+- **Interval `dp[i][j]`** — `dp[i][j]` = true/length if `s[i..j]` is palindrome (substring or subsequence variant)
+- **Fill order** — by **increasing length** `j-i`, because inner interval `i+1..j-1` must be ready first
+- **Counting** — each successful expand or `dp[i][j]=true` adds one to answer
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+For **substring** problems, imagine a pin at each character (odd length) or between two characters (even length). Spread the pin outward while both sides match — every stop is a valid palindrome. For **interval DP**, ask whether the ends match; if yes, the middle must already be solved.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — expand around center (substring)
 
 ```
-2D DP table — Longest Common Subsequence:
+s = "babad"
 
-      ""  a  b  c  d  e
-  "" [ 0  0  0  0  0  0 ]
-  a  [ 0  1← 1  1  1  1 ]
-  c  [ 0  1  1  2↖ 2  2 ]
-  e  [ 0  1  1  2  2  3↖]
+Center at index 2 ('a'):
+  expand(2,2): "a"     → len 1
+  expand(2,3): "aba"   → len 3  ← longest so far
+  expand(1,2): "bab"  → len 3
 
-Cell dependencies:
-  ┌────────┐
-  │ dp[i-1]│──→ dp[i-1][j] (no match: take from above)
-  │ [j-1]  │↘
-  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (match: diagonal + 1)
-                │
-                ▼
-            dp[i][j-1] (no match: take from left)
+Center at i, i+1 (even):
+  expand(1,2): "aba"
+  ...
 
-Match   → diagonal ↖ + 1
-No match → max(↑ above, ← left)
+No 2D LCS grid — radial expansion from each center.
 ```
 
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 4. Visual — interval dp[i][j] for substring check
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+s = "aba", fill by length (j-i):
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Palindrome State Design" has overlapping subproblems because...
+  dp[i][j] = true if s[i]==s[j] && (j-i<2 || dp[i+1][j-1])
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+  length 0: dp[i][i] = true
+  length 1: dp[i][i+1] = s[i]==s[i+1]
+  length 2+: need inner dp[i+1][j-1]
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+  i\j  0   1   2
+  0   T   F   T   → "aba" palindrome
+  1       T   F
+  2           T
 ```
 
-### 5. State definition
+### 5. Substring vs subsequence (bridge to Day 15)
 
-**What does dp[i] represent?**
+| | **Day 14 — Substring** | **Day 15 — Subsequence (LPS)** |
+|---|---|---|
+| Contiguous? | **Yes** — expand or inner `i+1..j-1` | **No** — skip middle chars |
+| Tool | Expand O(1) space, or interval check | `dp[i][j] = dp[i+1][j-1]+2` if match |
+| Quest | #5 longest substring, #647 count | #516 LPS on Day 15 |
+| Visual | **Expand / symmetric interval** | **2D skip-inner or take-one-end** |
 
-The hardest part of DP is naming the state correctly. For **Palindrome State Design**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
+**Substring = contiguous block. Subsequence = can delete chars without breaking order.**
 
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 6. The universal templates
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+// Expand — longest palindromic substring
+for i in 0..n-1:
+  expand(i, i)      // odd
+  expand(i, i+1)    // even
+
+// Interval — is s[i..j] palindrome substring?
+for len in 2..n:
+  for i in 0..n-len:
+    j = i + len - 1
+    dp[i][j] = s[i]==s[j] && (j-i<2 || dp[i+1][j-1])
 ```
 
-### 7. Base cases & answer extraction
-
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
-
-### 8. Pattern signals & recognition clues
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "palindromic substring" | Expand around center |
+| "count palindromic substrings" | Expand, count each expansion |
+| "reads same forward/backward" | Symmetry — match ends, solve middle |
+| "palindromic subsequence" | **Day 15** — skip allowed |
+| "longest common subsequence" | **Day 13** — two strings |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `expand` · `dp[i][j]` interval · `symmetry` · `substring` · `center`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using LCS 2D table for palindrome | Wrong pattern — symmetry not two-sequence |
+| Confusing substring with subsequence | Day 14 contiguous; Day 15 can skip |
+| Wrong fill order for interval DP | Fill by **increasing length** `j-i` |
+| Only odd-length expand centers | Also expand `(i, i+1)` for even lengths |
+| `dp[i][j]` without checking `s[i]==s[j]` | Ends must match for palindrome |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Return the longest palindromic substring in s."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Substring → expand around each center, track max length. Not LCS grid. Not LPS subsequence (Day 15)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Symmetric expansion first. Quest 1: longest palindromic substring. →*

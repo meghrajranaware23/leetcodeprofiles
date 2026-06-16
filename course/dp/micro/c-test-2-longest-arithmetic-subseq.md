@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ C-Rank Test — Problem 2
 
 > [Longest Arithmetic Subsequence #1027](https://leetcode.com/problems/longest-arithmetic-subsequence/) · Medium · 150 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Longest Arithmetic Subsequence on LeetCode](https://leetcode.com/problems/longest-arithmetic-subsequence/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Define the state. Write the transition. Fill the table by hand. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** **Diff-index 2D DP** — `dp[i][d]` = longest arithmetic subsequence ending at index `i` with common difference `d`. Day 12 LIS scan + difference dimension.
 
 ---
 
@@ -24,38 +25,46 @@ See the full problem statement on LeetCode: **[Longest Arithmetic Subsequence #1
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the C-Rank curriculum. Define the state and transition before you code.
+> 🎯 **What's being tested:** Day 12 subsequence DP extended — for each pair `(j, i)`, difference `d = nums[i]-nums[j]` extends `dp[j][d]`.
 
-Revisit your rank's cheat sheet. Is this linear DP, grid DP, knapsack, or state machine?
+State is **index + difference**, not plain `dp[i]`. Map or hash per index for sparse `d` values. Base length 2 for any pair.
+
+C-Rank connection: Same `j < i` scan as LIS, but difference must match across the chain.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** Diff-Index 2D DP (Day 12 synthesis)
+
 **How to identify from the statement:**
-- What is the state? What information describes a subproblem?
-- What are the choices at each state?
-- What's the transition formula?
+- Arithmetic subsequence = constant gap between consecutive elements
+- Difference `d` can be negative — need flexible key storage
+- At least 2 elements — every pair seeds length 2
 
 **How a strong solver thinks before coding:**
-1. *"What does dp[i] represent?"*
-2. *"What's the base case?"*
-3. *"Linear, grid, knapsack, or state machine?"*
-4. *"Can I optimize the space?"*
+1. *"For each i, scan all j < i."*
+2. *"d = nums[i] - nums[j]."*
+3. *"dp[i][d] = dp[j].get(d, 1) + 1."*
+4. *"Track global max."*
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-DP problems have exponential recursion trees with massive overlap. Brute force means recomputing the same subproblems O(2^n) times. Define the state, cache it, and solve each subproblem exactly once.
+| Approach | Problem |
+|---|---|
+| **Plain LIS dp[i]** | Ignores difference constraint |
+| **Fix d globally first** | d unknown — must be part of state |
+| **All subsequences O(2^n)** | Exponential |
+
+**The insight:** LIS state "ending value" isn't enough — must remember **common difference** with previous term. `dp[i][d]` is the natural state.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you define the state without the problem name telling you the pattern?
-
-Read the statement once. Define dp[i] in one sentence. If you can write the transition in under 60 seconds, you're ready.
+*"Longest arithmetic slice with fixed difference k"* → if `d` known, simpler 1D. Unknown `d` → diff-index DP like this problem.
 
 ---
 
@@ -117,7 +126,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n^2), Space: O(n^2)
+**Complexity:** O(n²) time · O(n²) space
 
 </details>
 
@@ -125,10 +134,68 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a C-Rank test"** → Use patterns from this rank's training.
-- **"State first, code second"** → Define dp[i] before writing any code.
-- **"Name the pattern"** → The code is just the transition formula in syntax.
+- **"Day 12 j<i scan"** — Same outer loop structure as LIS.
+- **"Difference in state"** — `dp[i][d]` not just `dp[i]`.
+- **"Default length 1 before +1"** — Pair `(j,i)` gives length 2 minimum.
+- **"Not LCS"** — One array, not two-sequence table.
 
 ---
 
 *2 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    int longestArithSeqLength(vector<int>& nums) {
+        int n = nums.size(), ans = 2;
+        vector<unordered_map<int,int>> dp(n);
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                int d = nums[i] - nums[j];
+                dp[i][d] = (dp[j].count(d) ? dp[j][d] : 1) + 1;
+                ans = max(ans, dp[i][d]);
+            }
+        }
+        return ans;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def longestArithSeqLength(self, nums: list[int]) -> int:
+        n = len(nums)
+        dp = [dict() for _ in range(n)]
+        ans = 2
+        for i in range(1, n):
+            for j in range(i):
+                d = nums[i] - nums[j]
+                dp[i][d] = dp[j].get(d, 1) + 1
+                ans = max(ans, dp[i][d])
+        return ans
+```
+
+### Java
+```java
+class Solution {
+    public int longestArithSeqLength(int[] nums) {
+        int n = nums.length, ans = 2;
+        Map<Integer, Integer>[] dp = new HashMap[n];
+        for (int i = 0; i < n; i++) dp[i] = new HashMap<>();
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                int d = nums[i] - nums[j];
+                dp[i].put(d, dp[j].getOrDefault(d, 1) + 1);
+                ans = Math.max(ans, dp[i].get(d));
+            }
+        }
+        return ans;
+    }
+}
+```
+
+**Complexity:** O(n²) time · O(n²) space

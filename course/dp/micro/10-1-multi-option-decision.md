@@ -1,145 +1,147 @@
+<!-- hand-authored -->
 # 📝 Multi-Option Decision DP
 
 > **Day 10** · Multi-Option Decision DP · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Complex Transition DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Days 6–9 had **two branches** per step (take/skip, 1-or-2 char, top/left, two passes). Today each state tries **many predecessors** — an inner loop over all valid splits or square sizes. Integer Break asks *"where do I cut?"*; Perfect Squares asks *"which square do I peel off last?"*
+
+> **Preview contrast (Day 9 vs Day 10):** Day 9 = fix the **constraint** (circle, sign). Day 10 = fix the **transition width** — `for j in choices: dp[i] = best(dp[i], f(j))`.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Complex Transition DP** — the core technique you'll use in today's quests.
+**Multi-Option Decision DP** — at state `i`, iterate all valid choices `j` and relax `dp[i]` from smaller states.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**Integer Break (maximize product of parts):**
+- `dp[i]` = max product splitting integer `i` into ≥2 parts (quest allows break into integers)
+- Inner loop: `j` from `1` to `i-1` — last piece is `j`, remainder is `i-j` or `dp[i-j]`
+- `dp[i] = max over j of: j*(i-j), j*dp[i-j]`
+
+**Perfect Squares (minimize layers):**
+- `dp[n]` = minimum count of perfect squares summing to `n`
+- Inner loop: `j` where `j*j ≤ i` — peel square `j²`, cost `1 + dp[i - j*j]`
+- `dp[i] = min over j of: dp[i - j*j] + 1`
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Integer Break:** To maximize the product for number 10, try every first cut: 1+9, 2+8, … For each cut, either leave the rest whole (`j × (i-j)`) or break the rest further (`j × dp[i-j]`). Keep the best.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Perfect Squares:** To make 12 from squares, try peeling 1, 4, or 9 last. Each peel reduces to a smaller amount you've already solved. Minimize layers = min over square choices + 1.
 
-### 3. Visual walkthrough
-
-```
-Decision diagram — take or skip:
-
-Item:    [3]   [4]   [2]   [8]
-          │     │     │     │
-          ▼     ▼     ▼     ▼
-  TAKE ──→ ■   SKIP ──→ ■   TAKE ──→ ■   TAKE ──→ ■
-  SKIP ──→ □   TAKE ──→ □   SKIP ──→ □   SKIP ──→ □
-
-DP array fills left-to-right:
-
-  dp[0]  dp[1]  dp[2]  dp[3]  dp[4]
-  ┌──────┬──────┬──────┬──────┬──────┐
-  │  0   │  3   │  4   │  5   │  12  │
-  └──────┴──────┴──────┴──────┴──────┘
-    ↑      ↑      ↑      ↑      ↑
-   base  max(   max(   max(   max(
-         take,  take,  take,  take,
-         skip)  skip)  skip)  skip)
-
-dp[i] = max(dp[i-1], dp[i-2] + nums[i])
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Integer Break inner splits
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+n = 10, find max product:
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Complex Transition DP" has overlapping subproblems because...
+  j=1: 1 * max(9, dp[9])
+  j=2: 2 * max(8, dp[8])
+  j=3: 3 * max(7, dp[7])
+  ...
+  j=9: 9 * max(1, dp[1])
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+dp table build 2..n:
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+  i:  2   3   4   5   6   7   8   9  10
+  dp: 1   2   4   6   9  12  18  27  36
 
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+dp[10]=36 from 3+3+4 style splits (3*dp[7] etc.)
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Complex Transition DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Perfect Squares min layers
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+n = 12:
+
+squares ≤12: 1, 4, 9
+
+dp[0]=0
+dp[1]=1  (1)
+dp[4]=1  (4)
+dp[8]=2  (4+4)
+dp[12]=min(
+    dp[11]+1,
+    dp[8]+1  = 3,
+    dp[3]+1  = 4
+) → 3  (4+4+4)
+
+Inner j loop at i=12: j=1 → dp[11]+1, j=2 → dp[8]+1, j=3 → dp[3]+1
 ```
 
-### 7. Base cases & answer extraction
+### 5. Templates
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+**Max over splits:**
+```
+dp[1] = 1  // base for break
+for i = 2..n:
+    for j = 1..i-1:
+        dp[i] = max(dp[i], j*(i-j), j*dp[i-j])
+return dp[n]
+```
 
-### 8. Pattern signals & recognition clues
+**Min over square peels:**
+```
+dp[0] = 0
+for i = 1..n:
+    dp[i] = INF
+    for j = 1; j*j <= i; j++:
+        dp[i] = min(dp[i], dp[i - j*j] + 1)
+return dp[n]
+```
+
+### 6. When inner loops appear
+
+| Problem shape | Inner loop over | Aggregate |
+|---|---|---|
+| Integer Break | split point `j` | **max** |
+| Perfect Squares | side `j` with j² ≤ i | **min** |
+| Coin change (unbounded) | coin denominations | min or count |
+| Day 6 take/skip | **no inner loop** — 2 fixed branches | max |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "break integer into parts, max product" | Inner splits, max |
+| "least number of perfect squares" | Inner squares, min |
+| "minimum coins" / denominations | Inner coins, min |
+| "two choices only" | Earlier days — no inner loop |
+| "how many ways" with many coins | Inner loop + sum |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `for j in 1..i` · `j*j <= i` · `relax dp[i]` · `max/min over choices`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Only `j * (i-j)` in Integer Break | Also `j * dp[i-j]` — further breaks help |
+| `dp[0]` wrong for break | `dp[1]=1` base; define carefully per problem |
+| Squares: j up to i | j*j ≤ i only |
+| Using max instead of min on squares | Perfect Squares = **min** layers |
+| O(n) when inner loop needed | Accept O(n²) or O(n√n) |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Break a positive integer n into at least two positive integers to maximize their product."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 10 multi-option: dp[i] = max over j of j*(i-j) and j*dp[i-j]. Inner loop j=1..i-1. Fill 2..n."*
+
+Read this one:
+
+> *"Return the least number of perfect square numbers which sum to n."*
+
+Before coding, say:
+
+> *"Day 10 min layers: dp[i] = min(dp[i-j²]+1) for j²≤i. dp[0]=0."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Many choices per cell. First quest: break the integer. →*

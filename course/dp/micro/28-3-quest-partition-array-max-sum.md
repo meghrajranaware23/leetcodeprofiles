@@ -175,7 +175,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n*k), Space: O(n)
+**Complexity:** O(n · k) time · O(n) space
 
 ---
 

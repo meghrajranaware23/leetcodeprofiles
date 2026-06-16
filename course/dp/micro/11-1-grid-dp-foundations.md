@@ -1,144 +1,120 @@
+<!-- hand-authored -->
 # 📝 Grid DP Foundations
 
 > **Day 11** · Grid DP Foundations · ★★★☆☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand 2D Grid State visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 7 counted paths on a **clean grid** — only right and down, no blocked cells ([Unique Paths #62](https://leetcode.com/problems/unique-paths/)). Day 11 adds **obstacles** and **column-choice** moves: same 2D table idea, but each cell's value depends on which neighbors you can step from and whether the cell itself is walkable.
+
+> **Preview contrast (Day 7 vs Day 11):** Day 7 = `dp[i][j] = dp[i-1][j] + dp[i][j-1]` on an open grid. Day 11 = **zero out obstacles** and **min over three parents** when falling diagonally — still fill a table from top-left forward.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**2D Grid State** — the core technique you'll use in today's quests.
+**2D Grid DP** — each cell stores the answer for a subproblem anchored at `(i, j)`; transitions read only **already-filled** neighbors (above, left, or diagonal parents).
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **Path counting** — `dp[i][j]` = ways to reach `(i,j)`; obstacle → `0`; else sum of valid parents
+- **Min-cost paths** — `dp[i][j]` = cheapest path sum ending at `(i,j)`; take `min` over parents + cell cost
+- **Column-choice** — from row `i-1`, you may land in column `j` from `j-1`, `j`, or `j+1` (falling path)
+- **Space optimization** — one row (or rolling `prev` / `curr`) when only the previous row matters
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Imagine filling a spreadsheet cell by cell. To know how many routes reach the bottom-right corner, you only need how many routes reached the cell **above** and **to the left**. Blocked cells are dead ends — their count is zero. For minimum falling path sum, each cell asks: *"Which of the three cells above me was cheapest to reach?"* then adds its own value.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — path counting with an obstacle
 
 ```
-2D DP table — Longest Common Subsequence:
+Grid (1 = obstacle):          dp[i][j] = ways to reach cell:
 
-      ""  a  b  c  d  e
-  "" [ 0  0  0  0  0  0 ]
-  a  [ 0  1← 1  1  1  1 ]
-  c  [ 0  1  1  2↖ 2  2 ]
-  e  [ 0  1  1  2  2  3↖]
+  0  0  0                      1  1  1
+  0  1  0    →                 1  0  1   ← obstacle kills paths through (1,1)
+  0  0  0                      2  1  3
 
-Cell dependencies:
-  ┌────────┐
-  │ dp[i-1]│──→ dp[i-1][j] (no match: take from above)
-  │ [j-1]  │↘
-  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (match: diagonal + 1)
-                │
-                ▼
-            dp[i][j-1] (no match: take from left)
+Fill order: top row, then left-to-right per row.
+  dp[i][j] = 0           if grid[i][j] is blocked
+  dp[i][j] = dp[i-1][j] + dp[i][j-1]   otherwise (with edge base cases)
 
-Match   → diagonal ↖ + 1
-No match → max(↑ above, ← left)
+Answer at bottom-right: dp[2][2] = 3
 ```
 
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 4. Visual — min falling path (three parents)
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+matrix row i-1:   [ 1, 2, 3 ]
+matrix row i:     [ 4, 5, 6 ]
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "2D Grid State" has overlapping subproblems because...
+dp[j] at row i = matrix[i][j] + min(dp[j-1], dp[j], dp[j+1])  (from row i-1)
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Cell (i,1) value 5: can fall from cols 0,1,2 above
+  → min(1, 2, 3) + 5 = 6
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **2D Grid State**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 5. The universal template
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+// Path count (right + down, obstacles)
+for i in rows:
+  for j in cols:
+    if grid[i][j] == obstacle: dp[i][j] = 0
+    else: dp[i][j] = dp[i-1][j] + dp[i][j-1]
+
+// Min falling path (one row rolling)
+dp = matrix[0]
+for i in 1..n-1:
+  ndp[j] = matrix[i][j] + min(dp[j-1], dp[j], dp[j+1])
+  dp = ndp
+return min(dp)
 ```
 
-### 7. Base cases & answer extraction
+### 6. Day 7 #62 → Day 11 #63 — the bridge
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| | **Day 7 — Unique Paths #62** | **Day 11 — Unique Paths II #63** |
+|---|---|---|
+| Grid | All open | Some cells blocked |
+| Transition | `dp[i][j] = dp[i-1][j] + dp[i][j-1]` | Same, but **0 if obstacle** |
+| Base | Top row / left col = 1 | Top-left blocked → entire answer 0 |
+| Space | One row rolling | One row rolling (identical trick) |
+| Quest | Count paths | Count paths **through** obstacles |
 
-### 8. Pattern signals & recognition clues
+The code change is one line: `if obstacle → dp[j] = 0`. The mental model is unchanged.
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "grid" / "matrix" / "top-left to bottom-right" | 2D table filled row by row |
+| "obstacle" / "blocked cell" | Zero the cell; don't propagate paths through it |
+| "minimum path sum" in a grid | `min` over parents + cell value |
+| "falling" / "diagonal step" | Three-parent min from row above |
+| "count paths" / "how many ways" | `sum` parents, not `min`/`max` |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `grid` · `dp[i][j]` · `obstacle` · `right and down` · `rolling row` · `min of three`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Forgetting obstacle → 0 | Blocked cell cannot be on any path |
+| Using `max` when problem asks for count | Path **count** = **sum** of parents |
+| Wrong parent set for falling path | Three columns above: `j-1`, `j`, `j+1` |
+| Returning `dp[0][0]` instead of bottom-right | Answer is usually last row/col or `min` of last row |
+| Allocating full `m×n` when one row suffices | Rolling `dp` row when transitions use only previous row |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"A robot on an `m×n` grid with obstacles. How many unique paths from top-left to bottom-right, moving only right or down?"*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 7 #62 plus obstacles: dp[j] rolling row; if cell blocked dp[j]=0 else dp[j]+=dp[j-1]. Bridge from clean grid — same fill order."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Obstacles first. Quest 1: Unique Paths II — the #62 upgrade. →*

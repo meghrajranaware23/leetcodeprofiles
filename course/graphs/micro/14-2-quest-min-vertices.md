@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Number of Vertices
 
 > **Day 14** · [Minimum Number of Vertices to Reach All Nodes #1557](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Number of Vertices to Reach All Nodes on LeetCode](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Which nodes have **no incoming edges**? That's your entire answer — no BFS needed.
 
 ---
 
@@ -24,38 +25,31 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **In-Degree Sink Analysis**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Mark `hasIn[v] = true` for every edge `[u, v]`. Return all `i` where `hasIn[i]` is false. DAG guarantee means every non-source has at least one incoming edge.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** In-Degree Sink Analysis
+**Pattern used:** In-Degree Zero Source Scan
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Directed graph, guaranteed no cycle
+- "Reach all nodes" from minimum starts
+- Output: the actual source vertices
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "minimum vertices to reach all" | Count in-degree 0 |
+| "smallest set of starting nodes" | Sources only |
+| DAG implied by problem structure | No cycle detection step |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Any node with an incoming edge is reachable from some predecessor — you never need to start there. Only in-degree-0 nodes are mandatory.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Boolean hasIn[n] = false."*
+2. *"For each edge u→v: hasIn[v] = true."*
+3. *"Return all i where !hasIn[i]."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS/DFS from every node, pick minimum cover** | O(n · (V+E)) — overkill |
+| **Kahn's full peel** | Works but unnecessary — one pass suffices |
+| **Union-Find** | Wrong tool — directed reachability |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** O(V+E) scan beats any traversal. Structure of DAG makes sources obvious.
 
 ---
 
@@ -76,29 +69,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [All Ancestors in DAG #2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) | Accumulate ancestors | Next quest |
+| [Find Minimum Time #2039](https://leetcode.com/problems/the-time-when-the-network-becomes-idle/) | Time on DAG | Different combine |
+| Course Schedule sources | Peel from indeg 0 | Day 11 — dynamic peel |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=6, edges = [[0,1],[0,2],[2,5],[3,4],[4,2]]
 
-Apply In-Degree Sink Analysis step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+    0 → 1    3 → 4
+    ↓        ↓
+    2 → 5    (4→2)
+
+hasIn: 0✗ 1✓ 2✓ 3✗ 4✓ 5✓
+Answer: [0, 3]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Node 3 can't be reached from 0 — it's its own source component.
 
 ---
 
@@ -143,22 +133,19 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"In-Degree Sink Analysis"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Reach all from minimum starts."** → who has no predecessor?
+- **"One pass over edges."** → no graph traversal needed.
+- **"DAG = every non-source has indeg ≥ 1."** → trust the structure.
+- **"Disconnected components each contribute sources."**
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** In-Degree Sink Analysis
+> 🎯 **Pattern Unlocked:** In-Degree Zero Source Scan
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: accumulate all ancestors in a DAG. →*

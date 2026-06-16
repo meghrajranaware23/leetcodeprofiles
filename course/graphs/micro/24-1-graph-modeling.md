@@ -1,125 +1,140 @@
+<!-- hand-authored -->
 # 📝 Building Graphs from Non-Graph Inputs
 
 > **Day 24** · Graph Modeling · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Graph Construction from Non-Graph Inputs visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Not every problem hands you `n` nodes and an edge list. Day 24 teaches **graph construction** — recognize hidden nodes and edges, build adjacency, then run the right traversal.
+
+Today's two quests:
+1. **Geometric overlap graph** — bombs detonate each other if centers within combined radius → build directed edges, DFS components.
+2. **Tree return-cost DFS** — collect apples on a tree rooted at 0 → post-order decides whether subtrees need a round-trip.
+
+> **Not Day 23:** No implicit BFS on words or squares. You **materialize** the graph (or tree) first, then traverse.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Graph Construction from Non-Graph Inputs** — the core technique you'll use in today's quests.
+**Graph modeling from domain data:**
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Input shape | Node | Edge rule | Then |
+|---|---|---|---|
+| **Points + radius** | Each bomb index | `i → j` if bomb `i`'s blast reaches bomb `j` | DFS/BFS from each start; max component size |
+| **Tree + flags** | Tree node | Given undirected tree edges | DFS: return `(hasAppleInSubtree, tripCost)` |
+
+Step zero is always: *"What are my nodes? What makes two nodes connected?"*
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**Detonate bombs:** Bomb A triggers B if B's center lies inside A's explosion circle — distance ≤ `rA + rB`. That is a **directed** edge A→B (A detonating can chain to B). Build adjacency by checking all pairs (n ≤ 1000). Run DFS from each bomb as potential first detonation; count reachable bombs.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Collect apples:** You start at node 0. Walking an edge costs 1 second each way. Only visit subtrees that contain at least one apple. DFS returns whether the subtree has any apple and how many edge-crossings are needed. If child subtree has apples → pay `2` (go there and return) plus child's cost.
 
-### 3. Visual walkthrough
+### 3. Visual — bomb overlap graph
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Bomb 0: (0,0) r=2    Bomb 1: (3,0) r=2
+dist = 3, r0+r1 = 4  → 3 ≤ 4  → edge 0→1 AND 1→0? 
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+Check: can 0 trigger 1? dist(0,1) ≤ r0 → NO (3 > 2)
+       can 0 trigger 1? dist ≤ r0+r1 → YES for chain detonation
+
+LC rule: i triggers j if j's center in i's blast:
+  dist(i,j) ≤ radius[i]
+
+    [0] ----blast----> [1]
+         (directed if in range)
+
+DFS from 0: {0,1,...}  count = component size
+Try each bomb as starter; take max.
 ```
 
-### 4. How the pattern works
+Use **long long** for squared distances to avoid overflow.
+
+### 4. Visual — tree return-cost DFS
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
-```
+Tree rooted at 0, apples at {1, 4}
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+        0
+       / \
+      1*  2
+         / \
+        3  4*
+
+dfs(1): has apple → return (1, 0)  // just pick apple, no extra trip counted at leaf
+dfs(4): (1, 0)
+dfs(3): (0, 0)  // no apples below
+dfs(2): child 3 empty, child 4 has apple
+        → need 2 steps to visit 4 subtree + dfs(4).second
+
+Combine at 0: sum trips for children with non-zero apple count.
+Each such child adds +2 (down and back on that edge).
+```
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Problem family | Build | Traverse |
+|---|---|---|
+| Chain reactions / overlap | Geometric adjacency | DFS/BFS per source |
+| Collect items on tree | Tree adjacency | Post-order DFS |
+| Network from coordinates | Threshold distance edges | UF or BFS |
+| Equations a/b=k | Weighted edges | DFS multiply (Day 16) |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| **Simulate blast waves without graph** | Hard to track chain — graph DFS is clean |
+| **Visit every node on tree regardless** | Waste 2·edge on empty subtrees |
+| **Undirected edge for bomb trigger** | Direction matters: i triggers j if j in i's range |
+| **Float distance compare** | Use squared integers: `dx²+dy² ≤ (r1+r2)²` |
+| **BFS when only max component needed** | DFS from each start works; same O(n²) build |
 
-### 7. The key observation
+### 7. Day 24 vs earlier ranks
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 5 — Components** | **Day 24 — Modeling** |
+|---|---|---|
+| Graph given | Yes | **You build it** |
+| Edge rule | Explicit list | Geometry or tree semantics |
+| Goal | Count components | Max chain or min walk cost |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "Detonate / chain reaction / within radius" | Pairwise overlap → directed graph |
+| "Collect all apples / return to start" | Tree DFS, skip empty subtrees |
+| "Minimum time on tree" | Edge cost × 2 per visited subtree branch |
+| "Points in plane" + connectivity | O(n²) edge build |
+| "Shortest path" on built graph | BFS/Dijkstra after modeling |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `build adjacency` · `overlap check` · `subtree return cost` · `directed chain` · `post-order`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Wrong detonation rule (sum radii vs radius[i] only) | Read LC: j detonates if dist ≤ **r_i** |
+| Integer overflow in dist² | Cast to long long |
+| Count 1 for visiting apple node round-trip | Leaf with apple needs 0 extra beyond path |
+| Forget +2 when child subtree has apples | Go down edge and return |
+| Build graph but use grid BFS | These are abstract/index graphs |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given bomb positions and radii, detonating one bomb triggers all bombs in its range recursively — find maximum detonation count."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Build directed graph: edge i→j if dist(i,j) ≤ r_i. DFS from each bomb; max reachable size. NOT grid. NOT word BFS."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Build the graph first, then traverse. First quest: bomb chain reaction. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Jumps to Reach Home
 
 > **Day 27** · [Minimum Jumps to Reach Home #1654](https://leetcode.com/problems/minimum-jumps-to-reach-home/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Jumps to Reach Home on LeetCode](https://leetcode.com/problems/minimum-jumps-to-reach-home/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** State = `(position, justMovedBack)`. Forward always; backward only if `back==0`. Skip `forbidden` cell.
 
 ---
 
@@ -24,9 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS with Forbidden States**.
+**BFS with forbidden positions + expanded state.**
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- Queue `(pos, back)` — `back=1` if last move was backward.
+- Forward: `pos+a` if in bounds, not forbidden, unvisited.
+- Backward: only if `back==0`, to `pos-b`.
+- Cap `pos` at `2*6000` (safe upper bound); x ≤ 6000.
+- `dist[pos]` or 2D visited — first reach of `x` wins.
+
+Not plain number-line BFS — need back flag.
 
 ---
 
@@ -35,27 +42,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS with Forbidden States
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Minimum jumps on line → unweighted BFS
+- One forbidden coordinate → skip in neighbor gen
+- "Cannot jump backward twice in a row" → expand state
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Minimum jumps" | BFS layers |
+| "Forbidden integer" | Hard block node |
+| "Backward consecutively" | `(pos, back)` state |
+| "+a forward, -b backward" | Two move types |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Without back flag, BFS would allow illegal sequences; expanded state restores correct move grammar.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Queue (0,0); dist[0]=0."*
+2. *"Forward → (pos+a, 0)."*
+3. *"If !back: backward → (pos-b, 1)."*
+4. *"Skip forbidden; bound pos."*
 
 ---
 
@@ -63,12 +67,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS on position only** | Allows double-back |
+| **DFS** | Not minimum jumps |
+| **Dijkstra** | Unweighted |
+| **Ignore 6000 bound** | May TLE on infinite forward drift |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Constraint is **move history**, not just location — state must include flag.
 
 ---
 
@@ -76,29 +80,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Open the Lock #752](https://leetcode.com/problems/open-the-lock/) | String state | Day 10 |
+| [Minimum Jumps #1654](https://leetcode.com/problems/minimum-jumps-to-reach-home/) | (pos, back) | Day 27 |
+| [Visit All Nodes #847](https://leetcode.com/problems/shortest-path-visiting-all-nodes/) | Bitmask state | S30 preview |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+a=6, b=3, forbidden=14, x=16
 
-Apply BFS with Forbidden States step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+(0,0) → forward 6 → (6,0) → forward 12 → (12,0) → forward 18...
+Also backward paths when back==0
+
+BFS finds minimum layers to (16, *)
+Cannot land on 14 ever
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Same BFS queue as Day 10 — different state tuple.
 
 ---
 
@@ -190,22 +190,18 @@ class Solution {
 ```
 
 **Complexity:** O(MAX) time · O(MAX) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"BFS with Forbidden States"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"No consecutive backward"** → `(pos, back)` BFS.
+- **"Forbidden cell"** → skip in both move types.
+- **"Minimum jumps"** → BFS not DFS.
+- **"Bound search"** → 2×6000 safe cap.
+- **"S30 preview"** → expanded state when move rules depend on history.
 
 > 🎯 **Pattern Unlocked:** BFS with Forbidden States
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: static rank — no traversal. →*

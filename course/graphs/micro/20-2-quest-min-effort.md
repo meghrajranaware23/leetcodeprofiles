@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Path With Minimum Effort
 
 > **Day 20** · [Path With Minimum Effort #1631](https://leetcode.com/problems/path-with-minimum-effort/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Path With Minimum Effort on LeetCode](https://leetcode.com/problems/path-with-minimum-effort/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Grid Dijkstra — heap `(effort, r, c)`. Edge cost to neighbor = abs height diff; path cost = max edge on path so far.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Dijkstra on Grid**.
+Which pattern from today's concept applies? **Dijkstra on grid** — same heap skeleton as Day 19, but relax with `ne = max(eff, abs(heights[r][c] - heights[nr][nc]))`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+First time you pop `(effort, m-1, n-1)` → return effort. Not BFS — edge costs vary.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Dijkstra on Grid
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Grid shortest path with **non-uniform** step cost
+- Minimize **maximum** absolute height difference along path (bottleneck)
+- 4-directional movement
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "minimum effort" / "minimum maximum difference" | Grid Dijkstra, max-edge relax |
+| "heights matrix" | Cells = nodes; 4 neighbors |
+| "minimum steps" | BFS — not this |
+| "network delay" sum of weights | Sum Dijkstra — this uses **max** |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Bottleneck path cost is monotonic along relaxation — Dijkstra with custom edge weight still applies (non-negative "effort").
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"dist[r][c]=INF; dist[0][0]=0; push (0,0,0)."*
+2. *"Pop; if at (m-1,n-1) return eff; stale skip."*
+3. *"4 dirs: ne = max(eff, |h[r][c]-h[nr][nc]|)."*
+4. *"If ne < dist[nr][nc]: update + push."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS** | Treats all moves equal — wrong metric |
+| **Day 19 sum Dijkstra** | Must use max, not sum of diffs |
+| **DFS all paths** | Exponential |
+| **Binary search effort + BFS check** | Valid alternate — Dijkstra direct |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Day 19 heap on `(dist, node)` becomes `(effort, r, c)` on a grid — contrast plain Dijkstra's sum relax.
 
 ---
 
@@ -76,29 +74,30 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | Sum of weights | Min-heap Dijkstra |
+| [Swim in Rising Water #778](https://leetcode.com/problems/swim-in-rising-water/) | Threshold BFS / Dijkstra | Max-edge path |
+| [Cheapest Flights #787](https://leetcode.com/problems/cheapest-flights-within-k-stops/) | Stop constraint | Bellman-Ford — not grid Dijkstra |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same heap loop — **different relax formula.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+heights:
+  1 2 2
+  3 8 2
+  5 3 5
 
-Apply Dijkstra on Grid step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+From (0,0) effort 0:
+  → (0,1): max(0,|1-2|)=1
+  → (1,0): max(0,|1-3|)=2
+Best path to (2,2) minimizes worst single step on route
+Trace heap pops until bottom-right finalized
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** The grid is an implicit graph — Dijkstra doesn't care if nodes are integers or `(r,c)` pairs.
 
 ---
 
@@ -187,22 +186,21 @@ class Solution {
 ```
 
 **Complexity:** O(m · n log(m · n)) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Dijkstra on Grid"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Minimize max step height"** → bottleneck Dijkstra on grid.
+- **"Not Day 19 sum"** → relax with max(eff, edgeDiff).
+- **"Heap (effort, r, c)"** → same stale skip as Network Delay.
+- **"Not BFS"** → weighted cells need priority queue.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you summed height diffs, you'd solve a different problem.
 
 > 🎯 **Pattern Unlocked:** Dijkstra on Grid
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: K stops — layered relax, not heap. →*

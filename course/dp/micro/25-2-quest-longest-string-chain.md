@@ -188,7 +188,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n*log(n) + n*L^2), Space: O(n*L)
+**Complexity:** O(n · L²) time · O(n · L) space
 
 ---
 

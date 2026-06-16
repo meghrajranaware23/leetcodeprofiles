@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Island Perimeter
 
 > **Day 4** · [Island Perimeter #463](https://leetcode.com/problems/island-perimeter/) · Easy · 10 min
@@ -10,23 +11,35 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Island Perimeter on LeetCode](https://leetcode.com/problems/island-perimeter/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. For each land cell, count how many of its 4 sides touch water or the grid boundary. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Island Perimeter #463](https://leetcode.com/problems/island-perimeter/)**
+Given a binary grid (`0` = water, `1` = land), return the **perimeter** of the island (there is exactly one connected land component in the problem's valid inputs).
 
-Work through the examples on paper before reading further.
+```
+Input:  grid = [[0,1,0,0],[1,1,1,0],[0,1,0,0],[0,1,0,0]]
+Output: 16
+
+Input:  grid = [[1]]
+Output: 4
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Grid Boundary Counting**.
+Which pattern from today's concept applies? **Grid boundary counting** — +1 per water/out-of-bounds edge, or the equivalent +4/−2 scan.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Loop every cell. When `grid[i][j]==1`, add **4** to perimeter.
+
+**Hint 2:** If cell above `(i-1,j)` is also land, subtract **2** (shared edge counted twice otherwise).
+
+**Hint 3:** Same for cell to the left `(i,j-1)` if land — subtract 2.
+
+**Hint 4:** Alternative: for each land cell, add 1 for each of 4 directions that is out of bounds OR water.
 
 ---
 
@@ -35,27 +48,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Grid Boundary Counting
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Binary grid, measure **edge length** around land
+- No traversal of full component required — local neighbor check suffices
+- 4-direction implied (standard grid island)
+- Single island in examples — formula works for multiple islands too
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "perimeter" / "boundary" | Edge counting, not BFS levels |
+| Land vs water cells | Check each of 4 sides |
+| Shared edge between two land cells | Subtract 2 (or don't double-count) |
+| `m×n` grid | Double loop scan |
+| No "shortest path" language | Arithmetic, not queue |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each unit edge appears once on the perimeter if it borders water/boundary. Internal land-land edges cancel via −2 adjustments.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Land cell starts at +4."*
+2. *"Up land neighbor? peri -= 2. Left land neighbor? peri -= 2."*
+3. *"Single cell grid: +4, no neighbors → answer 4."*
+4. *"Trace cross-shaped island — count exposed sides by hand."*
 
 ---
 
@@ -63,12 +75,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Count land cells × 4** | Internal edges double-counted |
+| **DFS entire island then measure boundary** | Works but slower to code than scan formula |
+| **Subtract 1 for each land neighbor (not 2)** | Under-corrects shared edges |
+| **8-direction connectivity** | Wrong shape — corners don't share edge |
+| **Only check right/down and skip up/left logic** | Inconsistent — pick one pairing strategy |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Perimeter is **local** — each cell's contribution depends only on its up/left neighbors (or its 4 side types).
 
 ---
 
@@ -76,29 +89,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Number of Islands #200 (next quest) | Count components via flood | Grid 4-dir |
+| Max Area of Island #695 (Day 5) | Flood + accumulate area | Same neighbor loop |
+| Island Perimeter variants | Multiple disjoint islands | Same +4/−2 per land cell |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Perimeter = arithmetic on edges; islands = connectivity flood. Both live on the same grid graph.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**+4 per land, −2 for each shared up/left land edge.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+grid = [[1]]
 
-Apply Grid Boundary Counting step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Cell (0,0): land → +4
+No up, no left land neighbors
+Perimeter = 4 ✓
+
+grid = [[1,1],
+        [1,0]]
+
+(0,0): +4
+(0,1): +4, left land → −2  → running careful sum
+(1,0): +4, up land → −2
+… total = 8 (trace all cells)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** A side between two land cells is **not** perimeter. The −2 trick removes it from both cells' +4 contributions.
 
 ---
 
@@ -155,22 +174,19 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Perimeter on grid"** → water/boundary edges, not BFS.
+- **+4 then −2** → each internal edge removed exactly once.
+- **4-direction** → only up/down/left/right sides count.
+- **No DFS required** — but flood-fill intuition explains what "connected land" means.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Grid Boundary Counting"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If you counted +1 per exposed side manually, you used the same math in a different skin.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Grid Boundary Counting
+> 🎯 **Pattern Unlocked:** Grid perimeter — local neighbor arithmetic on land cells.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: how many separate islands? Restart flood from each `1`. →*

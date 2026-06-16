@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Maximum Subarray
 
 > **Day 5** · [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Subarray on LeetCode](https://leetcode.com/problems/maximum-subarray/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Trace `[-2,1,-3,4,-1,2,1,-5,4]` with two columns: **extend** vs **reset** at each i. Day 5's Kadane template.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Kadane's / Linear Decision DP**.
+**Pattern:** Kadane's / Linear Decision DP — extend-or-reset at each index.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** `cur` = maximum sum of a subarray **ending exactly at** index i (must include nums[i]).
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** At i: either **extend** previous subarray (`cur + nums[i]`) or **reset** start fresh (`nums[i]`). Take max.
+
+**Hint 3:** `best = max(best, cur)` each step. Answer is `best`, not `cur` at last index.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Kadane's / Linear Decision DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Contiguous subarray required
+- Maximize sum (not count, not min cost)
+- Classic "ending at i" state
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "contiguous subarray" | Can't skip middle elements |
+| "maximum sum" | Kadane extend vs reset |
+| Negative numbers allowed | Reset becomes essential |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** O(n²) or O(n³) all subarrays — Kadane is O(n) with optimal substructure.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"State: best sum ending at i."*
+2. *"If cur+nums[i] < nums[i], reset."*
+3. *"Track global best separately."*
+4. *"At least one element — init cur=best=nums[0]."*
 
 ---
 
@@ -64,61 +64,54 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **All O(n²) subarrays** | TLE on large n |
+| **Greedy without ending-at-i state** | Hard to justify globally |
+| **Kadane cur/best** | O(n) ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums = [5, -3, 5]
+
+i=0: cur=5, best=5
+i=1: extend=2, reset=-3 → cur=-3, best=5
+i=2: extend=2, reset=5 → cur=5, best=5
+
+Best subarray: [5] or [5,-3,5] both sum 5? 
+5-3+5=7 actually: extend at i=2: -3+5=2 vs reset 5 → cur=5... 
+5 + (-3) + 5 = 7: cur at 2 = max(5, 2+5)=7 ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Variant |
+|---|---|
+| **Maximum Subarray #53** | max sum |
+| Maximum Product Subarray | track min and max (sign flips) |
+| House Robber (later) | max with no adjacent — different constraint |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Kadane trace — nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i  nums[i]  cur=max(n[i],cur+n[i])  best
+0    -2              -2                -2
+1     1               1                 1
+2    -3              -2                 1
+3     4               4                 4   ← reset beat extend
+4    -1               3                 4
+5     2               5                 5
+6     1               6                 6   ← [4,-1,2,1] sum 6
+7    -5               1                 6
+8     4               5                 6
+
+Answer: 6
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Reset at i=3 (value 4) is the fork — negative cur couldn't help. Day 5 decision DP in two variables.
 
 ---
 
@@ -165,19 +158,14 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Kadane's / Linear Decision DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Ending at i"** → cur is not global best — update best separately.
+- **"extend vs reset"** → Day 5 decision table on paper.
+- **"All negative?"** → cur=best=nums[0] still works (single element).
+- **"Contiguous"** → Reset abandons left prefix — can't skip internally.
 
 > 🎯 **Pattern Unlocked:** Kadane's / Linear Decision DP
 

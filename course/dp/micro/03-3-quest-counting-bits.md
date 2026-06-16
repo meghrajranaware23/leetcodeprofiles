@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Counting Bits
 
 > **Day 3** · [Counting Bits #338](https://leetcode.com/problems/counting-bits/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Counting Bits on LeetCode](https://leetcode.com/problems/counting-bits/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Write dp[0..7] by hand. For each i, compare binary of i and i/2. Spot the rule before you code.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Bit-Based Tabulation**.
+**Pattern:** Bit-Based Tabulation — `dp[i] = dp[i >> 1] + (i & 1)`.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** `i >> 1` drops the last binary digit. `i & 1` is that last digit (0 or 1).
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** Popcount of i = popcount of (i without last bit) + last bit. So dp[i] = dp[i/2] + (i&1).
+
+**Hint 3:** Fill i=1..n left-to-right — i/2 < i always, so dp[i>>1] is ready.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Bit-Based Tabulation
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- "Number of 1 bits" for **every** value 0..n
+- Batch query — build array once
+- Hidden structure: binary halving
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "for every number from 0 to n" | 1D dp array |
+| "number of 1's in binary" | popcount / bit DP |
+| Avoid O(n log n) per number | Single O(n) pass with recurrence |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Calling `__builtin_popcount(i)` per i is O(n log n). Bit DP is O(n) — each cell O(1).
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"How does popcount(i) relate to popcount(i/2)?"*
+2. *"Last bit adds 0 or 1."*
+3. *"dp[0]=0; loop i=1..n."*
+4. *"Not Fib — dependency is i/2, not i-1."*
 
 ---
 
@@ -64,61 +64,48 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **popcount built-in per i** | O(n log n) — fine but misses the DP lesson |
+| **Check each bit of each i** | Same — redundant work across numbers |
+| **dp[i]=dp[i>>1]+(i&1)** | O(n) — reuse halving structure ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+ i  bin  i>>1  i&1  dp[i]
+ 0   0    0     0    0
+ 1   1    0     1    1   = dp[0]+1
+ 2  10    1     0    1   = dp[1]+0
+ 3  11    1     1    2   = dp[1]+1
+ 4 100    2     0    1   = dp[2]+0
+ 5 101    2     1    2   = dp[2]+1
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Recurrence |
+|---|---|
+| **Counting Bits #338** | dp[i]=dp[i>>1]+(i&1) |
+| dp[i]=dp[i&(i-1)]+1 | Clear lowest set bit variant |
+| Bitmask DP (later ranks) | Build on bit structure |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**n=5 → return [0,1,1,2,1,2]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0] = 0
+dp[1] = dp[0] + 1 = 1
+dp[2] = dp[1] + 0 = 1   (10: drop last 0)
+dp[3] = dp[1] + 1 = 2   (11: drop last 1)
+dp[4] = dp[2] + 0 = 1
+dp[5] = dp[2] + 1 = 2
+
+Verify: 5 = 101 → two 1-bits ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Day 3's second visual — dependency jumps to **half index**, not i-1. Still tabulation: fill small i first.
 
 ---
 
@@ -160,19 +147,14 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Bit-Based Tabulation"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"dp[i>>1] + (i&1)"** → Day 3 bit recurrence — memorize the shape.
+- **"Not Fib"** → Dependency i/2 breaks the i-1, i-2 habit.
+- **"Left-to-right fill"** → i/2 always computed first.
+- **"Pascal was 2D; bits are 1D with weird index"** → Read the dependency arrow.
 
 > 🎯 **Pattern Unlocked:** Bit-Based Tabulation
 

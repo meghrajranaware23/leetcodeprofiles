@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Shortest Path with Alternating Colors
 
 > **Day 22** · [Shortest Path with Alternating Colors #1129](https://leetcode.com/problems/shortest-path-with-alternating-colors/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Shortest Path with Alternating Colors on LeetCode](https://leetcode.com/problems/shortest-path-with-alternating-colors/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** State BFS — queue `(node, lastColor, steps)`. Bridge to Day 10: visited key is state, not node alone. Start `(0, -1, 0)`.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS with State (node, color)**.
+Which pattern from today's concept applies? **BFS with state `(node, lastColor)`** — `dist[node][0]` and `dist[node][1]` for path ending on red vs blue edge.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Skip edge if `edgeColor == prevColor`. Answer: `min(dist[i][0], dist[i][1])` or -1.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS with State (node, color)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Shortest path in unweighted graph with **alternating** edge color constraint
+- Separate red and blue adjacency lists
+- Node alone insufficient — need last edge color in state
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "alternating colors" / "alternate red and blue" | BFS `(node, lastColor)` |
+| "shortest path" unweighted | BFS layers — not Dijkstra |
+| "Open Lock" style | Day 10 state BFS — string vs (node,color) |
+| "weighted" | Dijkstra — not this |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Path validity depends on previous edge color — enlarge state space; first visit to `(v, color)` = shortest steps (BFS).
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build red adj and blue adj (directed by color)."*
+2. *"dist[n][2]=-1; queue (0,-1,0); dist[0][0]=dist[0][1]=0."*
+3. *"Skip neighbor if same color as prev."*
+4. *"Ans[i]=min of two colors or -1."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS with visited[node] only** | Misses valid path arriving on different color |
+| **DFS** | Doesn't guarantee shortest |
+| **Dijkstra** | Unweighted — BFS sufficient |
+| **Two separate BFS on red-only graph** | Must alternate — need paired state |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Day 10 lesson — when "where you are" isn't enough, add state dimension. Here: `(node, lastColor)`.
 
 ---
 
@@ -76,29 +74,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Open the Lock #752](https://leetcode.com/problems/open-the-lock/) (Day 10) | String state | BFS on abstract states |
+| [Genetic Mutation](Day 10 quest) | String + bank | State BFS |
+| [Shortest Path in Binary Matrix #1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/) | No extra state | Plain Day 8 BFS |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same queue skeleton — **state tuple grows.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Node 0, prev=-1 (any first edge ok)
+Red 0→1: dist[1][0]=1, queue (1,0,1)
+From (1,0): skip red; blue 1→x if exists
 
-Apply BFS with State (node, color) step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Node 2 reachable on red ending OR blue ending?
+  ans[2] = min(dist[2][0], dist[2][1]) if either != -1
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Two ways to arrive at node 5 — on red or blue — are different BFS states, like two different lock strings in Day 10.
 
 ---
 
@@ -200,19 +195,18 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"BFS with State (node, color)"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Alternate colors"** → state is (node, lastColor), not node.
+- **"prev=-1 at start"** → first edge unrestricted.
+- **"Day 10 bridge"** → state-space BFS on graph with side constraint.
+- **"dist[node][2]"** → two visit tracks per node.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If BFS marked only `visited[node]`, you'd reject valid alternating paths.
 
 > 🎯 **Pattern Unlocked:** BFS with State (node, color)
 

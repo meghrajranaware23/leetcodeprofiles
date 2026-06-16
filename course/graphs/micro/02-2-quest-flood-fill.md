@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Flood Fill
 
 > **Day 2** · [Flood Fill #733](https://leetcode.com/problems/flood-fill/) · Easy · 10 min
@@ -10,52 +11,64 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Flood Fill on LeetCode](https://leetcode.com/problems/flood-fill/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Mark the starting pixel, then trace which 4-direction neighbors share the same color. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Flood Fill #733](https://leetcode.com/problems/flood-fill/)**
+You are given an image as an `m×n` grid of integers. Perform a **flood fill** starting at `(sr, sc)`:
 
-Work through the examples on paper before reading further.
+- Let `src = image[sr][sc]` (the original color)
+- Change every **4-directionally connected** cell with color `src` to `color`
+- Return the modified image
+
+```
+Input:  image = [[1,1,1],[1,1,0],[1,0,1]], sr = 1, sc = 1, color = 2
+Output: [[2,2,2],[2,2,0],[2,0,1]]
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS on Grid**.
+Which pattern from today's concept applies? **Grid traversal on `(r,c)`** — 4-direction flood from the click point.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Save `src = image[sr][sc]`. If `src == color`, return early — nothing to do.
+
+**Hint 2:** Define `DIRS = (1,0), (-1,0), (0,1), (0,-1)`. Every neighbor is `(r+dr, c+dc)`.
+
+**Hint 3:** From `(r,c)`: if out of bounds or `image[r][c] != src`, stop. Otherwise set `image[r][c] = color` and recurse/queue all 4 neighbors.
+
+**Hint 4:** Mark by **writing the new color** — no separate visited array needed once recolored.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** BFS on Grid
+**Pattern used:** Grid Flood Fill (4-direction component)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- `m×n` image + starting cell → grid graph
+- "Connected" + "same color" → one component from `(sr,sc)`
+- 4-directional explicitly → not 8-connectivity
+- Modify in place → recoloring = visited mark
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "flood fill" / "paint bucket" | Expand from seed through matching cells |
+| "4-directionally connected" | `(r,c)` + 4 neighbors |
+| "same color" / "same value" | Only continue while `grid[nr][nc] == src` |
+| `sr, sc` starting pixel | BFS/DFS origin |
+| Return modified grid | In-place mutation |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** All cells reachable through same-color 4-paths form one component. Walk it from the seed; each cell visited exactly once.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"src = original color; early exit if src == new color."*
+2. *"Bounds + same-color check on every neighbor."*
+3. *"Recolor before expanding — prevents infinite loops."*
+4. *"Trace upper-left blob in Example 1 — all 1s become 2s except isolated 1 at (2,2)."*
 
 ---
 
@@ -63,12 +76,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Scan entire grid, recolor every `src` pixel** | Breaks connectivity — diagonal same-color cells shouldn't merge if not 4-connected |
+| **No bounds check** | Crash on `r-1` or `c+1` off grid |
+| **Separate visited without recoloring** | Extra space; recoloring is simpler |
+| **8-direction flood when problem says 4** | Wrong shape — corner-touching cells aren't connected |
+| **Forget early exit when src == color** | Infinite recursion on recolor-to-same |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Flood fill is **component traversal from one seed**, not global replace. The 4-dir rule defines edges.
 
 ---
 
@@ -76,29 +90,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Number of Islands #200 (Day 4) | Count components, start from each `1` | Same 4-dir flood, different goal |
+| Max Area of Island #695 (Day 5) | Accumulate area during flood | Same walk + counter |
+| Rotting Oranges #994 (next quest) | BFS batch for time, not recolor | Same `(r,c)` neighbor loop |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same grid skeleton: bounds → check condition → mark → expand 4 ways.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Seed → recolor → expand to matching 4-neighbors.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+image (1=old, target color 2):
+  1 1 1
+  1 1 0
+  1 0 1
 
-Apply BFS on Grid step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Start (1,1), src=1:
+  dfs(1,1): set to 2 → try (0,1),(2,1),(1,0),(1,2)
+  dfs(0,1): set to 2 → …
+  … all 4-connected 1s become 2
+
+Isolated 1 at (2,2) not 4-adjacent to blob → stays 1 ✓
+
+Result:
+  2 2 2
+  2 2 0
+  2 0 1
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** The grid **is** the graph. `(r,c)` are nodes; edges go to in-bounds neighbors with matching color.
 
 ---
 
@@ -159,22 +182,19 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Flood fill"** → One connected component from `(sr,sc)` on the grid graph.
+- **4-direction `(r,c)` loop** → Day 2 grid vocabulary; same as BFS neighbor expansion.
+- **Recolor = visited** → No second array needed.
+- **Solution uses DFS** → Flood is about connectivity; BFS also works if you prefer queue.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"BFS on Grid"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If you coded BFS with a `deque`, compare visit order to DFS — same cells, different order.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** BFS on Grid
+> 🎯 **Pattern Unlocked:** Grid flood from seed — bounds, match `src`, expand 4 ways.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: multiple sources, one clock — rotting oranges spread by the minute. →*

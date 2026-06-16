@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Triangle
 
 > **Day 8** · [Triangle #120](https://leetcode.com/problems/triangle/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Triangle on LeetCode](https://leetcode.com/problems/triangle/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Copy the **bottom row** into dp, then walk **upward** — each cell picks min of the two cells below. Not top-down grid fill.
 
 ---
 
@@ -24,11 +25,14 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Bottom-Up Min-Cost DP**.
+**Pattern:** Day 8 **Bottom-Up Min-Cost DP**.
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[j]` after processing row `i` = min path sum from `(i,j)` to bottom
+- Init: `dp = triangle[last row]`
+- For `i` from `n-2` down to `0`: `dp[j] = triangle[i][j] + min(dp[j], dp[j+1])`
+- Answer: `dp[0]` at apex
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Top-down recursion works with memo — bottom-up 1D row is the clean tabulation.
 
 ---
 
@@ -37,26 +41,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Bottom-Up Min-Cost DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Triangle structure — each cell has two children below
+- **Minimum path sum** top to bottom
+- Natural base case: **bottom row** costs known
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "minimum total" on triangle | Bottom-up min |
+| "adjacent row below" | Two successors → min of both |
+| "grid path sum" | **Min Path Sum** — top-left fill, not triangle |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why bottom-up:** Every cell only needs answers from row `i+1` — process from base upward.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[j] = min sum from (i,j) to base."*
+2. *"Seed bottom row."*
+3. *"Loop i upward; j left to right."*
+4. *"Return dp[0]."*
 
 ---
 
@@ -64,61 +65,52 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try every root-to-leaf path** | O(2^n) paths |
+| **Top-down without memo** | Exponential recomputation |
+| **Grid min formula on triangle** | Wrong topology — children are `j` and `j+1` below |
+| **min without adding triangle[i][j]** | Must add current cell cost |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Only one row of dp needed — each upward step merges two bottom values.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+     2
+    3 4
+   6 5 7
+  4 1 8 1
+
+Bottom-up dp row evolves: [4,1,8,1] → [7,6,10] → [9,10] → [11]
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Fill direction | Pattern |
+|---|---|---|
+| [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) | Top-down grid | Grid min-cost |
+| [Falling Path Sum #931](https://leetcode.com/problems/falling-path-sum/) | Bottom-up or top-down | Min on staggered grid |
+| [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | Count, not min | Day 7 |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example triangle:**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+    2
+   3 4
+  6 5 7
+ 4 1 8 1
+
+Row 3 (base): dp = [4, 1, 8, 1]
+Row 2: dp[0]=6+min(4,1)=7, dp[1]=5+min(1,8)=6, dp[2]=7+min(8,1)=8 → [7,6,8] → keep [7,6,8] for j=0,1,2
+Actually j only 0..2: [7, 6, 10] after full row 2
+Row 1: [3+min(7,6), 4+min(6,10)] = [9, 10]
+Row 0: 2+min(9,10) = 11
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Triangle min-cost is grid min-cost with a **different fill order** — start at the base, merge upward.
 
 ---
 
@@ -166,19 +158,14 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Bottom-Up Min-Cost DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Triangle min path"** → bottom-up 1D dp.
+- **"min(dp[j], dp[j+1])"** → two children below.
+- **"Not Unique Paths"** → optimize cost, not count.
+- **"Fill upward"** → opposite direction from Min Path Sum grid.
 
 > 🎯 **Pattern Unlocked:** Bottom-Up Min-Cost DP
 

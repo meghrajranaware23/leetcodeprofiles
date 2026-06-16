@@ -181,7 +181,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n*sum), Space: O(sum)
+**Complexity:** O(n · sum) time · O(sum) space
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 30 Checkpoint
 
 > **The Final Ascension** · 2 quests completed · ⭐ 160 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 30 is **Graph Legend capstone** — route through the decision tree, then execute.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "visit all nodes" + small n | Bitmask BFS `(node, mask)` | Subset state; multi-source init |
+| "Alice and Bob" / dual connectivity | Dual UF + edge type order | Type 3 → 1 → 2 |
+| "remove max edges" + constraints | Greedy UF keep minimum | Answer = total - used |
+| Any new graph problem | **Run decision tree first** | Days 1–29 route before code |
+| n > 20 + visit all | Not plain bitmask | May need DP/heuristic — n≤12 for #847 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Shortest walk visiting every node at least once, n=12"* → **Bitmask BFS — `(u, mask)`**
+2. *"Max edges to delete; Alice types 1∪3, Bob types 2∪3, both connected"* → **Dual UF, type 3 first**
+3. *"Use all airline tickets once"* → **Day 29 Hierholzer** — not Day 30
+4. *"Minimum fuel for cities to report to capital (tree)"* → **S-Test #2477 post-order**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Shortest path collecting keys on a grid (state = pos + key mask)."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Bitmask BFS cousin** — `(r,c,mask)` like Day 30 #847 with spatial state.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Two networks must stay connected using disjoint edge sets."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Dual UF** — same skeleton as Remove Max Edges #1579.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Find shortest path in unweighted graph."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 8 BFS** — decision tree says unweighted before bitmask.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 1 = Day 30 extended. Scenario 2 = Day 30. Scenario 3 = Day 8.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Visit All Nodes: single visited[node]** — need `dist[node][mask]`.
+2. **Visit All Nodes: start only from 0** — multi-source all `(i, 1<<i)`.
+3. **Remove Edges: one UF** — alice and bob are separate.
+4. **Remove Edges: wrong processing order** — type 3 before 1 and 2.
+5. **Skip decision tree on S-Tests** — name pattern in 30 seconds first.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+You are ready for **S-Rank tests**. Review the capstone map:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+| Test | Pattern | Day link |
+|---|---|---|
+| Valid Path Cost #1368 | 0-1 BFS deque | Day 8 / 20 variant |
+| Edge Length Limited #1697 | Offline sort + UF | Day 17–18 |
+| Fuel Cost #2477 | Tree post-order subtree | Day 16 / tree agg |
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before each test:** Run the decision tree. Say the day and pattern aloud.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 30 complete! Tomorrow: the next territory of your ascension. →*
+*Day 30 complete! S-Rank tests await — prove Graph Legend status. →*

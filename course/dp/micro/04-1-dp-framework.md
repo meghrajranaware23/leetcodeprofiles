@@ -1,147 +1,137 @@
+<!-- hand-authored -->
 # 📝 The DP Framework
 
 > **Day 4** · The DP Framework · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand State Definition & Recurrence Design visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+You know overlap (Day 1), memo (Day 2), and tabulation (Day 3). Day 4 gives you a **checklist** so every new problem starts the same way: define state, write transition, set bases, pick fill order, extract answer — then optimize space. Pascal's Triangle II is the lab: same recurrence as Day 3, but only **one rolling row** instead of the full triangle.
+
+> **Preview contrast (Day 3 vs Day 4):** Day 3 = fill the whole 2D triangle. Day 4 = *"Do I need all rows?"* → update one row right-to-left.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**State Definition & Recurrence Design** — the core technique you'll use in today's quests.
+**State Definition & Recurrence Design** — a repeatable checklist before any code.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+```
+□ 1. STATE     — "dp[i] / dp[i][j] is ___"  (one sentence)
+□ 2. CHOICES   — what moves at each state?
+□ 3. TRANSITION — formula from prior state(s)
+□ 4. BASE CASE — smallest states, numeric values
+□ 5. FILL ORDER — direction that respects dependencies
+□ 6. ANSWER    — which cell / max / min to return
+□ 7. SPACE     — full table or rolling row/vars?
+```
+
+Miss step 1 and everything else wobbles. Day 4 quests reward completing all seven.
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Interview DP is not "memorize 50 problems." It's **fill in the checklist** in under two minutes. Generated Array #1646 looks weird until you write: *"nums[i] = value at index i in generated sequence"* and read the parity rules as transitions.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+Space optimization is step 7, not step 1 — get correctness on the full table mental model first.
 
-### 3. Visual walkthrough
-
-```
-fib(5) — overlapping subproblems:
-
-              fib(5)
-             /      \
-         fib(4)      fib(3)  ← repeated!
-        /     \      /    \
-    fib(3)  fib(2) fib(2) fib(1)
-    /   \     ⬆      ⬆
-fib(2) fib(1) ●      ●  ← same subproblems recomputed
-  ⬆
-  ●
-
-After memoization:
-
-fib(5) → fib(4) → fib(3) → fib(2) → fib(1) ✓ base
-                                 ↑ cache[2]=1
-                       ↑ cache[3]=2
-              ↑ cache[4]=3
-         fib(3) → CACHE HIT → 2  ✓
-   ↑ cache[5]=5
-
-O(n) calls instead of O(2^n) — each subproblem computed once
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — State-design checklist in action
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+Problem: Pascal's Triangle II — return row k only
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "State Definition & Recurrence Design" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+□ STATE:     row[j] = j-th coefficient in row k
+□ CHOICES:   built from two above (conceptually)
+□ TRANSITION: row[j] += row[j-1]  (after init row=1s)
+□ BASE:      row = [1,1,...,1] length k+1
+□ FILL ORDER: process row index i=2..k; update j RIGHT-TO-LEFT
+□ ANSWER:    row after k iterations
+□ SPACE:     O(k) one row — not O(k²) full triangle ✓
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **State Definition & Recurrence Design**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — 1-row rolling Pascal (right-to-left)
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Want row 4: [1, 4, 6, 4, 1]
+
+Start: [1, 1, 1, 1, 1]
+
+Build row 2 from row 1 logic on one array:
+i=2: j=1: row[1]+=row[0] → [1,2,1,1,1]
+     j=2: row[2]+=row[1] → [1,2,3,1,1]  ... continue pattern
+
+Key: j goes RIGHT-TO-LEFT so row[j-1] isn't overwritten early
+
+After processing i=k:
+  row = [1, 4, 6, 4, 1] ✓
+
+Day 3 stored all rows; Day 4 keeps one row alive.
 ```
 
-### 7. Base cases & answer extraction
+### 5. The universal checklist (copy to scratch paper)
 
-| Component | Question |
+| Step | Question | Bad answer example |
+|---|---|---|
+| State | What does dp represent? | "dp[i] = something" (vague) |
+| Choices | What can I do at i? | Skipping — leads to wrong transition |
+| Transition | Formula? | Copying wrong problem's formula |
+| Base | dp[0]=? | Empty table |
+| Order | Which direction? | Left-to-right when need right-to-left |
+| Answer | Return what? | dp[n-1] when answer is max(dp) |
+| Space | Need full table? | Always O(n²) when O(n) suffices |
+
+### 6. Formula-driven tabulation (Generated Array preview)
+
+Some problems **give you the recurrence in the statement**:
+
+```
+nums[0]=0, nums[1]=1
+if i even:  nums[i] = nums[i/2]
+if i odd:   nums[i] = nums[i/2] + nums[i/2+1]
+answer: max(nums)
+```
+
+Checklist still applies — state is `nums[i]`, fill i=2..n left-to-right.
+
+### 7. When to roll vs keep full table
+
+| Keep full table | Roll to one row / few vars |
 |---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| Need random access to old rows | Only need latest row (Pascal II) |
+| 2D where row i needs several prior rows | Transition uses only previous row |
+| Debugging — visualize | Production / follow-up "optimize space" |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "return row index k" | Space-opt Pascal — one row |
+| "generated array" / explicit formula | Formula-driven tabulation |
+| "optimize space" / follow-up | Checklist step 7 |
+| "maximum of generated values" | Tabulate + track running max |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `state definition` · `fill order` · `right-to-left` · `rolling array` · `answer extraction`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Skipping state sentence | Write it before transition |
+| Left-to-right on in-place Pascal row | **Right-to-left** inner loop |
+| Wrong answer cell | Re-read: max? last? dp[n]? |
+| Optimizing before correct full-table logic | Full table on paper first |
+| Mixing up row index vs numRows | Off-by-one on triangle |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Given an integer rowIndex, return the rowIndex-th row of Pascal's triangle."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Checklist: state=row[j] coefficient; transition=sum two above via in-place add; fill i=2..rowIndex, j right-to-left; base=all 1s; answer=row; space=O(rowIndex)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Checklist loaded. First quest: formula-driven tabulation on a generated array. →*

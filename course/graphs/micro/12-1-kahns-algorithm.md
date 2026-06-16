@@ -1,125 +1,134 @@
+<!-- hand-authored -->
 # 📝 Kahn's Algorithm
 
 > **Day 12** · Topological Sort Applications · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Kahn's Algorithm visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 11 asked *"is there a cycle?"* with 3-color DFS and previewed Kahn's peel. Today Kahn is the **main tool**: maintain an in-degree table, queue every node with in-degree 0, pop and decrement neighbors. Stalled peel = cycle. Same skeleton, two directions: **forward** (sources first) and **reverse** (sinks first).
+
+> **Contrast (Day 11):** Yesterday you learned to *see* cycles with gray DFS. Today you *operate* on the graph by peeling — no recursion stack, just a queue and an in-degree array.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Kahn's Algorithm** — the core technique you'll use in today's quests.
+**Kahn's algorithm** — iterative topological sort via in-degree peeling:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+```
+1. Compute indeg[v] for all v
+2. Queue every v with indeg[v] == 0
+3. While queue not empty:
+     u = pop
+     for each v in adj[u]:
+         if --indeg[v] == 0: push v
+4. Processed count == n ? success : cycle
+```
+
+| Variant | Start nodes | Decrement | Finds |
+|---|---|---|---|
+| **Forward Kahn** | in-degree 0 (sources) | out-neighbors' in-deg | Safe order / recipes |
+| **Reverse Kahn** | out-degree 0 (sinks) | in-neighbors' out-deg | Safe states |
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+Think of dependencies as locks. In-degree = number of locks still closed on a node. A node with in-degree 0 is **unlocked** — do it now. Each completion unlocks dependents (decrement their in-degree). If locks remain when no node is unlocked, something circular is holding them shut.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Reverse peel (Eventual Safe States):** Flip the question — which nodes *always* lead to a dead end? Start from nodes with no outgoing edges (out-degree 0), peel backward. Nodes that survive the reverse peel are safe.
 
-### 3. Visual walkthrough
+### 3. Visual walkthrough — in-degree table peel
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Recipe graph (ingredient → recipe):
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+  flour ──→ bread
+  yeast ──→ bread
+  bread ──→ sandwich
+
+indeg: flour=0, yeast=0, bread=2, sandwich=1
+Queue: [flour, yeast]
+
+Pop flour  → indeg[bread]=1
+Pop yeast  → indeg[bread]=0 → push bread
+Pop bread  → indeg[sandwich]=0 → push sandwich
+Pop sandwich → done, 4/4 ✓
 ```
 
-### 4. How the pattern works
+### 4. Reverse peel — safe states
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
-```
+Graph:  0 → 1 → 2 → 3
+        ↑__________|   (cycle 0-1-2)
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+outdeg: 0→1, 1→1, 2→1, 3→0
+Reverse queue: [3]  (sinks)
+
+Peel 3 → safe
+Peel 2 (outdeg→0 after 3 removed) → safe? 
+... nodes in cycle never reach outdeg 0 → NOT safe
+```
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
+| Problem family | Kahn variant |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Course ordering | Forward — sources first |
+| Recipe / craft chains | Forward — supplies as initial indeg-0 |
+| Eventual safe states | Reverse — sinks first |
+| Minimum height trees (Day 16) | Peel leaves (degree-1) — cousin idea |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| 3-color DFS when you need the order | Works for cycle but order needs postorder reverse |
+| Recompute in-degree from scratch each step | O(n²) — decrement in place is O(E) |
+| BFS without indeg tracking | Can't tell when a node becomes ready |
+| Forward peel for safe states | Must reverse edges / track out-degree |
 
-### 7. The key observation
+### 7. Day 12 vs Day 11
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 11** | **Day 12** |
+|---|---|---|
+| Primary tool | 3-color DFS + Kahn preview | Kahn as main engine |
+| Cycle signal | Gray neighbor | Peel count < n |
+| Applications | Course schedule | Safe states, recipes |
+| Edge direction tricks | Standard prereq | Reverse graph for sinks |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "dependencies unlock over time" | Forward Kahn |
+| "all paths lead to terminal node" | Reverse Kahn on out-degree |
+| "ingredients / supplies available" | Supplies = indeg-0 seeds |
+| "eventual safe" / "always terminates" | Reverse peel from sinks |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `in-degree` · `queue` · `peel` · `decrement` · `reverse graph` · `out-degree`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Pushing neighbor before indeg hits 0 | Only enqueue when `--indeg[v] == 0` |
+| Forgetting to build adjacency list | Prereq → edge direction first |
+| Using forward Kahn for safe states | Reverse edges; peel out-degree 0 |
+| Not seeding all indeg-0 nodes initially | Scan entire array before loop |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given a directed graph, return all nodes from which every path eventually reaches a node with no outgoing edges."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Reverse Kahn — build reverse adjacency, track out-degree, queue sinks (outdeg 0), peel backward marking safe."*
+
+**Not** 3-color DFS. **Not** bipartite. **Reverse in-degree peel.**
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Kahn peels forward and backward. First quest: eventual safe states. →*

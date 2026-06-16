@@ -126,7 +126,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n), Space: O(n)
+**Complexity:** O(n) time · O(n) space
 
 </details>
 

@@ -1,125 +1,144 @@
+<!-- hand-authored -->
 # 📝 Grids as Graphs
 
 > **Day 4** · Grids as Graphs · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Grid-as-Graph Traversal visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Your mission today: treat every **`m×n` matrix as a graph** — cells are nodes, **4-directional** edges connect neighbors. Two core moves: **count perimeter** (+1 per water/boundary edge) and **flood each island** (restart DFS/BFS from every unvisited `1`).
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Four Directions, Two Problems
 
-### 1. What is the pattern?
+### 1. The grid graph model
 
-**Grid-as-Graph Traversal** — the core technique you'll use in today's quests.
-
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
-
-### 2. Simple explanation
-
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
-
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
-
-```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
-
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
-```
-
-### 4. How the pattern works
-
-```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
-```
-
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
+| Concept | Grid version |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Node | Cell `(r, c)` |
+| Edge | To `(r±1,c)` or `(r,c±1)` if in bounds |
+| Neighbor check | `0 <= nr < m and 0 <= nc < n` |
+| Visited | Flip `'1'→'0'`, or separate `vis[][]` |
 
-### 6. Why brute force fails
+**DIRS** (use everywhere in E-Rank):
 
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+```python
+DIRS = (1,0), (-1,0), (0,1), (0,-1)
+```
 
-### 7. The key observation
+Day 2 used the same loop for BFS floods. Day 4 applies it to **perimeter arithmetic** and **component counting**.
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 2. Pattern A — Island perimeter (+1 per exposed edge)
 
-### 8. Pattern signals & recognition clues
+Each land cell `1` contributes **4** side-length units. Each **shared edge** with another land cell removes **2** (one from each cell — counted twice otherwise).
+
+```
+Land cell alone:
+  +4 (all sides touch water/outside)
+
+Two land cells horizontal neighbors:
+  Each +4, shared vertical edge −2 each → total 4+4−2−2 = 4 ✓
+```
+
+**Per-cell formula** (scan all cells once):
+
+```
+if grid[r][c] == 1:
+    peri += 4
+    if up neighbor is land:    peri -= 2
+    if left neighbor is land:  peri -= 2
+```
+
+Only check **up** and **left** — each internal edge counted once from both sides. Quest 1 (#463) uses exactly this.
+
+Alternative mental model: for each land cell, add **+1 for each of 4 sides** that touches water or out-of-bounds (equivalent result).
+
+### 3. Pattern B — Count islands (restart flood from each `1`)
+
+```
+count = 0
+for each cell (r,c):
+    if grid[r][c] == '1':
+        count += 1
+        dfs(r, c)    # marks entire island visited (e.g. flip to '0')
+```
+
+Each unvisited `1` starts a **new component** — same restart loop as Day 3 Provinces, but on a grid. Quest 2 (#200) is the canonical interview form.
+
+### 4. Visual — perimeter on a small island
+
+```
+Grid:
+  0 1 0
+  1 1 1
+  0 1 0
+
+Land at (0,1): +4, no up/left land → contributes 4
+Land at (1,0): +4, right neighbor land → −2 → 2 net so far…
+(Full scan yields perimeter 12 — trace on paper)
+```
+
+### 5. Visual — flood marking one island
+
+```
+Before:
+  1 1 0
+  1 0 0
+  0 0 1
+
+Scan finds (0,0)=='1' → count=1, dfs floods (0,0),(0,1),(1,0) → all '0'
+Scan finds (2,2)=='1' → count=2, dfs floods (2,2)
+
+Answer: 2 islands
+```
+
+### 6. Pattern signals — Day 4 only
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "island perimeter" / "boundary length" | +4/−2 scan OR +1 per water edge |
+| "number of islands" | Restart + dfs from each `1` |
+| `m×n` binary grid | 4-dir, bounds check |
+| "4-directionally connected" | Grid graph edges |
+| "sink" / "mark visited" | Mutate grid in-place |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `4-direction` · `(r,c)` · `DIRS` · `perimeter` · `island` · `component` · `restart`
 
-### 9. Common beginner mistakes
+### 7. Why brute force fails
+
+| Brute force | Problem |
+|---|---|
+| Count land cells × 4 for perimeter | Ignores shared internal edges — overcounts |
+| Check every pair of land cells for connectivity | O(k²) per island |
+| 8-direction flood when problem says 4 | Wrong connectivity — diagonal corners don't connect |
+| Count islands without marking visited | Same island counted multiple times |
+| Forget bounds on neighbor check | Index errors |
+
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Subtract 2 for all 4 neighbors in perimeter | Only up+left (or count water edges once) |
+| Start flood but forget `count++` before dfs | Increment when you **discover** new island |
+| Use BFS when DFS is simpler for island sink | Either works; DFS in-place is common |
+| `'1'` vs `1` type mismatch | Match grid type (char vs int) |
+| DFS on `0` cells | Only flood from land |
 
-### 10. Recognition drill
+### 9. Bridge from Day 3
 
-Read this problem aloud:
+Day 3: **restart loop** on graph nodes.  
+Day 4: **same loop** on grid cells — `(r,c)` instead of index `i`, 4-dir instead of `adj[i]`.
 
-> *"Given an m×n grid, count the number of islands."*
+Perimeter is the new twist: local **edge arithmetic** without full flood.
 
-Before coding, say:
+### 10. Recognition drill — today's quests
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+**Quest 1 — Island Perimeter #463:**
+> *"Each land +4; subtract 2 for each up/left land neighbor."*
+
+**Quest 2 — Number of Islands #200:**
+> *"For each `'1'`: count++, dfs sink entire island to `'0'`."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Grid = graph with 4 edges per cell. Quest 1 counts edges; Quest 2 counts components. →*

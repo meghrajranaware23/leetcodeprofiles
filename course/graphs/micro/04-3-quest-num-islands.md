@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Islands
 
 > **Day 4** · [Number of Islands #200](https://leetcode.com/problems/number-of-islands/) · Medium · 15 min
@@ -10,23 +11,47 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Number of Islands on LeetCode](https://leetcode.com/problems/number-of-islands/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Scan row by row; each time you hit an unvisited `'1'`, that's a new island — flood it. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Number of Islands #200](https://leetcode.com/problems/number-of-islands/)**
+Given an `m×n` grid of `'1'` (land) and `'0'` (water), return the **number of islands**.
 
-Work through the examples on paper before reading further.
+An island is a maximal group of `'1'` cells connected **4-directionally**.
+
+```
+Input:  grid = [
+  ["1","1","1","1","0"],
+  ["1","1","0","1","0"],
+  ["1","1","0","0","0"],
+  ["0","0","0","0","0"]
+]
+Output: 1
+
+Input:  grid = [
+  ["1","1","0","0","0"],
+  ["1","1","0","0","0"],
+  ["0","0","1","0","0"],
+  ["0","0","0","1","1"]
+]
+Output: 3
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Grid DFS/BFS Components**.
+Which pattern from today's concept applies? **Grid DFS/BFS components** — Day 3 restart loop on `(r,c)`.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Double loop every cell. When `grid[r][c]=='1'`: increment `count`, then sink the whole island.
+
+**Hint 2:** `dfs(r,c)`: set `grid[r][c]='0'`, then call dfs on 4 in-bounds neighbors that are still `'1'`.
+
+**Hint 3:** Sinking to `'0'` **is** your visited mark — no extra array needed.
+
+**Hint 4:** BFS with a queue works identically — DFS is shorter to write for many people.
 
 ---
 
@@ -35,27 +60,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Grid DFS/BFS Components
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Count connected `'1'` regions → component count
+- 4-directional → standard DIRS
+- Grid input → restart scan + flood
+- Classic "island" wording → E-Rank anchor problem
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "number of islands" | Restart + flood count |
+| `'1'` land / `'0'` water | Condition for expansion |
+| "4-directionally connected" | No diagonals |
+| Return integer count | Increment before each flood |
+| Mutate or visited grid | Prevent double-count |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each DFS/BFS from a discovered `'1'` consumes exactly one island. The outer scan finds one representative cell per component.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"for r,c: if grid[r][c]=='1': count++, dfs(r,c)."*
+2. *"dfs: mark '0', recurse 4 neighbors."*
+3. *"Bounds + char '1' check on neighbors."*
+4. *"Example 2: three separate floods → 3."*
 
 ---
 
@@ -63,12 +87,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Count every `'1'` cell** | One island has many cells — not one per cell |
+| **Flood once from (0,0) only** | Misses islands elsewhere |
+| **8-direction connectivity** | Diagonal `'1'` pairs merge wrongly |
+| **DFS without marking visited** | Infinite recursion on cycles of land |
+| **Union-Find on every cell** | Works but heavy; scan+flood is O(m·n) and simpler |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** **Restart loop on grid** — same as Provinces, cells instead of cities.
 
 ---
 
@@ -76,29 +101,36 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Max Area of Island #695 (Day 5) | Return max flood size | Same dfs, accumulate area |
+| Flood Fill #733 (Day 2) | Single flood from click | One component, not count |
+| Surrounded Regions #130 (E-Rank test) | Border-aware flood | Variant of grid DFS |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+#200 is the grid component template — memorize the restart skeleton.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Scan → on `'1'`: count++ → sink island.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+grid:
+  1 1 0
+  0 1 0
+  0 0 1
 
-Apply Grid DFS/BFS Components step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+(r,c)=(0,0): '1' → count=1, dfs sinks (0,0),(0,1),(1,1)
+grid now:
+  0 0 0
+  0 0 0
+  0 0 1
+
+(r,c)=(2,2): '1' → count=2, dfs sinks (2,2)
+
+Answer: 2 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** The outer loops are the **component counter**; dfs is the **flooder**. Identical structure to Provinces #547.
 
 ---
 
@@ -174,21 +206,18 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Number of islands"** → Provinces on a grid — restart + flood.
+- **Sink to `'0'`** → visited without extra memory.
+- **4-dir DIRS** → Day 2 neighbor loop, Day 4 component goal.
+- **count++ before dfs** → discover new component, then consume it.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Grid DFS/BFS Components"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+This is one of the highest-frequency graph patterns in interviews — own the skeleton.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Grid DFS/BFS Components
+> 🎯 **Pattern Unlocked:** Grid component count — scan, increment, flood.
 
 ---
 

@@ -1,125 +1,131 @@
+<!-- hand-authored -->
 # 📝 BFS Shortest Path
 
 > **Day 8** · Shortest Path (Unweighted) · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand BFS Shortest Path visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 6 filled a **dist matrix** from many sources. Day 8 asks for **one shortest path length** — start to goal, minimum steps, each edge costs 1. The queue carries **`(r, c, steps)`** (or process level-by-level) so the first time you hit the target, you have the answer.
+
+> **Preview contrast (Day 6 vs Day 8):** Day 6 = all sources, full grid distances. Day 8 = **one** (or phased) start, **one** numeric answer — often `(r,c,steps)` in the queue.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**BFS Shortest Path** — the core technique you'll use in today's quests.
+**BFS shortest path (unweighted)** — expand wavefront; track steps explicitly; **first arrival at goal = minimum steps**.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+- **State in queue** — `(row, col, steps)` or `(node, dist)` — steps baked into each entry
+- **Level BFS variant** — `steps++` after processing entire queue layer (no tuple needed)
+- **Visited on enqueue** — mark when adding to queue, not when popping
+- **8-direction grids** — binary matrix path allows diagonals; still unweighted BFS
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+You're in a maze counting footsteps. Every move costs exactly 1. BFS explores all positions reachable in 0 steps, then 1 step, then 2 — so the **first** time the exit appears in your search, you've used the fewest footsteps possible. Carrying `steps` in the queue (or counting layers) is how you know that number without a separate dist matrix for every cell.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
+### 3. Visual — `(r, c, steps)` BFS
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Grid (0=open, 1=wall):     BFS from (0,0) to bottom-right:
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+0 0 0                      Queue layers:
+0 1 0                      (0,0,0) → neighbors at steps=1
+0 0 0                      ...
+                           First time (2,2) dequeued with steps=4 → answer 4
+
+Each entry: (r, c, steps)
+On expand: if neighbor open and unvisited → push (nr, nc, steps+1)
+Goal check: when (r,c) == target → return steps
 ```
 
-### 4. How the pattern works
+### 4. Visual — level-by-level (same math, no tuple)
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+q = [(0,0)], steps = 1
+while q:
+    for _ in range(len(q)):   # freeze layer
+        pop, expand
+        if hit goal: return steps
+    steps += 1
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Both styles appear in today's quests — pick one and stay consistent.
 
-### 5. What problem does this solve?
+### 5. Two-phase pattern preview (Shortest Bridge)
 
-| Problem family | How this pattern helps |
+Some problems aren't pure point-to-point:
+
+```
+Phase 1 — DFS: find/mark entire island A (connected 1s)
+Phase 2 — BFS: expand from all marked cells into 0s until you touch island B (1)
+
+Phase 2 is multi-source BFS from the island boundary — but answer is still
+"minimum steps to connect" = one number, like Day 8.
+```
+
+Day 8 pure shortest path = one start, one goal. Shortest Bridge = **find component + expand** — two phases, one BFS answer.
+
+### 6. Why DFS or dist-matrix-for-all fails
+
+| DFS to target | Problem |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| First path found may not be shortest | Need BFS layers |
+| Backtracking all paths | Exponential |
 
-### 6. Why brute force fails
-
-| Brute force | Problem |
+| Day 6 multi-source dist matrix when only goal matters | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| Fills entire grid unnecessarily | Still works but `(r,c,steps)` to goal is simpler |
+| Overkill for "steps from A to B" | Single-source BFS suffices |
 
-### 7. The key observation
+| Dijkstra on unit weights | Problem |
+|---|---|
+| Correct but heavier | BFS queue is enough |
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 7. Day 6 vs Day 8 — the contrast
+
+| | **Day 6 — Multi-Source Dist Matrix** | **Day 8 — Shortest Path Steps** |
+|---|---|---|
+| Queue init | All sources | One start (or phase-2 boundary) |
+| Output | Full `dist[][]` | Single integer (or -1) |
+| Steps tracking | `dist[r][c]+1` in matrix | `(r,c,steps)` or layer counter |
+| Stop when | Queue empty | **Goal first reached** |
+| Example | 01 Matrix | Binary Matrix Path, Nearest Exit (test) |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "shortest path" / "minimum steps" | BFS with step count |
+| "in a binary matrix" + one start/end | `(r,c,steps)` or layer BFS |
+| "shortest bridge between two islands" | DFS mark island + BFS expand |
+| "nearest exit" from entrance | BFS; goal = border cell (not entrance) |
+| "distance to nearest 0 for all cells" | **Day 6**, not Day 8 |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `(r,c,steps)` · `steps++` · `first visit to goal` · `8-directional` · `two-phase`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| DFS for shortest path | BFS guarantees minimum steps |
+| Mark visited on pop instead of push | Prevents duplicate queue entries |
+| Off-by-one on steps (start counts as 0 vs 1) | Match problem: path **length** vs **moves** |
+| Forget 8 neighbors in binary matrix | Include diagonals when problem allows |
+| Skip phase 1 in Shortest Bridge | Must mark whole island before BFS expand |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Return the length of the shortest clear path from top-left to bottom-right in a binary matrix."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"BFS (r,c,steps) or layer BFS from (0,0); 8 dirs; return steps when first hit (n-1,n-1). Not Day 6 dist matrix — one goal."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Count steps in the queue. First quest: 8-direction shortest path. →*

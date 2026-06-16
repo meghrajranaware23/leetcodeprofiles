@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Ways to Arrive
 
 > **Day 25** · [Number of Ways to Arrive at Destination #1976](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Number of Ways to Arrive at Destination on LeetCode](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Dijkstra from 0 — but track `ways[v]` alongside `dist[v]`. Add counts when `nd == dist[v]`; reset when `nd < dist[v]`.
 
 ---
 
@@ -24,38 +25,41 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Dijkstra + DP Count**.
+**Dijkstra + path counting** — NOT plain Day 19 Network Delay.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `ways[0] = 1`; undirected weighted roads.
+- On relax `u→v`: `nd = dist[u] + w`.
+  - `nd < dist[v]` → `dist[v]=nd; ways[v]=ways[u]`
+  - `nd == dist[v]` → `ways[v] = (ways[v]+ways[u]) % MOD`
+- Return `ways[n-1]`.
+
+Stale pq entries: skip when `d > dist[u]`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Dijkstra + DP Count
+**Pattern used:** Dijkstra + DP Count (same dist layer)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Weighted undirected graph
+- "Number of **ways**" + "**minimum time**" → count at optimal dist
+- Mod 1e9+7 → multi-path accumulation
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "In the minimum time" | Tie counting to final dist |
+| "Number of ways" | `ways[]` array |
+| "Bidirectional roads" | Undirected adjacency |
+| "Intersection 0 to n-1" | Single-source to fixed target |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Dijkstra processes nodes in non-decreasing dist; when equal-length paths meet, combine counts.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build undirected adj with weights."*
+2. *"dist[0]=0, ways[0]=1, pq (0,0)."*
+3. *"Three-way relax: skip / reset / add."*
+4. *"Return ways[n-1] % MOD."*
 
 ---
 
@@ -63,12 +67,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Day 19 Dijkstra without ways[]** | Returns dist only — misses count |
+| **DFS enumerate all paths** | Exponential |
+| **BFS** | Ignores road lengths |
+| **Count paths before Dijkstra finishes** | Dist may not be final yet |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Path counting is a **side effect of relaxation**, not a second graph traversal.
 
 ---
 
@@ -76,29 +80,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | Max dist only | Day 19 — no ways |
+| [Path with Maximum Probability #1514](https://leetcode.com/problems/path-with-maximum-probability/) | Max product | Day 19 variant |
+| [Ways to Arrive #1976](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/) | Count at min dist | Day 25 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+4 nodes, roads: 0-1(w1), 1-3(w1), 0-2(w2), 2-3(w2)
 
-Apply Dijkstra + DP Count step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Shortest 0→3 time = 2
+Paths: 0→1→3 and 0→2→3  → ways[3]=2
+
+During Dijkstra when 1→3 and 2→3 both give nd=2:
+  second equal relax adds ways[3]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `else if (nd == dist[v])` is the whole Day 25 trick.
 
 ---
 
@@ -203,22 +203,18 @@ class Solution {
 ```
 
 **Complexity:** O((V + E) log V) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Dijkstra + DP Count"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Minimum time + number of ways"** → Dijkstra + ways, not plain Dijkstra.
+- **"Equal nd branch"** → add ways — Day 25 vs Day 19 difference.
+- **"Undirected weighted"** → Dijkstra not BFS.
+- **"MOD on ways"** → long long / int64 for dist too.
+- **"Not Network Delay"** → need count array.
 
 > 🎯 **Pattern Unlocked:** Dijkstra + DP Count
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: all-pairs threshold counting. →*

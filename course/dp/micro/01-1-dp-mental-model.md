@@ -1,147 +1,143 @@
+<!-- hand-authored -->
 # 📝 The DP Mental Model
 
 > **Day 1** · The DP Mental Model · ★☆☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Overlapping Subproblems & Optimal Substructure visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 1 is not about coding tricks yet — it's about **seeing why recursion explodes** and **when caching fixes it**. Fibonacci and Tribonacci are your microscopes: draw the recursion tree, circle the repeated nodes, then watch a memo turn an exponential forest into a linear path.
+
+> **Preview contrast (Recursion pack vs Day 1):** Recursion taught you *how to decompose*. DP adds one question: *"Am I solving the same subproblem twice?"* If yes → cache or tabulate. If no → plain recursion is fine.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Overlapping Subproblems & Optimal Substructure** — the core technique you'll use in today's quests.
+**Overlapping Subproblems & Optimal Substructure** — the two properties that make DP possible.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **Overlapping subproblems** — the same `(n)` or `(i, j)` appears in many branches of the recursion tree
+- **Optimal substructure** — the best answer for the whole problem uses best answers for smaller pieces
+- **State** — one sentence: *"dp[i] is the answer when..."*
+- **Transition** — how smaller states combine into `dp[i]`
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Imagine asking *"What's fib(5)?"* by always splitting into two smaller calls. You compute `fib(3)` twice, `fib(2)` three times — same questions, asked over and over. DP is the discipline of **writing the answer on a sticky note the first time** and reusing it.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+The recursion pack gave you the decomposition muscle. Today you learn **when decomposition needs a cache**.
 
-### 3. Visual walkthrough
+### 3. Visual — Fibonacci recursion tree with overlap
 
 ```
-fib(5) — overlapping subproblems:
+fib(5) — naive recursion:
 
               fib(5)
              /      \
-         fib(4)      fib(3)  ← repeated!
+         fib(4)      fib(3)  ← fib(3) computed twice!
         /     \      /    \
     fib(3)  fib(2) fib(2) fib(1)
     /   \     ⬆      ⬆
-fib(2) fib(1) ●      ●  ← same subproblems recomputed
+fib(2) fib(1) ●      ●  ← fib(2) computed three times!
   ⬆
   ●
 
-After memoization:
-
-fib(5) → fib(4) → fib(3) → fib(2) → fib(1) ✓ base
-                                 ↑ cache[2]=1
-                       ↑ cache[3]=2
-              ↑ cache[4]=3
-         fib(3) → CACHE HIT → 2  ✓
-   ↑ cache[5]=5
-
-O(n) calls instead of O(2^n) — each subproblem computed once
+Unique subproblems for fib(5): only n = 0,1,2,3,4,5 → 6 values
+Naive calls: 15 nodes → O(2^n) growth as n grows
 ```
 
-### 4. The DP Pipeline
+### 4. Visual — Tribonacci: wider overlap
 
-Apply the five-step pipeline to today's pattern:
+```
+trib(6) branches into THREE children (not two):
+
+                    trib(6)
+           /         |         \
+      trib(5)     trib(4)     trib(3)
+        ...         ...         ...
+
+trib(4) appears under trib(6), trib(5), trib(5)'s middle child...
+Even MORE repeated nodes than Fibonacci.
+
+State: trib(i) = trib(i-1) + trib(i-2) + trib(i-3)
+Same fix: memo[i] after first compute → O(n) total
+```
+
+### 5. Bridge from the Recursion pack — when to cache
+
+| Situation | Action |
+|---|---|
+| Each recursive call reaches **unique** `(r,c)` or unique subset | Recursion only — no cache needed |
+| Same parameter `(n)` or `(i,j)` hit from **different branches** | **DP candidate** — add memo or tabulate |
+| Problem asks "count ways" / "min cost" with reuse | Almost always overlap |
+| Tree/graph traversal with visited set | Visited ≠ memo — different pattern |
+
+**The decision rule:** After writing brute-force recursion, **draw the tree**. If any label repeats → cache.
+
+### 6. The DP Pipeline (your E-Rank workflow)
 
 ```
 Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+  → Write the recursive solution. Don't optimize yet.
 
 Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Overlapping Subproblems & Optimal Substructure" has overlapping subproblems because...
+  → Draw the tree for n = 5 or 6. Circle repeated nodes.
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+Step 3: MEMOIZE (top-down)     ← Day 2 formalizes this
+  → if memo[n] exists: return memo[n]
+  → else compute, store, return
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
+Step 4: TABULATE (bottom-up)    ← Day 3 formalizes this
+  → dp[0..n] left-to-right from base cases
 
 Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+  → Fib/Trib only need last 2–3 values, not full array
 ```
 
-### 5. State definition
+### 7. State definition — the hardest sentence
 
-**What does dp[i] represent?**
+Before any code, finish this sentence out loud:
 
-The hardest part of DP is naming the state correctly. For **Overlapping Subproblems & Optimal Substructure**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
+> *"dp[i] is _____________."*
 
-### 6. Transition logic
+For Fibonacci: **dp[i] = the i-th Fibonacci number.**  
+For Tribonacci: **trib(i) = sum of the previous three trib values.**
 
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
-
-```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
-```
-
-### 7. Base cases & answer extraction
-
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+If you can't say it in one line, the state isn't defined yet.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "nth Fibonacci" / "tribonacci" / recurrence formula | Linear recurrence — dp[i] from prior k indices |
+| "how many ways" / "count paths" | Sum transitions — often Fib-in-disguise (Day 2) |
+| "minimum cost" / "maximum profit" | Min/max over choices (Day 5) |
+| Same subproblem from multiple branches | **Overlap** — memo or tabulate |
+| "return dp[n]" vs "return max(dp)" | Answer extraction — know which cell |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `overlapping` · `optimal substructure` · `memo` · `dp[i]` · `base case` · `transition`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Caching when there's no overlap | Draw the tree first — no repeats means no DP speedup |
+| Wrong state ("dp[i] = max so far" when you need ending-at-i) | State must match the transition you write |
+| Skipping base cases | fib(0)=0, fib(1)=1 before the loop |
+| Confusing memo with visited in graphs | Memo stores **results**; visited stores **seen positions** |
+| Jumping to code before naming dp[i] | One-sentence state definition first |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"The Tribonacci sequence Tn is defined as T0=0, T1=1, T2=1, and Tn = Tn-1 + Tn-2 + Tn-3 for n ≥ 3. Return Tn."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Linear recurrence with k=3. State: trib(i) = i-th Tribonacci number. Overlap: trib(4) appears in multiple branches — memo or tabulate O(n). Base: trib(0)=0, trib(1)=trib(2)=1. Answer: trib(n)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see the overlap. First quest: Fibonacci — draw the tree, then fill the table. →*

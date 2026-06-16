@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: N-th Tribonacci Number
 
 > **Day 1** · [N-th Tribonacci Number #1137](https://leetcode.com/problems/n-th-tribonacci-number/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open N-th Tribonacci Number on LeetCode](https://leetcode.com/problems/n-th-tribonacci-number/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Fibonacci had 2 children per node. Tribonacci has **3**. Draw `trib(5)` and count repeats — overlap is *worse*, so caching matters even more.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Extended Recurrence**.
+**Pattern:** Extended Recurrence (k=3 linear DP).
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** Bases: `T(0)=0`, `T(1)=T(2)=1`. Recurrence: `T(n) = T(n-1) + T(n-2) + T(n-3)` for `n ≥ 3`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** Same pipeline as Fibonacci — only the number of prior terms changes. State: `trib(i)` = i-th Tribonacci number.
+
+**Hint 3:** Space optimization: keep three rolling variables `(a,b,c)` representing the last three values — not the full array.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Extended Recurrence
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Recurrence uses **k previous terms** (here k=3)
+- Explicit base cases for `n=0,1,2`
+- Same overlap structure as Fib, wider tree
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "T(n) = T(n-1) + T(n-2) + T(n-3)" | k=3 linear recurrence |
+| "tribonacci" | Fibonacci generalization |
+| n up to 37 | O(n) tabulation is trivial |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Tribonacci naive recursion is **O(3^n)** — even faster blowup than Fib's O(2^n). Still only O(n) unique states.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Three bases, not two."*
+2. *"Transition adds three prior dp values."*
+3. *"Roll (a,b,c) — shift after each i."*
+4. *"Answer: c after loop (or dp[n])."*
 
 ---
 
@@ -64,61 +64,50 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Naive 3-way recursion** | O(3^n) — catastrophic overlap |
+| **Memo on trib(n)** | O(n) time, O(n) space |
+| **Tabulation + 3 rolling vars** | O(n) time, O(1) space ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+trib(4) appears under trib(5), trib(6)'s left and middle branches...
+Unique states: n+1 values. Naive tree: exponential nodes.
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
+| Problem | k | Transition |
+|---|---|---|
+| Fibonacci #509 | 2 | dp[i-1] + dp[i-2] |
+| **Tribonacci #1137** | **3** | **dp[i-1] + dp[i-2] + dp[i-3]** |
+| Climbing Stairs #70 | 2 | ways[i-1] + ways[i-2] (count, not sum of values) |
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+The **shape** of the recurrence is the pattern — meaning of dp[i] changes per problem.
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Tabulate T(0) through T(7):**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+n:  0  1  2  3  4  5  6   7
+T:  0  1  1  2  4  7  13  24
+
+T(3) = T(2)+T(1)+T(0) = 1+1+0 = 2
+T(4) = 1+1+2 = 4
+T(5) = 1+2+4 = 7
+T(6) = 2+4+7 = 13
+
+Rolling: a=0, b=1, c=1
+i=3: d=2 → a,b,c = 1,1,2
+i=4: d=4 → a,b,c = 1,2,4
+...
+i=7: c=24 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Fib is Trib with k=2. Every "sum of last k terms" problem shares the same tabulation skeleton.
 
 ---
 
@@ -169,20 +158,15 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n), Space: O(1)
-
+**Complexity:** O(n) time · O(1) space
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Extended Recurrence"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Three-term recurrence"** → Extend Fib pipeline: one more base, one more rolling variable.
+- **"Wider recursion tree"** → More overlap, same O(n) fix.
+- **"Recursion pack bridge"** → If tree has repeats → cache; Trib is the proof.
+- **"Return c"** → After loop, c holds T(n).
 
 > 🎯 **Pattern Unlocked:** Extended Recurrence
 

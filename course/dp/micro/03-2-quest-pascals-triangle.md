@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Pascal's Triangle
 
 > **Day 3** · [Pascal's Triangle #118](https://leetcode.com/problems/pascals-triangle/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Pascal's Triangle on LeetCode](https://leetcode.com/problems/pascals-triangle/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw rows 0–4 on paper. For each interior cell, draw arrows to its two parents above. This is your first **2D** DP — not Fib.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **2D Visual Tabulation**.
+**Pattern:** 2D Visual Tabulation — Day 3's flagship non-Fib visual.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** Row `i` has `i+1` elements. First and last of every row = `1`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**Hint 2:** Interior: `triangle[i][j] = triangle[i-1][j-1] + triangle[i-1][j]` — two cells **above**, not i-1/i-2 on same row.
+
+**Hint 3:** Fill row-by-row, top to bottom. Row `i` only reads row `i-1` (already complete).
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** 2D Visual Tabulation
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Explicit grid structure — triangle of numbers
+- Each cell defined by neighbors in **previous row**
+- No Fibonacci index recurrence
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "Pascal's triangle" | Sum of two above |
+| "numRows" / generate rows | 2D list, row-major fill |
+| Interior vs border | Borders = 1; interior = sum |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Computing binomial coefficients with factorials overflows; recursive C(n,k) without memo repeats work — tabulation is O(n²) and stable.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"2D structure — res[i][j]."*
+2. *"Borders 1; interior from row above."*
+3. *"Loop i=0..numRows-1, j=1..i-1 for interior."*
+4. *"Return full triangle."*
 
 ---
 
@@ -64,61 +64,48 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Factorial formula C(n,k)** | Overflow; floating error |
+| **Naive recursive C(n,k) without memo** | Exponential overlap on shared sub-coefficients |
+| **Row-by-row tabulation** | O(n²) — each cell computed once ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+        1
+       1 1
+      1 2 1     ← 2 = 1+1: visual DP
+     1 3 3 1
+    1 4 6 4 1   ← 6 = 3+3
+
+Not dp[i]=dp[i-1]+dp[i-2] — different geometry!
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Table shape | Transition |
+|---|---|---|
+| **Pascal's Triangle #118** | Full triangle | above-left + above |
+| Pascal's Triangle II #119 (Day 4) | One row only | same, space-optimized |
+| Unique Paths (later) | Grid paths | left + up |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**Build 5 rows (numRows=5):**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Row 0: [1]
+Row 1: [1, 1]
+Row 2: [1, 2, 1]           res[1][0]+res[1][1]=1+1=2
+Row 3: [1, 3, 3, 1]        3=1+2, 3=2+1
+Row 4: [1, 4, 6, 4, 1]     6=3+3
+
+Dependency arrows for 6 at (4,2):
+  (3,1)=3 and (3,2)=3 → 6 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** The triangle **is** the DP table. If you can shade parents on paper, you can write the loops.
 
 ---
 
@@ -173,22 +160,17 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"2D Visual Tabulation"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Two above, not two behind"** → 2D tabulation — Day 3's break from Fib.
+- **"Row i depends on row i-1 only"** → Space optimization possible (Day 4).
+- **"Borders always 1"** → Base cases per row.
+- **"Fill top-down"** → Classic bottom-up order.
 
 > 🎯 **Pattern Unlocked:** 2D Visual Tabulation
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Counting Bits — 1D again, but dp[i] from dp[i/2]. →*

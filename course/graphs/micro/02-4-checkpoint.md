@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 2 Checkpoint
 
 > **BFS — Breadth-First Search** · 2 quests completed · ⭐ 40 XP earned
@@ -6,55 +7,59 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 2 is **grid BFS on `(r,c)`** and **multi-source level timelines**. Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| `m×n` grid + 4-adjacent | Queue of `(r,c)` + DIRS | Cells are nodes |
+| "minimum minutes" / "shortest steps" | BFS with `len(q)` batches | First visit = shortest time |
+| Multiple sources spreading together | Enqueue all sources first | Multi-source BFS |
+| "flood fill" / same-color region | Expand from seed, 4-dir | Component on grid |
+| Trees "level order" (Day 3) | Same batch loop | Different neighbor rule |
+| Unweighted distance on grid | BFS, not Dijkstra | Unit cost per step |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 2 pattern fires first?
 
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Paint bucket tool — recolor connected same-color pixels"* → **Grid flood from `(sr,sc)`**
+2. *"All rotten oranges spread simultaneously each minute"* → **Multi-source BFS + minute batch**
+3. *"Shortest path in binary maze from (0,0) to (m-1,n-1)"* → **Single-source BFS on grid**
+4. *"Why `for _ in range(len(q))`?"* → **One level / one minute per batch**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've done Flood Fill and Rotting Oranges. Can you apply **grid BFS** to new problems?
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+**Scenario 1:** *"Every 0 in a grid should store its Manhattan distance to the nearest 1."*
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+Which pattern? **Multi-source BFS** — enqueue all `1`s, BFS outward; first visit sets distance.
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+**Scenario 2:** *"Can you reach the bottom-right cell from top-left through 0-cells?"*
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+Which pattern? **Single-source BFS** — queue from `(0,0)`, 4-dir through passable cells.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+**Scenario 3:** *"Return the number of enclave 1-cells not touching the border."*
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
+Which pattern? **Grid flood** (DFS/BFS) from border `1`s first — preview of Surrounded Regions test.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use **`(r,c)` + DIRS + bounds** — same skeleton as Day 2 quests.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Stack instead of queue for minimum time** — DFS doesn't guarantee earliest minute.
+
+2. **No `len(q)` batch for simultaneous spread** — Rotting Oranges requires parallel minutes.
+
+3. **Missing bounds check** — `0 <= nr < m and 0 <= nc < n` every neighbor.
+
+4. **8-direction when problem says 4** — Diagonal doesn't count unless stated.
+
+5. **Forgetting fresh / impossible check** — Return `-1` when BFS ends with fresh left.
 
 ---
 
@@ -62,11 +67,13 @@ Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
 
 ### Related LeetCode Practice
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Pick one problem and solve without the walkthrough:
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**[01 Matrix #542](https://leetcode.com/problems/01-matrix/)** — multi-source BFS from all `0`s (same init pattern as rotten oranges, inverted sources).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Say *"multi-source BFS, batch optional, distance on first visit."*
+
+> 💡 **Hint:** Re-read the minute batch trace in Rotting Oranges if timeline problems confuse you.
 
 ---
 
@@ -79,4 +86,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 2 complete! Tomorrow: the next territory of your ascension. →*
+*Day 2 complete! Tomorrow: DFS — go deep first, and restart for each new component. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Count Unreachable Pairs
 
 > **Day 22** · [Count Unreachable Pairs of Nodes in an Undirected Graph #2316](https://leetcode.com/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Count Unreachable Pairs of Nodes in an Undirected Graph on LeetCode](https://leetcode.com/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** UF to get component sizes. Formula: sum `size × (n − size)` over roots, then divide by 2.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Component Size Math**.
+Which pattern from today's concept applies? **Component size math** — union all edges, count nodes per root. Pairs across different components: each node in size-c component can't reach n−c others.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Don't double-count: divide total by 2.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Component Size Math
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Undirected graph — count pairs (a,b) with no path
+- Complement of "pairs in same component"
+- Need component sizes, not BFS from every pair
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "unreachable pairs" / "pairs in different components" | UF + size formula |
+| "undirected graph" | Union all edges |
+| "count pairs" | Algebra on sizes |
+| "shortest path" | BFS — not needed for counting |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Nodes in component of size c contribute c×(n−c) ordered cross pairs; each unordered pair counted twice → halve.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"UF union all edges."*
+2. *"Count size[find(i)] for each i."*
+3. *"ans = sum(c * (n-c)) / 2."*
+4. *"No O(n²) pair check."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Check reachability for every pair** | O(n² · (V+E)) |
+| **BFS from each node counting unreachable** | O(n · (V+E)) — UF faster |
+| **Forget to divide by 2** | Double-counts pairs |
+| **Count components only without sizes** | Need sizes for formula |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** One UF pass + arithmetic replaces all-pairs reachability.
 
 ---
 
@@ -76,29 +74,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Number of Operations to Make Network Connected #1319](https://leetcode.com/problems/number-of-operations-to-make-network-connected/) | Spare cable count | UF components |
+| [Min Score Path #2492](https://leetcode.com/problems/minimum-score-of-a-path-between-two-cities/) (B-test) | Min edge in component | UF + scan |
+| Provinces count | Count roots | UF size variant |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same UF — **formula differs per question.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=5, components sizes 3 and 2
 
-Apply Component Size Math step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Component A (3 nodes): each can't reach 2 others → 3×2 = 6 ordered
+Component B (2 nodes): 2×3 = 6 ordered
+Sum = 12; /2 = 6 unreachable pairs
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You're not walking the graph — you're counting after merging.
 
 ---
 
@@ -169,22 +163,21 @@ class Solution {
 ```
 
 **Complexity:** O(E · α(n)) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Component Size Math"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Pairs in different components"** → UF sizes + formula.
+- **"c × (n−c) per component"** → cross-component pairs.
+- **"Divide by 2"** → unordered pair correction.
+- **"Not BFS from each node"** → math after UF.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you nested loops over all pairs, switch to the size formula.
 
 > 🎯 **Pattern Unlocked:** Component Size Math
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: state BFS with alternating colors. →*

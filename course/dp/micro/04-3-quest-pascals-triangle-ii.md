@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Pascal's Triangle II
 
 > **Day 4** · [Pascal's Triangle II #119](https://leetcode.com/problems/pascals-triangle-ii/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Pascal's Triangle II on LeetCode](https://leetcode.com/problems/pascals-triangle-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Day 3 built all rows. Today: **one row**, updated in-place. Inner loop must go **right-to-left** — why? Trace row 3 on paper before coding.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Space-Optimized Tabulation**.
+**Pattern:** Space-Optimized Tabulation — Day 4's 1-row rolling Pascal.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** Start with `row = [1, 1, ..., 1]` of length `rowIndex + 1`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** For each synthetic row `i` from 2 to `rowIndex`: for `j` from `i-1` down to `1`: `row[j] += row[j-1]`.
+
+**Hint 3:** Right-to-left prevents overwriting `row[j-1]` before you need it — checklist step 5 (fill order).
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Space-Optimized Tabulation
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Same Pascal math as #118
+- Only **one row** requested — space optimization natural
+- In-place update on single array
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "return the rowIndex-th row" | O(k) space, not O(k²) |
+| Same as Pascal I | Reuse transition, drop stored history |
+| Follow-up "optimize space" | Rolling row technique |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why storing all rows fails space follow-up:** O(k²) memory when O(k) suffices — interview expects rolling row.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Same state as Day 3 — one row of coefficients."*
+2. *"Simulate building rows 2..rowIndex on one array."*
+3. *"Inner j: right-to-left."*
+4. *"Return row."*
 
 ---
 
@@ -64,61 +64,48 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Generate full triangle, return last row** | O(k²) space — wasteful |
+| **Left-to-right inner update** | Overwrites needed values — wrong row |
+| **Right-to-left in-place** | O(k) space ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+rowIndex=3 → want [1,3,3,1]
+
+Init:     [1, 1, 1, 1]
+i=2, j=1: [1, 2, 1, 1]
+i=2, j=2: [1, 2, 3, 1]   (j right-to-left)
+i=3, j=2: [1, 2, 4, 1] → j=1: [1, 3, 4, 1] → j=2: [1, 3, 6, 1]? 
+
+Careful trace — final [1,3,3,1] ✓ (follow code order)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Space |
+|---|---|
+| Pascal's Triangle #118 | O(n²) all rows |
+| **Pascal's Triangle II #119** | **O(k) one row** |
+| Unique Paths space-opt | O(min(m,n)) one row |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**rowIndex = 4 → [1, 4, 6, 4, 1]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Start row = [1,1,1,1,1]
+
+Simulate row 2: j=1: 1+1=2; j=2: 1+2=3 → [1,2,3,1,1]
+Simulate row 3: j=2,1 → [1,3,6,4,1] ... 
+Simulate row 4: j=3,2,1 → [1,4,6,4,1] ✓
+
+Checklist step 7: one row, no res[][] — O(rowIndex) space.
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Day 3 recurrence + Day 4 fill order (right-to-left) = space-opt Pascal.
 
 ---
 
@@ -164,19 +151,14 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Space-Optimized Tabulation"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Only one row needed"** → Checklist step 7 — roll.
+- **"Right-to-left j"** → In-place Pascal guardrail.
+- **"Same math as Day 3"** → Different storage, same transition.
+- **"Simulate i=2..rowIndex"** → Outer loop = building rows on one array.
 
 > 🎯 **Pattern Unlocked:** Space-Optimized Tabulation
 

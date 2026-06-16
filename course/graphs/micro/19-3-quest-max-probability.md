@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Path with Maximum Probability
 
 > **Day 19** · [Path with Maximum Probability #1514](https://leetcode.com/problems/path-with-maximum-probability/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Path with Maximum Probability on LeetCode](https://leetcode.com/problems/path-with-maximum-probability/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Dijkstra skeleton — but **maximize** product. `prob[start]=1.0`, max-heap by probability, relax with multiply.
 
 ---
 
@@ -24,9 +25,10 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Modified Dijkstra**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Which pattern from today's concept applies? **Modified Dijkstra** — same as Network Delay, but:
+- `prob[v] = max(prob[v], prob[u] * w)`
+- Max-heap (or negate for Python min-heap)
+- Stale skip: `if p < prob[u]: continue`
 
 ---
 
@@ -35,27 +37,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Modified Dijkstra
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Undirected weighted graph — edge weights are probabilities in (0,1]
+- Maximize product along path — log trick optional; direct multiply works
+- Single pair start → end
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "maximum probability" / "success probability" | Max Dijkstra / max product |
+| "multiply edge probabilities" | Relax with × not + |
+| "shortest path minimum cost" | Min Dijkstra — opposite compare |
+| "unweighted shortest" | BFS |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** All edge probs positive → optimal substructure like Dijkstra; always settle highest-prob frontier first.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build undirected adj with prob weights."*
+2. *"prob[start]=1.0; max-heap (prob, node)."*
+3. *"Relax: np = prob[u]*w; if np > prob[v] update."*
+4. *"Return prob[end]."*
 
 ---
 
@@ -63,12 +62,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS** | Can't compare products by hop count |
+| **Min Dijkstra on probabilities** | Want maximum, not minimum |
+| **DFS all paths** | Exponential |
+| **Add probabilities instead of multiply** | Wrong math |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Flip min→max, add→× — same heap skeleton as #743.
 
 ---
 
@@ -76,29 +75,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | Minimize sum | Min-heap Dijkstra |
+| [Max Probability](same) | Product metric | Max-heap |
+| Log-transform variant | Max sum of log(p) | Min Dijkstra on -log |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same traversal — **different relax and heap order.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+start=0, end=2, edges: 0—1 (0.5), 0—2 (0.3), 1—2 (0.8)
 
-Apply Modified Dijkstra step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+prob[0]=1.0
+From 0: prob[1]=0.5, prob[2]=0.3
+From 1: prob[2]=max(0.3, 0.5*0.8)=0.4  ← path 0→1→2 wins
+
+Answer: 0.4
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+Compare to Network Delay:
+  Delay: dist[v] = min(dist[v], dist[u] + w)  min-heap
+  Prob:  prob[v] = max(prob[v], prob[u] * w)  max-heap
+```
+
+> 💡 **The insight:** Dijkstra isn't only for distance — any "best path" with non-negative edge combine + optimal substructure fits the template.
 
 ---
 
@@ -187,19 +190,18 @@ class Solution {
 ```
 
 **Complexity:** O((V + E) log V) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Modified Dijkstra"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Maximize product"** → modified Dijkstra with × and max-heap.
+- **"Same as #743"** → stale skip, adj list, single source.
+- **"prob starts at 1.0"** → not 0 or INF.
+- **"Undirected edges"** → add both directions.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you minimized sum of `(1-p)`, you'd overcomplicate — multiply directly.
 
 > 🎯 **Pattern Unlocked:** Modified Dijkstra
 

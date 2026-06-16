@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 14 Checkpoint
 
 > **DAG Reasoning** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 14 is **DAG structure** — acyclic, so sources and ancestors are well-defined.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "DAG" / "directed acyclic" | Skip cycle detection | Graph is already valid |
+| "minimum starts to reach all" | Count in-degree 0 | Sources only |
+| "all ancestors of each node" | Forward DFS or topo merge | Reachability accumulation |
+| "can you finish courses" | **Day 11** — cycle maybe | Not pure DAG reasoning |
+| "two groups / bipartite" | **Day 13** | Undirected |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Smallest set of nodes to reach every node in a DAG"* → **In-degree-0 scan**
+2. *"List all ancestors for every node in a DAG"* → **Per-source DFS or topo accumulate**
+3. *"Detect cycle in prerequisites"* → **Not Day 14** — Day 11 Kahn
+4. *"Node with indeg 0 in a disconnected DAG"* → **Mandatory start** for its component
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Longest path in a weighted DAG."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Topological sort + relax** — process in order, update dist[v] = max(dist[u]+w).
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Count paths from source to sink in DAG."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Topo DP** — paths[v] += paths[u] for each edge u→v.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Is there a path from A to B?"* (many queries)
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 15 transitive closure** — precompute reachability matrix.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All exploit DAG ordering — Day 14 builds the structural intuition.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Full BFS for min sources** — one indeg scan suffices.
+2. **Including self in ancestor list** — ancestors are proper predecessors.
+3. **Running cycle detection on stated DAG** — wasted work.
+4. **Topo merge with wrong order** — parents must precede children.
+5. **Confusing ancestors with descendants** — edge u→v means u is ancestor of v.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Keys and Rooms #841](https://leetcode.com/problems/keys-and-rooms/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Keys and Rooms on LeetCode](https://leetcode.com/problems/keys-and-rooms/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Not a DAG problem — but tests reachability from node 0. Contrast: Day 14 asks *who must you start from*; Keys and Rooms asks *can one start reach all*.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** How is this different from minimum vertices?
+
+> 💡 **Hint:** Single source (room 0), not minimum source cover.
 
 ---
 
@@ -74,9 +72,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Minimum Number of Vertices to Reach All Nodes #1557](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/) | Medium | In-Degree Sink Analysis |
-| [All Ancestors of a Node in a Directed Acyclic Graph #2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) | Medium | DAG Reachability |
+| [Minimum Number of Vertices to Reach All Nodes #1557](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/) | Medium | In-Degree Zero Source Scan |
+| [All Ancestors of a Node in a Directed Acyclic Graph #2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) | Medium | DAG Ancestor Accumulation |
 
 ---
 
-*Day 14 complete! Tomorrow: the next territory of your ascension. →*
+*Day 14 complete! Tomorrow: reachability precomputation and tree-DAG propagation. →*

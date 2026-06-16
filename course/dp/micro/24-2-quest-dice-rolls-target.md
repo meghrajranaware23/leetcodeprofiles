@@ -183,7 +183,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n*target*k), Space: O(target)
+**Complexity:** O(n · k · target) time · O(target) space
 
 ---
 

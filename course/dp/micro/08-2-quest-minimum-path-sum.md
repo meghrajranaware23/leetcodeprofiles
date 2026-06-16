@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Path Sum
 
 > **Day 8** · [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Path Sum on LeetCode](https://leetcode.com/problems/minimum-path-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Fill the dp grid for a 3×3 example. Same shape as Unique Paths — but **`min` + cell cost**, not count.
 
 ---
 
@@ -24,11 +25,12 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Grid Min-Cost DP**.
+**Pattern:** Day 8 **Grid Min-Cost DP** — `dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])`.
 
-What is the state? What does dp[i] represent for this problem?
-
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+- Moves: right and down only (same as Unique Paths)
+- **First row:** cumulative sum left → right
+- **First column:** cumulative sum top → bottom
+- Contrast Day 7: **`min`**, not `+` of path counts
 
 ---
 
@@ -37,26 +39,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** Grid Min-Cost DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Grid path with **minimum total**
+- Non-negative costs in cells
+- Fixed move directions → only two predecessors
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "minimum path sum" | min-cost grid DP |
+| "only right or down" | top + left neighbors |
+| "unique paths" (count) | **Day 7** — wrong operator |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why this pattern works:** Optimal substructure — cheapest path to `(i,j)` extends cheapest path from above or left.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[i][j] = min cost to (i,j)."*
+2. *"Seed row 0 and col 0."*
+3. *"Interior: cell + min(top, left)."*
+4. *"1D row rolling for O(n) space."*
 
 ---
 
@@ -64,61 +63,46 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **DFS all paths** | Exponential paths — recomputes subpaths |
+| **Day 7 sum of counts** | Counts paths, ignores cost |
+| **Greedy: always pick smaller neighbor** | Local choice fails on larger grids |
+| **Forgetting edge initialization** | First row/col need cumulative min |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Each cell's min depends only on two neighbors — one table pass suffices.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+grid 1,3,1 / 1,5,1 / 4,2,1  →  min path sum = 7
+Same grid as Unique Paths example family — different question
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | Count, no costs | Day 7 `+` |
+| [Triangle #120](https://leetcode.com/problems/triangle/) | Bottom-up triangle | Day 8 min, different fill order |
+| [Dungeon Game #174](https://leetcode.com/problems/dungeon-game/) | Max health needed | Reverse min/max variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**Example:**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+grid:          dp:
+
+1  3  1        1  4  5
+1  5  1   →    2  7  6
+4  2  1        6  8  7
+
+Path: 1→3→1→1→1 with sum 7 (trace dp[2][2])
+(2,2): 1 + min(6,6) = 7
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Unique Paths counts routes; this picks the **cheapest** route — same grid skeleton, `min` instead of `+`.
 
 ---
 
@@ -178,22 +162,17 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Grid Min-Cost DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Min path on grid R/D"** → min(top, left) + cell.
+- **"Same shape as Unique Paths"** → Day 7 count vs Day 8 min.
+- **"Edge rows first"** → cumulative base cases.
+- **"Rolling 1D row"** → space optimization.
 
 > 🎯 **Pattern Unlocked:** Grid Min-Cost DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: min-cost, but fill upward. →*

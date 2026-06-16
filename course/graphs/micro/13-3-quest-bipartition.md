@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Possible Bipartition
 
 > **Day 13** · [Possible Bipartition #886](https://leetcode.com/problems/possible-bipartition/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Possible Bipartition on LeetCode](https://leetcode.com/problems/possible-bipartition/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Step 1 — build the conflict graph. Each dislike `[a,b]` → undirected edge. Step 2 — 2-color DFS/BFS from #785.
 
 ---
 
@@ -24,9 +25,7 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Conflict Graph Coloring**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+People are nodes 1..n. **Dislike = must be in different groups = edge in conflict graph.** Then run the exact bipartite check from the previous quest.
 
 ---
 
@@ -35,27 +34,22 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Conflict Graph Coloring
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Partition people into two teams
+- Pair constraints ("dislike") = can't share team
+- No graph given — you construct it
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "dislikes" / "cannot stand each other" | Undirected conflict edge |
+| "two groups" / "bipartition" | 2-color the built graph |
+| People numbered 1..n | 1-indexed adjacency |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Valid partition ⟺ conflict graph is bipartite.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build g[a].push(b); g[b].push(a) for each dislike."*
+2. *"2-color DFS/BFS on 1..n."*
+3. *"Same color on edge → false."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Try all 2^n assignments** | O(2^n) |
+| **Greedy assign without propagation** | Misses transitive conflicts (A-B, B-C forces A≠C) |
+| **Directed edges for dislikes** | Undirected — conflict is mutual |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Graph construction is half the problem. Transitive dislikes propagate through BFS levels.
 
 ---
 
@@ -76,29 +69,28 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Is Graph Bipartite? #785](https://leetcode.com/problems/is-graph-bipartite/) | Graph given | Previous quest |
+| [Flower Planting #1042](https://leetcode.com/problems/flower-planting-with-no-adjacent/) | Adjacent gardens conflict | C-test — greedy coloring |
+| [Divide Array Into Increasing Pairs #2176](https://leetcode.com/problems/divide-array-into-increasing-pairs/) | Different domain | Not bipartite |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=4, dislikes = [[1,2],[1,3],[2,4]]
 
-Apply Conflict Graph Coloring step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Conflict graph:
+  1 — 2 — 4
+  |
+  3
+
+DFS: 1→0, 2→1, 3→1, 4→0
+Edge 2—4: colors 1 vs 0 ✓
+Edge 1—3: 0 vs 1 ✓ → true
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You never compare people directly — the graph carries transitive constraints.
 
 ---
 
@@ -173,19 +165,16 @@ class Solution {
 ```
 
 **Complexity:** O(n + E) time · O(n + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Conflict Graph Coloring"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Dislike → edge → bipartite check."** → two-step pipeline.
+- **"Build graph first."** → half the work is modeling.
+- **"Same DFS as #785."** → reuse template.
+- **"1-indexed nodes."** → size n+1 array.
 
 > 🎯 **Pattern Unlocked:** Conflict Graph Coloring
 

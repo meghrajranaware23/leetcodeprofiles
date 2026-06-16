@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 20 Checkpoint
 
 > **Shortest Path Variants** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 20 = **Day 19 Dijkstra with a twist** OR **K-stop layered relax** — know which.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "minimum effort" / min max height diff on grid | Grid Dijkstra | Heap (effort,r,c); max relax |
+| "at most K stops" / K layovers | Bellman-Ford k+1 layers | tmp=dist each round |
+| "network delay" no stop cap | **Day 19** Dijkstra | Single dist[node] OK |
+| "minimum steps" on grid | **BFS** | Unweighted |
+| "connect all points min cost" | **Day 21 MST** | Not shortest path |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Path minimizing maximum absolute height jump"* → **Grid Dijkstra** — max edge relax
+2. *"Cheapest ticket price with at most k layovers"* → **Layered BF** — not Day 19 heap
+3. *"Weighted shortest path, no constraints"* → **Day 19** — (dist, node) heap
+4. *"01 matrix nearest zero"* → **Day 6 multi-source BFS** — not Dijkstra
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Hiker wants path where the steepest single step is as small as possible."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Min Effort grid Dijkstra** — bottleneck path.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Fly from NYC to LA using at most 1 stop, minimize fare."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Cheapest Flights** — k+1 relax rounds with tmp copy.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Fastest route by total driving time, no stop limit."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 19 Dijkstra** — contrast with stop-limited flights.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Custom edge combine (max) or stop limit (layers) → Day 20, not plain Day 19.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **BFS for Min Effort** — need heap; edge costs differ.
+2. **Sum height diffs instead of max** — wrong objective for #1631.
+3. **Plain Dijkstra on K flights** — wrong answers on LeetCode.
+4. **Forgetting tmp=dist.copy()** — allows multi-hop in one layer.
+5. **Loop k times instead of k+1** — k stops = at most k+1 edges.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Cheapest Flights Within K Stops #787](https://leetcode.com/problems/cheapest-flights-within-k-stops/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Explain in one sentence why Day 19 Dijkstra fails here.
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Before you code:** Say "layered relax, tmp copy, k+1 rounds."
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Contrast directly with Network Delay — no stop budget there.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 20 complete! Tomorrow: the next territory of your ascension. →*
+*Day 20 complete! Tomorrow: minimum spanning trees. →*

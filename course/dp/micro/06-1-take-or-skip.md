@@ -1,145 +1,133 @@
+<!-- hand-authored -->
 # 📝 Take or Skip
 
 > **Day 6** · Take or Skip · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Decision DP (Include/Exclude) visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 5 taught **decisions at each step** — buy/sell, hold/cash. Today the decision narrows to two branches only: **take this item** or **skip it**. You fill a **1D table left-to-right**; each cell stores the best answer for the prefix ending at index `i`. House Robber is the canonical shape.
+
+> **Preview contrast (Day 5 vs Day 6):** Day 5 = state machine (hold / sold / rest). Day 6 = **two choices per index** — `max(take, skip)` on a line. Same DP pipeline; simpler visual.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Decision DP (Include/Exclude)** — the core technique you'll use in today's quests.
+**Take or Skip (Include / Exclude) DP** — at each position, either include the current element (with a constraint) or exclude it and keep the best from before.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[i]` = best value using elements `0..i` (or ending at `i`, depending on problem)
+- **Two branches** — **skip:** `dp[i-1]` · **take:** `dp[i-2] + value[i]` when adjacent picks are forbidden
+- **1D table** — fill index `0 → n-1` (or `1 → n` with a sentinel row)
+- **Space trick** — only `prev2` and `prev1` needed once transitions depend on two prior cells
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Walk a street of houses. At each door you ask: *"Do I rob this one?"* If you rob it, you cannot rob the neighbor you just passed — so your loot is **what you had two doors back** plus this house's value. If you skip, you keep **whatever was best one door back**. You never revisit a door; the table records the answer once.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — 1D table fill (House Robber shape)
 
 ```
-Decision diagram — take or skip:
+nums:     [2]   [7]   [9]   [3]   [1]
+           │     │     │     │     │
+At i:   skip? take? skip? take? skip?
 
-Item:    [3]   [4]   [2]   [8]
-          │     │     │     │
-          ▼     ▼     ▼     ▼
-  TAKE ──→ ■   SKIP ──→ ■   TAKE ──→ ■   TAKE ──→ ■
-  SKIP ──→ □   TAKE ──→ □   SKIP ──→ □   SKIP ──→ □
+  dp[i]  = max( SKIP dp[i-1] ,  TAKE dp[i-2] + nums[i] )
 
-DP array fills left-to-right:
+  i:      0     1     2     3     4
+  dp:     2     7     11    11    12
+          ↑     ↑     ↑     ↑     ↑
+        base  max(2,  max(2+9, max(7+3, max(11,
+              7)    7+9)   11)    11+1)
 
-  dp[0]  dp[1]  dp[2]  dp[3]  dp[4]
-  ┌──────┬──────┬──────┬──────┬──────┐
-  │  0   │  3   │  4   │  5   │  12  │
-  └──────┴──────┴──────┴──────┴──────┘
-    ↑      ↑      ↑      ↑      ↑
-   base  max(   max(   max(   max(
-         take,  take,  take,  take,
-         skip)  skip)  skip)  skip)
-
-dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+  prev2 / prev1 rolling:
+  i=0: prev2=0, prev1=2
+  i=1: prev2=2, prev1=7
+  ...
 ```
 
-### 4. The DP Pipeline
+**Not a decision tree you draw for every index** — one recurrence, one left-to-right sweep.
 
-Apply the five-step pipeline to today's pattern:
-
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Decision DP (Include/Exclude)" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Decision DP (Include/Exclude)**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — take vs skip at one cell
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+At index i = 3, nums[3] = 3:
+
+  SKIP ──→ dp[2] = 11        (don't touch house 3)
+  TAKE ──→ dp[1] + 3 = 10    (rob house 3; can't use dp[2] — neighbor)
+
+  dp[3] = max(11, 10) = 11
 ```
 
-### 7. Base cases & answer extraction
+### 5. The universal template
 
-| Component | Question |
+```
+function takeOrSkip(nums):
+    prev2 = 0
+    prev1 = 0
+    for num in nums:
+        curr = max(prev1, prev2 + num)
+        prev2 = prev1
+        prev1 = curr
+    return prev1
+```
+
+Tabulated form: `dp[i] = max(dp[i-1], dp[i-2] + nums[i])`, base `dp[0] = nums[0]`, `dp[1] = max(nums[0], nums[1])`.
+
+### 6. When take/skip applies
+
+| Signal | Meaning |
 |---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| "Maximum sum, no two adjacent" | Classic take/skip on a line |
+| "Rob houses" / "select non-adjacent" | Same recurrence |
+| "Delete and earn" | **Compress first** — then take/skip on values (today's second quest) |
+| "How many ways to decode" | **Not Day 6** — that's **sum** transitions (Day 7) |
+
+### 7. Day 5 vs Day 6 — the contrast
+
+| | **Day 5 — State Machine** | **Day 6 — Take or Skip** |
+|---|---|---|
+| States per day | hold, sold, rest (multiple) | two branches: take / skip |
+| Table shape | often 1D with meaning per state | 1D, one scalar per prefix |
+| Transition | `max` over business rules | `max(dp[i-1], dp[i-2]+val)` |
+| Example | Best Time to Buy/Sell Stock | House Robber |
+| Visual | state diagram | **1D array left-to-right** |
+
+If the problem is "pick some items on a line with an adjacency rule," think Day 6 before knapsack.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "non-adjacent" / "cannot pick neighbors" | Take/skip — jump back 2 on take |
+| "maximum sum" on a sequence | Often `max`, not `sum` |
+| "rob" / "delete and earn" | Take/skip (earn may need freq compression) |
+| "how many ways" | **Day 7 counting** — use `+`, not `max` |
+| "minimum cost path in grid" | **Day 8** — `min` on a 2D table |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `take or skip` · `include exclude` · `non-adjacent` · `dp[i-1]` · `dp[i-2]` · `prev2 prev1`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using `dp[i-1] + nums[i]` on take | Adjacency forbids the immediate neighbor — use `dp[i-2]` |
+| Confusing max-sum with count-ways | Day 6 = **max**; Day 7 decode = **sum** of branches |
+| Forgetting freq compression (Delete and Earn) | Collapse duplicates into `earn[v]` before take/skip |
+| Returning `dp[n]` when state ends at `n-1` | Match your index convention to the answer cell |
+| Drawing a full binary tree instead of filling 1D | The table *is* the compressed tree |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Given an array, find the maximum sum of non-adjacent elements."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 6 take/skip: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Fill 1D left-to-right. Space: prev2/prev1. Answer: last cell or rolling prev1."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*The 1D table is your map. First quest: rob the street. →*

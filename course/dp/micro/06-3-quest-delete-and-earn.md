@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Delete and Earn
 
 > **Day 6** · [Delete and Earn #740](https://leetcode.com/problems/delete-and-earn/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Delete and Earn on LeetCode](https://leetcode.com/problems/delete-and-earn/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Before take/skip, **compress** — bucket each value `v` into `earn[v] = sum of all v's in nums`. Then run House Robber on `earn[1..maxVal]`.
 
 ---
 
@@ -24,11 +25,12 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **House Robber in Disguise**.
+**Two phases:**
 
-What is the state? What does dp[i] represent for this problem?
+1. **Freq compression** — `earn[v] += v` for every `num` in `nums`. Picking value `v` deletes *all* copies and forbids `v-1` and `v+1`.
+2. **Take/skip on values** — treat `earn[1], earn[2], ... earn[maxVal]` like houses on a street. Adjacent **values** cannot both be taken.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+`dp[i] = max(dp[i-1], dp[i-2] + earn[i])` — same as House Robber on the compressed array.
 
 ---
 
@@ -37,26 +39,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** House Robber in Disguise
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Sounds like "delete elements" — actually **pick values**, not indices
+- Deleting `v` removes **all** `v` and blocks `v±1`
+- That's **non-adjacent on the value line** → robber on `earn[]`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "delete all occurrences of v" | Bucket by value |
+| "cannot pick v-1 or v+1" | Adjacency on **values**, not indices |
+| "maximum points" | `max` take/skip after compression |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why compression matters:** Raw `nums` order is irrelevant — only how much total points each value contributes.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Build earn[v] = v × count(v)."*
+2. *"Run robber on earn[1..maxVal]."*
+3. *"dp[i] = max(skip earn[i], take earn[i] + dp[i-2])."*
+4. *"Edge: if maxVal=0 only, handle earn[0]."*
 
 ---
 
@@ -64,61 +63,51 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Take/skip on original index order** | Wrong — value 3 at index 0 and value 2 at index 1 aren't "neighbors" in the problem's sense |
+| **Try all subsets of distinct values** | O(2^k) — still exponential in distinct count |
+| **Greedy: take largest value first** | Blocked neighbors may make skipping better |
+| **Skip compression** | Misses that the state is **value**, not position |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Map the problem onto a **short 1D array of totals** — then Day 6 applies unchanged.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums = [3,4,3]  →  earn[3]=6, earn[4]=4
+                  rob earn[1..4]: max non-adjacent values
+                  can't take 3 and 4 together
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Compression step | Then |
+|---|---|---|
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | None — nums is already the street | Take/skip |
+| [House Robber II #213](https://leetcode.com/problems/house-robber-ii/) | Circular split | Two rob passes |
+| Sort + unique adjacency problems | Bucket or sort by key | Take/skip on compressed keys |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `nums = [3, 4, 2]`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Compression:
+  earn[2]=2, earn[3]=3, earn[4]=4
+
+Take/skip on values 1..4 (earn[1]=0):
+
+  i :  1   2   3   4
+  earn: 0   2   3   4
+  dp :  0   2   3   6
+
+  i=2: max(0, 0+2)=2
+  i=3: max(2, 0+3)=3   (can't take 2 and 3)
+  i=4: max(3, 3+4)=6   (take 4 + dp[2]=2 → 6)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Recognize the disguise → compress → run the Day 6 template you already know.
 
 ---
 
@@ -175,19 +164,14 @@ class Solution {
 ```
 
 **Complexity:** O(n + k) time · O(k) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"House Robber in Disguise"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Delete v blocks v±1"** → adjacency on **values**, not indices.
+- **"Compress first"** → `earn[v]` = total points for value `v`.
+- **"Then House Robber"** → identical take/skip recurrence.
+- **"Order of nums doesn't matter"** → freq compression is the unlock.
 
 > 🎯 **Pattern Unlocked:** House Robber in Disguise
 

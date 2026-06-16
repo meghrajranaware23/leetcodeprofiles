@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Best Time to Buy and Sell Stock
 
 > **Day 5** · [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Best Time to Buy and Sell Stock on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** One buy, one sell, buy before sell. Trace `prices = [7,1,5,3,6,4]` — track **min price so far** and profit if you sold each day.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Running Minimum DP**.
+**Pattern:** Running Minimum DP — Day 5's first decision template.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** You can't sell before you buy. When considering sell on day i, best buy is **minimum price in days 0..i-1** (or 0..i if buy same day before sell — here buy strictly earlier).
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** Maintain `minPrice` while scanning left-to-right. Candidate profit at day i: `prices[i] - minPrice`.
+
+**Hint 3:** `maxProfit = max(maxProfit, prices[i] - minPrice)` after updating minPrice.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Running Minimum DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- One transaction only
+- Maximize profit = sell - buy
+- Must buy before sell — causal left-to-right scan
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "best time to buy and sell" | Track min buy, max diff |
+| "at most one transaction" | O(n) scan — no state machine yet |
+| Array of prices over time | Single pass |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** O(n²) all pairs (buy i, sell j) — DP/decision pass is O(n).
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"minPrice = best buy opportunity so far."*
+2. *"Each day: try selling today, update maxProfit."*
+3. *"Then minPrice = min(minPrice, price)."*
+4. *"Order: update min before profit? Either works if consistent — standard: min first, then profit check."*
 
 ---
 
@@ -64,61 +64,47 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **All pairs (i,j) with i<j** | O(n²) |
+| **Track max price only** | Wrong — need min **before** current |
+| **Running min + max profit** | O(n) ✓ |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+prices = [7, 1, 5, 3, 6, 4]
+
+i=1: min=1, profit if sell=0
+i=2: min=1, sell@5 → profit 4
+i=4: min=1, sell@6 → profit 5  ← max
+
+Buy day 1 (price 1), sell day 4 (price 6)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Decision |
+|---|---|
+| **Stock I #121** | running min buy |
+| Stock II (later) | accumulate all gains |
+| Max subarray (next quest) | extend vs reset (Kadane) |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Full trace — prices = [2, 4, 1]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+minPrice=∞, maxProfit=0
+
+p=2: min=2, profit=0
+p=4: min=2, profit=4-2=2, max=2
+p=1: min=1, profit=4-1=3? sell@1: 1-1=0, max stays 2
+
+Answer: 2 (buy 2, sell 4) ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** `minPrice` **is** your compressed dp state — no array needed.
 
 ---
 
@@ -166,22 +152,17 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Running Minimum DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"One transaction"** → Running min, not full state machine.
+- **"minPrice so far"** → Day 5 decision DP in O(1) space.
+- **"Sell today - min buy"** → Optimal substructure each step.
+- **"Not max price"** → Common trap — track min for buy side.
 
 > 🎯 **Pattern Unlocked:** Running Minimum DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Kadane — extend the subarray or reset at i. →*

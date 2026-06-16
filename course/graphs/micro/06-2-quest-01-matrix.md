@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: 01 Matrix
 
 > **Day 6** · [01 Matrix #542](https://leetcode.com/problems/01-matrix/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open 01 Matrix on LeetCode](https://leetcode.com/problems/01-matrix/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Mark every 0 on the grid, seed them all in the queue at dist=0, then trace one BFS wave. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Multi-Source BFS**.
+Which pattern from today's concept applies? **Multi-source BFS** — enqueue **every 0** with distance 0; expand to neighbors; write `dist[nr][nc] = dist[r][c] + 1` on first visit.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: don't BFS from each 1 toward a 0. Flip the question — "nearest 0" means **all 0s are sources**. Contrast Day 2: one start vs today: many starts, one wave.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Multi-Source BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Output is a **full distance matrix** → fill every cell in one pass
+- "Nearest 0" → sources are 0-cells, not 1-cells
+- Unweighted grid → BFS layers, not Dijkstra
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "distance to nearest 0" | Multi-source from all 0s |
+| "return updated matrix" | `dist` array, -1 = unvisited |
+| "4-directionally adjacent" | Standard grid neighbors |
+| "each 1 cell" needs answer | Every 1 reached by the wave |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** The first time the wave touches a 1, that layer number is the shortest path to **some** 0 — and BFS guarantees it's the nearest.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Sources = all (i,j) where mat[i][j]==0."*
+2. *"dist[i][j]=0 for sources, -1 elsewhere."*
+3. *"One queue, dequeue, 4 neighbors, skip if dist != -1."*
+4. *"Return dist — don't mutate mat unless you prefer in-place marking."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS from each 1 to nearest 0** | O(cells²) — one BFS per 1-cell |
+| **Day 2 loop: BFS from each 0 separately** | Redundant — merge into multi-source |
+| **DFS from each cell** | No shortest-distance guarantee |
+| **Dynamic programming without BFS order** | Hard to get correct nearest-0 without wave |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Nearest-0 is a **multi-source** problem. Seed all 0s once; the wave does the rest.
 
 ---
 
@@ -76,29 +74,39 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [As Far from Land as Possible #1162](https://leetcode.com/problems/as-far-from-land-as-possible/) | Sources = land (1s); track max layer | Multi-source from all 1s |
+| [Map of Highest Peak #1765](https://leetcode.com/problems/map-of-highest-peak/) | Sources = water; build height map | Multi-source from all water |
+| [Rotting Oranges #994](https://leetcode.com/problems/rotting-oranges/) | Sources = rotten; time layers | Multi-source BFS (Day 2 preview) |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same init: **enqueue every source before the while loop.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Seed all zeros; wave assigns distances.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+mat:       Step 0 — queue all 0s, dist=0:
+0 0 0      dist:  0  0  0
+0 1 0              0 -1  0
+1 1 1             -1 -1 -1
 
-Apply Multi-Source BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Layer 1: neighbors of 0s → dist=1
+Layer 2: (2,0) and (2,1) get dist=2
+(2,2) stays unreachable? No — reached at dist=2 from (1,2) or (2,1)
+
+Trace: each 1 gets the layer number when first dequeued neighbor assigns it.
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+[r,c] dequeued → for each (nr,nc):
+  if dist[nr][nc] == -1:
+    dist[nr][nc] = dist[r][c] + 1
+    enqueue (nr, nc)
+```
+
+> 💡 **The insight:** You're not finding one path — you're painting the whole grid with nearest-0 distances in one synchronized flood.
 
 ---
 
@@ -181,22 +189,21 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Multi-Source BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Nearest 0 for every cell"** → Multi-source, not BFS from each 1.
+- **"All 0s in queue at start"** → dist=0; `-1` means unvisited.
+- **"First assignment wins"** → BFS layer = shortest steps.
+- **"Not Day 2 single-source"** → One wave from many fires, not many separate floods.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you tried BFS from each 1, flip the sources — that's the Day 6 breakthrough.
 
-> 🎯 **Pattern Unlocked:** Multi-Source BFS
+> 🎯 **Pattern Unlocked:** Multi-Source BFS — seed all zeros, fill the dist matrix.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same pattern, sources are land cells. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Course Schedule II
 
 > **Day 11** · [Course Schedule II #210](https://leetcode.com/problems/course-schedule-ii/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Course Schedule II on LeetCode](https://leetcode.com/problems/course-schedule-ii/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same graph as #207 — but record each course as you peel it. Empty order = cycle.
 
 ---
 
@@ -24,38 +25,31 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Topological Sort**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Same peel as Course Schedule #207. **Difference:** append each popped course to `order`. If `len(order) < numCourses`, return `[]`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Topological Sort
+**Pattern used:** Topological Sort (Kahn's algorithm)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Identical setup to #207
+- Output: any valid take order, or empty if impossible
+- Order of queue pops = valid schedule
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "return the ordering" | Record Kahn peel sequence |
+| "if impossible return empty" | Cycle check via peel count |
+| Same `[a,b]` prereq format | Edge b → a |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each peeled node has no remaining prerequisites — safe to take now. Recording pops builds a valid topological order.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Copy #207 skeleton."*
+2. *"On pop: order.append(u)."*
+3. *"Return order if len==n else []."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **DFS postorder reverse** | Works but easy to forget cycle flag |
+| **Sort all permutations** | O(n!) |
+| **Peel without recording** | Solves #207 only, not #210 |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Kahn's queue order *is* the topological sort. One loop does both cycle check and ordering.
 
 ---
 
@@ -76,29 +69,27 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | Boolean only | Same peel, no recording |
+| [Sequence Reconstruction #444](https://leetcode.com/problems/sequence-reconstruction/) | Unique order check | Kahn + verify single choice |
+| [Find All Possible Recipes #2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | String nodes, supplies as indeg-0 | Day 12 — same peel |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]]
 
-Apply Topological Sort step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+    0 ──→ 1 ──→ 3
+    └──→ 2 ──→ 3
+
+indeg: 0→0, 1→1, 2→1, 3→2
+Queue: [0] → pop 0, order=[0]
+Queue: [1,2] → pop 1,2, order=[0,1,2]
+Queue: [3] → pop 3, order=[0,1,2,3] ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Multiple valid orders exist — any peel order is accepted.
 
 ---
 
@@ -173,21 +164,17 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Topological Sort"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"#207 + record pops."** → minimal diff from previous quest.
+- **"Empty list = cycle."** → same seen-count check.
+- **"Queue order is one valid topo."** → don't overthink uniqueness.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Topological Sort
+> 🎯 **Pattern Unlocked:** Topological Sort — Kahn's peel with recording
 
 ---
 

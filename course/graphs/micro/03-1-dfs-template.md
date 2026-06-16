@@ -1,125 +1,144 @@
+<!-- hand-authored -->
 # 📝 DFS: Depth-First Search
 
 > **Day 3** · DFS — Depth-First Search · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand DFS Template visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Your mission today: **learn depth-first search for the first time in this pack** — go **deep before wide**. No queue. No BFS wavefront. Just recursion (or an explicit stack), a **visited** set, and a clear **visit order** you can trace on paper.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — The Recursion Stack Goes Deep
 
-### 1. What is the pattern?
+### 1. What is DFS?
 
-**DFS Template** — the core technique you'll use in today's quests.
+**Depth-first search** explores as far as possible along one path before backtracking.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+Tool: **recursion** (implicit stack) or a **stack** (LIFO).
+- Mark current node visited
+- Recurse on each unvisited neighbor
+- When no unvisited neighbors remain, return (backtrack)
 
-### 2. Simple explanation
+Day 2 went wide with a queue. Day 3 goes deep with the call stack.
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
-
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
+### 2. Visual — visit order on a graph (no BFS, no queue)
 
 ```
 Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+        |
+        3
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+DFS from 0 (neighbors tried in order: 1, then 3):
+
+  enter 0  →  mark 0
+  enter 1  →  mark 1
+  enter 2  →  mark 2   (2 has no new neighbors)
+  back to 1, back to 0
+  enter 3  →  mark 3
+
+Visit order: 0 → 1 → 2 → 3
+Recursion stack at deepest point: [0, 1, 2]
 ```
 
-### 4. How the pattern works
+**Read it as:** chase one edge chain to the end, then unwind and try the next branch from the earliest unvisited neighbor.
 
-```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+### 3. The DFS skeleton
+
+```python
+def dfs(u):
+    visited[u] = True
+    for v in adj[u]:
+        if not visited[v]:
+            dfs(v)
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+**Outer restart loop** — for counting **connected components**:
 
-### 5. What problem does this solve?
+```python
+components = 0
+for i in range(n):
+    if not visited[i]:
+        components += 1
+        dfs(i)          # floods entire component from i
+```
 
-| Problem family | How this pattern helps |
+Each time you find an unvisited node, start a new DFS — that is one new component. Quest 1 (#547 Provinces) uses exactly this pattern (or Union-Find — same grouping idea).
+
+### 4. Recursion stack mental model
+
+Each `dfs(u)` call sits on the stack until all descendants finish.
+
+```
+dfs(0) called
+  dfs(1) called
+    dfs(2) called
+    dfs(2) returns
+  dfs(1) returns
+  dfs(3) called
+  dfs(3) returns
+dfs(0) returns
+```
+
+When debugging: **draw the stack**, not the queue. Day 2's level batches do not apply here.
+
+### 5. DFS vs BFS — when to pick DFS (Day 3 focus)
+
+| Signal | Pick |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| "Count connected components" | **DFS** restart loop |
+| "Can reach all nodes from 0?" | **DFS** from source + visited check |
+| "Explore entire component" | **DFS** flood |
+| "Shortest path / minimum minutes" | BFS (Day 2) — not DFS |
+| "Level-by-level timeline" | BFS — not DFS |
 
-### 6. Why brute force fails
-
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
-
-### 7. The key observation
-
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
-
-### 8. Pattern signals & recognition clues
+### 6. Pattern signals — Day 3 only
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "connected components" / "provinces" / "circles" | Outer loop + `dfs(i)` restart |
+| "can you visit every room?" | DFS from 0, check all visited |
+| "reachability" from one start | Single DFS/BFS flood |
+| Adjacency already given as lists | `rooms[u]` or `adj[u]` neighbors |
+| Undirected connectivity matrix | Edge when `matrix[i][j]==1` |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `dfs` · `visited` · `recursion` · `backtrack` · `component` · `restart loop`
 
-### 9. Common beginner mistakes
+### 7. Why brute force fails
+
+| Brute force | Problem |
+|---|---|
+| DFS without `visited` | Infinite loops on cycles |
+| Count components without restart loop | Miss disconnected pieces |
+| BFS for "explore whole component" when order doesn't matter | Works but DFS is natural for flood-fill style |
+| Re-run DFS from every node without skip | O(n²) visits; mark visited globally |
+| Stack overflow on huge grid without iterative DFS | Rare in E-Rank; know recursion depth limits |
+
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Forget to mark visited **before** recursing | Revisit same node infinitely |
+| Only DFS from node 0 for component **count** | Miss components not touching 0 |
+| Confuse DFS visit order with BFS levels | No `len(q)` — stack depth instead |
+| Not building neighbor list from matrix | Provinces: `j` neighbor when `isConnected[i][j]` |
+| Return early without checking all rooms | Keys and Rooms: `all(visited)` at end |
 
-### 10. Recognition drill
+### 9. Bridge from Day 2
 
-Read this problem aloud:
+Day 2: queue, `(r,c)`, minutes = batches.  
+Day 3: recursion stack, `visited`, components = **restart** DFS from each unvisited node.
 
-> *"Given an m×n grid, count the number of islands."*
+Same grid can use either — but **connectivity counting** and **reach-all** are DFS home turf in E-Rank.
 
-Before coding, say:
+### 10. Recognition drill — today's quests
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+**Quest 1 — Number of Provinces #547:**
+> *"How many connected groups? Outer loop: if not visited, `components++`, `dfs(i)`."*
+
+**Quest 2 — Keys and Rooms #841:**
+> *"DFS from room 0. Can you mark every room? Return `all(visited)`."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You see the recursion stack and restart loop. Quest 1 counts components; Quest 2 checks full reachability. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: All Ancestors in DAG
 
 > **Day 14** · [All Ancestors of a Node in a Directed Acyclic Graph #2192](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open All Ancestors of a Node in a Directed Acyclic Graph on LeetCode](https://leetcode.com/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** For each node `i`, DFS outward from `i` collecting all reachable nodes (excluding `i`). DAG = no infinite loops — visited set suffices.
 
 ---
 
@@ -24,38 +25,31 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DAG Reachability**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Build forward adjacency. For each `i`, run DFS from `i`, add each newly visited node to `ancestors[i]`. Sort each list at the end. Alternative: topo order + set merge — today's quest uses per-source DFS.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** DAG Reachability
+**Pattern used:** DAG Reachability / Ancestor Accumulation
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Explicit DAG — no cycle handling
+- Need all nodes reachable along outgoing edges from each start
+- Output sorted ancestor lists
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "ancestors in a DAG" | Reachability from each node |
+| "directed acyclic" | DFS with visited — no cycle fear |
+| Sorted output | Sort after collection |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** From node `i`, every ancestor is reachable via forward DFS. DAG guarantees finite exploration.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build adj[u] = outgoing neighbors."*
+2. *"For each i: DFS(i,i,vis), collect visited nodes."*
+3. *"Sort each result list."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Enumerate all paths** | Exponential path count |
+| **No visited set** | Revisit nodes wastefully (still terminates on DAG) |
+| **Reverse graph from each sink** | Works but overkill for this constraint size |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** n ≤ 500 — O(n · (V+E)) DFS per source is acceptable.
 
 ---
 
@@ -76,29 +69,28 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Course Schedule IV #1462](https://leetcode.com/problems/course-schedule-iv/) | Precompute reachability matrix | Day 15 |
+| [Minimum Vertices #1557](https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/) | Source scan only | Previous quest |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Weighted pick on DAG | C-test 3 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=4, edges = [[0,1],[1,2],[0,3],[3,2]]
 
-Apply DAG Reachability step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+    0 → 1 → 2
+    ↓       ↑
+    3 ──────┘
+
+From 0: reach {1,3,2} → anc[0]=[1,2,3]
+From 1: reach {2} → anc[1]=[2]
+From 2: reach {} → anc[2]=[]
+From 3: reach {2} → anc[3]=[2]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Forward DFS from each node — ancestors = reachable set minus self.
 
 ---
 
@@ -185,21 +177,18 @@ class Solution {
 ```
 
 **Complexity:** O(n · (V + E)) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"DAG Reachability"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"DAG → DFS won't loop forever."**
+- **"From each i, walk forward."** → collect reachable nodes.
+- **"Visited per source DFS."** → separate search spaces.
+- **"Day 15 will precompute this for queries."** → same reachability idea.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** DAG Reachability
+> 🎯 **Pattern Unlocked:** DAG Ancestor Accumulation via DFS
 
 ---
 

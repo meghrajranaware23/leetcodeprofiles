@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 17 Checkpoint
 
 > **Union-Find Fundamentals** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 17 is **merge groups, don't walk** — first B-Rank concept without a BFS queue.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "redundant edge" / "edge forming cycle" | UF cycle detect | find(u)==find(v) before union |
+| "connect all computers" / spare cables | UF component count | comps−1 merges needed |
+| "same connected component?" | find(a)==find(b) | Near O(1) with compression |
+| "shortest path unweighted" | **BFS** — not UF | Traversal, not merging |
+| "minimum network delay" | **Dijkstra** — Day 19 | Weighted paths |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Return edge that completes a cycle in a tree+n graph"* → **UF** — first same-root edge
+2. *"Minimum ops to connect all machines with spare cables"* → **UF** — count components + formula
+3. *"Shortest path in binary matrix"* → **Day 8 BFS** — not Day 17
+4. *"Merge accounts sharing emails"* → **Day 18** UF modeling — preview tomorrow
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Given edges one by one, return the first edge that connects two already-connected nodes."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Union-Find cycle detection** — identical to Redundant Connection.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Can you connect n nodes with k existing edges and spare edge insertions?"*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **UF component count** — need ≥ n−1 edges; count merges from spares.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Find shortest path between two nodes in unweighted graph."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **BFS** — UF doesn't give paths, only same/different group.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Day 17 = parent[] + find/union. No queue, no dist matrix.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Using BFS for cycle in edge list** — UF one-pass is cleaner for undirected incremental edges.
+2. **Skipping path compression** — degenerate chains slow find.
+3. **Forgetting 1-indexed nodes** — size parent[1..n] when problem uses 1..n labels.
+4. **Union without checking roots** — same root = cycle or already connected.
+5. **Confusing with MST** — Day 21 uses UF to *skip* cycle edges while building tree.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Redundant Connection #684](https://leetcode.com/problems/redundant-connection/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Re-solve without looking at the walkthrough. Trace parent[] on paper for edges [[1,2],[1,3],[2,3]].
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Before you code:** Say "find before union; same root = answer."
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Appears again in B-test Min Score Path — UF finds the component, then scan edges.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 17 complete! Tomorrow: the next territory of your ascension. →*
+*Day 17 complete! Tomorrow: model real objects as UF nodes. →*

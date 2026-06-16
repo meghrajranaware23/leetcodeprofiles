@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ E-Rank Test — Problem 3
 
 > [Is Subsequence #392](https://leetcode.com/problems/is-subsequence/) · Easy · 100 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Is Subsequence on LeetCode](https://leetcode.com/problems/is-subsequence/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Define the state. Write the transition. Fill the table by hand. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** Can you match all of `s` in order inside `t`? Two pointers — preview of **LCS / string DP** (Day 13+). Don't jump to 2D table unless needed.
 
 ---
 
@@ -24,38 +25,54 @@ See the full problem statement on LeetCode: **[Is Subsequence #392](https://leet
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the E-Rank curriculum. Define the state and transition before you code.
+> 🎯 **What's being tested:** **Two-pointer scan** — lightweight sequence DP preview, not full `dp[i][j]` LCS table yet.
 
-Revisit your rank's cheat sheet. Is this linear DP, grid DP, knapsack, or state machine?
+**Hint 1:** Pointer `i` on `s`, `j` on `t`. Scan `t` left-to-right.
+
+**Hint 2:** When `s[i] == t[j]`, match — advance `i`. Always advance `j`.
+
+**Hint 3:** Success iff `i == len(s)` after scan — all chars of `s` matched in order.
+
+**LCS preview:** This is LCS when |s| is small — state is "how many chars of s matched so far" (one index), not full 2D.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** Two-Pointer Subsequence Match (LCS preview)
+
 **How to identify from the statement:**
-- What is the state? What information describes a subproblem?
-- What are the choices at each state?
-- What's the transition formula?
+- Order preserved, gaps allowed in `t`
+- Single pass O(n) on `t`
+- Boolean — no optimization score
 
 **How a strong solver thinks before coding:**
-1. *"What does dp[i] represent?"*
-2. *"What's the base case?"*
-3. *"Linear, grid, knapsack, or state machine?"*
-4. *"Can I optimize the space?"*
+1. *"Greedy match: take earliest t[j] that matches s[i]."*
+2. *"i only increases on match — never backtrack."*
+3. *"Empty s → true; exhaust t before matching s → false."*
+4. *"Full LCS later uses dp[i][j]; this is the O(n) special case."*
+
+**E-Rank connection:** Day 5 decisions at each step — at `t[j]`, decision: does this char advance `i`? String DP ranks expand to 2D tables.
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-DP problems have exponential recursion trees with massive overlap. Brute force means recomputing the same subproblems O(2^n) times. Define the state, cache it, and solve each subproblem exactly once.
+| Approach | Problem |
+|---|---|
+| **Try all subsequences of t** | O(2^|t|) |
+| **Full LCS dp table** | O(m·n) — works but overkill for boolean |
+| **Two pointers** | O(|t|) time, O(1) space ✓ |
+
+**The insight:** Subsequence check is the **one-row** version of LCS — compressed state `i` only.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you define the state without the problem name telling you the pattern?
+*"Is A a subsequence of B? How many chars matched in order?"*
 
-Read the statement once. Define dp[i] in one sentence. If you can write the transition in under 60 seconds, you're ready.
+Two pointers on the longer string. If you need **count** or **edit distance**, upgrade to 2D string DP.
 
 ---
 
@@ -108,10 +125,51 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a E-Rank test"** → Use patterns from this rank's training.
-- **"State first, code second"** → Define dp[i] before writing any code.
-- **"Name the pattern"** → The code is just the transition formula in syntax.
+- **"Subsequence = order, gaps OK"** → Two pointers, not substring sliding window.
+- **"i only forward"** → Compressed DP state — preview of string DP.
+- **"Not full LCS table yet"** → E-Rank O(n) path; 2D comes in later ranks.
+- **"Match greedily on t"** → Earliest match never hurts.
 
 ---
 
 *3 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    bool isSubsequence(string s, string t) {
+        int i = 0;
+        for (int j = 0; j < (int)t.size() && i < (int)s.size(); j++)
+            if (s[i] == t[j]) i++;
+        return i == (int)s.size();
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def isSubsequence(self, s: str, t: str) -> bool:
+        i = 0
+        for c in t:
+            if i < len(s) and c == s[i]:
+                i += 1
+        return i == len(s)
+```
+
+### Java
+```java
+class Solution {
+    public boolean isSubsequence(String s, String t) {
+        int i = 0;
+        for (int j = 0; j < t.length() && i < s.length(); j++)
+            if (s.charAt(i) == t.charAt(j)) i++;
+        return i == s.length();
+    }
+}
+```
+
+**Complexity:** O(n) time · O(1) space

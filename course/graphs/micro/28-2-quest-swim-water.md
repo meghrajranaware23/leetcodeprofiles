@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Swim in Rising Water
 
 > **Day 28** · [Swim in Rising Water #778](https://leetcode.com/problems/swim-in-rising-water/) · Hard · 25 min · 50 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Swim in Rising Water on LeetCode](https://leetcode.com/problems/swim-in-rising-water/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Binary search the answer (water level T). For each T, BFS: can you walk only on cells with value ≤ T? Draw the grid and trace can(T) by hand before coding.
 
 ---
 
@@ -24,38 +25,38 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Binary Search + BFS**.
+**Binary search on T + BFS feasibility** — not Dijkstra, not plain Day 8 BFS.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- Answer = minimum time `T` when water level equals cell elevation.
+- `can(T)`: BFS from `(0,0)` visiting only cells with `grid[r][c] ≤ T`.
+- If `can(T)` → try smaller T (`hi = mid`); else `lo = mid + 1`.
+- Lower bound: `lo = max(grid[0][0], grid[m-1][n-1])` — start and end must be enterable.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Binary Search + BFS
+**Pattern used:** Binary Search + BFS Feasibility
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Minimum time" until you can swim → search the **time/level** answer
+- At time T, only cells with elevation ≤ T are passable → monotone feasibility
+- Shortest path inside each check → BFS (unweighted once threshold fixed)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "swim" / "rising water" / "elevation" | Threshold T controls which cells open |
+| "minimum time to reach" | Binary search T, not direct BFS |
+| Grid + passable if value ≤ T | can(T) = flood-fill BFS |
+| Implicit max on path | Minimize the maximum cell value along route |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** `can(T)` is monotone — if path exists at T, it exists at any T' ≥ T. Binary search finds the smallest feasible T in O(n² log max) instead of O(n² · max).
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Am I minimizing a threshold or minimizing steps?"* → threshold → binary search.
+2. *"can(T) = BFS with grid[r][c] ≤ T."*
+3. *"lo = max(start, end); hi = max grid value."*
+4. *"Not Dijkstra — each can(T) is yes/no BFS."*
 
 ---
 
@@ -63,12 +64,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Try every T from 0 to max linearly** | O(n² · max) — binary search → O(n² log max) |
+| **Dijkstra treating elevation as edge weight** | Possible but harder — binary search + BFS is cleaner |
+| **Plain BFS without threshold search** | No single BFS pass gives the min-max path |
+| **can(T) with DFS** | Works for feasibility but BFS is natural for grid flood |
+| **lo = 0 ignoring endpoints** | Start/end cells must satisfy T ≥ their elevation |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Separate **search for answer** (binary search) from **check feasibility** (BFS).
 
 ---
 
@@ -76,29 +78,34 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Swim in Rising Water #778](https://leetcode.com/problems/swim-in-rising-water/) | Grid elevation threshold | Binary search + BFS |
+| [Path With Minimum Effort #1631](https://leetcode.com/problems/path-with-minimum-effort/) | Day 20 — Dijkstra on max edge diff | Related min-max path |
+| [Koko Eating Bananas](https://leetcode.com/problems/koko-eating-bananas/) (non-graph) | Same binary search skeleton | Monotone feasibility |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Grid:
+  0  2
+  1  3
 
-Apply Binary Search + BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Goal: (1,1), start (0,0)
+
+can(T=1): cells ≤1 → (0,0),(1,0) only — can't reach (1,1) ✗
+can(T=2): add (0,1) — still blocked ✗
+can(T=3): all cells — path (0,0)→(1,0)→(1,1) ✓
+
+Binary search: lo=3, hi=3 → answer 3
+
+can(2) BFS trace:
+  queue [(0,0)]  vis={(0,0)}
+  → (1,0) val=1≤2 ✓, (0,1) val=2≤2 ✓
+  from (0,1): (1,1) val=3>2 ✗ — stop, return false
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Outer loop binary-searches T. Inner loop is Day 8 BFS with a filter.
 
 ---
 
@@ -204,22 +211,17 @@ class Solution {
 ```
 
 **Complexity:** O(n² log n) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Binary Search + BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Minimum time until water level allows crossing"** → binary search the time, not one BFS.
+- **"Can I reach end if cells ≤ T are passable?"** → that's `can(T)` — monotone in T.
+- **"Shortest path inside can(T)"** → BFS, but the outer loop is binary search.
+- **Not Day 19 Dijkstra** — you're minimizing the threshold, not summing edge weights.
 
 > 🎯 **Pattern Unlocked:** Binary Search + BFS
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: obstacle elimination with `(r,c,k)` state. →*

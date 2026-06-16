@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Decode Ways
 
 > **Day 7** · [Decode Ways #91](https://leetcode.com/problems/decode-ways/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Decode Ways on LeetCode](https://leetcode.com/problems/decode-ways/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Fill **dp[0..n]** for the example — at each `i`, add ways from 1-char and 2-char steps. This is **sum**, not Day 6 take/skip.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **String Decomposition DP**.
+**Pattern:** Day 7 **String Prefix Counting** — `dp[i]` = ways to decode `s[0..i-1]`.
 
-What is the state? What does dp[i] represent for this problem?
+- **1-digit step** ending at `i`: if `s[i-1] != '0'` → `dp[i] += dp[i-1]`
+- **2-digit step** ending at `i`: if `10 ≤ int(s[i-2:i]) ≤ 26` → `dp[i] += dp[i-2]`
+- **Base:** `dp[0] = 1` (empty string)
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Not `max(take, skip)` — **add** every valid last piece.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** String Decomposition DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- "How many ways" → **count**, not optimize
+- Process string **left to right** by prefix length
+- Each step consumes 1 or 2 characters with validity rules
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "number of ways to decode" | Prefix sum DP |
+| "1–26" mapping | Validate 2-digit chunk 10–26 |
+| leading `'0'` | Zero ways through that branch |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why this pattern works:** Every decoding of prefix `i` ends with either a valid 1-char or 2-char letter — partition by last step, sum predecessors.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[i] = ways for first i chars."*
+2. *"Add dp[i-1] if last 1-char valid."*
+3. *"Add dp[i-2] if last 2-char in 10..26."*
+4. *"Roll to prev2/prev1 — same as Fibonacci shape with zero guards."*
 
 ---
 
@@ -64,61 +64,49 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try every split recursively** | O(2^n) — exponential |
+| **Day 6 max logic** | Wrong operator — need **sum** |
+| **Forgetting leading zero rule** | `"06"` → 0 ways for 2-digit `"06"` |
+| **dp[0] = 0** | Empty prefix must be 1 way |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Only two predecessor lengths matter — identical overlap to Fibonacci, but with validation gates.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+s = "226"
+dp: 1 → 1 → 2 → 3
+     ∅   "2" "22"/"2|2"  + "6"/"26"
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | 2D grid, R/D moves | Sum from two neighbors |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | Steps 1 or 2 | Same 1D sum (no zero trap) |
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | **max**, not sum | Day 6 contrast |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `s = "12"`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i :  0   1   2
+s :      1   2
+dp:  1   1   2
+
+i=1: '1' valid → dp[1] += dp[0] = 1
+i=2: '2' valid → += dp[1] = 1
+     "12" in 10..26 → += dp[0] = 1
+     dp[2] = 2  ("1|2" and "12")
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+**Trap example:** `s = "30"` → at i=2, `'0'` alone invalid, `"30"` > 26 → dp[2]=0.
+
+> 💡 **The insight:** You're counting partitions of the prefix — each valid tail length pulls from an earlier dp cell.
 
 ---
 
@@ -177,22 +165,17 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"String Decomposition DP"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"How many ways"** → sum transitions, not Day 6 max.
+- **"Prefix dp[i]"** → last step 1 or 2 chars with validation.
+- **"dp[0]=1"** → empty prefix baseline.
+- **"Leading zero"** → kills 1-digit and most 2-digit paths.
 
 > 🎯 **Pattern Unlocked:** String Decomposition DP
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same counting idea on a grid. →*

@@ -1,125 +1,139 @@
+<!-- hand-authored -->
 # 📝 Dijkstra's Shortest Path
 
 > **Day 19** · Dijkstra's Algorithm · ★★★★☆ · 25 XP · 15 min read
 
 ---
 
-Your mission today: **understand Dijkstra's Shortest Path visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Unweighted shortest path? BFS (Days 2, 8). **Weighted** shortest path? Today: **Dijkstra** — a min-heap that always expands the currently cheapest known node. Each pop fixes one distance forever (non-negative weights). Relax neighbors; push improvements. This is the highest-priority pattern in B-Rank.
+
+> **Preview contrast (BFS vs Dijkstra):** BFS queue order = hop count. Dijkstra heap order = **total weight**. Same "first visit wins" spirit — different priority key: `(dist, node)` not `(r, c)`.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Dijkstra's Shortest Path** — the core technique you'll use in today's quests.
+**Dijkstra's algorithm** — single-source shortest paths with **non-negative** edge weights:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+- **`dist[v]`** — best known distance from source to v; `INF` initially; `dist[src] = 0`
+- **Min-heap** — stores `(dist, node)`; always pop smallest dist first
+- **Relaxation** — for edge `u → v` weight `w`: if `dist[u] + w < dist[v]`, update and push
+- **Stale skip** — if popped `d > dist[u]`, skip (outdated heap entry)
+
+Works on explicit graphs **and** implicit grids (Day 20).
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+You're dispatching a courier from HQ. The heap is your to-do list sorted by **total travel time so far**. Always send the courier who has spent the least time traveling — that's the node whose distance is now final. From there, check each neighbor: "Can I reach you faster through me?" If yes, update their best time and add them to the heap. Non-negative weights guarantee that once a node is popped, no cheaper route exists.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
+### 3. Visual — min-heap relaxation trace
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Graph (source 0):
+  0 --1--> 1 --2--> 2
+  0 --4--> 2
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+dist: all INF, dist[0]=0
+heap: [(0,0)]
+
+Pop (0,0): relax 1 → dist[1]=1, heap [(1,1)]
+           relax 2 → dist[2]=4, heap [(1,1),(4,2)]
+
+Pop (1,1): relax 2 → dist[2]=min(4,1+2)=3, heap [(3,2),(4,2)]
+
+Pop (3,2): done — dist = [0, 1, 3]
+Pop (4,2): stale (4 > 3) → skip
 ```
 
-### 4. How the pattern works
+### 4. Visual — modified Dijkstra (maximize)
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Path with Maximum Probability #1514:
+  Same skeleton — maximize instead of minimize
+  prob[v] = best product from start; prob[start] = 1.0
+  Relax: prob[v] = max(prob[v], prob[u] * edge_prob)
+  Max-heap (or negate for min-heap): pop largest prob first
+  Stale skip: if popped p < prob[u], skip
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+### 5. The universal template
 
-### 5. What problem does this solve?
+```
+function dijkstra(source, graph):
+    dist = array of INF; dist[source] = 0
+    pq = min-heap; push (0, source)
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+    while pq not empty:
+        (d, u) = pop(pq)
+        if d > dist[u]: continue          // stale entry
+
+        for each (v, weight) in adj[u]:
+            if dist[u] + weight < dist[v]:
+                dist[v] = dist[u] + weight
+                push (dist[v], v)
+
+    return dist
+```
+
+**Max-probability variant:** swap `min`→`max`, `+`→`×`, `INF`→`0`, min-heap→max-heap.
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| BFS on weighted graph | Treats all edges as 1 — wrong answer |
+| DFS trying all paths | Exponential — Dijkstra prunes with dist[] |
+| Dijkstra without stale skip | Correct but slower — redundant heap work |
+| Dijkstra with **negative** weights | Broken — use Bellman-Ford (Day 20 preview) |
+| Relax every node V times naively | O(V²) — heap gives O((V+E) log V) |
 
-### 7. The key observation
+**The insight:** Non-negative weights + always expand cheapest frontier = optimal dist[].
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 7. Day 19 vs Day 8 BFS vs Day 20 variants
+
+| | **Day 8 BFS** | **Day 19 Dijkstra** | **Day 20 Cheapest Flights** |
+|---|---|---|---|
+| Edge cost | 1 (unweighted) | w ≥ 0 | w ≥ 0 + **stop limit** |
+| Priority | FIFO queue | Min-heap `(dist, node)` | Layered relax k+1 times |
+| State | `(r,c)` or `(node)` | `(dist, node)` | `(city, stops_used)` |
+| Grid? | Yes | Yes (Min Effort) | No (flight graph) |
+
+If edges have **weights** and no stop constraint → Day 19. If **at most K edges** → Day 20 Bellman-Ford layers.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "network delay" / "minimum time" / "signal reaches all nodes" | Dijkstra from source; answer = max dist |
+| "minimum cost path" / "weighted shortest" | Dijkstra `(dist, node)` |
+| "maximum probability" / "multiply edge chances" | Modified Dijkstra — max product |
+| "minimum steps" / "unweighted" | **BFS** — not Dijkstra |
+| "at most K stops" / "K flights" | **Day 20** — not plain Dijkstra |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `min-heap` · `(dist, node)` · `relax` · `stale skip` · `dist[u]+w` · `non-negative`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Using a queue instead of heap on weighted graph | Must pop minimum dist first |
+| Forgetting `if d > dist[u]: continue` | Essential stale-entry guard |
+| Initializing dist wrong for max-probability | Start `prob[src] = 1.0`, not 0 |
+| Using Dijkstra with negative edge weights | Bellman-Ford or SPFA instead |
+| Not building adjacency with weights | `adj[u].push((v, w))` before heap loop |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given a weighted directed graph and source node k, return the time for a signal to reach all nodes, or -1 if impossible."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Dijkstra: dist[k]=0, min-heap (dist, node), relax neighbors, stale skip. Answer = max(dist[1..n]). Not BFS — edges have travel times."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*The heap picks the cheapest frontier. First quest: Network Delay Time #743. →*

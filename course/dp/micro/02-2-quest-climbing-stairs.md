@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Climbing Stairs
 
 > **Day 2** · [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Climbing Stairs on LeetCode](https://leetcode.com/problems/climbing-stairs/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Write naive `climb(n) = climb(n-1) + climb(n-2)`. Trace `n=5`. Mark the second time `climb(3)` is called — that's your memo target.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Fibonacci in Disguise**.
+**Pattern:** Fibonacci in Disguise — count ways, not Fib values.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** To reach step `i`, your last move was 1 step (from `i-1`) or 2 steps (from `i-2`). **Add** the ways from each.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** State: `ways(i)` = number of distinct ways to reach step `i`. Same recurrence as Fib: `ways(i) = ways(i-1) + ways(i-2)`.
+
+**Hint 3:** Implement with memo first (Day 2). Notice `ways(3)` computed once, returned twice — the cache hit from today's concept.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Fibonacci in Disguise
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- "Distinct ways" + fixed step sizes (1 or 2)
+- Counting, not optimizing cost
+- Recurrence identical to Fib; bases differ (`ways(1)=1`, `ways(2)=2`)
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "how many distinct ways" | Sum transitions — counting DP |
+| "1 or 2 steps" | Two predecessors: i-1 and i-2 |
+| "reach the top" / step n | Answer: `ways(n)` |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Identical exponential tree to Fib — O(2^n) calls, O(n) unique `ways(i)`.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Last step 1 or 2 → sum two subproblems."*
+2. *"Draw tree for n=5 — spot ways(3) repeat."*
+3. *"memo[i] before recurse; return memo[i] on hit."*
+4. *"Or tabulate — Day 3; roll a,b — Day 1 Step 5."*
 
 ---
 
@@ -64,61 +64,53 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Naive recursion** | O(2^n) — Day 1 exponential tree |
+| **Memoized recursion** | O(n) — Day 2 cache hits |
+| **Bottom-up / rolling** | O(n) time, O(1) space |
+| **Enumerate all path strings** | O(2^n) — overkill |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=5 naive:                    With memo:
+    ways(5)                       ways(5)=8
+   /      \                      memo[4]=5, memo[3]=3
+ways(4)  ways(3)×2              ways(3) second call → 3 ✓
+→ 15 calls                      → 5 unique states
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | dp[i] meaning | Recurrence |
+|---|---|---|
+| Fibonacci #509 | i-th Fib **value** | dp[i-1]+dp[i-2] |
+| **Climbing Stairs #70** | **ways to step i** | **same formula** |
+| Min Cost Climbing #746 | min cost to step i | min + cost (next quest) |
+| Decode Ways (later ranks) | ways with 1/2 digit | similar counting |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Count ways for n=4:**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+ways(1) = 1                    base
+ways(2) = 2                    base  (1+1, or 2)
+ways(3) = ways(2)+ways(1) = 3
+ways(4) = ways(3)+ways(2) = 5
+
+Paths to step 4: 1-1-1-1, 1-1-2, 1-2-1, 2-1-1, 2-2 → 5 ✓
+
+Memo trace for ways(4):
+  compute ways(3)→ needs ways(2), ways(1)
+  compute ways(2)→ base
+  memo[3]=3
+  compute ways(2)→ CACHE HIT for ways(2) if already stored
+  memo[4]=5
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Fibonacci **values** vs climbing **ways** — same math, different English. Memo doesn't care; it caches the integer.
 
 ---
 
@@ -162,22 +154,17 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Fibonacci in Disguise"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Distinct ways" + 1 or 2 steps** → Fib recurrence on counts.
+- **"Day 1 tree, Day 2 memo"** → Second `ways(3)` call = cache hit.
+- **"ways(1)=1, ways(2)=2"** → Bases differ from Fib's 0,1,1,...
+- **"Solution uses rolling"** → Memo *or* tabulate — both O(n); rolling is Step 5.
 
 > 🎯 **Pattern Unlocked:** Fibonacci in Disguise
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: same stairs, but min cost — min instead of sum. →*

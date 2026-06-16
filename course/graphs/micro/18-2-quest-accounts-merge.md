@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Accounts Merge
 
 > **Day 18** · [Accounts Merge #721](https://leetcode.com/problems/accounts-merge/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Accounts Merge on LeetCode](https://leetcode.com/problems/accounts-merge/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Each account row links all its emails into one UF group. Draw emails as nodes; union every pair sharing a row.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Equivalence Class Union**.
+Which pattern from today's concept applies? **Equivalence class union** — emails are UF nodes; union `acc[1]` with every other email in the same account row.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+After unions: bucket emails by `find(email)`, sort each bucket, prepend the owner name from any email in the group.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Equivalence Class Union
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Merge accounts" when they share an email → transitive closure (A shares with B, B with C → all one group)
+- Implicit graph: edge between emails listed together
+- Output grouped + sorted emails per person
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "accounts merge" / "common email" | UF on email strings |
+| "return merged accounts" | Group by root, sort emails |
+| "same name" on merged rows | Track owner per email |
+| "a==b equations" | Same UF modeling — Day 18 |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Shared email = same person. UF captures transitive "same person" without explicit BFS between every pair.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Map each email → owner name; assign id or use email as UF key."*
+2. *"For each account: union acc[1] with acc[2], acc[3], ..."*
+3. *"Bucket emails by find(root); sort each list."*
+4. *"Output [owner, ...sorted emails] per bucket."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS between every email pair** | O(k²) per account — UF unions in O(α) |
+| **Build adjacency + DFS per email** | Works but heavier than direct UF modeling |
+| **Merge only adjacent emails in row** | Must union first email with **all** others in row |
+| **Forget to sort output emails** | Problem requires sorted email lists |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Model emails as nodes; each account row is a clique — union star from `acc[1]`.
 
 ---
 
@@ -76,29 +74,31 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Satisfiability of Equality Equations #990](https://leetcode.com/problems/satisfiability-of-equality-equations/) | `==` union, `!=` verify | Two-pass UF |
+| [Smallest String With Swaps #1202](https://leetcode.com/problems/smallest-string-with-swaps/) | Union index pairs | Group + sort chars |
+| [Lexicographically Smallest Equivalent String #1061](https://leetcode.com/problems/lexicographically-smallest-equivalent-string/) (B-test) | Union toward min char | Weighted merge rule |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same skeleton: **union positive links → group by root.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+accounts = [
+  ["John","j@d.com","j@d2.com"],
+  ["John","j@d2.com","j@d3.com"],
+  ["Mary","mary@mail.com"]
+]
 
-Apply Equivalence Class Union step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Union: j@d.com—j@d2.com; j@d2.com—j@d3.com  → one component
+  Emails: j@d.com, j@d2.com, j@d3.com → sort → [j@d.com, j@d2.com, j@d3.com]
+  Output row: ["John", ...]
+
+mary@mail.com → separate component → ["Mary","mary@mail.com"]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You never traverse the graph — you declare equivalence and read off components.
 
 ---
 
@@ -198,22 +198,21 @@ class Solution {
 ```
 
 **Complexity:** O(n · k · α(n) + n · k log k) time · O(n · k) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Equivalence Class Union"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Shared email → same person"** → UF equivalence classes.
+- **"Union star from first email"** → each account row links acc[1] to all others.
+- **"Transitive merge"** → UF handles A-B and B-C automatically.
+- **"Not BFS"** → model then group; no queue.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If you built an explicit adjacency list, UF is the cleaner model.
 
 > 🎯 **Pattern Unlocked:** Equivalence Class Union
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: equality and inequality constraints. →*

@@ -1,144 +1,137 @@
+<!-- hand-authored -->
 # 📝 Sequence DP Variants
 
 > **Day 16** · Sequence DP Variants · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Sequence Pattern Recognition visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 12's LIS asked for **strictly increasing** subsequences. Day 16 stretches the same **look-backward** idea with extra state: **wiggle** alternation (up/down direction) and **pair chains** after sorting by interval end. Both connect back to Day 12 — wiggle is directional LIS; pair chain is sort + greedy/DP on non-overlapping intervals.
+
+> **Preview contrast (Day 12 vs Day 16):** Day 12 = one number rule (`nums[j] < nums[i]`). Day 16 = **up/down states** (#376) or **sort pairs by end + chain** (#646).
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Sequence Pattern Recognition** — the core technique you'll use in today's quests.
+**Sequence DP variants** — still `dp` on an array or sorted list, but state captures **direction** or **ordering constraint**:
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+**A. Wiggle / directional subsequence**
+- **State** — `up` = longest wiggle ending with last **rise**; `down` = ending with last **fall**
+- **Transition** — if `nums[i] > nums[i-1]`: `up = down + 1`; if `nums[i] < nums[i-1]`: `down = up + 1`
+- **Answer** — `max(up, down)` — each index starts length 1 implicitly
+
+**B. Interval pair chain (LIS cousin)**
+- Sort pairs by **end** (second coordinate)
+- **Greedy/DP** — pick next pair if `start > prev_end` (strict chain)
+- Equivalent to LIS on ends after sort with start constraint
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Wiggle:** Track whether your subsequence last moved **up** or **down**. A new up move must follow a down move — so `up` extends from previous `down`. Flat steps (`==`) don't update either state.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Pair chain:** Sort by when each interval **finishes**. Greedily take the next interval that **starts after** the last taken end — classic activity selection, same spirit as LIS on one dimension after sort.
 
-### 3. Visual walkthrough
-
-```
-2D DP table — Longest Common Subsequence:
-
-      ""  a  b  c  d  e
-  "" [ 0  0  0  0  0  0 ]
-  a  [ 0  1← 1  1  1  1 ]
-  c  [ 0  1  1  2↖ 2  2 ]
-  e  [ 0  1  1  2  2  3↖]
-
-Cell dependencies:
-  ┌────────┐
-  │ dp[i-1]│──→ dp[i-1][j] (no match: take from above)
-  │ [j-1]  │↘
-  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (match: diagonal + 1)
-                │
-                ▼
-            dp[i][j-1] (no match: take from left)
-
-Match   → diagonal ↖ + 1
-No match → max(↑ above, ← left)
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — wiggle up/down states
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+nums: [1, 7, 4, 9, 2, 3]
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Sequence Pattern Recognition" has overlapping subproblems because...
+Track up / down (length ending with rise vs fall):
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+  i=1: 7>1 → up = down+1 = 2  (rise from flat start)
+  i=2: 4<7 → down = up+1 = 3   (fall after rise)
+  i=3: 9>4 → up = down+1 = 4
+  i=4: 2<9 → down = up+1 = 5
+  i=5: 3>2 → up = down+1 = 6
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+Answer max(up,down) = 6  (subsequence 1,7,4,9,2,3 wiggles)
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Sequence Pattern Recognition**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
-
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+up   = longest wiggle ending with nums[i] > nums[i-1]
+down = longest wiggle ending with nums[i] < nums[i-1]
+flat (==): no update
 ```
 
-### 7. Base cases & answer extraction
+### 4. Visual — pair chain after sort by end
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+```
+pairs: [[1,2], [2,3], [3,4]]  → sort by end: same order
 
-### 8. Pattern signals & recognition clues
+Greedy scan:
+  take [1,2]  end=2
+  [2,3]: start 2 not > 2 → skip
+  [3,4]: start 3 > 2 → take, end=4
+Answer: 2
+
+Same as: sort by end, chain where start[i] > end[last]
+Bridge to Day 12 LIS: monotone chain on sorted ends.
+```
+
+### 5. Day 12 LIS bridge
+
+| | **Day 12 — LIS** | **Day 16 — Variants** |
+|---|---|---|
+| Rule | `nums[j] < nums[i]` | Alternating `<` and `>` |
+| State | `dp[i]` or `len[i]` | `up` / `down` scalars |
+| Sort? | Usually no | **Pair chain: sort by end** |
+| Quest | #300, #673 | #376, #646 |
+| Look-back | All `j < i` | Previous direction or greedy scan |
+
+Wiggle = LIS with **sign memory**. Pair chain = LIS on **time axis** after sort.
+
+### 6. The universal templates
+
+```
+// Wiggle O(n)
+up = down = 1
+for i in 1..n-1:
+  if nums[i] > nums[i-1]: up = down + 1
+  elif nums[i] < nums[i-1]: down = up + 1
+return max(up, down)
+
+// Pair chain O(n log n)
+sort pairs by end
+ans = 0, end = MIN
+for (a,b) in pairs:
+  if a > end: ans++; end = b
+return ans
+```
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "wiggle" / "alternating up and down" | `up` / `down` states |
+| "pairs" / "chain" / `[a,b]` intervals | Sort by end, greedy chain |
+| "non-crossing" / "non-overlapping" intervals | `start > prev_end` |
+| "longest increasing subsequence" | **Day 12** — single direction |
+| "uncrossed lines" | **Day 13** LCS |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `up down` · `wiggle` · `sort by end` · `chain` · `start > end`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| `up = up + 1` on rise | **up = down + 1** — rise follows a down |
+| Forgetting flat `==` skips update | Neither state changes on equal |
+| Pair chain: sort by start | Sort by **end** for greedy chain |
+| `start >= end` for chain | Usually **strict** `start > prev_end` |
+| O(n²) wiggle when O(n) suffices | Two scalars `up`/`down` enough |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Find the length of the longest wiggle subsequence."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"up/down states: rise extends from down, fall extends from up. max(up,down). Day 12 LIS with direction memory."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Direction first. Quest 1: Wiggle Subsequence. →*

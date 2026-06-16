@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find Eventual Safe States
 
 > **Day 12** · [Find Eventual Safe States #802](https://leetcode.com/problems/find-eventual-safe-states/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find Eventual Safe States on LeetCode](https://leetcode.com/problems/find-eventual-safe-states/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** A safe node reaches a dead end on *every* path. Build the **reverse graph**. Peel from **out-degree 0** (sinks), not in-degree 0.
 
 ---
 
@@ -24,38 +25,33 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Reverse Topological Sort**.
+**Reverse Kahn:** Node with no outgoing edges is trivially safe. When you mark `u` safe, its predecessors might become safe if all their successors are safe — peel when `outdeg[p]` hits 0.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Alternative from Day 11: 3-color DFS — gray in cycle = unsafe. Reverse Kahn avoids recursion depth issues.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Reverse Topological Sort
+**Pattern used:** Reverse Topological Sort (out-degree peel)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Directed graph given as adjacency list
+- "Eventual safe" = every path from node terminates
+- Nodes in cycles are **not** safe
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "eventual safe states" | Reverse peel from sinks |
+| "every path leads to terminal" | Sink = out-degree 0 |
+| Nodes in cycle unsafe | Never become outdeg 0 in reverse peel |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Working backward from known-safe sinks, a node becomes safe only when all nodes it points to are safe — exactly decrementing out-degree on the reverse graph.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build rev[v] = predecessors of v."*
+2. *"outdeg[u] = len(graph[u])."*
+3. *"Queue outdeg==0, mark safe, peel rev edges."*
 
 ---
 
@@ -63,12 +59,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Forward Kahn (Day 11 style)** | Finds sources, not safe sinks |
+| **Simulate every path** | Exponential |
+| **3-color DFS only** | Works but reverse Kahn is cleaner here |
+| **BFS from each node** | O(n · (V+E)) redundant |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Reverse the dependency — "safe" propagates from terminal nodes upward.
 
 ---
 
@@ -76,29 +72,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | Forward peel | Day 11 — indeg 0 |
+| [Find All Possible Recipes #2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | Forward with string nodes | Next quest |
+| [Minimum Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Peel degree-1 leaves | Day 16 cousin |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+graph = [[1,2],[2,3],[5],[0],[5],[],[]]
 
-Apply Reverse Topological Sort step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Node 6: no outgoing → safe, outdeg=0 → queue
+Node 5: no outgoing → safe
+Peel rev: from 5, node 4's outdeg→0 → safe
+... nodes 0,1,2 in cycle never fully peel → unsafe
+
+Safe: [2,4,5,6] (example-dependent — trace yours!)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Cycle nodes keep outdeg > 0 forever — they never enter the safe set.
 
 ---
 
@@ -182,22 +175,19 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Reverse Topological Sort"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Safe = always reaches terminal."** → start from terminals (outdeg 0).
+- **"Reverse graph + outdeg peel."** → Day 12's flip of Day 11 Kahn.
+- **"Cycle nodes stuck with outdeg > 0."** → never marked safe.
+- **"Could use 3-color DFS"** → yes, but reverse Kahn matches today's theme.
 
 > 🎯 **Pattern Unlocked:** Reverse Topological Sort
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: forward Kahn with string nodes and supplies. →*

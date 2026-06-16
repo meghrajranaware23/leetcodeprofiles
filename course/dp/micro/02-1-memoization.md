@@ -1,147 +1,145 @@
+<!-- hand-authored -->
 # 📝 Memoization — Your First DP Optimization
 
 > **Day 2** · Memoization — Your First DP Optimization · ★☆☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Top-Down Caching visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 1 showed you the **exponential Fib tree**. Today you add a cache and watch repeated nodes become **instant cache hits**. Climbing Stairs is the flagship: same overlap as Fib, but the state means *"number of ways"* — and memo turns O(2^n) into O(n) without rewriting the recursion logic.
+
+> **Preview contrast (Day 1 vs Day 2):** Day 1 = *see* the overlap. Day 2 = *fix* it top-down with `memo[i]` before you recurse.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Top-Down Caching** — the core technique you'll use in today's quests.
+**Top-Down Memoization** — keep the recursive structure; add a lookup table.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+```
+function solve(n):
+    if n in memo: return memo[n]      ← CACHE HIT
+    if base case: return base value
+    result = combine(solve(n-1), solve(n-2), ...)
+    memo[n] = result                  ← store before return
+    return result
+```
+
+- **Memo key** — usually the recursive parameter (`n`, `i`, `(i,j)`)
+- **Cache hit** — skip entire subtree; return stored answer
+- **Fill on demand** — only states actually reached get computed
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Day 1's Fib tree recomputed `ways(3)` many times. Memoization is a notebook: first time you solve `ways(3)`, write `3` on the page. Every later call to `ways(3)` reads the page — **no re-descent**.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+You keep thinking recursively ("from step n, I came from n-1 or n-2"). The cache just prevents redundant work.
 
-### 3. Visual walkthrough
-
-```
-fib(5) — overlapping subproblems:
-
-              fib(5)
-             /      \
-         fib(4)      fib(3)  ← repeated!
-        /     \      /    \
-    fib(3)  fib(2) fib(2) fib(1)
-    /   \     ⬆      ⬆
-fib(2) fib(1) ●      ●  ← same subproblems recomputed
-  ⬆
-  ●
-
-After memoization:
-
-fib(5) → fib(4) → fib(3) → fib(2) → fib(1) ✓ base
-                                 ↑ cache[2]=1
-                       ↑ cache[3]=2
-              ↑ cache[4]=3
-         fib(3) → CACHE HIT → 2  ✓
-   ↑ cache[5]=5
-
-O(n) calls instead of O(2^n) — each subproblem computed once
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Climbing Stairs: exponential tree vs memo hits
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+ways(5) — NAIVE (Day 1 style):
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Top-Down Caching" has overlapping subproblems because...
+              ways(5)
+             /       \
+        ways(4)     ways(3)   ← ways(3) twice
+        /    \       /    \
+   ways(3) ways(2) ways(2) ways(1)
+     ...     ⬆       ⬆
+           repeated  repeated
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
+→ O(2^n) nodes
 
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
 
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+ways(5) — WITH MEMO (Day 2):
+
+ways(5)
+  → ways(4)  [compute, memo[4]=5]
+  → ways(3)  [compute, memo[3]=3]
+       ways(2) [compute, memo[2]=2]
+       ways(1) [base → 1]
+  → ways(3)  CACHE HIT → 3  ✓  (entire subtree skipped)
+
+Total distinct calls: ways(5), ways(4), ways(3), ways(2), ways(1) → 5 = O(n)
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Top-Down Caching**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Day 1 exponential vs Day 2 cached path
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Same problem, two timelines:
+
+DAY 1 (identify):     Draw tree → circle ways(2), ways(3) repeats
+DAY 2 (memoize):      Add memo[] → second visit = O(1) lookup
+
+Fibonacci value:      memo[i] = i-th Fib number
+Climbing Stairs:      memo[i] = # ways to reach step i
+                      SAME recurrence, DIFFERENT meaning
 ```
 
-### 7. Base cases & answer extraction
+### 5. The memo template
 
-| Component | Question |
+```
+memo = array/map initialized to "unknown"
+
+function climb(n):
+    if n <= 2: return n
+    if memo[n] != UNKNOWN: return memo[n]
+
+    memo[n] = climb(n-1) + climb(n-2)
+    return memo[n]
+```
+
+C++: `vector<int> memo(n+1, -1)` — check `memo[n] != -1`  
+Python: `@lru_cache` or dict  
+Java: `Integer[] memo` with null check
+
+### 6. When memo beats tabulation (E-Rank scope)
+
+| Top-down memo | Bottom-up tabulation |
 |---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| Natural recursive decomposition | Natural loop from base cases |
+| May skip unreachable states | Computes all states 0..n |
+| Same time O(n) for linear problems | Same time; often easier space roll |
+
+Both are correct for Climbing Stairs. Day 3 formalizes bottom-up.
+
+### 7. State for today's quests
+
+**Climbing Stairs:** `memo[i]` = number of distinct ways to reach step `i`.  
+**Min Cost Climbing Stairs:** `memo[i]` = minimum cost to **stand on** step `i` (or reach beyond — read problem carefully).
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "how many ways to climb" / "count paths" | Sum of prior states — Fib recurrence |
+| "minimum cost to reach" | min of two prior + cost[i] |
+| Recursive solution TLE on LeetCode | Add memo on the parameter |
+| Same subproblem, different branches | **Cache hit** pattern |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `memo` · `cache hit` · `top-down` · `if memo[n] != -1` · `@lru_cache`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Forgetting to **store** before return | `memo[n] = result` on every compute path |
+| Wrong memo size | Size `n+1` for steps 0..n |
+| Checking cache after base case only | Check memo **first** (after bases) |
+| Using global memo without reset | Re-init per test case in contests |
+| Confusing memo[i] meaning | Ways vs min cost vs Fib **value** |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"You can climb 1 or 2 steps. How many distinct ways to reach the top of n stairs?"*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"State: memo[i] = ways to reach step i. Overlap: ways(3) called twice from ways(5) — Day 1 tree, Day 2 cache. Transition: memo[i] = memo[i-1] + memo[i-2]. Base: memo[1]=1, memo[2]=2. Answer: memo[n]."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Cache ready. First quest: Climbing Stairs — feel the cache hit on ways(3). →*

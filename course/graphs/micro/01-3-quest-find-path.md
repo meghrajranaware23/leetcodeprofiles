@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find if Path Exists
 
 > **Day 1** · [Find if Path Exists in Graph #1971](https://leetcode.com/problems/find-if-path-exists-in-graph/) · Easy · 10 min
@@ -10,52 +11,64 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find if Path Exists in Graph on LeetCode](https://leetcode.com/problems/find-if-path-exists-in-graph/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw nodes `0…n-1`, add each edge, then ask: *"Is destination reachable from source?"* The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Find if Path Exists in Graph #1971](https://leetcode.com/problems/find-if-path-exists-in-graph/)**
+You have an **undirected** graph with `n` nodes and an edge list. Return `true` if there is a valid path from `source` to `destination`, else `false`.
 
-Work through the examples on paper before reading further.
+```
+Input:  n = 3, edges = [[0,1],[1,2],[2,3]], source = 0, destination = 3
+Output: true
+
+Input:  n = 6, edges = [[0,1],[0,2],[3,5],[5,4],[4,3]], source = 0, destination = 5
+Output: false
+Explanation: {0,1,2} and {3,4,5} are separate components.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Adjacency List + DFS**.
+Which pattern from today's concept applies? **Adjacency list + connectivity** — are `source` and `destination` in the same component?
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Build an adjacency list: for each `[u,v]`, add `v` to `adj[u]` and `u` to `adj[v]`.
+
+**Hint 2:** Classic approach: DFS/BFS from `source` with a `visited` set; return true if you ever reach `destination`.
+
+**Hint 3:** This graph is static — **Union-Find** also works: unite every edge, then check `find(source) == find(destination)`.
+
+**Hint 4:** If `source == destination`, return true immediately.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Adjacency List + DFS
+**Pattern used:** Adjacency List + Connectivity (Union-Find in solution)
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Undirected `edges` → build symmetric adjacency OR merge components
+- "Path exists" → same connected component, not shortest path
+- Single query → any O(E) preprocessing is fine
+- No weights → no Dijkstra
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "path exists" / "can traverse" | Connectivity check |
+| `edges` + `n` nodes | Build graph structure first |
+| Undirected | Bidirectional adjacency |
+| `source` and `destination` | Compare component membership |
+| No "shortest" / "minimum steps" | BFS not required (though it works) |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** In an undirected graph, a path exists iff both nodes belong to the same connected component. Union-Find merges components as you read edges; DFS/BFS explores from source.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build adj from edges (both directions)."*
+2. *"Alternative: UF — unite(u,v) for each edge."*
+3. *"Answer: find(source) == find(destination)."*
+4. *"Example 2: 0 and 5 never unite → false."*
 
 ---
 
@@ -63,12 +76,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Try every permutation of nodes** | Factorial — absurd on n up to 10⁵ |
+| **Re-walk all edges from source each step** | No visited tracking → cycles / repeated work |
+| **Only check direct edge source–destination** | Path can be multi-hop: 0–1–2–3 |
+| **Build adjacency but forget undirected reverse edge** | Half the graph missing |
+| **DFS without visited set on cyclic graph** | Infinite recursion |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Connectivity is a **component** question. Merge or mark once — don't enumerate paths.
 
 ---
 
@@ -76,29 +90,31 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Number of Provinces #547 (Day 3) | Count components, not one query | Same "same group?" logic |
+| Keys and Rooms #841 (Day 3) | Directed reachability from node 0 | DFS from source with visited |
+| Graph valid tree (later) | Exactly n−1 edges + connected | UF or DFS |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Day 1 stores the graph; Day 3 will **walk** it with DFS. Same connectivity idea, different interface.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Edges → unite components → compare roots.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n = 4, edges = [[0,1],[2,3]], source = 0, destination = 3
 
-Apply Adjacency List + DFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Unions:  unite(0,1)  →  {0,1} | {2,3}
+         unite(2,3)  →  {0,1} | {2,3}
+
+find(0) = 0,  find(3) = 3  →  different roots  →  false ✓
+
+n = 4, edges = [[0,1],[1,2],[2,3]], source = 0, destination = 3
+All merge into one component  →  find(0) == find(3)  →  true ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You don't need the actual path — only whether two nodes share a component. Union-Find answers that in near-constant time per query after O(E) setup.
 
 ---
 
@@ -151,21 +167,18 @@ class Solution {
 ```
 
 **Complexity:** O(E · α(n)) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Path exists" in undirected graph** → same connected component.
+- **Build from edges first** → adjacency list or Union-Find — Day 1 representation habit.
+- **DFS from source** is the mental picture even if you code UF here.
+- **Separate components in Example 2** → no path regardless of n.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Adjacency List + DFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If you coded DFS/BFS instead of UF, that's equally valid — the breakthrough is naming **connectivity**, not memorizing one implementation.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Adjacency List + DFS
+> 🎯 **Pattern Unlocked:** Graph from edge list → answer "same component?"
 
 ---
 

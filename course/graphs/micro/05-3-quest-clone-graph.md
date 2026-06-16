@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Clone Graph
 
 > **Day 5** · [Clone Graph #133](https://leetcode.com/problems/clone-graph/) · Medium · 15 min
@@ -10,23 +11,36 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Clone Graph on LeetCode](https://leetcode.com/problems/clone-graph/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw 3–4 nodes with neighbor lists. Trace how each old node maps to a new copy. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Clone Graph #133](https://leetcode.com/problems/clone-graph/)**
+Given a reference to a node in a **connected** undirected graph, return a **deep copy** of the graph.
 
-Work through the examples on paper before reading further.
+Each node has an integer `val` and a list `neighbors`.
+
+```
+Input:  adjList = [[2,4],[1,3],[2,4],[1,3]]
+        Node 1 connects to 2 and 4; etc.
+
+Output: A new graph with identical structure and values.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Graph Copy via BFS/DFS**.
+Which pattern from today's concept applies? **Graph copy via DFS/BFS + old→new map**.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** `map = {}` from original `Node*` → cloned `Node*`.
+
+**Hint 2:** Function `clone(node)`: if `node in map`, return `map[node]` (handles cycles).
+
+**Hint 3:** Create `copy = Node(node.val)`, store `map[node]=copy`, then for each neighbor `n`: `copy.neighbors.append(clone(n))`.
+
+**Hint 4:** BFS alternative: queue nodes, create copies on first sight, wire neighbors when dequeuing.
 
 ---
 
@@ -35,27 +49,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Graph Copy via BFS/DFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Clone" / "copy graph" → traverse + duplicate nodes
+- `Node` objects with `neighbors` → explicit adjacency lists
+- Undirected edges appear twice in neighbor lists
+- Cycles possible → map prevents infinite recursion
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "clone" / "deep copy" | New objects, same topology |
+| `neighbors` list | DFS/BFS over graph |
+| Reference input node | Start traversal from given node |
+| "same structure" | Map old→new while walking |
+| Connected graph | One traversal reaches all nodes |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** First visit creates the copy and registers it. Revisiting via cycle returns existing copy — neighbor links stay consistent.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"map[old] = new before recursing neighbors."*
+2. *"If already mapped, return immediately."*
+3. *"Clone val, then clone each neighbor and append."*
+4. *"Square cycle 1-2-3-4: when 4→1, map[1] exists."*
 
 ---
 
@@ -63,12 +76,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Clone without map on cycle** | Infinite recursion |
+| **JSON serialize/deserialize** | Works but hides graph traversal skill |
+| **Copy only val, reuse same neighbor pointers** | Shallow copy — wrong |
+| **Create all nodes first without wiring edges** | Need map to link neighbors correctly |
+| **Forget null input** | Return None/null if node is null |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** The map is both **visited set** and **identity registry** — old node always maps to exactly one new node.
 
 ---
 
@@ -76,29 +90,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Copy List with Random Pointer | Linked list + random map | old→new while walking |
+| Clone N-ary Tree | Tree not graph | Same map idea, no cycles |
+| Graph valid tree | Verify structure | Traversal without copy |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Clone Graph is the interview template for **any** old→new graph walk.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Map before expand — cycles reuse existing copy.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Nodes: 1—2—3—1 (triangle)
 
-Apply Graph Copy via BFS/DFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+clone(1):
+  copy1 created, map[1]=copy1
+  clone(2):
+    copy2, map[2]=copy2
+    clone(3):
+      copy3, map[3]=copy3
+      neighbor 1: map[1] exists → append copy1
+    append copy3 to copy2
+  append copy2 to copy1
+
+All new nodes; edges mirror original ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Register `map[old]` **before** cloning neighbors so back-edges find the copy already built.
 
 ---
 
@@ -154,22 +174,19 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Clone graph"** → traverse + `map[old]=new`.
+- **Check map before creating** → cycle safety.
+- **Create copy, register, then neighbors** → order matters.
+- **DFS in solution; BFS equivalent** → pick one, keep map.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Graph Copy via BFS/DFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+E-Rank capstone: you've built, crossed, flooded, counted, sized, and now duplicated graphs.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Graph Copy via BFS/DFS
+> 🎯 **Pattern Unlocked:** Old→new map clone — register node before wiring neighbors.
 
 ---
 
-*Both quests complete. Head to the checkpoint. →*
+*Both quests complete. Head to the checkpoint — then E-Rank tests. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Is Graph Bipartite?
 
 > **Day 13** · [Is Graph Bipartite? #785](https://leetcode.com/problems/is-graph-bipartite/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Is Graph Bipartite? on LeetCode](https://leetcode.com/problems/is-graph-bipartite/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** BFS each unvisited component. Neighbors get `color[u] ^ 1`. Same color on an edge → false.
 
 ---
 
@@ -24,9 +25,7 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS/DFS Two-Coloring**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Graph is already an adjacency list (undirected). For each component: queue a node with color 0, propagate opposite colors. Odd cycle = neighbor already has your color.
 
 ---
 
@@ -35,27 +34,22 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS/DFS Two-Coloring
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Explicit undirected adjacency list
+- "Bipartite" = 2-colorable
+- May have disconnected components
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "is graph bipartite" | Direct 2-color |
+| Adjacency list given | No graph construction step |
+| Multiple components | Outer loop over all starts |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Bipartite ⟺ no odd-length cycle ⟺ BFS level parity is consistent.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"color[n] = -1."*
+2. *"For each i with color[i]==-1: BFS from i."*
+3. *"Neighbor uncolored → flip; same color → return false."*
 
 ---
 
@@ -63,12 +57,11 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Check only one component** | Misses odd cycle in another component |
+| **3-color DFS** | Overkill; wrong mental model |
+| **Union-Find** | Doesn't detect odd cycles |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** One BFS per component, O(V+E) total.
 
 ---
 
@@ -76,29 +69,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Possible Bipartition #886](https://leetcode.com/problems/possible-bipartition/) | Build graph from dislikes | Next quest |
+| [Flower Planting #1042](https://leetcode.com/problems/flower-planting-with-no-adjacent/) | C-test — greedy 4-color | Related constraint |
+| [Graph Valid Tree #261](https://leetcode.com/problems/graph-valid-tree/) | Tree = always bipartite | Special case |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+graph = [[1,3],[0,2],[1,3],[0,2]]
 
-Apply BFS/DFS Two-Coloring step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+    0 — 1
+    |   |
+    3 — 2     (4-cycle, even → bipartite ✓)
+
+BFS from 0: colors 0→0, 1→1, 3→1, 2→0
+All edges cross colors ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Even cycles are fine. Odd cycles fail at the closing edge.
 
 ---
 
@@ -176,22 +166,19 @@ class Solution {
 ```
 
 **Complexity:** O(V + E) time · O(V) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"BFS/DFS Two-Coloring"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Undirected + two groups = 2-color BFS."**
+- **"XOR 1 flips partition."**
+- **"Same color on edge = odd cycle."**
+- **"Loop all components."**
 
 > 🎯 **Pattern Unlocked:** BFS/DFS Two-Coloring
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: build the conflict graph yourself. →*

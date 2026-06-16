@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Falling Path Sum
 
 > **Day 11** · [Minimum Falling Path Sum #931](https://leetcode.com/problems/minimum-falling-path-sum/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Falling Path Sum on LeetCode](https://leetcode.com/problems/minimum-falling-path-sum/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** This is still grid DP, but each cell has **three parents** in the row above (not two like path counting). Write the min-formula for one cell before coding.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Column-Choice Grid DP**.
+Which DP pattern from today's concept applies? **Column-Choice Grid DP** — `dp[j]` = min path sum ending at column `j` in the current row.
 
-What is the state? What does dp[i] represent for this problem?
+Transition: `ndp[j] = matrix[i][j] + min(dp[j-1], dp[j], dp[j+1])` from the previous row.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+If you're stuck after 5 minutes: trace row 1 of the LeetCode example. For each column, circle the cheapest of the three cells directly above.
 
 ---
 
@@ -37,26 +38,22 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** Column-Choice Grid DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Matrix, move to next row only
+- From `(i,j)` you came from `(i-1, j-1)`, `(i-1, j)`, or `(i-1, j+1)`
+- Minimize total sum — `min` over parents, not `sum`
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "falling path" / "next row" | Vertical progression, horizontal choice of landing column |
+| "minimum sum" | `min` transition + cell value |
+| "n×n matrix" | Rolling one row of length n |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Contrast with Unique Paths II:** Path count uses **two** parents (up, left). Falling path uses **three** parents in the row above.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp = first row as base."*
+2. *"For each next row, ndp[j] = cell + min of three dp neighbors."*
+3. *"Answer = min(dp) after last row — can end any column."*
 
 ---
 
@@ -64,61 +61,46 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try every downward path** | O(3^n) — branches per row |
+| **Greedy: always pick min in next row** | Local min column may force expensive future steps |
+| **Full recursion without memo** | Exponential overlap on (row, col) pairs |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Only O(n²) distinct `(row, col)` states — each needs the best sum from above once.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+3^n paths          vs    n² cells filled once
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Unique Paths II #63](https://leetcode.com/problems/unique-paths-ii/) | Sum parents, two directions | Grid DP rolling row |
+| [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) | Right+down only, two parents | Min grid DP |
+| [Cherry Pickup #741](https://leetcode.com/problems/cherry-pickup/) | Two walkers, 3D state | Column-choice variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**matrix = [[2,1,3],[6,5,4],[7,8,9]]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Row 0 dp:     [2, 1, 3]
+Row 1: col 0 → 6+min(2)=8; col 1 → 5+min(2,1,3)=6; col 2 → 4+min(1,3)=5
+  dp = [8, 6, 5]
+Row 2: dp = [15, 13, 12]
+Answer: min(15, 13, 12) = 12  (path 1→5→8 or similar)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+```
+ndp[j] = matrix[i][j] + min(dp[j-1], dp[j], dp[j+1])
+         (guard j-1 and j+1 bounds)
+```
+
+> 💡 **The insight:** One rolling row holds the entire previous state. The table is 1D even though the problem is 2D.
 
 ---
 
@@ -187,21 +169,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Column-Choice Grid DP"** → Name the DP pattern from the concept page.
+- **"Grid DP but 1D rolling row"** → Only previous row matters.
+- **"Three parents, not two"** → min over j-1, j, j+1 above.
+- **"Answer not dp[n-1][n-1]"** → min of entire last row — any column exit.
+- **"Not Unique Paths"** → min + three-way choice, not sum + two-way.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Column-Choice Grid DP
+> 🎯 **Pattern Unlocked:** Column-Choice Grid DP — min over three upstairs neighbors.
 
 ---
 

@@ -1,125 +1,144 @@
+<!-- hand-authored -->
 # 📝 Pattern Decision Making
 
 > **Day 27** · Multi-Pattern Synthesis · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Multi-Pattern Graph Synthesis visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 27 is **pattern triage** — read the problem, pick the right graph tool in 30 seconds, then execute. No new algorithm; synthesis of A-Rank techniques with a preview of **S-Rank Day 30** decision flow.
+
+Today's quests:
+1. **BFS with forbidden positions** — state includes `(position, justMovedBackward)` to enforce "no two consecutive backward jumps."
+2. **Adjacency intersection rank** — not traversal; **degree sum minus shared edge** for city pairs.
+
+> **S30 preview:** Hard problems often ask *"Is this BFS on expanded state, weighted shortest path, or static graph property?"* Day 27 trains that fork before the final ascension.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Multi-Pattern Graph Synthesis** — the core technique you'll use in today's quests.
+**Pattern decision checklist:**
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Signal | Tool |
+|---|---|
+| Min jumps/moves + **forbidden** cell + move rules | BFS on **expanded state** |
+| "Cannot do X twice in a row" | Add flag bit to state tuple |
+| "Maximum rank / count pairs" with degree definition | **Static** — O(n²) over pairs, no BFS |
+| Weighted shortest + count ways | Day 25 Dijkstra + ways |
+| Implicit word/board graph | Day 23 BFS |
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**Minimum jumps home (#1654):** You stand on a number line at `0`, want `x`. Each step: jump `+a` forward, or jump `-b` backward — but **not two backward jumps in a row**. Forbidden coordinate is never allowed. State is not just position — it's `(pos, backFlag)` where `backFlag=1` means last move was backward (so next cannot be backward). BFS on ~12000 states.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Maximal network rank (#1615):** Rank of cities `(i,j)` = `deg[i]+deg[j]` minus 1 if direct road exists (double-counted). Answer = max over all pairs. Build `deg[]` and edge lookup; O(n²) scan. **No BFS** — pure graph metric.
 
-### 3. Visual walkthrough
+### 3. Visual — BFS forbidden state expansion
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+position line: ... 0 ... forbidden ... x
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+State = (pos, back):
+  from (0,0): forward +a → (a,0)
+             backward -b → ( -b,1 )  only if back==0
+
+Forbidden cell: never enqueue
+Bound pos to [0, 6000] (problem guarantees x ≤ 6000)
+
+queue (0,0) dist=0
+goal: pos == x → return dist
 ```
 
-### 4. How the pattern works
+Two consecutive backs blocked by requiring `back==0` before backward move.
+
+### 4. Visual — network rank (static)
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+deg[0]=2, deg[1]=3, edge(0,1)? yes
+
+rank(0,1) = 2 + 3 - 1 = 4   (road counted in both degrees)
+
+No traversal — enumerate pairs (i,j), i<j
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+### 5. S30 pattern-decision preview
 
-### 5. What problem does this solve?
+Before coding any hard graph problem, ask:
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+```
+1. Nodes = ?  (cells, words, numbers, tuples?)
+2. Edges = ?  (implicit or explicit?)
+3. Weighted?  → Dijkstra / Floyd
+4. State constraint?  → expand state (Day 10/23/27)
+5. Static query on graph?  → build + formula (Day 27 rank)
+6. Tree special case?  → DFS return-cost or BFS bottleneck
+```
+
+Day 30 quests (visit all nodes, remove edges) combine several — Day 27 is the **decision rehearsal**.
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| **BFS on position only for #1654** | Allows illegal double-back sequences |
+| **DFS for minimum jumps** | Not shortest |
+| **BFS for network rank** | Rank is closed form from degrees |
+| **Simulate all jump sequences without dist[]** | Revisit states — need visited on (pos,back) |
+| **Dijkstra on unweighted jumps** | BFS sufficient |
 
-### 7. The key observation
+### 7. Day 27 vs Day 23 state BFS
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 23 — Word/board** | **Day 27 — Jumps** |
+|---|---|---|
+| State | Word string / square | `(pos, backFlag)` |
+| Neighbors | Letter change / dice | +a always; -b if back==0 |
+| Blocked | Not in dict | forbidden coordinate |
+| Goal | endWord / n² | pos == x |
+
+Same BFS skeleton — different state encoding.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "Minimum jumps" + forbidden position | Expanded-state BFS |
+| "Cannot jump backward twice in a row" | `(pos, back)` tuple |
+| "Network rank" / "maximum rank of pair" | deg sum − edge |
+| "Find city pair" static metric | O(n²) enumeration |
+| "Shortest path" no extra constraint | Plain BFS/Dijkstra — don't over-expand state |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `(pos, back)` · `forbidden` · `deg[i]+deg[j]-edge` · `pattern triage` · `S30 preview`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| BFS only on `pos` | Track backward flag |
+| Allow backward when `back==1` | Enforce in neighbor generation |
+| Run BFS for rank problem | Use degree formula |
+| Forget upper bound ~6000 on position | Problem guarantees solution in range |
+| Double-subtract edge on rank | Subtract 1 only if road exists |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Minimum jumps from 0 to x; each step +a or -b; can't jump backward twice consecutively; one forbidden position."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"BFS on (pos, back), skip forbidden, cap search space. NOT plain line BFS. NOT Dijkstra."*
+
+Read:
+
+> *"Maximum network rank of two cities connected by roads."*
+
+Before coding, say:
+
+> *"deg[] + edge matrix, max over pairs — no traversal."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Pick the pattern first. First quest: forbidden-position jump BFS. →*

@@ -1,147 +1,138 @@
+<!-- hand-authored -->
 # 📝 DP with Decisions
 
 > **Day 5** · DP with Decisions · ★★☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Optimal Decision at Each Step visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+E-Rank closes with **decisions at each index**: not "sum two prior states," but *"extend the current run or reset?"* and *"update the best buy price or skip?"* Stock #121 tracks a **running minimum buy**; Maximum Subarray uses **Kadane's extend-or-reset** trace. Both are one-pass O(n) — but the state story is what makes them DP, not greedy magic.
+
+> **Preview contrast (Day 4 vs Day 5):** Day 4 = define table, fill by formula. Day 5 = at each i, **choose** extend vs reset (or update min vs compute profit).
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Optimal Decision at Each Step** — the core technique you'll use in today's quests.
+**Optimal Decision at Each Step** — carry forward the best substructure **ending at** or **reachable by** index i.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+Two E-Rank templates:
+
+| Template | State (conceptual) | Decision at i |
+|---|---|---|
+| Running minimum | `minPrice` = cheapest buy so far | Sell today at `price[i] - minPrice`? Update max profit |
+| Kadane extend-or-reset | `cur` = max sum subarray **ending at** i | Extend: `cur + nums[i]` vs Reset: `nums[i]` |
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+**Stock:** You must buy before you sell. At each day, the only "memory" you need is the **lowest price seen so far** — that's your best buy opportunity. Profit if you sell today = today's price minus that min.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
+**Kadane:** At each index, either the best subarray ending here **includes** the previous best ending at i-1, or it **starts fresh** at i. Negative running sum? Reset beats extend.
 
-### 3. Visual walkthrough
-
-```
-fib(5) — overlapping subproblems:
-
-              fib(5)
-             /      \
-         fib(4)      fib(3)  ← repeated!
-        /     \      /    \
-    fib(3)  fib(2) fib(2) fib(1)
-    /   \     ⬆      ⬆
-fib(2) fib(1) ●      ●  ← same subproblems recomputed
-  ⬆
-  ●
-
-After memoization:
-
-fib(5) → fib(4) → fib(3) → fib(2) → fib(1) ✓ base
-                                 ↑ cache[2]=1
-                       ↑ cache[3]=2
-              ↑ cache[4]=3
-         fib(3) → CACHE HIT → 2  ✓
-   ↑ cache[5]=5
-
-O(n) calls instead of O(2^n) — each subproblem computed once
-```
-
-### 4. The DP Pipeline
-
-Apply the five-step pipeline to today's pattern:
+### 3. Visual — Running min buy price (Stock #121)
 
 ```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
+prices = [7, 1, 5, 3, 6, 4]
 
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Optimal Decision at Each Step" has overlapping subproblems because...
+Day:     0  1  2  3  4  5
+price:   7  1  5  3  6  4
+minSoFar:7  1  1  1  1  1   ← running min buy
+profit:  0  0  4  2  5  3   ← price - minSoFar (if sold today)
+maxProfit:     4     5  ← answer 5 (buy 1, sell 6)
 
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
+No table needed — two scalars: minPrice, maxProfit
+State story: "best profit if we sell no later than day i"
 ```
 
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Optimal Decision at Each Step**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Kadane extend-or-reset trace
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+
+ i   nums[i]  extend(cur+nums[i])  reset(nums[i])  cur   best
+ 0     -2            —                 -2         -2     -2
+ 1      1            -1                  1          1      1
+ 2     -3            -2                 -3         -2      1
+ 3      4             2                  4          4      4   ← reset won
+ 4     -1             3                 -1          3      4
+ 5      2             5                  2          5      5
+ 6      1             6                  1          6      6   ← peak subarray [4,-1,2,1]
+ 7     -5             1                 -5          1      6
+ 8      4             5                  4          5      6
+
+cur = max(reset, extend) = max(nums[i], cur + nums[i])
+best = max(best, cur)
+Answer: 6
 ```
 
-### 7. Base cases & answer extraction
+### 5. Why these are DP (not "just greedy")
 
-| Component | Question |
+| Greedy suspicion | DP justification |
 |---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| "Always buy lowest" | minPrice is **optimal substructure** — best buy using days 0..i |
+| "Extend when positive" | cur stores **best subarray ending exactly at i** — optimal substructure |
+| Overlap | Same minPrice/cur reused for all future days — one pass |
+
+State sentences:
+- Stock: *"max profit achievable selling on or before day i with one transaction"*
+- Kadane: *"max sum of subarray that must end at index i"*
+
+### 6. Decision templates
+
+```
+// Running min (stock)
+minPrice = INF
+maxProfit = 0
+for p in prices:
+    minPrice = min(minPrice, p)
+    maxProfit = max(maxProfit, p - minPrice)
+
+// Kadane
+cur = best = nums[0]
+for i in 1..n-1:
+    cur = max(nums[i], cur + nums[i])   // reset vs extend
+    best = max(best, cur)
+```
+
+### 7. Day 5 vs earlier days
+
+| Days 1–4 | Day 5 |
+|---|---|
+| Explicit dp[i] array common | Often O(1) scalars |
+| Recurrence from i-1, i-2 | **Decision** at i: extend/reset, update min |
+| Count/min cost on stairs | Profit/max subarray on arrays |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "best time to buy and sell" (one transaction) | Running min buy |
+| "maximum subarray sum" | Kadane extend-or-reset |
+| "contiguous subarray" + max/min | Ending-at-i state |
+| "must pick one buy, one sell" | Track min before max profit |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `running min` · `extend or reset` · `cur` · `best` · `ending at i`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Track max price instead of min buy | minPrice so far, not maxPrice |
+| Kadane: global max without cur | cur = ending-at-i; best = global |
+| Empty subarray when all negative | Kadane starts with nums[0] — at least one element |
+| Confusing "skip day" with "reset subarray" | Reset = start new subarray at i |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Find the maximum sum of any contiguous subarray."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"State: cur = max sum subarray ending at i. Decision: extend (cur+nums[i]) vs reset (nums[i]). best = max(best, cur). O(n) one pass."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Decisions, not just recurrences. First quest: running minimum buy price. →*

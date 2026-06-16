@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Minimum Genetic Mutation
 
 > **Day 10** · [Minimum Genetic Mutation #433](https://leetcode.com/problems/minimum-genetic-mutation/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Minimum Genetic Mutation on LeetCode](https://leetcode.com/problems/minimum-genetic-mutation/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Each 8-letter gene is one **state node**. Valid next states live in `bank`. Queue `(gene, steps)`. Not a grid. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **State Graph BFS**.
+Which pattern from today's concept applies? **State Graph BFS** — same Day 10 skeleton as Open the Lock. Neighbor = change one position to A/C/G/T. Only enqueue if neighbor is still in `bank` (remove from bank when visited — bank doubles as allowed + visited).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: if `endGene not in bank`, return -1 upfront. Check `endGene` when generating neighbor before removing from bank.
 
 ---
 
@@ -35,27 +36,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** State Graph BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Strings of fixed length = states
+- One mutation = one character change to valid letter
+- `bank` = allowed intermediate states (dead-end complement: **not in bank** = blocked)
+- Minimum mutations → BFS
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "minimum genetic mutation" | State-space BFS |
+| "bank of valid genes" | Allowed set — shrink on visit |
+| "one character different" | Generate 8×4 neighbors |
+| "startGene" / "endGene" | BFS from start to end |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each mutation costs 1. Implicit graph on bank strings. BFS first hit of `endGene` = minimum mutations.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"words = set(bank); if endGene not in words: -1."*
+2. *"q = [(startGene, 0)]; remove start from words."*
+3. *"For i in 0..7, c in ACGT: nxt = gene with [i]=c."*
+4. *"If nxt==endGene: return steps+1; if nxt in words: remove, enqueue."*
 
 ---
 
@@ -63,12 +62,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Grid modeling of gene positions** | Wrong — no spatial grid |
+| **DFS** | Not guaranteed minimum mutations |
+| **Keep bank static, separate visited** | Works but removing from bank is clean |
+| **Compare all pairs of bank words to build graph first** | O(n²) preprocessing — generate on the fly |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Open the Lock with longer alphabet and bank filter — same `(state, steps)` queue.
 
 ---
 
@@ -76,29 +75,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Open the Lock #752](https://leetcode.com/problems/open-the-lock/) | 4 wheels 0-9, deadends | State-space BFS |
+| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | WordDictionary neighbor check | Same BFS on strings |
+| [Snakes and Ladders #909](https://leetcode.com/problems/snakes-and-ladders/) | Board position as state | Later rank |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Gene strings as nodes; bank as allowed region.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+start = "AACCGGTT", end = "AACCGGTA", bank = {..., "AACCGGTA"}
 
-Apply State Graph BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+("AACCGGTT", 0):
+  try change each position to A,C,G,T
+  "AACCGGTA" at some (i,c) → matches end → return steps+1 = 1
+
+If longer chain needed:
+  remove visited genes from bank so you never reuse a state
+  queue expands (gene, steps) layer by layer
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+genes = "ACGT"
+for i in 0..7:
+  for c in genes:
+    nxt = gene[:i] + c + gene[i+1:]
+    if nxt == endGene: return steps + 1
+    if nxt in bank: remove, enqueue (nxt, steps+1)
+```
+
+> 💡 **The insight:** Bank = valid states (like "open" cells); absent from bank = dead-end. No `(r,c)` anywhere.
 
 ---
 
@@ -190,21 +198,18 @@ class Solution {
 ```
 
 **Complexity:** O(n · 8 · 4) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"State Graph BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Gene = state node"** → Open the Lock with ACGT alphabet.
+- **"Bank shrinks on visit"** → Visited + allowed in one set.
+- **"(gene, steps) queue"** → Day 10 template end-to-end.
+- **"Not Day 2 grid"** → No directions array on a matrix.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** State Graph BFS
+> 🎯 **Pattern Unlocked:** State Graph BFS — mutate one letter, BFS to endGene.
 
 ---
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Pacific Atlantic Water Flow
 
 > **Day 7** · [Pacific Atlantic Water Flow #417](https://leetcode.com/problems/pacific-atlantic-water-flow/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Pacific Atlantic Water Flow on LeetCode](https://leetcode.com/problems/pacific-atlantic-water-flow/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Mark Pacific border cells (top + left) and Atlantic border (bottom + right). DFS **inward** only to neighbors with height ≥ current. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Boundary DFS**.
+Which pattern from today's concept applies? **Boundary DFS** — two floods from ocean-touching edges. Move to neighbor `(nr,nc)` only if `heights[nr][nc] >= heights[r][c]` (reverse rain: ocean can "flow up" into the map). Answer = cells reachable in **both** sets.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: don't pour water from each cell downhill — that's slow and tricky. Start at the oceans and walk uphill.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Boundary DFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Two oceans on **border rows/cols** → natural DFS seeds
+- "Can flow to both" → intersection of two reachability sets
+- Height constraint on movement → only climb to equal/higher neighbor in reverse model
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Pacific" / "Atlantic" / border | Seed all edge cells per ocean |
+| "water can flow to" | Reverse: ocean reaches cell if path of non-decreasing height inward |
+| "return coordinates" | Cells in `pac AND atl` |
+| "heights[i][j]" | Edge weight = must be ≥ when walking from ocean |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Water flowing down from A to ocean means, reversed, ocean can walk "up" to A through non-decreasing heights. Border DFS captures exactly that.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Pacific seeds: top row + left column."*
+2. *"Atlantic seeds: bottom row + right column."*
+3. *"dfs(r,c, reach): reach[r][c]=true; neighbor if h[nr][nc] >= h[r][c]."*
+4. *"Return (i,j) where pac[i][j] && atl[i][j]."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS downhill from every cell to both oceans** | O(cells × path) — heavy per-cell work |
+| **Check only paths that go strictly down** | Miss that flow can zigzag |
+| **One combined flood** | Can't distinguish Pacific-only vs both |
+| **Sort cells by height descending** | Overkill — two border DFS passes suffice |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Oceans are the sources; **border inward** beats **cell outward**.
 
 ---
 
@@ -76,29 +74,33 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Number of Enclaves #1020](https://leetcode.com/problems/number-of-enclaves/) | One border flood; count remaining land | Outside-in from edge |
+| [Number of Closed Islands #1254](https://leetcode.com/problems/number-of-closed-islands/) | Border flood + count enclosed components | D-Rank test |
+| [Surrounded Regions #130](https://leetcode.com/problems/surrounded-regions/) | Border flood on 'O', flip inner | Same outside-in idea |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Two border floods; intersect.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
-
-Apply Boundary DFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+heights:     Pacific DFS from top+left:    Atlantic from bottom+right:
+2 4          pac reaches {0,0,(0,1),(1,0)...}   atl reaches from opposite edges
+1 3          Cells (0,1)=4 and (1,0)=1 often in BOTH
+             → both oceans can "reach" them in reverse model
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+Border seed (Pac):  (0,j) for all j, (i,0) for all i
+dfs(r,c):
+  reach[r][c] = true
+  for neighbor (nr,nc):
+    if !reach[nr][nc] and heights[nr][nc] >= heights[r][c]:
+      dfs(nr, nc)
+```
+
+> 💡 **The insight:** You're not simulating physics forward — you're asking which cells each ocean can **cover** walking uphill from its coastline.
 
 ---
 
@@ -178,22 +180,19 @@ class Solution {
 ```
 
 **Complexity:** O(m · n) time · O(m · n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Boundary DFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Two oceans on the border"** → Two separate border DFS passes.
+- **"Flow to ocean" reversed** → Walk from ocean to cell with heights non-decreasing inward.
+- **"Both oceans"** → Intersect reach sets — not one flood.
+- **"Not Day 6 multi-source dist"** → Reachability bitsets, not layer distances.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Boundary DFS
+> 🎯 **Pattern Unlocked:** Boundary DFS — oceans seed the flood; intersect for dual reach.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: enclaves = land the border flood never erased. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 23 Checkpoint
 
 > **Advanced State BFS** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 23 = **implicit graphs** — neighbors generated on the fly, same `(state, steps)` BFS as Day 10 but different domains.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "One letter changed" + word list | Word-ladder BFS | Dict shrinks on visit |
+| "Roll dice" + snakes/ladders | Square-index BFS | 6 edges per square |
+| "Minimum transformations" | BFS not DFS | Unweighted shortest |
+| "Combination lock / deadends" | **Day 10** | Wheel twists — different quest |
+| "Grid island / 4-directional" | **Day 4** | Spatial grid, not abstract state |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Shortest word chain hit→cog with dictionary"* → **Implicit word BFS**, erase on enqueue
+2. *"Minimum rolls to reach last square on board"* → **Square BFS + zigzag label + teleport**
+3. *"Open lock from 0000 with deadends"* → **Day 10 state-space**, not Day 23 quest
+4. *"endWord not in wordList"* → **Return 0** before BFS
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Minimum mutations from start gene to end gene using bank."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Day 10 state-space BFS** — 8-char string, bank as allowed set. Same skeleton, gene neighbor function.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Minimum operations: start number, add/subtract any of nums[] to reach goal."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Bounded implicit BFS** — node = integer in [0,1000], A-test #2059 cousin.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Shortest path in binary matrix."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 8 grid BFS** — `(r,c,steps)`, not implicit word/board graph.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = state/implicit BFS family. Scenario 3 = explicit grid.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Pre-building full word adjacency** — generate 26·L neighbors per word instead.
+2. **Wrong zigzag square mapping** — trace label(1), label(n), label(n²) by hand.
+3. **Forgetting teleport in same roll** — snake/ladder applies to landing square.
+4. **DFS for minimum steps** — BFS guarantees shortest in unweighted implicit graphs.
+5. **Confusing Day 10 lock prose with word ladder** — different neighbor generators.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Before Day 24, say the pattern in 30 seconds for each:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+| Problem | Pattern name |
+|---|---|
+| Word Ladder #127 | Implicit word graph BFS |
+| Snakes and Ladders #909 | Square-index BFS + teleport |
+| Open the Lock #752 | Day 10 state-space (review) |
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Draw:** 3-word mini ladder and 4-square board with one ladder. Trace BFS layers.
 
 ---
 
@@ -74,9 +72,9 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
-| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | Hard | Word Graph BFS |
-| [Snakes and Ladders #909](https://leetcode.com/problems/snakes-and-ladders/) | Medium | Implicit Graph BFS |
+| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | Hard | Implicit Word Graph BFS |
+| [Snakes and Ladders #909](https://leetcode.com/problems/snakes-and-ladders/) | Medium | Implicit Board Graph BFS |
 
 ---
 
-*Day 23 complete! Tomorrow: the next territory of your ascension. →*
+*Day 23 complete! Tomorrow: build graphs from geometry and trees. →*

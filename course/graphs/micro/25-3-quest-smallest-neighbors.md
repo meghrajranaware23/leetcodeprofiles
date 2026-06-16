@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Find the City With Smallest Neighbors
 
 > **Day 25** · [Find the City With the Smallest Number of Neighbors at a Threshold Distance #1334](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Find the City With the Smallest Number of Neighbors at a Threshold Distance on LeetCode](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Need **all-pairs** shortest distances. n ≤ 100 → Floyd-Warshall. Count cities j with `dist[i][j] ≤ threshold` for each i.
 
 ---
 
@@ -24,38 +25,40 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Dijkstra from Each Node**.
+**All-pairs threshold Dijkstra** (via Floyd-Warshall here).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- Initialize `dist[i][j]` from edges; `dist[i][i]=0`.
+- Triple loop Floyd: `dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j])`.
+- For each city `i`: `reach = count of j where dist[i][j] <= distanceThreshold`.
+- Minimize `reach`; tie → **largest** city index.
+
+Not single-source Day 19. Not path counting.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Dijkstra from Each Node
+**Pattern used:** All-Pairs Shortest Path + Threshold Count
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Need distance from **every** city to **every** city
+- "Within threshold" → filter dist matrix rows
+- n ≤ 100 → O(n³) Floyd acceptable
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Smallest number of neighbors at threshold" | Row count in dist matrix |
+| "Weighted undirected edges" | Symmetric dist |
+| "Return city with fewest" | Argmin over reach counts |
+| "If tie, largest city number" | Update with `reach <= minReach` |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each row `i` answers "how many cities can I reach within T?"
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Build dist[n][n], INF except edges and diagonal 0."*
+2. *"Floyd k,i,j relaxation."*
+3. *"For each i: reach = sum(dist[i][j]<=T)."*
+4. *"Track best with tie → max index."*
 
 ---
 
@@ -63,12 +66,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Single Dijkstra from one city** | Need all sources |
+| **BFS per pair** | O(n² · (V+E)) — Floyd simpler at n=100 |
+| **Wrong tie-break (smallest index)** | Problem wants **largest** on tie |
+| **Count only strict `< T`** | Problem says `≤ threshold` |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Query is a **row aggregate** of the all-pairs matrix — not one shortest path tree.
 
 ---
 
@@ -76,29 +79,31 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | Single source max | Day 19 |
+| [Cheapest Flights Within K Stops #787](https://leetcode.com/problems/cheapest-flights-within-k-stops/) | Stops constraint | Day 20 |
+| [Find the City #1334](https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/) | All-pairs + count | Day 25 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=3, edges (0,1,2),(0,2,5),(1,2,1), threshold=2
 
-Apply Dijkstra from Each Node step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+After Floyd:
+dist[0] = [0, 2, 3]
+dist[1] = [2, 0, 1]
+dist[2] = [3, 1, 0]
+
+Reach within T=2:
+  city 0: {0,1} → 2
+  city 1: {0,1,2} → 3
+  city 2: {1,2} → 2
+
+Min reach=2, tie cities 0 and 2 → pick **2** (largest index)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Floyd fills the matrix; the quest is SQL-on-a-row counting.
 
 ---
 
@@ -173,21 +178,17 @@ class Solution {
 ```
 
 **Complexity:** O(n³) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Every city as source"** → all-pairs, not Day 19 single-source.
+- **"Within threshold"** → count row entries ≤ T.
+- **"Tie → largest city"** → `reach <= minReach` updates best.
+- **"n ≤ 100"** → Floyd-Warshall fits.
+- **"Not ways to arrive"** → no path counting — matrix query.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Dijkstra from Each Node"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Dijkstra from Each Node
+> 🎯 **Pattern Unlocked:** All-Pairs Threshold Count
 
 ---
 

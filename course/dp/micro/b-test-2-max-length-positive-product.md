@@ -114,7 +114,7 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n), Space: O(1)
+**Complexity:** O(n) time · O(1) space
 
 </details>
 

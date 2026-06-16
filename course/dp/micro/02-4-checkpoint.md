@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 2 Checkpoint
 
 > **Memoization — Your First DP Optimization** · 2 quests completed · ⭐ 40 XP earned
@@ -6,73 +7,67 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 2 is **top-down cache hits** on the climbing-stairs family:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions | Overlapping subproblems with optimal substructure |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost | Overlapping subproblems with optimal substructure |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) | Overlapping subproblems with optimal substructure |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) | Overlapping subproblems with optimal substructure |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount | Overlapping subproblems with optimal substructure |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i | Overlapping subproblems with optimal substructure |
-| "longest common" / "two strings" | LCS — 2D DP on two sequences | Overlapping subproblems with optimal substructure |
-| "palindrome" / "reads same" | Palindrome DP — expand or dp[i][j] | Overlapping subproblems with optimal substructure |
-| "grid" / "path" / "top-left to bottom-right" | Grid DP — dp[i][j] from neighbors | Overlapping subproblems with optimal substructure |
-| "buy and sell" / "stock" / "transaction" | State Machine DP — hold/sold/rest states | Overlapping subproblems with optimal substructure |
-| "transform" / "edit distance" / "operations" | String DP — insert/delete/replace choices | Overlapping subproblems with optimal substructure |
-| "partition into" / "subset sum" / "target" | Subset Sum DP — include/exclude with capacity | Overlapping subproblems with optimal substructure |
+| "how many ways" + 1 or 2 steps | Fib-in-disguise + memo | Sum merge; overlap like Day 1 Fib |
+| "minimum cost" + same moves | min + memo/tabulate | Same graph, min operator |
+| Recursive TLE on linear recurrence | Add `memo[n]` check first | Day 2 fix |
+| Second call to same `ways(k)` | **Cache hit** — skip subtree | Contrast Day 1 exponential |
+| `@lru_cache` / `memo[i] != -1` | Top-down pattern | Store before return |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. What's the state? What's the transition?
-
-1. *"Find the minimum cost to climb stairs, paying cost[i] per step"* → **State:** dp[i] = min cost to reach step i. **Transition:** dp[i] = cost[i] + min(dp[i-1], dp[i-2])
-2. *"Count the number of ways to make change for amount n"* → **State:** dp[i] = number of ways to make amount i. **Transition:** dp[i] += dp[i - coin] for each coin
-3. *"Find the longest common subsequence of two strings"* → **State:** dp[i][j] = LCS of s1[0..i] and s2[0..j]. **Transition:** match → dp[i-1][j-1]+1, else max(dp[i-1][j], dp[i][j-1])
-4. *"Given weights and values, maximize value within capacity W"* → **State:** dp[i][w] = max value using items 0..i with capacity w. **Transition:** dp[i][w] = max(skip, take if fits)
+1. *"Ways to climb n stairs (1 or 2 steps)"* → **memo[i] = ways to i; memo[i]=memo[i-1]+memo[i-2]**
+2. *"Min cost climbing with cost[i] on step i"* → **memo[i] = cost[i]+min(memo[i-1],memo[i-2]); free start**
+3. *"Why memo ways(3) twice?"* → **Two branches from ways(5) both need ways(3) — cache second**
+4. *"Memo vs tabulation for these?"* → **Both O(n); memo keeps recursive thinking**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you define the state on problems you've never seen?
+**Scenario 1:** *"Decode ways: count strings where '1'→A, '2'→B, ... '26'→Z."*
 
-**Scenario 1:** *"Given an array, find the length of the longest increasing subsequence."*
+Same skeleton? **ways(i) = ways(i-1) [if valid] + ways(i-2) [if valid]** — memo on index with validity checks.
 
-What's the state? **dp[i] = length of LIS ending at index i.** Transition: dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i].
+**Scenario 2:** *"Min cost path with 1, 2, or 3 step sizes."*
 
-**Scenario 2:** *"Find the minimum number of coins to make a given amount."*
+**memo[i] = cost[i] + min(memo[i-1], memo[i-2], memo[i-3])** — k=3 min recurrence.
 
-What's the state? **dp[i] = min coins to make amount i.** Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
+**Scenario 3:** *"You wrote memo but forgot memo[n]=result before return."*
 
-**Scenario 3:** *"Count paths in a grid from top-left to bottom-right, moving only right or down."*
+Symptom? **Infinite recompute — still TLE.** Always store after computing.
 
-What's the state? **dp[i][j] = number of paths to reach cell (i,j).** Transition: dp[i][j] = dp[i-1][j] + dp[i][j-1].
-
-> **Answer key:** All three use DP patterns from this course. The *state and transition* change — the pipeline does not.
+> **Answer key:** Climbing family = **same indices, different merge** (+ count, min cost, max profit later).
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Wrong state definition** — If your state doesn't capture enough information, the transition can't be correct.
-2. **Forgetting base cases** — dp[0] (and sometimes dp[1]) must be set before the loop starts.
-3. **Wrong fill order** — If dp[i] depends on dp[i+1], you must fill right-to-left, not left-to-right.
-4. **Off-by-one errors** — DP arrays are usually size n+1 to include the empty/zero case.
-5. **Returning the wrong cell** — The answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] depending on the state definition.
+1. **Checking memo after recursion** — Check **before** diving in (after base cases).
+
+2. **Wrong base for ways** — `ways(1)=1`, `ways(2)=2`, not Fib 0,1,1.
+
+3. **Forgetting free start on min cost** — dp[0]=dp[1]=0.
+
+4. **Returning dp[n-1] instead of top** — Min cost answer is beyond last index.
+
+5. **Using sum merge on min-cost problem** — Operator must match optimization goal.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Implement **Climbing Stairs #70** twice:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+1. Top-down with explicit `memo` array — log (on paper) each cache hit for n=6.
+2. Bottom-up rolling — compare line count.
 
-**Before you code:** Define the state in one sentence. Write the transition formula. Identify the base case. Then code.
+**Before you code:** Draw the n=5 tree and circle nodes that would be cache hits.
 
-> 💡 **Hint:** Re-read the DP Pipeline from today's concept if stuck.
+> 💡 **Hint:** Day 1 drew the tree; Day 2 fixes it. Day 3 fills the table without recursion.
 
 ---
 
@@ -85,4 +80,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 2 complete! Tomorrow: the next level of your dynamic ascension. →*
+*Day 2 complete! Tomorrow: tabulation — Pascal's 2D triangle and bit DP (first non-Fib visual). →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Fibonacci Number
 
 > **Day 1** · [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Fibonacci Number on LeetCode](https://leetcode.com/problems/fibonacci-number/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw `fib(6)`'s recursion tree on paper. Circle every node that appears more than once. *Then* decide: memo, tabulation, or rolling variables?
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Linear Recurrence**.
+**Pattern:** Linear Recurrence — the canonical overlap demo from today's concept.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** Brute force: `fib(n) = fib(n-1) + fib(n-2)` with base `n <= 1 → n`. Draw the tree for `n=5` — count how many times `fib(2)` appears.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** State: `dp[i]` = the i-th Fibonacci number. Transition: `dp[i] = dp[i-1] + dp[i-2]`. Bases: `dp[0]=0`, `dp[1]=1`.
+
+**Hint 3:** You only need the last two values to compute the next — full array is optional (Pipeline Step 5).
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Linear Recurrence
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Explicit recurrence: each term = sum of previous terms
+- Single integer input `n`, single integer output
+- Classic overlap — same `fib(k)` from many branches
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "Fibonacci" / "F(n) = F(n-1) + F(n-2)" | Linear recurrence, k=2 |
+| "nth" / "return F(n)" | Answer is `dp[n]` |
+| Small constraints (n ≤ 30) | Even brute recursion passes — but learn the O(n) way |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails at scale:** `fib(30)` naive recursion ≈ 2^30 calls. Only 30 unique subproblems exist.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Recurrence is given — write it recursively first."*
+2. *"Tree for n=5 — fib(3) twice, fib(2) three times."*
+3. *"Tabulate dp[0..n] or roll with (a,b)."*
+4. *"Answer: dp[n] or b after loop."*
 
 ---
 
@@ -64,61 +64,51 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Naive recursion, no cache** | O(2^n) — exponential recomputation |
+| **Recursion with memo** | O(n) — valid; Day 2's style |
+| **Bottom-up tabulation** | O(n) time, O(1) space with rolling |
+| **Closed-form (Binet)** | Overkill for interviews; recurrence path matters |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight:** 15 nodes in the tree for `fib(5)`, but only 6 unique values. DP = compute each unique value once.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+Naive tree (n=5):          Tabulation:
+     fib(5)                  dp: [0, 1, 1, 2, 3, 5]
+    /    \                   i=2: 0+1=1
+  fib(4) fib(3)              i=3: 1+1=2
+  ...   ...                  i=4: 1+2=3
+→ 15 calls                   i=5: 2+3=5  ✓
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays |
+|---|---|---|
+| Climbing Stairs #70 (Day 2) | Count ways, not Fib value | Same recurrence, different meaning |
+| N-th Tribonacci #1137 (next quest) | Three-term sum | k=3 recurrence |
+| Min Cost Climbing Stairs #746 | Add min + cost array | Recurrence + optimization |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Trace `fib(5)` with tabulation:**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0] = 0          base
+dp[1] = 1          base
+dp[2] = dp[1]+dp[0] = 1
+dp[3] = dp[2]+dp[1] = 2
+dp[4] = dp[3]+dp[2] = 3
+dp[5] = dp[4]+dp[3] = 5  ← answer
+
+Rolling equivalent: a=0, b=1 → iterate: c=a+b; a=b; b=c
+After i=5: b=5 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** The recursion tree *is* the dependency graph. Tabulation fills it bottom-up, one row at a time.
 
 ---
 
@@ -162,22 +152,19 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"fib(n-1) + fib(n-2)"** → Recurrence given; overlap guaranteed.
+- **"Draw the tree"** → Same nodes repeat — that's the DP signal from Recursion pack bridge.
+- **"dp[i] = i-th Fib"** → One-sentence state before code.
+- **"Rolling a,b"** → Pipeline Step 5 — only last two values needed.
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Linear Recurrence"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+If you wrote memoized recursion instead, that's valid — Day 2 makes it official.
 
 > 🎯 **Pattern Unlocked:** Linear Recurrence
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Tribonacci — same overlap, three branches instead of two. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Remove Max Edges
 
 > **Day 30** · [Remove Max Number of Edges to Keep Graph Fully Traversable #1579](https://leetcode.com/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/) · Hard · 25 min · 60 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Remove Max Number of Edges to Keep Graph Fully Traversable on LeetCode](https://leetcode.com/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Two players, two UF structures. Process type-3 edges first, then type-1 (Alice), then type-2 (Bob). Trace unions on paper.
 
 ---
 
@@ -24,9 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Dual Union-Find**.
+**Dual Union-Find** — separate `alice` and `bob` DSU.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- Type 3 edge: usable by **both** — `alice.unite(u,v) | bob.unite(u,v)`; count if either succeeds.
+- Type 1: **Alice only** — `alice.unite(u,v)`.
+- Type 2: **Bob only** — `bob.unite(u,v)`.
+- **Order matters:** all type 3 first, then type 1, then type 2.
+- Answer: `total_edges - used`; return -1 if either UF not one component.
+
+Greedy — shared edges first maximize edges you can keep for both.
 
 ---
 
@@ -35,27 +42,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Dual Union-Find
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Two subgraphs must each stay connected (Alice type 1∪3, Bob type 2∪3)
+- Maximize edges **removed** ⟺ minimize edges **kept** that satisfy both
+- Edge types determine which UF(s) may use it
+- Kruskal-like processing order — but two parallel UF structures
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "Alice" / "Bob" / two traversals | Two UF instances |
+| "type 1, 2, 3" edges | Route to correct UF(s) |
+| "fully traversable" | Each UF must have comps == 1 |
+| "remove maximum edges" | Greedy keep — subtract from total |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Type-3 edges are the most valuable (serve both players). Processing them first in Kruskal style keeps connectivity while minimizing used edges. Separate UFs track each player's connectivity independently.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Two connectivity requirements?"* → two UF structures.
+2. *"Type 3 helps both — process first."*
+3. *"Count edge as used if unite returns true (new merge)."*
+4. *"Final check: both connected?"*
 
 ---
 
@@ -63,12 +68,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Single UF for all edges** | Ignores Alice/Bob type restrictions |
+| **Try all subsets of edges** | Exponential |
+| **Process type 1 before type 3** | Wastes type-3 shared capacity |
+| **BFS connectivity per trial** | O(E) per check — UF is O(E α(n)) |
+| **Keep all type-3 without unite check** | Redundant edges shouldn't count as "used" |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Greedy edge order + dual UF = maximize removable edges while preserving both connectivities.
 
 ---
 
@@ -76,29 +82,28 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Remove Max Edges #1579](https://leetcode.com/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/) | Alice/Bob types | Dual UF + order |
+| [Redundant Connection #684](https://leetcode.com/problems/redundant-connection/) | Single UF cycle | Day 17 cousin |
+| [Connecting Cities #1135](https://leetcode.com/problems/connecting-cities-with-minimum-cost/) | MST single UF | Day 21 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=4, edges: [3,1,2], [3,2,3], [1,1,3], [2,2,3]
 
-Apply Dual Union-Find step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Pass 1 (type 3):
+  (3,1,2): alice✓ bob✓ → used++
+  (3,2,3): alice✓ bob✓ → used++
+
+Pass 2 (type 1): (1,1,3) — alice already connected → skip
+Pass 3 (type 2): (2,2,3) — bob already connected → skip
+
+Both connected with 2 edges kept → remove 4-2=2
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Type-3 pass builds both spanning structures simultaneously — cheapest shared investment.
 
 ---
 
@@ -206,19 +211,14 @@ class Solution {
 ```
 
 **Complexity:** O(E · α(n)) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Dual Union-Find"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+- **"Alice and Bob each need full connectivity"** → two UF structures.
+- **"Type 3 edges first"** — greedy shared investment before single-type edges.
+- **"Remove maximum"** → minimize `used`, answer = `len(edges) - used`.
+- **Day 17 UF + Day 21 Kruskal order** — capstone fusion.
 
 > 🎯 **Pattern Unlocked:** Dual Union-Find
 

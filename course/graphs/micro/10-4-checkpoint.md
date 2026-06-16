@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 10 Checkpoint
 
 > **State-Space BFS** · 2 quests completed · ⭐ 50 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 10 is **abstract states** — NOT grid `(r,c)` BFS.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "combination lock" / digit wheels | State = full string; `(state, steps)` | Open the Lock |
+| "gene mutation" / "bank of valid" | State = gene; bank = allowed set | Genetic Mutation |
+| "deadends" | Dead-end set — never enqueue | Permanent blocked states |
+| "grid" / "matrix" / "4-directional" | **Days 2–8** — not Day 10 | Spatial vs configuration |
+| "shortest path in maze" | Day 8 grid BFS | Coordinates, not strings |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Minimum turns on 4-wheel lock with banned combos"* → **State-space BFS** `(lock, steps)` + deadends
+2. *"Minimum mutations from startGene to endGene using bank"* → **State graph BFS** — bank filter
+3. *"Shortest path in binary matrix"* → **Day 8** — grid layers, not strings
+4. *"01 matrix distance to nearest 0"* → **Day 6** — multi-source on grid
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Minimum moves to solve sliding puzzle 2×3."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **State-space BFS** — board as string `"123450"`, generate slide neighbors, `(state, steps)`.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Word ladder: change one letter at a time to reach end word."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **State BFS on words** — same skeleton as Genetic Mutation; dictionary replaces bank.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Rotting oranges in a grid."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 6 multi-source grid BFS** — has `(r,c)`, not abstract string states.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1–2 = Day 10. Scenario 3 = grid — wrong tool if you use string states.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Using grid `dirs` array on lock/gene problems** — Generate string neighbors, not `(r,c)`.
+2. **DFS for minimum moves** — BFS required for shortest transformation.
+3. **Forgetting start in deadends / end not in bank** — Early -1 checks.
+4. **No visited on states** — Revisit same string → infinite queue growth.
+5. **Confusing with Day 8 `(r,c,steps)`** — Same tuple **shape**, different **state type**.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Word Ladder #127](https://leetcode.com/problems/word-ladder/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Word Ladder on LeetCode](https://leetcode.com/problems/word-ladder/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+BeginWord → endWord changing one letter; wordList = bank. Pure Day 10 extension — often seen in C-Rank but you have the skeleton now.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** List what's identical to Open the Lock vs what changes.
+
+> 💡 **Hint:** State = word string; dead-end = not in wordList; same BFS queue.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 10 complete! Tomorrow: the next territory of your ascension. →*
+*Day 10 complete! D-Rank tests next — prove Days 6–8 on unseen problems. →*

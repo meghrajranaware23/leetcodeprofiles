@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 26 Checkpoint
 
 > **DFS + Memoization** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,61 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 26 = **memo on DAG structure** OR **BFS then per-node bottleneck**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "Strictly increasing" path in matrix | DFS + memo | Implicit DAG |
+| "Longest path" + increasing constraint | Memo from each cell | Not BFS |
+| "Network idle" / "patience" on tree | BFS dist + max formula | Not simulation |
+| "Shortest path in matrix" | **Day 8 BFS** | Opposite objective |
+| Explicit prerequisites | **Day 14 topo** | Different DAG source |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Longest increasing path in grid"* → **dfs+memo, neighbor value strictly greater**
+2. *"When tree network goes idle"* → **BFS from 0, lastSend+roundTrip max**
+3. *"Can I use visited[] on LIP matrix?"* → **Memo suffices — DAG**
+4. *"roundTrip = ?"* → **`2 * dist[i]`**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Longest decreasing path in matrix."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Same DFS+memo** — edges to strictly smaller neighbors. Still a DAG.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Time to inform all employees in tree with inform times."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Day 15** — DFS max depth + inform[i], not patience formula.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Swim in rising water"* — threshold BFS.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 28** — not Day 26.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 1 = Day 26 memo. Scenario 2 = Day 15. Scenario 3 = Day 28.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **BFS for longest increasing path** — wrong optimization direction.
+2. **Allow equal-value moves** — creates cycles.
+3. **Visited set blocking memo** — use dp[][] only.
+4. **Forget `return ans+1` on idle problem** — off-by-one.
+5. **Dijkstra on unit-weight tree** — BFS is correct and simpler.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+Write the two formulas from memory:
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+- LIP combine: `dp[r][c] = 1 + max(...)` when neighbor **___** current.
+- Idle node finish: `lastSend + ___` where `lastSend = ((rt-1)/p)*p`.
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+Answers: **greater than**; **roundTrip** (2×dist).
 
 ---
 
@@ -79,4 +74,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 26 complete! Tomorrow: the next territory of your ascension. →*
+*Day 26 complete! Tomorrow: pattern decision — forbidden states and rank math. →*

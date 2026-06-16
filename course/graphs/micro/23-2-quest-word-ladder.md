@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Word Ladder
 
 > **Day 23** · [Word Ladder #127](https://leetcode.com/problems/word-ladder/) · Hard · 25 min · 40 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Word Ladder on LeetCode](https://leetcode.com/problems/word-ladder/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw words as nodes, one-letter edges as implicit links. BFS `(word, steps)` — never pre-build the full adjacency list.
 
 ---
 
@@ -24,38 +25,40 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Word Graph BFS**.
+**Implicit word graph BFS.** Nodes = valid dictionary words. Edge = change exactly one character.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- If `endWord` ∉ `wordList` → return `0`.
+- Queue `(beginWord, 1)` — length counts start word.
+- For each position `i` and letter `'a'..'z'`, form `nxt`; if `nxt == endWord` → return `steps + 1`.
+- If `nxt` in dict: **remove it**, enqueue `(nxt, steps + 1)`.
+
+Not Day 10 lock twists. Not grid `(r,c)`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Word Graph BFS
+**Pattern used:** Implicit Word Graph BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Shortest transformation sequence" → unweighted BFS
+- Words differ by one letter → implicit edges
+- Only listed words are valid intermediates → dict shrinks as visited
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "beginWord / endWord" | BFS from start, goal check |
+| "wordList" | Allowed nodes; remove on visit |
+| "one letter changed" | Generate 26·L neighbors per dequeue |
+| "sequence length" | Return count including beginWord |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** All transformations cost 1. First time `endWord` is reached = minimum length.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"endWord in set? If not, return 0."*
+2. *"Queue (word, steps); remove beginWord from set."*
+3. *"For i, c in a..z: build nxt; early return if nxt == endWord."*
+4. *"Erase nxt from set when enqueue — visited + prune."*
 
 ---
 
@@ -63,12 +66,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Build adjacency for all word pairs** | O(n² · L) — unnecessary |
+| **DFS** | Doesn't guarantee shortest sequence |
+| **BFS without removing from dict** | Revisit same word at longer length |
+| **Bidirectional BFS (unrequested)** | Valid optimization but standard BFS suffices at interview |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Generate neighbors on the fly; dictionary **is** the visited set.
 
 ---
 
@@ -76,29 +79,27 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Word Ladder II #126](https://leetcode.com/problems/word-ladder-ii/) | Reconstruct all paths | BFS layers + backtrack |
+| [Minimum Genetic Mutation #433](https://leetcode.com/problems/minimum-genetic-mutation/) | 8-char gene, bank set | Day 10 cousin |
+| [Open the Lock #752](https://leetcode.com/problems/open-the-lock/) | Digit twists | Day 10 — different neighbor fn |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+begin=hit  end=cog
+dict = {hot, dot, dog, lot, log, cog}
 
-Apply Word Graph BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Layer 0: hit (len=1)
+Layer 1: hot, dot, lot (len=2)
+Layer 2: dog, log (len=3)   [from dot→dog, lot→log]
+Layer 3: cog (len=4)        [from dog→cog or log→cog]
+
+Answer: 5  (hit→hot→dot→dog→cog)
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** You never drew an adjacency list — each dequeue spawns up to 26·L candidates filtered by dict.
 
 ---
 
@@ -189,22 +190,18 @@ class Solution {
 ```
 
 **Complexity:** O(n · m · 26) time · O(n · m) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"One letter at a time + word list"** → implicit graph, not explicit edges.
+- **"Shortest sequence"** → BFS, not DFS.
+- **"Remove word on enqueue"** → visited + avoid duplicate work.
+- **"endWord must exist in list"** → guard before BFS.
+- **"Not Day 10"** → neighbor = letter swap, not wheel twist.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Word Graph BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Word Graph BFS
+> 🎯 **Pattern Unlocked:** Implicit Word Graph BFS
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: board squares and dice rolls. →*

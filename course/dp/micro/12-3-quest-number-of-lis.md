@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Longest Increasing Subsequence
 
 > **Day 12** · [Number of Longest Increasing Subsequence #673](https://leetcode.com/problems/number-of-longest-increasing-subsequence/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Number of Longest Increasing Subsequence on LeetCode](https://leetcode.com/problems/number-of-longest-increasing-subsequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** You need **two parallel arrays** — `len[i]` and `cnt[i]`. Fill them together in the same `j < i` loop as LIS length. Tails+binary search won't count ways.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **LIS + Counting**.
+Which DP pattern from today's concept applies? **LIS + Counting** — extend the Day 12 `dp[i]` trace with `cnt[i]`.
 
-What is the state? What does dp[i] represent for this problem?
+When `nums[j] < nums[i]`:
+- If `len[j]+1 > len[i]`: reset `len[i]`, `cnt[i] = cnt[j]`
+- If `len[j]+1 == len[i]`: `cnt[i] += cnt[j]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Answer: sum `cnt[i]` where `len[i] == maxLen`.
 
 ---
 
@@ -37,26 +40,21 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** LIS + Counting
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- "Number of" + "longest increasing" → count at optimal length
+- Same monotonic rule as #300
+- Cannot use O(n log n) tails alone — need explicit path counts
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "number of longest" | `len` + `cnt` parallel arrays |
+| "how many" + subsequence | Sum `cnt` at max length |
+| "increasing subsequence" | Same `j < i`, `nums[j] < nums[i]` scan |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"len[i] = LIS length ending at i (same as dp[i])."*
+2. *"cnt[i] = ways to achieve len[i] ending at i."*
+3. *"Better length → replace cnt; tie length → add cnt."*
+4. *"Sum cnt where len == global max."*
 
 ---
 
@@ -64,61 +62,52 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Enumerate all LIS, count them** | Exponential subsequences |
+| **tails + binary search from #300** | Gives length only — no count aggregation |
+| **Count all increasing subsequences** | Problem asks only **longest** ones |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** When extending from `j` to `i`, the count at `i` accumulates from every `j` that achieves the same optimal `len[j]+1`.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums = [1,3,5,4,7]:
+  len: [1,2,3,3,4]
+  cnt: [1,1,1,1,2]  at i=4: cnt from j=2 and j=3 both give len 4
+  answer: cnt[4] = 2
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | Length only | `len[i]` without `cnt` |
+| [Coin Change 2 #518](https://leetcode.com/problems/coin-change-2/) | Sum ways | Different state — counting DP |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | String partition count | 1D counting, not LIS |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [1,3,5,4,7]** — fill `len` and `cnt` together:
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i=0: len=1 cnt=1
+i=1 (3): j=0 → len=2 cnt=1
+i=2 (5): j=0 → len=2; j=1 → len=3 cnt=1
+i=3 (4): j=0 → len=2; j=1 → len=3 cnt=1 (tie with i=2 path)
+i=4 (7): j=2 → len=4 cnt=1; j=3 → len=4 cnt+=1 → cnt=2
+
+maxLen=4, answer = sum cnt where len=4 = 2
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+```
+if nums[j] < nums[i]:
+  if len[j]+1 > len[i]:  len[i]=len[j]+1; cnt[i]=cnt[j]
+  elif len[j]+1 == len[i]: cnt[i] += cnt[j]
+```
+
+> 💡 **The insight:** Counting is a sidecar on the LIS scan — same loop, second array.
 
 ---
 
@@ -191,21 +180,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"LIS + Counting"** → Name the DP pattern from the concept page.
+- **"Can't reuse tails from #300"** → Counting needs O(n²) `len`/`cnt` scan.
+- **"Tie on length → add counts"** → Multiple `j` can extend to same `len[i]`.
+- **"New best length → replace count"** → Don't add to old shorter-path counts.
+- **"Sum at maxLen"** → Not `cnt[n-1]` — any index can hold max LIS.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** LIS + Counting
+> 🎯 **Pattern Unlocked:** LIS + Counting — parallel `len` and `cnt` in one backward loop.
 
 ---
 

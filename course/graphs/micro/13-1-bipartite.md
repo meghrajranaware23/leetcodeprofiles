@@ -1,125 +1,140 @@
+<!-- hand-authored -->
 # 📝 Graph Two-Coloring
 
 > **Day 13** · Bipartite Graphs · ★★★★☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Graph Two-Coloring visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Can you split the nodes into **two groups** so every edge connects different groups? That's **bipartite** — equivalent to **2-coloring** the graph. Assign color 0 or 1; every edge must connect opposite colors. Same color on both ends? Not bipartite.
+
+> **Contrast (Day 11–12):** Directed dependency graphs. Today: **undirected** conflict/partition graphs. No in-degree table — BFS/DFS with alternating colors level by level.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Graph Two-Coloring** — the core technique you'll use in today's quests.
+**Two-color BFS/DFS** on an undirected graph:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+```
+color[v] = -1  (unassigned)
+for each unvisited start:
+    BFS: assign start color 0
+    for each edge (u,v):
+        if color[v] == -1: color[v] = color[u] ^ 1
+        elif color[v] == color[u]: NOT BIPARTITE
+```
+
+| State | Meaning |
+|---|---|
+| `-1` | Unvisited |
+| `0` / `1` | Two partitions |
+
+XOR flip (`^ 1`) toggles 0↔1 when crossing an edge.
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+Imagine seating people at two tables. Enemies must sit at **different** tables. Walk the social graph: each friend-of-enemy constraint forces the opposite table. If you ever need to seat someone at both tables, the graph has an **odd cycle** — bipartite impossible.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**BFS levels:** Each BFS layer alternates color — neighbors of color 0 get color 1, their neighbors get 0, etc. Level parity *is* the partition.
 
-### 3. Visual walkthrough
+### 3. Visual walkthrough — two-color BFS
 
 ```
 Graph:  0 — 1 — 2
         |       |
         3 — 4   5
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+BFS from 0 (color 0):
+  Level 0: 0→0
+  Level 1: 1,3→1
+  Level 2: 2,4→0
+  Level 3: 5→1
+
+Valid 2-coloring ✓
+
+Odd cycle (NOT bipartite):
+
+    0 — 1
+    |   |
+    3 — 2 — 0
+
+BFS: 0→0, 1→1, 2→0, but edge 1—2 both color 1 ✗
 ```
 
-### 4. How the pattern works
+### 4. Conflict graph construction
+
+Many problems don't hand you an adjacency list — you **build** it:
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Possible Bipartition #886:
+  n people, dislikes = pairs who can't share a group
+  → undirected edge for each dislike
+  → 2-color the conflict graph
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Same BFS template after building `g[a].push(b); g[b].push(a)`.
 
 ### 5. What problem does this solve?
 
-| Problem family | How this pattern helps |
+| Problem family | How 2-color helps |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Is graph bipartite? | Direct 2-color check |
+| Split into two conflict-free groups | Build conflict graph, 2-color |
+| Flower planting (C-test) | Greedy 4-color on tree-like — bipartite special case |
+| Grid checkerboard | Implicit bipartite (even/odd parity) |
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| Try all 2^n partitions | O(2^n) |
+| 3-color DFS (Day 11) | Directed cycle tool — wrong for undirected bipartite |
+| Union-Find alone | Merges components but doesn't check bipartiteness |
+| Color without checking existing | Must verify `color[v] == color[u]` conflict |
 
-### 7. The key observation
+### 7. Day 13 vs Day 11–12
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 11–12** | **Day 13** |
+|---|---|---|
+| Edge type | Directed | Undirected |
+| Question | Cycle? Order? | Two-group split? |
+| Tool | 3-color / Kahn | 2-color BFS |
+| Odd cycle | Directed back-edge | Same-color neighbor |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "bipartite" / "two sets" | 2-color BFS/DFS |
+| "partition into two groups" | Conflict graph + 2-color |
+| "dislikes" / "cannot be together" | Edge = conflict |
+| "is possible to divide" | Bipartite check |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `bipartite` · `2-color` · `XOR 1` · `conflict graph` · `odd cycle`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Directed edges for dislikes | Undirected — both directions |
+| Only checking one component | Loop all nodes as BFS starts |
+| Using 3 colors | Bipartite = exactly 2 colors |
+| Building conflict edges wrong | Dislike = edge between those two nodes |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given n people and pairs who dislike each other, return true if you can split everyone into two groups so no dislikers share a group."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Build undirected conflict graph from dislikes → 2-color BFS. Same color on an edge = false."*
+
+**Not** course schedule. **Not** Kahn peel. **Conflict graph + two-color.**
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Two colors, level by level. First quest: Is Graph Bipartite? →*

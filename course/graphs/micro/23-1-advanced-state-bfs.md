@@ -1,125 +1,153 @@
+<!-- hand-authored -->
 # 📝 Complex State-Space BFS
 
 > **Day 23** · Advanced State BFS · ★★★★☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Complex State-Space BFS visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 10 taught **abstract state BFS**: `(state, steps)` on string configurations with dead-end sets. Day 23 scales that idea to **three implicit-graph families** you'll see in today's quests — each with a different way to generate neighbors, but the same BFS skeleton.
+
+> **Bridge to Day 10:** Same queue shape `(node, steps)`, same "first visit = shortest" rule. **Different neighbor generators** — not lock wheels, not gene banks. Today: **word mutations**, **board squares**, and **position + constraint** states.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Complex State-Space BFS** — the core technique you'll use in today's quests.
+**Complex state-space BFS** — the graph is often **never built explicitly**. You discover edges on the fly:
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Variant | Node | Edge (one step) | Visited |
+|---|---|---|---|
+| **Word ladder** | Dictionary word | Change one letter → valid word | `set` / shrink dict |
+| **Snakes & ladders** | Board square 1..n² | Roll 1–6, apply snake/ladder | `dist[]` array |
+| **Position + flag** (Day 27 preview) | `(pos, justMovedBack)` | +a forward, −b backward (once) | 2D dist or tuple set |
+
+All three: **unweighted** → BFS, not Dijkstra.
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**Word ladder:** Words are nodes. Two words share an edge if they differ by exactly one letter. You don't pre-build the graph — from `"hit"`, try all 26 letters at each position; keep hits in the dictionary.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Snakes & ladders:** Square numbers are nodes. From square `s`, edges go to `s+1..s+6` (capped at n²), then teleport if a snake/ladder sits on that cell. One BFS from square 1.
 
-### 3. Visual walkthrough
+**Day 10 vs Day 23:** Day 10 = fixed move rules on a **configuration string** (twist wheel `i`). Day 23 = **domain-specific** neighbor rules (dictionary, dice, forbidden coordinate).
 
-```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
-
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
-```
-
-### 4. How the pattern works
+### 3. Visual — word ladder (implicit graph)
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
+wordList = {hot, dot, dog, lot, log, cog}
+begin=hit  end=cog
+
+        hit
+       / | \
+     hot dot lot     (one letter changed, in dict)
+      |    |    |
+     ...  dog  log
+           \  /
+            cog  ← target
+
+BFS layers:
+  (hit, 1) → (hot,2), (dot,2), (lot,2) → ... → (cog, 5)
+
+No adjacency list — generate neighbors per dequeue.
+```
+
+### 4. Visual — snakes & ladders (board as graph)
+
+```
+Squares 1..36, roll d ∈ {1..6}:
+
+From square 6, d=4 → land on 10
+  if board[10] has ladder to 25 → next state = 25
+  else next state = 10
+
+queue = [1], dist[1] = 0
+while queue:
+  s = pop
+  for d in 1..6:
+    ns = min(s+d, n*n)
+    apply snake/ladder at ns
+    if dist[ns] == -1: dist[ns] = dist[s]+1; push ns
+```
+
+**Not** Day 4 grid BFS — nodes are **square indices**, not `(r,c)` unless you map via zigzag label.
+
+### 5. The universal template
+
+```
+function implicitBFS(start, isGoal, generateNeighbors):
+    queue = [(start, 0)]
+    visited = {start}   // or dist[start] = 0
+
     while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+        (state, steps) = queue.dequeue()
+        if isGoal(state): return steps + 1  // or steps, per problem
+
+        for next in generateNeighbors(state):
+            if next not in visited:
+                visited.add(next)
+                queue.enqueue((next, steps + 1))
+
+    return -1 / 0   // unreachable
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+**Word ladder:** `generateNeighbors` = mutate each char; check dict.  
+**Snakes & ladders:** `generateNeighbors` = six dice outcomes + teleport.
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| **Pre-build full word adjacency list** | O(n² · L) pairs — generate on the fly is O(26·L) per word |
+| **DFS for minimum transformations** | First path ≠ shortest |
+| **BFS on board without dist[]** | Revisit squares via snakes — infinite loop |
+| **Model word ladder as grid** | Letters aren't coordinates |
+| **Copy Day 10 lock template blindly** | Neighbor function differs per problem |
 
-### 7. The key observation
+### 7. Day 10 vs Day 23
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 10 — Lock / Gene** | **Day 23 — Today's quests** |
+|---|---|---|
+| State | Fixed-format string | Word, square index, (pos, flag) |
+| Neighbors | Twist wheel / mutate gene | Dict check, dice roll, ±jump |
+| Blocked | `deadends` / `bank` | Missing from dict, forbidden square |
+| Build graph? | Never — generate moves | Never — generate moves |
+
+Same **BFS discipline**; different **domain encoding**.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "shortest transformation sequence" + word list | Word-ladder implicit BFS |
+| "minimum moves" on board + dice/snakes | Square-index BFS |
+| "beginWord / endWord" not in grid | Implicit graph, not matrix |
+| "minimum jumps" + forbidden position | State = `(pos, constraint)` — Day 27 |
+| "combination lock" / "deadends" | **Day 10** — not today's quest prose |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `implicit graph` · `generate neighbors` · `(state, steps)` · `dict.erase on visit` · `dist[square]`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| End word not in wordList | Return 0 immediately |
+| Forget to remove word on enqueue | `dict.erase` / `set.remove` prevents re-queue |
+| Wrong zigzag square → (r,c) mapping | Test label function on small board |
+| Count beginWord as length 0 vs 1 | LC #127 expects sequence **length** including start |
+| Use grid dirs on word problem | One-letter mutation, not 4-directional |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Transform beginWord to endWord changing one letter at a time; each intermediate must be in wordList."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Implicit word graph — BFS (word, steps), generate 26·L neighbors, erase from dict when visited. NOT Day 10 lock. NOT grid BFS."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Three implicit graphs, one BFS skeleton. First quest: word ladder. →*

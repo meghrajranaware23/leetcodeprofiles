@@ -1,125 +1,179 @@
+<!-- hand-authored -->
 # 📝 Threshold BFS / Multi-State Paths
 
 > **Day 28** · Advanced Path Optimization · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Threshold BFS / Multi-State Paths visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 8 BFS finds shortest paths when every step costs 1. Day 19 Dijkstra handles weighted edges. Day 28 covers two **S-Rank hybrids** where the answer is not a plain `(r,c)` or `(node)` BFS:
+
+1. **Binary search on the answer + BFS feasibility** — "What is the minimum threshold T such that a path exists?"
+2. **Multi-dimensional state BFS** — the node is `(r, c, k)` where `k` is remaining resource (obstacles you can still eliminate).
+
+Both reuse the Day 8 BFS skeleton. The difference is **what you binary-search** or **what extra dimension lives in the visited array**.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Threshold BFS / Multi-State Paths** — the core technique you'll use in today's quests.
+| Variant | Search space | Feasibility check | Today's quest |
+|---|---|---|---|
+| **Threshold + BFS** | Integer answer `T` (water level, max edge weight) | BFS/DFS: can we reach goal with constraint ≤ T? | Swim in Rising Water #778 |
+| **3D state BFS** | `(row, col, remaining_k)` | Standard BFS; visited is 3D | Obstacles Elimination #1293 |
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+**Threshold pattern:** If `can(T)` is monotone (more permissive as T grows), binary search T. Each `can(T)` is O(cells) BFS.
 
-### 2. Simple explanation
+**Multi-state pattern:** When the same cell can be revisited with **different remaining resources**, visited must include that resource: `vis[r][c][rem]`.
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+### 2. Simple explanation — binary search + BFS
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Swim in Rising Water:** Water rises to level T. You may enter cell `(r,c)` only if `grid[r][c] ≤ T`. Find the **smallest T** where a path exists from top-left to bottom-right.
 
-### 3. Visual walkthrough
+Instead of trying every T from 0 to max, binary search T. For each mid, run BFS: flood cells with value ≤ mid. If BFS reaches the goal → try smaller T; else need larger T.
 
-```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+The answer space is **sorted by feasibility** — classic "binary search the answer."
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
-```
-
-### 4. How the pattern works
+### 3. Visual — binary search + feasibility BFS
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Grid (values = elevation):
+  0  2
+  1  3
+
+Start (0,0)=0, end (1,1)=3
+lo = max(0,3)=3, hi = 3  → but let's trace general case:
+
+can(T=1): cells ≤1 are (0,0),(1,0) — can't reach (1,1) ✗
+can(T=2): add (0,1) — still blocked at (1,1) ✗
+can(T=3): all cells open — path 0→1→3 ✓
+
+Binary search finds T=3.
+
+can(T) BFS trace (T=2):
+  queue [(0,0)]  vis={(0,0)}
+  pop (0,0) → neighbors (1,0) val=1≤2 ✓, (0,1) val=2≤2 ✓
+  queue [(1,0),(0,1)]
+  from (0,1): (1,1) val=3>2 ✗ — goal unreachable
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+### 4. Simple explanation — 3D state BFS
 
-### 5. What problem does this solve?
+**Shortest Path with Obstacles Elimination:** Grid with obstacles (`1`). You may eliminate at most `k` obstacles total. Shortest path from `(0,0)` to `(m-1,n-1)`.
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+A plain `(r,c)` visited array fails: you might reach `(5,3)` with 2 eliminations left, then later need to return with 1 left — different states!
 
-### 6. Why brute force fails
+**State = `(r, c, rem)`** where `rem` = obstacles still eliminable. Queue `(r, c, rem, dist)`. When stepping onto obstacle cell, pay `rem - 1`. Visited: `vis[r][c][rem]` — same cell, different `rem` = different nodes.
+
+### 5. Visual — (r, c, k) state BFS
+
+```
+Grid (0=free, 1=obstacle), k=1:
+
+        (0,0,k=1,d=0)
+           ↓
+        (0,1,k=1,d=1)  — free cell
+           ↓
+        (0,2,k=0,d=2)  — obstacle, used 1 elimination
+           ↓
+        (1,2,k=0,d=3)  — goal!
+
+Key: (0,2) with k=1 might also be reachable — that's a DIFFERENT
+state from (0,2,k=0). vis[0][2][1] and vis[0][2][0] are separate.
+```
+
+### 6. The universal templates
+
+**Binary search + feasibility:**
+```
+lo = min feasible lower bound, hi = max possible answer
+while lo < hi:
+    mid = (lo + hi) / 2
+    if can(mid): hi = mid      // still feasible — try smaller
+    else: lo = mid + 1         // need more permissive threshold
+return lo
+
+function can(T):
+    BFS from start; only visit cells with value ≤ T
+    return reached goal
+```
+
+**3D state BFS:**
+```
+queue = [(sr, sc, k, 0)]
+vis[sr][sc][k] = true
+while queue:
+    (r, c, rem, d) = pop
+    if (r,c) == goal: return d
+    for each neighbor (nr, nc):
+        nrem = rem - grid[nr][nc]    // 0 if free, 1 if obstacle
+        if nrem >= 0 and not vis[nr][nc][nrem]:
+            vis[nr][nc][nrem] = true
+            push (nr, nc, nrem, d+1)
+return -1
+```
+
+### 7. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| Try every T from 0 to max linearly | O(max · n²) — binary search cuts to O(n² log max) |
+| Dijkstra on elevation grid | Overkill — feasibility is yes/no per threshold |
+| 2D BFS ignoring remaining k | Wrong — same cell, different k = different paths |
+| DFS for shortest path with obstacles | BFS guarantees minimum steps |
+| BFS without `vis[r][c][rem]` | Revisit same (r,c) at worse k wastes queue |
 
-### 7. The key observation
+**The insight:** Name whether you're **searching an answer** (binary search + check) or **expanding state** (add dimension to visited).
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 8. Day 28 vs neighbors
 
-### 8. Pattern signals & recognition clues
+| | **Day 8 BFS** | **Day 19 Dijkstra** | **Day 28 Threshold** | **Day 28 3D State** |
+|---|---|---|---|---|
+| Goal | Min steps | Min weighted cost | Min threshold T | Min steps with k budget |
+| State | `(r,c)` | `(dist, node)` | `(r,c)` inside can(T) | `(r,c,rem)` |
+| Search | Direct BFS | Heap relax | Binary search outer loop | BFS with 3D vis |
+| Monotone? | N/A | N/A | can(T) monotone in T | N/A |
+
+### 9. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "minimum time until you can swim" / "minimum maximum cell value on path" | Binary search T + BFS can(T) |
+| "eliminate at most k obstacles" / "budget remaining" | `(r,c,k)` 3D state BFS |
+| "shortest path" + extra counter per cell | Add dimension to visited |
+| "can you reach with limit L?" inside a loop | Feasibility check for binary search |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `binary search answer` · `can(T)` · `(r,c,k)` · `vis[r][c][rem]` · `monotone feasibility`
 
-### 9. Common beginner mistakes
+### 10. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Binary search without monotone can(T) | Verify: larger T never makes path harder |
+| lo bound too low in swim water | Start `lo = max(grid[0][0], grid[m-1][n-1])` — endpoints must be enterable |
+| 2D visited for obstacle elimination | Must be `vis[r][c][rem]` — up to k+1 layers |
+| Using Dijkstra when unweighted + threshold | BFS inside can(T) is enough |
+| Forgetting goal check inside can(T) BFS | Return true only when `(m-1,n-1)` reached |
 
-### 10. Recognition drill
+### 11. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"You can eliminate at most k obstacles. Find the shortest path from top-left to bottom-right."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"3D state BFS: node = (r,c,rem). Queue (r,c,rem,d). vis[r][c][rem]. Not Day 8 — same cell with different rem is a different state."*
+
+Read this one:
+
+> *"Find the minimum elevation t such that you can swim from top-left to bottom-right, waiting until t for each cell."*
+
+Before coding, say:
+
+> *"Binary search t. can(t) = BFS on cells with grid[r][c] ≤ t. Monotone → binary search, not Dijkstra."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Two S-Rank path patterns unlocked. Quest 1: Swim in Rising Water — binary search the water level. →*

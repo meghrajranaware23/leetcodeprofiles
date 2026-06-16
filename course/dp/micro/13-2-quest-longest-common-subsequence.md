@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Common Subsequence
 
 > **Day 13** · [Longest Common Subsequence #1143](https://leetcode.com/problems/longest-common-subsequence/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Common Subsequence on LeetCode](https://leetcode.com/problems/longest-common-subsequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw the **full 2D LCS table** from today's concept. Fill match-diagonal and max-up-left before writing code.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Classic LCS DP**.
+Which DP pattern from today's concept applies? **Classic LCS DP** — `dp[i][j]` on prefixes of `text1` and `text2`.
 
-What is the state? What does dp[i] represent for this problem?
+Match: `dp[i][j] = dp[i-1][j-1] + 1`. No match: `max(dp[i-1][j], dp[i][j-1])`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: use `text1 = "ace"`, `text2 = "abcde"` from the concept page and fill every cell.
 
 ---
 
@@ -37,26 +38,21 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Classic LCS DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Two strings (or sequences)
+- Subsequence — characters can be skipped
+- Maximize common length
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "common subsequence" | 2D LCS table |
+| "two strings" | `dp[i][j]` on prefixes |
+| "longest" | `max` on mismatch, `+1` on match |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp size (m+1)×(n+1), base row/col 0."*
+2. *"Match → diagonal + 1."*
+3. *"Mismatch → max from above or left."*
+4. *"Return dp[m][n]."*
 
 ---
 
@@ -64,61 +60,41 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all subsequences of both strings** | O(2^m · 2^n) |
+| **Greedy: match first equal chars** | Skipping early match may block longer LCS |
+| **1D LIS on one string** | Need **two** indices — Day 12 pattern insufficient |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+**The insight brute force misses:** Only `(m+1)(n+1)` prefix pairs — each cell one computation.
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Uncrossed Lines #1035](https://leetcode.com/problems/uncrossed-lines/) | Integer arrays, visual disguise | Identical LCS recurrence |
+| [Edit Distance #72](https://leetcode.com/problems/edit-distance/) | Min cost insert/delete/replace | LCS cousin |
+| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | One array | Day 12 — 1D, not this |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**text1 = "abcde", text2 = "ace"** — canonical table:
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+      ""  a  c  e
+  "" [ 0  0  0  0 ]
+  a  [ 0  1  1  1 ]
+  b  [ 0  1  1  1 ]
+  c  [ 0  1  2  2 ]
+  d  [ 0  1  2  2 ]
+  e  [ 0  1  2  3 ]
+
+dp[5][3] = 3  ("ace")
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** The code is the table-fill loop. If you can draw the grid, you can code LCS.
 
 ---
 
@@ -178,23 +154,20 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(m*n), Space: O(m*n)
-
+**Complexity:** O(m · n) time · O(m · n) space
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Classic LCS DP"** → Name the DP pattern from the concept page.
+- **"Two sequences → 2D table"** — Not Day 12's 1D LIS.
+- **"Match = diagonal"** — Both chars consumed together.
+- **"Mismatch = drop one side"** — max of up and left.
+- **"Canonical LCS visual"** — This grid is the reference for two-sequence DP.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Classic LCS DP
+> 🎯 **Pattern Unlocked:** Classic LCS DP — match ↖, else max(↑, ←).
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: LCS wearing a disguise. →*

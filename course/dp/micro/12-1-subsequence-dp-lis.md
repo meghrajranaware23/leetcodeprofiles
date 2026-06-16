@@ -1,144 +1,135 @@
+<!-- hand-authored -->
 # 📝 Subsequence DP — LIS
 
 > **Day 12** · Subsequence DP — LIS · ★★★☆☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Longest Increasing Subsequence visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 11 filled **2D grids**. Day 12 shifts to **1D subsequences** on a single array: the flagship pattern is **Longest Increasing Subsequence (LIS)** — `dp[i]` = best answer for a subsequence **ending at index i**. Look **backward** at all `j < i`, not at a second string. This is the highest-priority C-Rank day: master the `dp[i]` trace before touching LCS on Day 13.
+
+> **Preview contrast (Day 12 vs Day 13):** Day 12 = **one array**, `dp[i]` from `j < i`. Day 13 = **two sequences**, `dp[i][j]` table — the LCS grid visual lives there, **not here**.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Longest Increasing Subsequence** — the core technique you'll use in today's quests.
+**LIS DP** — for each index `i`, the answer depends on the best answers at **earlier indices** that satisfy a monotonic rule.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[i]` (or `len[i]`) = length of longest increasing subsequence **ending at** `i`
+- **Transition** — `dp[i] = max(dp[j] + 1)` for all `j < i` where `nums[j] < nums[i]`
+- **Global answer** — `max(dp[0..n-1])` — not necessarily `dp[n-1]`
+- **Counting variant** — parallel `cnt[i]` = number of LIS ending at `i` (today's second quest)
+- **Optimization** — `tails` + binary search for O(n log n) length only (no counting)
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Stand at each array position and ask: *"If I **must** end my subsequence here, how long can it be?"* Look at every earlier position that is **strictly smaller**. The best you can do is their best length plus one (including yourself). The overall LIS might end anywhere — scan all `dp[i]` at the end.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — dp[i] trace (canonical LIS table)
 
 ```
-2D DP table — Longest Common Subsequence:
+nums:  [10,  9,  2,  5,  3,  7, 101, 18]
 
-      ""  a  b  c  d  e
-  "" [ 0  0  0  0  0  0 ]
-  a  [ 0  1← 1  1  1  1 ]
-  c  [ 0  1  1  2↖ 2  2 ]
-  e  [ 0  1  1  2  2  3↖]
+Fill left-to-right. Each dp[i] looks back at j < i:
 
-Cell dependencies:
-  ┌────────┐
-  │ dp[i-1]│──→ dp[i-1][j] (no match: take from above)
-  │ [j-1]  │↘
-  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (match: diagonal + 1)
-                │
-                ▼
-            dp[i][j-1] (no match: take from left)
+  i:    0   1   2   3   4   5   6    7
+  num: 10   9   2   5   3   7  101   18
+  dp:   1   1   1   2   2   3   4    4
+        ↑   ↑   ↑   ↑   ↑   ↑    ↑    ↑
+      base base base 2<5 3<5 5<7  7<101 ...
 
-Match   → diagonal ↖ + 1
-No match → max(↑ above, ← left)
+Trace dp[5] (num=7):
+  j=2 (2): dp[2]+1=2
+  j=3 (5): dp[3]+1=3  ← best
+  j=4 (3): dp[4]+1=3
+  dp[5] = 3
+
+Answer: max(dp) = 4  (e.g. 2→3→7→18 or 2→5→7→101)
 ```
 
-### 4. The DP Pipeline
+**This is a 1D array trace — not a 2D LCS grid.** Day 13 owns the two-string table.
 
-Apply the five-step pipeline to today's pattern:
-
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Longest Increasing Subsequence" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Longest Increasing Subsequence**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — Number of LIS (len + cnt)
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+Same nums. Parallel arrays:
+
+  len[i] = max LIS length ending at i     (same as dp above)
+  cnt[i] = number of LIS of that length ending at i
+
+When nums[j] < nums[i]:
+  if len[j]+1 > len[i]:  len[i]=len[j]+1; cnt[i]=cnt[j]
+  elif len[j]+1 == len[i]: cnt[i] += cnt[j]
+
+Answer: sum(cnt[i]) where len[i] == maxLen
 ```
 
-### 7. Base cases & answer extraction
+### 5. The universal template
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+```
+// O(n²) — length + count
+len = [1]*n, cnt = [1]*n
+for i in 1..n-1:
+  for j in 0..i-1:
+    if nums[j] < nums[i]:
+      if len[j]+1 > len[i]: len[i]=len[j]+1; cnt[i]=cnt[j]
+      elif len[j]+1 == len[i]: cnt[i] += cnt[j]
+return max(len), sum(cnt where len==maxLen)
 
-### 8. Pattern signals & recognition clues
+// O(n log n) — length only (tails + binary search)
+tails = []
+for num in nums:
+  pos = lower_bound(tails, num)
+  tails[pos] = num  (or append)
+return len(tails)
+```
+
+### 6. LIS vs LCS — don't mix the visuals
+
+| | **Day 12 — LIS** | **Day 13 — LCS** |
+|---|---|---|
+| Input | One array | Two strings/arrays |
+| State | `dp[i]` ending at i | `dp[i][j]` on prefixes |
+| Look direction | `j < i` backward | Match diagonal or max(up,left) |
+| Visual | **1D trace** above | **2D table** — Day 13 only |
+| Example | #300, #673 | #1143, #1035 |
+
+If you're drawing a grid with two string headers, you're on the wrong day.
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "longest increasing subsequence" | `dp[i] = max(dp[j]+1)`, `j<i`, `nums[j]<nums[i]` |
+| "number of longest increasing" | Add `cnt[i]` with tie-handling |
+| "subsequence" on **one** array | 1D backward scan |
+| "two strings" / "common subsequence" | **Day 13** LCS |
+| "pairs" / "chain" with order rule | Often sort + LIS cousin (Day 16) |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `ending at i` · `j < i` · `strictly increasing` · `len cnt` · `max over all i`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Returning `dp[n-1]` | LIS may end before last index — **max(dp)** |
+| Using `nums[j] <= nums[i]` when strict increase required | Check problem — LIS is usually **strict** `<` |
+| Drawing LCS 2D table for LIS | 1D trace only on Day 12 |
+| Counting LIS with tails+binary search | `cnt` needs O(n²) pairwise scan |
+| Forgetting `cnt[i]=1` base | Single-element subsequence counts once |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Given an integer array, return the length of the longest strictly increasing subsequence."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"dp[i] = LIS length ending at i. For each i, scan j<i where nums[j]<nums[i], dp[i]=max(dp[j]+1). Answer max(dp). 1D trace — not LCS grid."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*The dp[i] trace is your weapon. First quest: classic LIS length. →*

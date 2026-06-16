@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Increasing Subsequence
 
 > **Day 12** · [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Increasing Subsequence on LeetCode](https://leetcode.com/problems/longest-increasing-subsequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Fill the **dp[i] trace** from today's concept on paper — one row, look back at `j < i`. Only then consider the O(n log n) shortcut.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Classic LIS DP**.
+Which DP pattern from today's concept applies? **Classic LIS DP** — `dp[i]` = length of LIS **ending at** index `i`.
 
-What is the state? What does dp[i] represent for this problem?
+O(n²) transition: `dp[i] = max(dp[j] + 1)` for `j < i` where `nums[j] < nums[i]`. Answer: `max(dp)`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: trace `[10,9,2,5,3,7,101,18]` from the concept page. Circle which `j` values each `i` looks at.
 
 ---
 
@@ -37,26 +38,25 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Classic LIS DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Single array, pick a subsequence (not substring)
+- **Strictly increasing** — each next element must be larger
+- Optimize **length** — `max` over endings
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "increasing subsequence" | Backward scan `j < i`, compare values |
+| "longest" on one array | `dp[i]` ending at i, then `max(dp)` |
+| "subsequence" (not substring) | Can skip elements — not contiguous |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Two valid implementations:**
+1. **O(n²)** — pedagogical `dp[i]` trace (concept page visual)
+2. **O(n log n)** — `tails` array + binary search (solution below)
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"State: length ending at each index."*
+2. *"For i, best = 1 + max dp[j] where nums[j] < nums[i]."*
+3. *"Answer is max over all i, not dp[n-1]."*
+4. *"If only length needed, tails+binary search works."*
 
 ---
 
@@ -64,61 +64,51 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Enumerate all subsequences** | O(2^n) — check each for increasing |
+| **Greedy: always pick next larger** | Fails — may skip a small value that enables longer tail |
+| **Sort and take length** | Sorting destroys index order — subsequence must respect original positions |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** When extending to `i`, you only need the best answer at each **earlier** index — O(n²) states, or O(n log n) with tails structure.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+All subsequences O(2^n)  vs  dp[i] filled once O(n²) or tails O(n log n)
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Number of LIS #673](https://leetcode.com/problems/number-of-longest-increasing-subsequence/) | Count ways at max length | `len` + `cnt` arrays — next quest |
+| [Wiggle Subsequence #376](https://leetcode.com/problems/wiggle-subsequence/) | Up/down alternation | Day 16 — directional variant |
+| [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) | Sort by end, chain on start | Day 16 — interval LIS cousin |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [10,9,2,5,3,7,101,18]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[i] trace (length ending at i):
+
+  i:  0  1  2  3  4  5   6   7
+  v: 10  9  2  5  3  7 101  18
+  dp: 1  1  1  2  2  3   4   4
+
+max(dp) = 4  e.g. 2→3→7→18
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+**tails optimization (solution approach):**
+
+```
+Process each num; tails[k] = smallest tail of an increasing seq of length k+1
+[10] → [9] → [2] → [2,5] → [2,3] → [2,3,7] → [2,3,7,101] → [2,3,7,18]
+len(tails) = 4
+```
+
+> 💡 **The insight:** `dp[i]` trace teaches the state. `tails` compresses the same logic for length-only.
 
 ---
 
@@ -173,22 +163,19 @@ class Solution {
 ```
 
 **Complexity:** O(n log n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Classic LIS DP"** → Name the DP pattern from the concept page.
+- **"Ending at i"** → Scan all `j < i`, not just `i-1`.
+- **"Strictly increasing"** → Require `nums[j] < nums[i]`.
+- **"max(dp), not dp[n-1]"** → LIS can end anywhere.
+- **"1D trace, not LCS grid"** → Day 13 owns the 2D table.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Classic LIS DP
+> 🎯 **Pattern Unlocked:** Classic LIS DP — backward scan or tails for length.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count how many LIS exist. →*

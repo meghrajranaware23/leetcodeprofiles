@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 11 Checkpoint
 
 > **Cycle Detection & Topological Sort** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 11 is **directed** dependency graphs — cycles block ordering.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "prerequisites" / "must take B before A" | Directed graph, edge B→A | Dependency direction matters |
+| "can you finish all courses" | Cycle detection (Kahn or 3-color DFS) | Cycle = impossible |
+| "return valid ordering" | Topological sort | Record Kahn peel |
+| "grid" / "islands" | **Not Day 11** — undirected components | Wrong day |
+| "two groups" / "bipartite" | **Not Day 11** — Day 13 | Undirected 2-color |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Can you finish all courses given prerequisites?"* → **Cycle detection** — peel in-degree 0
+2. *"Return course order or empty if impossible"* → **Topological sort** — same peel, record order
+3. *"Count islands in a grid"* → **Not Day 11** — undirected flood fill
+4. *"DFS hits a GRAY node"* → **Directed cycle** — back-edge on active path
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Build order of tasks with dependencies; some tasks may be parallel."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Kahn's peel.** Optional: track layer size per queue generation for parallel batches.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Detect if a linked list has a cycle."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Not graph Kahn** — Floyd's tortoise/hare. Different "cycle" — no in-degree table.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Alien dictionary — deduce character order from sorted words."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Build char graph + Kahn.** Compare adjacent words for first differing letter → edge. Cycle → "".
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenarios 1 & 3 = directed topo. Scenario 2 = different technique entirely.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Reversing prereq edge** — `[a,b]` means b→a, not a→b.
+2. **Using 2-color for directed cycle** — bipartite is Day 13.
+3. **DFS visited-only** — need gray/black to catch directed back-edges.
+4. **Returning partial order on cycle** — must return empty / false when peel stalls.
+5. **Confusing with Day 12 reverse peel** — forward = sources; reverse = sinks (safe states).
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Parallel Courses #1136](https://leetcode.com/problems/parallel-courses/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Parallel Courses on LeetCode](https://leetcode.com/problems/parallel-courses/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Kahn's peel, but count **semesters** = number of queue layers processed.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Draw a 4-node prereq DAG. How many peel rounds until empty?
+
+> 💡 **Hint:** `while q: sz=len(q); process sz nodes; semesters++`
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 11 complete! Tomorrow: the next territory of your ascension. →*
+*Day 11 complete! Tomorrow: Kahn's algorithm deep dive — forward peel and reverse peel. →*

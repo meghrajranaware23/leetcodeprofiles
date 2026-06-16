@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 11 Checkpoint
 
 > **Grid DP Foundations** · 2 quests completed · ⭐ 75 XP earned
@@ -6,73 +7,65 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 11 is **2D grid state** — fill cell-by-cell (or one rolling row) from the top. Not LIS, not LCS.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions | Overlapping subproblems with optimal substructure |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost | Overlapping subproblems with optimal substructure |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) | Overlapping subproblems with optimal substructure |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) | Overlapping subproblems with optimal substructure |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount | Overlapping subproblems with optimal substructure |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i | Overlapping subproblems with optimal substructure |
-| "longest common" / "two strings" | LCS — 2D DP on two sequences | Overlapping subproblems with optimal substructure |
-| "palindrome" / "reads same" | Palindrome DP — expand or dp[i][j] | Overlapping subproblems with optimal substructure |
-| "grid" / "path" / "top-left to bottom-right" | Grid DP — dp[i][j] from neighbors | Overlapping subproblems with optimal substructure |
-| "buy and sell" / "stock" / "transaction" | State Machine DP — hold/sold/rest states | Overlapping subproblems with optimal substructure |
-| "transform" / "edit distance" / "operations" | String DP — insert/delete/replace choices | Overlapping subproblems with optimal substructure |
-| "partition into" / "subset sum" / "target" | Subset Sum DP — include/exclude with capacity | Overlapping subproblems with optimal substructure |
+| "grid" / "matrix" / "top-left to bottom-right" | Grid DP — neighbors as parents | Optimal substructure on cells |
+| "obstacle" / "blocked" | Zero the cell; Day 7 #62 + guard | #63 = #62 with obstacles |
+| "count paths" / "unique paths" | **Sum** parents (up + left) | Counting, not min |
+| "minimum path sum" in grid | **Min** parents + cell | Min-cost grid |
+| "falling" / "next row only" | Min over **three** cols above | Column-choice DP |
+| "longest common subsequence" | **Day 13** — not Day 11 | Two sequences, not a grid |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. What's the state? What's the transition?
-
-1. *"Find the minimum cost to climb stairs, paying cost[i] per step"* → **State:** dp[i] = min cost to reach step i. **Transition:** dp[i] = cost[i] + min(dp[i-1], dp[i-2])
-2. *"Count the number of ways to make change for amount n"* → **State:** dp[i] = number of ways to make amount i. **Transition:** dp[i] += dp[i - coin] for each coin
-3. *"Find the longest common subsequence of two strings"* → **State:** dp[i][j] = LCS of s1[0..i] and s2[0..j]. **Transition:** match → dp[i-1][j-1]+1, else max(dp[i-1][j], dp[i][j-1])
-4. *"Given weights and values, maximize value within capacity W"* → **State:** dp[i][w] = max value using items 0..i with capacity w. **Transition:** dp[i][w] = max(skip, take if fits)
+1. *"Paths from top-left to bottom-right, right/down only, some obstacles"* → **Rolling row**, obstacle → 0 (#63, Day 11)
+2. *"Same but no obstacles"* → **Day 7 #62** — identical fill, no zero guard
+3. *"Min sum path falling one row at a time, diagonal allowed"* → **Min of three parents** above (#931)
+4. *"Min sum path, only right and down"* → **Min of two parents** — #64 cousin, not falling
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you define the state on problems you've never seen?
+**Scenario 1:** *"Count paths in a grid with obstacles, moves right or down."*
 
-**Scenario 1:** *"Given an array, find the length of the longest increasing subsequence."*
+What's the state? **dp[j] = paths to column j in current row.** Transition: if blocked `0`, else `dp[j] += dp[j-1]` (plus top-row base).
 
-What's the state? **dp[i] = length of LIS ending at index i.** Transition: dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i].
+**Scenario 2:** *"Minimum cost to cross an n×n matrix, each step goes to the next row in any of three columns."*
 
-**Scenario 2:** *"Find the minimum number of coins to make a given amount."*
+What's the state? **dp[j] = min sum ending at column j in current row.** Transition: `matrix[i][j] + min(dp[j-1], dp[j], dp[j+1])`.
 
-What's the state? **dp[i] = min coins to make amount i.** Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
+**Scenario 3:** *"How many ways to decode a string of digits?"*
 
-**Scenario 3:** *"Count paths in a grid from top-left to bottom-right, moving only right or down."*
+Which day? **Not Day 11** — that's 1D counting (Day 7 decode). No grid.
 
-What's the state? **dp[i][j] = number of paths to reach cell (i,j).** Transition: dp[i][j] = dp[i-1][j] + dp[i][j-1].
-
-> **Answer key:** All three use DP patterns from this course. The *state and transition* change — the pipeline does not.
+> **Answer key:** Grid DP = table on `(row, col)` or rolling row when only previous row matters.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Wrong state definition** — If your state doesn't capture enough information, the transition can't be correct.
-2. **Forgetting base cases** — dp[0] (and sometimes dp[1]) must be set before the loop starts.
-3. **Wrong fill order** — If dp[i] depends on dp[i+1], you must fill right-to-left, not left-to-right.
-4. **Off-by-one errors** — DP arrays are usually size n+1 to include the empty/zero case.
-5. **Returning the wrong cell** — The answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] depending on the state definition.
+1. **Using max/sum for min problems** — Falling path = `min`; path count = `sum` of parents.
+2. **Two parents for falling path** — Need **three** columns above: `j-1`, `j`, `j+1`.
+3. **Forgetting obstacle → 0** — Blocked cell kills all paths through it.
+4. **Returning wrong cell** — Falling path answer = `min(last row)`, not corner only.
+5. **Full m×n table when one row suffices** — Rolling `dp[j]` for both #63 and #931.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Unique Paths #62](https://leetcode.com/problems/unique-paths/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Unique Paths on LeetCode](https://leetcode.com/problems/unique-paths/)**
 
-**Before you code:** Define the state in one sentence. Write the transition formula. Identify the base case. Then code.
+Day 7 quest — solve without obstacles. Then mentally add one obstacle and predict how `dp` changes.
 
-> 💡 **Hint:** Re-read the DP Pipeline from today's concept if stuck.
+**Before you code:** State the Day 7 → Day 11 bridge in one sentence.
+
+> 💡 **Hint:** If your #63 solution works on #62 by removing the obstacle check, you've internalized the pattern.
 
 ---
 
@@ -85,4 +78,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 11 complete! Tomorrow: the next level of your dynamic ascension. →*
+*Day 11 complete! Tomorrow: subsequence DP — LIS is the flagship. →*

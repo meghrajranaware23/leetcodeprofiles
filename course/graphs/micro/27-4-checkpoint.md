@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 27 Checkpoint
 
 > **Multi-Pattern Synthesis** · 2 quests completed · ⭐ 110 XP earned
@@ -6,67 +7,63 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 27 = **choose the right tool in 30 seconds** — expanded BFS vs static degree math.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| Min jumps + forbidden + move rules | BFS `(pos, flag)` | History in state |
+| "Cannot X twice in a row" | Expand state tuple | Day 10/27 family |
+| "Network rank" of city pair | deg[i]+deg[j]−edge | No traversal |
+| "Maximum over all pairs" static | O(n²) formula | Pattern triage |
+| Weighted shortest path count | **Day 25** | Dijkstra + ways |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Jump +a/-b, no double back, forbidden cell"* → **BFS (pos, back)**
+2. *"Max rank of two cities sharing roads"* → **Degree sum minus shared edge**
+3. *"Should I BFS network rank?"* → **No — static formula**
+4. *"S30 visit all nodes"* → **State-space preview — bitmask BFS coming**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Shortest path visiting all nodes in small graph (n≤12)."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **S30 — bitmask state BFS** — Day 27 decision: expand state when constraint is "which nodes visited."
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Two users with friend lists — max common friend pair rank."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Similar to network rank** — set intersection size, not pathfinding.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Minimum operations convert number with +/- nums."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Bounded BFS on integer state** — A-test #2059.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three need pattern triage before coding — Day 27 skill.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Position-only BFS on jump problem** — need back flag.
+2. **BFS on rank problem** — use degrees.
+3. **Forget subtract 1 for direct edge** — overcount rank.
+4. **Dijkstra on unweighted jumps** — BFS only.
+5. **Skip forbidden check on both move types** — hard block.
 
 ---
 
-## 🏋️ Mini Challenge
+## 🏋️ Mini Challenge — S30 Preview
 
-### Related LeetCode Practice
+For each problem, write **one line**: traversal or static?
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
-
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
-
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+| Problem | Decision |
+|---|---|
+| Minimum Jumps #1654 | Expanded-state BFS |
+| Maximal Network Rank #1615 | Static deg formula |
+| Shortest Path Visiting All Nodes #847 | Bitmask state BFS (S30) |
+| Ways to Arrive #1976 | Dijkstra + ways (Day 25) |
 
 ---
 
@@ -79,4 +76,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 27 complete! Tomorrow: the next territory of your ascension. →*
+*Day 27 complete! A-Rank tests next — prove your synthesis. →*

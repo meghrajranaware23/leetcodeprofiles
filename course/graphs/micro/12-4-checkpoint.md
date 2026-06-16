@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 12 Checkpoint
 
 > **Topological Sort Applications** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 12 is **Kahn's peel** — forward (in-degree) and reverse (out-degree).
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "unlock dependencies over time" | Forward Kahn, queue indeg 0 | Sources peel first |
+| "eventual safe" / "always terminates" | Reverse Kahn, queue outdeg 0 | Sinks peel backward |
+| "supplies / ingredients available" | Supplies seed the queue | Initial indeg-0 set |
+| "detect cycle in directed graph" | **Day 11** — 3-color OR peel count | Both work; Kahn is today's focus |
+| "two teams / coloring" | **Day 13** — not Kahn | Undirected bipartite |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Find all recipes craftable from supplies"* → **Forward Kahn** — string nodes
+2. *"Nodes where every path reaches a terminal"* → **Reverse Kahn** — outdeg peel
+3. *"Can you finish all courses?"* → **Forward Kahn** (Day 11 overlap) — peel count
+4. *"Gray neighbor during DFS"* → **Day 11 3-color** — not today's primary tool
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Minimum number of semesters to finish all courses."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Forward Kahn with layer counting** — each queue generation = one semester.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Nodes that can reach a cycle."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Reverse of safe states** — or 3-color: nodes that are gray/black but lead to gray.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Sort tasks with priority ties broken by ID."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Kahn with sorted queue** — use priority queue instead of FIFO for tie-breaking.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three use Kahn variants — forward peel with optional layer/sort tweaks.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **Forward peel for safe states** — must reverse graph and track out-degree.
+2. **Forgetting supplies as indeg-0** — recipes with all ings in supplies start ready.
+3. **Not adding crafted items to `have`** — blocks downstream recipes.
+4. **Enqueue before indeg hits 0** — same as Day 11.
+5. **Confusing with leaf-peel (Day 16)** — undirected degree-1 removal is different.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Sequence Reconstruction #444](https://leetcode.com/problems/sequence-reconstruction/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Sequence Reconstruction on LeetCode](https://leetcode.com/problems/sequence-reconstruction/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Kahn's peel — but check that each step has **exactly one** indeg-0 node (unique order).
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** When would two nodes share indeg 0? What does that mean for uniqueness?
+
+> 💡 **Hint:** If queue size > 1 at any step → reconstruction impossible.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 12 complete! Tomorrow: the next territory of your ascension. →*
+*Day 12 complete! Tomorrow: bipartite graphs — two-color BFS on undirected edges. →*

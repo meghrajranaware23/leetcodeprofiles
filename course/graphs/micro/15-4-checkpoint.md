@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 15 Checkpoint
 
 > **Graph Reachability** · 2 quests completed · ⭐ 75 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 15 is **multi-hop reachability** and **tree-DAG propagation**.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "is u prerequisite of v" (many queries) | Transitive closure | Precompute reach[u][v] |
+| "direct or indirect" relationship | Multi-hop DFS from each source | Batch queries |
+| "time to inform all in hierarchy" | Tree-DAG max path DFS | Parallel subtrees → max |
+| "minimum starting vertices" | **Day 14** — indeg 0 | Static structure, not queries |
+| "peel in-degree 0" | **Day 12** — Kahn | Dynamic ordering |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Batch prereq queries on same graph"* → **Transitive closure matrix**
+2. *"CEO informs managers, managers inform reports..."* → **Max weighted DFS on tree**
+3. *"List all ancestors per node"* → **Day 14** — list not boolean queries
+4. *"Can reach index with value 0 by ±arr[i] jumps"* → **C-test 2** — BFS on implicit graph
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Floyd-Warshall for all-pairs shortest paths."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Closure on min-plus** — related to reachability but with weights. Day 15 uses boolean closure.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Parallel courses — minimum semesters."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Kahn layer count** — Day 12, not reachability matrix.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Find quietest person among all richer ancestors."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **DAG DFS + memo** — C-test 3 preview; reachability + optimization.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Scenario 1 = weighted closure. Scenario 3 = Day 15 reachability + min pick.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **BFS per query on #1462** — precompute once.
+2. **Reversing reach direction** — u prereq of v means reach[u][v].
+3. **Summing inform times** — max over parallel branches.
+4. **BFS level count for #1376** — weights differ per manager.
+5. **Confusing with shortest path BFS** — unweighted BFS ≠ weighted tree max.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Jump Game III #1306](https://leetcode.com/problems/jump-game-iii/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Preview C-Rank Test 2 on LeetCode](https://leetcode.com/problems/jump-game-iii/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Implicit graph: from index `i`, edges to `i±arr[i]`. BFS/DFS reachability to any index with value 0.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** What are the nodes? What are the edges?
+
+> 💡 **Hint:** Nodes = indices; edges = jump targets in bounds.
 
 ---
 
@@ -75,8 +73,8 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
 | [Course Schedule IV #1462](https://leetcode.com/problems/course-schedule-iv/) | Medium | Transitive Closure |
-| [Time Needed to Inform All Employees #1376](https://leetcode.com/problems/time-needed-to-inform-all-employees/) | Medium | Tree BFS on DAG |
+| [Time Needed to Inform All Employees #1376](https://leetcode.com/problems/time-needed-to-inform-all-employees/) | Medium | Tree-DAG Time Bubble |
 
 ---
 
-*Day 15 complete! Tomorrow: the next territory of your ascension. →*
+*Day 15 complete! Tomorrow: graph reduction — leaf peeling and weighted division graphs. →*

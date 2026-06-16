@@ -1,125 +1,160 @@
+<!-- hand-authored -->
 # 📝 State-Space BFS
 
 > **Day 10** · State-Space BFS · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand State-Space BFS visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+This is **not** Day 2 grid BFS. There is no `(r, c)` matrix to draw — the graph is **abstract**. Each **node** is a full **configuration**: a lock string `"0000"`, a gene `"AACCGGTT"`. Each **edge** is one legal move (turn one wheel, mutate one letter). The queue holds **`(state, steps)`** — the state *is* the node identity.
+
+> **Critical distinction:** Day 2/4/8 = cells on a grid. Day 10 = **states as nodes** + **dead-end set** + BFS for minimum moves between configurations.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**State-Space BFS** — the core technique you'll use in today's quests.
+**State-space BFS** — treat each configuration as a graph node; generate neighbors by applying moves; BFS for shortest transformation count.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+- **Node** — tuple/string representing full state: `"0129"`, `(lock_string,)`
+- **Edge** — one move: rotate wheel `i` by ±1, change position `j` to each of 4 letters
+- **Queue entry** — `(state, steps)` — **steps live with the state**, like Day 8's `(r,c,steps)` but state is not coordinates
+- **Visited / dead** — `set` of forbidden or already-seen states — **dead-end set** prunes permanently blocked configs
+- **Goal** — `state == target` → return `steps`
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+Forget the grid. You're playing a puzzle where the entire board position is one sentence of digits. From `"0000"` you can reach `"1000"`, `"0100"`, … by one twist. Some sentences are banned (deadends). You're asking: *fewest twists from start sentence to target sentence?* That's BFS on an invisible graph whose nodes are sentences — not cells.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
-
-### 3. Visual walkthrough
+### 3. Visual — lock states as nodes (NOT a grid)
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+4 wheels, 0-9 each → 10⁴ possible lock strings = nodes
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+        "0000"  (steps=0, START)
+       /  |  \
+ "1000" "0100" ... "0009"   (steps=1)
+    |       |
+  ...     "0101"            (steps=2)
+              \
+            "0201" → ... → "8888" (TARGET)
+
+Edges: from each state, 4 wheels × 2 directions = up to 8 neighbors
+Dead-end set: {"8887","8889",...} → never enqueue these
+Visited set: don't revisit same string
 ```
 
-### 4. How the pattern works
+**There is no 2D picture.** Draw a **state transition** diagram for 2 wheels only if you need intuition — then scale mentally to 4.
+
+### 4. Visual — `(state, steps)` in the queue
 
 ```
-function bfs(start):
-    queue = [start]
+queue = [("0000", 0)]
+visited = {"0000"}
+dead = {"0001", ...}  // forbidden
+
+dequeue ("0000", 0):
+  generate "1000", "0100", "0010", "0001" (±1 each wheel)
+  for each nxt:
+    if nxt in dead: skip
+    if nxt in visited: skip
+    if nxt == target: return steps+1
+    visited.add(nxt)
+    enqueue (nxt, steps+1)
+
+First time target dequeued → minimum twists ✓
+```
+
+Same skeleton as Day 8 — but **state** replaces **(r,c)**.
+
+### 5. The universal template
+
+```
+function stateSpaceBFS(start, target, deadends):
+    if start in deadends: return -1
+    queue = [(start, 0)]
     visited = {start}
+
     while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+        (state, steps) = queue.dequeue()
+        if state == target:
+            return steps
+        for each neighbor_state in generate_moves(state):
+            if neighbor in deadends: continue
+            if neighbor in visited: continue
+            visited.add(neighbor)
+            queue.enqueue((neighbor, steps + 1))
+
+    return -1   // unreachable
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+**Gene mutation variant:** neighbors = change each of 8 positions to A/C/G/T; only enqueue if new gene in `bank` set (bank shrinks as visited).
 
-### 5. What problem does this solve?
+### 6. Why grid BFS or DFS fails
 
-| Problem family | How this pattern helps |
+| Treat as grid `(r,c)` | Problem |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| Lock digits aren't coordinates | No 2D adjacency — state is 4-char string |
+| Day 2 flood fill | Wrong mental model entirely |
 
-### 6. Why brute force fails
-
-| Brute force | Problem |
+| DFS to target | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| First path not shortest | Need BFS layers on state graph |
 
-### 7. The key observation
+| BFS without dead-end set | Problem |
+|---|---|
+| Revisit forbidden or explode search | Deadends are **permanent walls** |
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| Build explicit 10⁴ adjacency list upfront | Problem |
+|---|---|
+| Generate neighbors **on the fly** | O(1) per move generation suffices |
+
+### 7. Day 2 grid vs Day 10 state-space
+
+| | **Day 2/8 — Grid BFS** | **Day 10 — State-Space BFS** |
+|---|---|---|
+| Node | Cell `(r, c)` | String / configuration |
+| Neighbors | 4 or 8 grid dirs | Puzzle moves (twist, mutate) |
+| Visited | `grid[r][c]=1` or dist matrix | `set` of seen **strings** |
+| Blocked | Wall cell `1` | **Dead-end set** |
+| Queue | `(r,c)` or `(r,c,steps)` | **`(state, steps)`** |
+| Visual | Draw matrix | Draw **state transitions** |
+
+If you catch yourself writing `dirs = {{1,0},...}` on Open the Lock, stop — that's the wrong graph.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "minimum turns" / "minimum mutations" | State-space BFS |
+| "deadends" / "bank of valid genes" | Forbidden or allowed set |
+| "combination lock" / "gene string" | State = full string |
+| "shortest transformation sequence" | BFS on implicit graph |
+| "grid" / "matrix" / "island" | **Not Day 10** — earlier ranks |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `(state, steps)` · `deadends` · `visited set of strings` · `generate neighbors` · `abstract node`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Modeling lock as 4 separate grid rows | One string node = one state |
+| Forgetting start in deadends check | Return -1 immediately |
+| DFS instead of BFS | Minimum moves = BFS |
+| Not storing steps with state | Use tuple or level BFS |
+| Re-enqueue without visited | String set at enqueue time |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Open a 4-wheel lock from '0000' to target with banned combinations — minimum turns?"*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"State-space BFS: node = 4-char string, queue (state, steps), dead-end set, generate 8 neighbors per state. NOT grid BFS — NOT Day 2 visual."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Configurations are nodes. First quest: twist the lock in fewest moves. →*

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Wiggle Subsequence
 
 > **Day 16** · [Wiggle Subsequence #376](https://leetcode.com/problems/wiggle-subsequence/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Wiggle Subsequence on LeetCode](https://leetcode.com/problems/wiggle-subsequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Track **two states** — `up` and `down`. A rise extends from `down`, a fall extends from `up`. Day 12 LIS with direction.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Directional Subsequence DP**.
+Which DP pattern from today's concept applies? **Directional Subsequence DP** — `up` / `down` lengths.
 
-What is the state? What does dp[i] represent for this problem?
+If `nums[i] > nums[i-1]`: `up = down + 1`. If `nums[i] < nums[i-1]`: `down = up + 1`. Flat: skip.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: trace `[1,7,4,9,2,3]` from the concept page — answer 6.
 
 ---
 
@@ -37,26 +38,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Directional Subsequence DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Subsequence (skip elements)
+- Alternating increase/decrease
+- Maximize length
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "wiggle" / "alternating" | `up` / `down` state machine |
+| "up and down" | Direction memory — not plain LIS |
+| "subsequence" | Can skip — not contiguous |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 12 bridge:** LIS = always increase. Wiggle = sign must alternate.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"up = best ending with rise at i."*
+2. *"Rise needs previous down → up = down+1."*
+3. *"Fall needs previous up → down = up+1."*
+4. *"Start up=down=1, return max."*
 
 ---
 
@@ -64,61 +62,39 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **O(n²) check all subsequences** | Exponential |
+| **Plain LIS on nums** | Ignores alternation requirement |
+| **Greedy take every local peak/valley** | Subsequence allows skips — greedy on full array can work but state DP is cleaner proof |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
-
-```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
-```
+**The insight brute force misses:** Only need last **direction** — two scalars, not full `dp[i]` array.
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | Single direction | Day 12 LIS |
+| [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) | Interval chain | Today's second quest |
+| [Wiggle Sort II #324](https://leetcode.com/problems/wiggle-sort-ii/) | Rearrange array | Different problem — sorting |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums = [1,7,4,9,2,3]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+up=1, down=1
+i=1: 7>1 → up=2
+i=2: 4<7 → down=3
+i=3: 9>4 → up=4
+i=4: 2<9 → down=5
+i=5: 3>2 → up=6
+max(up,down)=6
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Two counters replace O(n²) LIS scan — direction is the only extra memory.
 
 ---
 
@@ -165,22 +141,19 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Directional Subsequence DP"** → Name the DP pattern from the concept page.
+- **"Not plain LIS"** — Alternation constraint.
+- **"up from down, down from up"** — Swap source state on direction change.
+- **"Flat does nothing"** — `==` skips both updates.
+- **"Day 12 cousin"** — Subsequence on one array, extra state.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Directional Subsequence DP
+> 🎯 **Pattern Unlocked:** Directional Subsequence DP — wiggle up/down states.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: sort pairs + chain. →*

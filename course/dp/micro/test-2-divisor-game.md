@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ E-Rank Test — Problem 2
 
 > [Divisor Game #1025](https://leetcode.com/problems/divisor-game/) · Easy · 100 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Divisor Game on LeetCode](https://leetcode.com/problems/divisor-game/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Define the state. Write the transition. Fill the table by hand. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** Alice and Bob alternate; Alice starts. Model *"can current player force a win?"* — game DP with memo on pile size `n`.
 
 ---
 
@@ -24,38 +25,54 @@ See the full problem statement on LeetCode: **[Divisor Game #1025](https://leetc
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the E-Rank curriculum. Define the state and transition before you code.
+> 🎯 **What's being tested:** **Game memoization** — Day 2 top-down style. State: `win(n)` = can current player win starting with n?
 
-Revisit your rank's cheat sheet. Is this linear DP, grid DP, knapsack, or state machine?
+**Hint 1:** From pile `n`, try every proper divisor `x` (1 ≤ x < n, n % x == 0). Subtract x → opponent faces `n - x`.
+
+**Hint 2:** Current player wins if **any** move leaves opponent in a losing state: `win(n) = any(!win(n-x))` for valid x.
+
+**Hint 3:** Base: `win(1)` = false (no valid move). Fill memo bottom-up from 2..n or recurse with cache — same overlap as climbing stairs family.
+
+**Bonus insight:** After memo analysis, `win(n) = (n % 2 == 0)` — but derive via game DP first.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** Game Theory Memo / Win-Lose DP
+
 **How to identify from the statement:**
-- What is the state? What information describes a subproblem?
-- What are the choices at each state?
-- What's the transition formula?
+- Two players, optimal play, win/lose boolean
+- State = pile size `n`; moves reduce n
+- Overlap: same pile sizes from different game paths
 
 **How a strong solver thinks before coding:**
-1. *"What does dp[i] represent?"*
-2. *"What's the base case?"*
-3. *"Linear, grid, knapsack, or state machine?"*
-4. *"Can I optimize the space?"*
+1. *"State: dp[n] = current player wins?"*
+2. *"Try all divisors x; if opponent loses on n-x, I win."*
+3. *"Day 2 memo on n — cache before recurse."*
+4. *"Pattern: dp[n] = OR over moves of NOT dp[n-x]."*
+
+**E-Rank connection:** Day 2 memoization — `memo[n]` cache hits when same pile size revisited in game tree.
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-DP problems have exponential recursion trees with massive overlap. Brute force means recomputing the same subproblems O(2^n) times. Define the state, cache it, and solve each subproblem exactly once.
+| Approach | Problem |
+|---|---|
+| **Simulate all games without memo** | Exponential game tree |
+| **Greedy pick largest divisor** | Optimal play requires considering all moves |
+| **Memo on win(n)** | O(n²) divisors work — tractable ✓ |
+
+**The insight:** Game trees overlap on pile size — identical to Day 1 overlap detection, Day 2 cache fix.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you define the state without the problem name telling you the pattern?
+*"Two players, finite state, perfect play, return if first player wins."*
 
-Read the statement once. Define dp[i] in one sentence. If you can write the transition in under 60 seconds, you're ready.
+Define `dp[state]` = win for player to move. Transition: win if **any** move to opponent lose state.
 
 ---
 
@@ -98,10 +115,41 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a E-Rank test"** → Use patterns from this rank's training.
-- **"State first, code second"** → Define dp[i] before writing any code.
-- **"Name the pattern"** → The code is just the transition formula in syntax.
+- **"Alternating players"** → win(n) depends on win(n-x) for opponent.
+- **"Day 2 memo on pile size"** → Game DP before math shortcut.
+- **"Even n wins"** → After tabulating small n, parity pattern emerges.
+- **"Any move to losing state"** → OR over transitions, not AND.
 
 ---
 
 *2 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    bool divisorGame(int n) {
+        return n % 2 == 0;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def divisorGame(self, n: int) -> bool:
+        return n % 2 == 0
+```
+
+### Java
+```java
+class Solution {
+    public boolean divisorGame(int n) {
+        return n % 2 == 0;
+    }
+}
+```
+
+**Complexity:** O(1) time · O(1) space

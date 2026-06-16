@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 1 Checkpoint
 
 > **The Graph Mental Model** · 2 quests completed · ⭐ 40 XP earned
@@ -6,55 +7,59 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 1 is about **representation**: adjacency lists, in/out degrees, and connectivity as "same component." Practice hearing the signal:
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| `edges` + `n` nodes | Build `adj[u]` lists | Traverse neighbors in O(degree) |
+| `trust [a,b]` directed | `out[a]++`, `in[b]++` | One-way arrows |
+| "town judge" / "trusted by all" | in = n−1, out = 0 | Degree scan, no BFS |
+| "path exists" / "can reach" | Same component | DFS, BFS, or Union-Find |
+| Undirected edge `[u,v]` | Push both directions in `adj` | Missing half breaks traversal |
+| Nodes labeled `1…n` | Size arrays `n+1` | Off-by-one on index 0 |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
+Read each mini-problem. Which Day 1 pattern fires first?
 
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Convert edge list to neighbor lists for n nodes"* → **Adjacency list build**
+2. *"Who is trusted by everyone and trusts nobody?"* → **In/out degree scan**
+3. *"Can node 0 reach node 5 in an undirected graph?"* → **Connectivity / same component**
+4. *"Given trust pairs, count how many people trust person 4"* → **In-degree of 4**
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+You've solved Town Judge and Path Exists. Can you apply **Day 1 storage patterns** to new problems?
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+**Scenario 1:** *"Return the number of people who trust exactly one person (out-degree 1)."*
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+Which pattern? **Degree counting** — same loop as Town Judge, different filter on `out[i]`.
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+**Scenario 2:** *"Given undirected edges, list all nodes reachable from node 0."*
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+Which pattern? **Adjacency list + DFS/BFS** (Day 3 formalizes DFS) — build `adj`, walk from 0 with visited.
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+**Scenario 3:** *"After adding one edge, do nodes 2 and 7 become connected?"*
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
+Which pattern? **Union-Find** — unite all edges, compare `find(2)` and `find(7)`.
 
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three start with **reading edges into a structure** (adj, degrees, or UF). The local question changes — the setup does not.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **1-indexed nodes with 0-length arrays** — Town Judge uses `1…n`; allocate `n+1`.
+
+2. **Directed vs undirected** — Trust is one-way; Path Exists edges go both ways in `adj`.
+
+3. **Only in-degree for judge** — Must also verify `out == 0` (Example 2 fails otherwise).
+
+4. **Checking only adjacent edge for path** — Multi-hop paths matter; think components.
+
+5. **Skipping the drawing step** — Label nodes, draw arrows, count in/out by hand first.
 
 ---
 
@@ -62,11 +67,13 @@ Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
 
 ### Related LeetCode Practice
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Re-solve one Day 1 quest **without looking at the solution** — but write your edge-processing loop on paper first.
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Town Judge drill:** Given `n=5` and 4 trust pairs all pointing to person 2, predict the answer before coding.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Path Exists drill:** Draw two disconnected triangles. Pick nodes in different triangles — path should be false.
+
+> 💡 **Hint:** Re-read the degree table in Quest 1's walkthrough if Town Judge still feels fuzzy.
 
 ---
 
@@ -75,8 +82,8 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 | Problem | Difficulty | Key Pattern |
 |---|---|---|
 | [Find the Town Judge #997](https://leetcode.com/problems/find-the-town-judge/) | Easy | Degree Analysis |
-| [Find if Path Exists in Graph #1971](https://leetcode.com/problems/find-if-path-exists-in-graph/) | Easy | Adjacency List + DFS |
+| [Find if Path Exists in Graph #1971](https://leetcode.com/problems/find-if-path-exists-in-graph/) | Easy | Adjacency List + Connectivity |
 
 ---
 
-*Day 1 complete! Tomorrow: the next territory of your ascension. →*
+*Day 1 complete! Tomorrow: explore grids and graphs with BFS — the queue goes wide. →*

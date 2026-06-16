@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 7 Checkpoint
 
 > **Boundary Traversal** · 2 quests completed · ⭐ 50 XP earned
@@ -6,67 +7,64 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 7 is **outside-in from the border** — not center-out island counting.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "enclave" / "can't reach border" | Border flood → sum remaining land | Erase escapable, count trapped |
+| "closed island" / "surrounded by water" | Border flood + count inner islands | D-Rank test #1254 |
+| "flow to Pacific and Atlantic" | Two border DFS, intersect | Reverse uphill from oceans |
+| "number of islands" (any land) | **Day 4** inside-out | Different question |
+| "BFS from all 0 cells" | **Wrong seed** for enclaves | Start from **border land** |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Land cells that cannot walk off the grid"* → **Border DFS**, sum remaining 1s (Enclaves)
+2. *"Cells where water flows to both Pacific and Atlantic"* → **Two border floods**, height ≥ neighbor inward
+3. *"Count islands in binary grid"* → **Day 4** — DFS from each unvisited 1, not Day 7
+4. *"Count islands completely surrounded by water"* → **Day 7** border erase + count closed components (test)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Flip all 'O' surrounded by 'X' to 'X', but not 'O' on the border."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Border flood** on 'O' from edges, mark connected, flip inner — Surrounded Regions cousin.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"How many land cells are trapped and cannot reach any edge?"*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Enclaves** — border DFS on land, return sum of remaining 1s.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Which height map cells can drain to both top-left ocean and bottom-right ocean?"*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Pacific Atlantic** — dual border DFS with non-decreasing height inward.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** All three seed from the **grid frame**, not from interior cells or water BFS.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **BFS/DFS from water (0)** — Enclaves seed **border land**, not ocean cells.
+2. **Counting components instead of remaining cells** — Enclaves = **cell count**, not island count.
+3. **Simulating water downhill from each cell** — Pacific Atlantic: flood **from** oceans inward.
+4. **Forgetting corner border cells** — Loop all four edges completely.
+5. **Confusing with Day 6 multi-source** — Day 7 is reachability erase, not dist matrix layers.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Number of Closed Islands #1254](https://leetcode.com/problems/number-of-closed-islands/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**[→ Try Number of Closed Islands on LeetCode](https://leetcode.com/problems/number-of-closed-islands/)**
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+Border-flood land connected to edge, then count island components in the remaining grid — D-Rank test #2 combines Day 7 erase with Day 4 component scan.
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+**Before you code:** Explain why you border-flood **before** counting, not after.
+
+> 💡 **Hint:** Same border loop as Enclaves — different final aggregation.
 
 ---
 
@@ -79,4 +77,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 7 complete! Tomorrow: the next territory of your ascension. →*
+*Day 7 complete! Tomorrow: shortest paths with explicit step counts. →*

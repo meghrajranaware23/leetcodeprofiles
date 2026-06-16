@@ -1,125 +1,149 @@
+<!-- hand-authored -->
 # 📝 The Graph Mental Model
 
 > **Day 1** · The Graph Mental Model · ★☆☆☆☆ · 10 XP · 10 min read
 
 ---
 
-Your mission today: **understand Graph Representation visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Your mission today: **learn how graphs are stored and counted** before you traverse them. Draw nodes and edges. Build an adjacency list. Track in-degree and out-degree. Then today's quests become bookkeeping — not guessing.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Nodes, Edges, and Adjacency Lists
 
-### 1. What is the pattern?
+### 1. What is a graph?
 
-**Graph Representation** — the core technique you'll use in today's quests.
+A **graph** is nodes (vertices) connected by **edges**.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Input shape | Nodes | Edges |
+|---|---|---|
+| `edges = [[0,1],[1,2]]` | Integers `0…n-1` | Pairs in the list |
+| `trust = [[a,b],…]` | People `1…n` | Directed: `a` trusts `b` |
+| Grid cell `(r,c)` | Each cell | 4-neighbors (Day 4) |
 
-### 2. Simple explanation
+Every graph problem starts with: *What are my nodes? How do I reach neighbors?*
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+### 2. Build an adjacency list from an edge list
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+Most LeetCode graphs give **edges**, not ready-made neighbor lists. Convert once, then traverse.
 
-### 3. Visual walkthrough
+```
+edges = [[0,1],[0,3],[1,2],[3,4]]   (undirected)
+
+adj[0] = [1, 3]
+adj[1] = [0, 2]
+adj[2] = [1]
+adj[3] = [0, 4]
+adj[4] = [3]
+```
+
+**Undirected:** for `[u,v]`, push `v` into `adj[u]` **and** `u` into `adj[v]`.
+
+**Directed:** only push `v` into `adj[u]` (trust flows one way).
+
+```python
+adj = [[] for _ in range(n)]
+for u, v in edges:
+    adj[u].append(v)
+    adj[v].append(u)   # omit second line if directed
+```
+
+Quest 2 (#1971) asks *"can I walk from source to destination?"* — once you have `adj`, any traversal (DFS, BFS, or Union-Find) can answer it. Day 1's job is **building the list**, not picking the algorithm yet.
+
+### 3. In-degree and out-degree (directed graphs)
+
+For **directed** edges `a → b`:
+
+| Counter | Meaning | Updated by |
+|---|---|---|
+| **out-degree[a]** | Edges leaving `a` | Each trust `[a,b]` |
+| **in-degree[b]** | Edges entering `b` | Same trust pair |
+
+```
+trust: 1→3, 2→3, 4→3   (everyone trusts person 3)
+
+in[3] = 3, out[3] = 0
+Everyone else: out ≥ 1, in = 0
+```
+
+Quest 1 (#997 Town Judge): the judge must be trusted by **all** others (`in = n-1`) and trust **nobody** (`out = 0`). No traversal needed — just two arrays.
+
+### 4. Path existence — the question DFS answers
+
+*"Is there a walk from `source` to `destination`?"*
+
+On paper: start at `source`, mark visited, follow edges to neighbors, stop when you hit `destination` or exhaust the component.
 
 ```
 Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+        |
+        3
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+Path 0 → 2?  Yes: 0 → 1 → 2
+Path 3 → 2?  No:  {3} is its own component
 ```
 
-### 4. How the pattern works
+Quest 2 merges components with Union-Find (also valid). The mental model is the same: **nodes in the same connected group can reach each other.**
+
+### 5. Visual — adjacency list + degrees on one example
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Directed trust in a town of 4:
+  1 → 4,  2 → 4,  3 → 4
+
+adj[1]=[4]  adj[2]=[4]  adj[3]=[4]  adj[4]=[]
+in:  [0,0,0,3]   out: [1,1,1,0]
+
+Node 4: in=3 (= n-1), out=0  →  town judge ✓
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
-
-### 5. What problem does this solve?
-
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
-
-### 6. Why brute force fails
-
-| Brute force | Problem |
-|---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
-
-### 7. The key observation
-
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
-
-### 8. Pattern signals & recognition clues
+### 6. Pattern signals — Day 1 only
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| `edges` / `n` nodes | Build `adj` list first |
+| `trust` pairs | Directed; count `in[]` and `out[]` |
+| "find the judge" / "everyone trusts X" | Degree scan, not BFS |
+| "path exists" / "can reach" | Connected component from source |
+| "undirected" graph | Add edge both ways in `adj` |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `adjacency list` · `in-degree` · `out-degree` · `edge list` · `connected` · `reachable`
 
-### 9. Common beginner mistakes
+### 7. Why brute force fails
+
+| Brute force | Problem |
+|---|---|
+| Re-scan all edges per query | O(E) per check; adjacency list is O(degree) per step |
+| Nested loops for "who trusts whom" | O(n²); degree arrays are O(E) |
+| Traverse without building structure | Re-parsing edges every call |
+| Ignore direction on trust edges | Judge logic breaks — trust is one-way |
+| Skip drawing the graph | Wrong mental model for path vs component |
+
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| 1-indexed nodes, 0-sized arrays | Size arrays `n+1` when nodes are `1…n` |
+| Undirected edge added one way only | Push both `(u,v)` and `(v,u)` |
+| Confuse in vs out on `[a,b]` | `a` trusts `b` → `out[a]++`, `in[b]++` |
+| Build adjacency but never use it | Day 1 quests: degrees OR connectivity |
+| Jump to BFS on Day 1 | Representation first; wavefront is Day 2 |
 
-### 10. Recognition drill
+### 9. Bridge to Day 2
 
-Read this problem aloud:
+Day 1: **store** the graph (adjacency list, degree counts).  
+Day 2: **explore** it with a queue — grid BFS on `(r,c)` and level timelines.
 
-> *"Given an m×n grid, count the number of islands."*
+You already know *what* neighbors are. Tomorrow you learn *in what order* to visit them.
 
-Before coding, say:
+### 10. Recognition drill — today's quests
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+**Quest 1 — Town Judge #997:**
+> *"Scan trust pairs. Judge = in-degree n−1 and out-degree 0."*
+
+**Quest 2 — Path Exists #1971:**
+> *"Build graph from edges. Are source and destination in the same component?"*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*You can draw and store a graph. Quest 1 counts degrees; Quest 2 checks connectivity. →*

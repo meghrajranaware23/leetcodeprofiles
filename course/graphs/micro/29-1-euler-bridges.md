@@ -1,125 +1,195 @@
+<!-- hand-authored -->
 # 📝 Euler Paths and Bridges
 
 > **Day 29** · Advanced Graph Algorithms · ★★★★★ · 25 XP · 18 min read
 
 ---
 
-Your mission today: **understand Euler Path / Tarjan's Bridges visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Days 1–27 mostly ask *"visit nodes."* Day 29 asks *"consume edges."* Two classic **edge-centric DFS** patterns:
+
+1. **Hierholzer's algorithm** — find an Eulerian trail (use every directed edge exactly once), building the route with a **post-order edge stack**.
+2. **Tarjan's bridges** — find edges whose removal disconnects the graph, using **discovery time** and **low-link** values on a DFS tree.
+
+Both are **recursive DFS with backtracking logic** — not BFS, not level-order, not wavefront expansion. Trace them on paper with an **edge stack** (Hierholzer) or **disc/low timestamps** (Tarjan).
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Euler Path / Tarjan's Bridges** — the core technique you'll use in today's quests.
+| Algorithm | Question | Core mechanism | Today's quest |
+|---|---|---|---|
+| **Hierholzer** | Use every directed edge once; lex-smallest route | DFS eats edges; push node on stack when stuck; reverse | Reconstruct Itinerary #332 |
+| **Tarjan bridges** | Which edges are critical (no alternate route)? | DFS tree + `low[u]` = earliest reachable ancestor | Critical Connections #1192 |
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+**Hierholzer insight:** You're not finding shortest anything — you're **deleting edges as you walk**. When a node has no outgoing edges left, append it to the route (post-order). Reverse at the end.
 
-### 2. Simple explanation
+**Tarjan insight:** Edge `(u,v)` is a bridge if `low[v] > disc[u]` — v's subtree cannot reach u or anything above u except through `(u,v)`.
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+### 2. Simple explanation — Hierholzer's edge stack
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+Imagine airport tickets as **directed edges**. You must use every ticket exactly once starting at JFK. At each airport, take the **lexicographically smallest** unused outgoing flight (multiset / sorted adjacency).
 
-### 3. Visual walkthrough
+Walk until stuck (no flights left). **Backtrack:** the airport where you got stuck goes on a stack. Continue unwinding — the final route is the stack reversed.
+
+You're always going **deeper along an unused edge**, then recording nodes when you **run out of edges** — classic post-order on edges, not nodes.
+
+### 3. Visual — Hierholzer trace (edge stack)
+
+```
+Tickets (directed):
+  JFK → MUC, JFK → SFO
+  MUC → LHR, LHR → SFO, SFO → SAN
+
+Adj (sorted): JFK→{MUC,SFO}, MUC→{LHR}, LHR→{SFO}, SFO→{SAN}
+
+visit(JFK):
+  take MUC (smallest) → visit(MUC):
+    take LHR → visit(LHR):
+      take SFO → visit(SFO):
+        take SAN → visit(SAN): no edges → push SAN
+      no edges → push SFO
+    no edges → push LHR
+  still JFK edges? take SFO → ... (already used path)
+  no edges → push JFK
+
+route stack (before reverse): [SAN, SFO, LHR, MUC, SFO, JFK]
+reverse → [JFK, MUC, LHR, SFO, SAN]  ✓
+```
+
+**Key:** `while adj[u] not empty: pick edge, erase it, visit(v)`. When loop ends, `route.push_back(u)`.
+
+### 4. Simple explanation — Tarjan low-link bridges
+
+Run DFS from any node. Assign increasing **discovery time** `disc[u]`. **`low[u]`** = earliest `disc` reachable from u's subtree (via tree edges + back edges).
+
+For tree edge `(u → v)` (v is child):
+- After processing v: `low[u] = min(low[u], low[v])`
+- **Bridge test:** if `low[v] > disc[u]`, edge `(u,v)` is critical — v cannot "escape" to u's ancestors without using this edge.
+
+For back edge `(u → v)` where v is already visited and v ≠ parent: `low[u] = min(low[u], disc[v])`.
+
+### 5. Visual — Tarjan bridge trace
 
 ```
 Graph:  0 — 1 — 2
         |       |
-        3 — 4   5
+        3       4
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+DFS from 0:
+  disc/low: 0:(1,1)
+  → 1:(2,2) → 2:(3,3) → 4:(4,4)  backtrack
+  low[2]=4, low[1]=2
+  edge (1,2): low[2]=4 > disc[1]=2 → NOT bridge (2-4 path exists via... wait)
+
+Better example — chain 0-1-2-3:
+  0:(1,1) → 1:(2,2) → 2:(3,3) → 3:(4,4)
+  Backtrack: low[3]=4, low[2]=3
+  (2,3): low[3]=4 > disc[2]=3 → BRIDGE
+  (1,2): low[2]=3 > disc[1]=2 → BRIDGE
+  (0,1): low[1]=2 > disc[0]=1 → BRIDGE
+
+Each edge in a chain is a bridge.
 ```
 
-### 4. How the pattern works
+### 6. The universal templates
 
+**Hierholzer:**
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+build adj with multiset (sorted) per node
+route = []
+
+function visit(u):
+    while adj[u] not empty:
+        v = smallest remaining neighbor
+        remove edge u→v
+        visit(v)
+    route.append(u)
+
+visit(start)
+return reverse(route)
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+**Tarjan bridges:**
+```
+timer = 0
+disc[], low[] initialized 0
 
-### 5. What problem does this solve?
+function dfs(u, parent):
+    disc[u] = low[u] = ++timer
+    for v in adj[u]:
+        if disc[v] == 0:                    // tree edge
+            dfs(v, u)
+            low[u] = min(low[u], low[v])
+            if low[v] > disc[u]:
+                bridges.add({u, v})
+        else if v != parent:                // back edge
+            low[u] = min(low[u], disc[v])
+```
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
-
-### 6. Why brute force fails
+### 7. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| Try all permutations of edges (itinerary) | Factorial — Hierholzer is O(E log E) |
+| BFS for Euler trail | Wrong tool — must consume edges, not level-expand |
+| Greedy BFS lex path for #332 | Uses edges multiple times or skips some |
+| Remove edges one-by-one to test connectivity | O(E²) — Tarjan is O(V+E) |
+| Tarjan without back-edge update | Misses low-link propagation through cycles |
 
-### 7. The key observation
+**The insight:** Edge problems need **edge deletion (Hierholzer)** or **low-link DFS (Tarjan)** — not visited-node BFS.
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 8. Day 29 vs neighbors
 
-### 8. Pattern signals & recognition clues
+| | **Day 3 DFS** | **Day 11 Cycle** | **Day 29 Hierholzer** | **Day 29 Tarjan** |
+|---|---|---|---|---|
+| Goal | Visit nodes | Detect cycle | Use every edge once | Find critical edges |
+| Edge handling | Traverse | Color states | **Delete on use** | Tree vs back edge |
+| Output | Connected set | bool | Route order | Bridge list |
+| Structure | visited[] | 3-color | Post-order stack | disc/low |
+
+### 9. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "use all tickets / all edges exactly once" | Hierholzer — edge stack |
+| "reconstruct itinerary" / "lexicographically smallest" | Hierholzer + sorted adjacency |
+| "critical connection" / "if removed, graph disconnects" | Tarjan bridges |
+| "bridge" / "articulation" in undirected graph | Tarjan low-link |
+| "shortest path" / "minimum steps" | **Not Day 29** — BFS/Dijkstra |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `edge stack` · `erase edge` · `disc` · `low` · `low[v] > disc[u]` · `post-order route`
 
-### 9. Common beginner mistakes
+### 10. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Using BFS for itinerary | Hierholzer DFS — consume edges |
+| Not removing used edges in Hierholzer | Infinite loop — erase from multiset |
+| Wrong sort order (asc vs desc) | #332 wants lex **smallest** — sort ascending (or max-heap pop) |
+| Tarjan: treat tree edge to parent as back edge | Skip when `v == parent` |
+| Tarjan: compare low[v] with disc[u] for back edges | Back edges update `low[u]` with `disc[v]`, not low[v] |
+| Forgetting to DFS all components | Run dfs from every unvisited node for bridges |
 
-### 10. Recognition drill
+### 11. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Given airline tickets, reconstruct the itinerary using all tickets exactly once, starting at JFK, lex smallest."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Hierholzer: multiset adj, visit(u) eats edges, push u when stuck, reverse route. Not BFS."*
+
+Read this one:
+
+> *"Find all critical connections — edges whose removal increases connected components."*
+
+Before coding, say:
+
+> *"Tarjan bridges: disc/low DFS. Bridge when low[v] > disc[u] on tree edge. O(V+E)."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Edge-centric DFS — not wavefront. Quest 1: Reconstruct Itinerary with Hierholzer's stack. →*

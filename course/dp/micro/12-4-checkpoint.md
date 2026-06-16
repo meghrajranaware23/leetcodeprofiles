@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 12 Checkpoint
 
 > **Subsequence DP — LIS** · 2 quests completed · ⭐ 80 XP earned
@@ -6,73 +7,61 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 12 is **1D subsequence on one array** — `dp[i]` ending at `i`, scan `j < i`. **Not** the LCS 2D grid (that's Day 13).
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions | Overlapping subproblems with optimal substructure |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost | Overlapping subproblems with optimal substructure |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) | Overlapping subproblems with optimal substructure |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) | Overlapping subproblems with optimal substructure |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount | Overlapping subproblems with optimal substructure |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i | Overlapping subproblems with optimal substructure |
-| "longest common" / "two strings" | LCS — 2D DP on two sequences | Overlapping subproblems with optimal substructure |
-| "palindrome" / "reads same" | Palindrome DP — expand or dp[i][j] | Overlapping subproblems with optimal substructure |
-| "grid" / "path" / "top-left to bottom-right" | Grid DP — dp[i][j] from neighbors | Overlapping subproblems with optimal substructure |
-| "buy and sell" / "stock" / "transaction" | State Machine DP — hold/sold/rest states | Overlapping subproblems with optimal substructure |
-| "transform" / "edit distance" / "operations" | String DP — insert/delete/replace choices | Overlapping subproblems with optimal substructure |
-| "partition into" / "subset sum" / "target" | Subset Sum DP — include/exclude with capacity | Overlapping subproblems with optimal substructure |
+| "longest increasing subsequence" | `dp[i]=max(dp[j]+1)`, `j<i`, strict `<` | Classic LIS |
+| "number of longest increasing" | `len[i]` + `cnt[i]` parallel arrays | #673 |
+| "subsequence" on **one** array | 1D backward scan | Day 12 |
+| "two strings" / "common subsequence" | **Day 13** LCS table | Two indices |
+| "substring" / "contiguous" | Often expand or interval DP | Day 14 |
+| "grid paths" | **Day 11** | 2D cell DP |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. What's the state? What's the transition?
-
-1. *"Find the minimum cost to climb stairs, paying cost[i] per step"* → **State:** dp[i] = min cost to reach step i. **Transition:** dp[i] = cost[i] + min(dp[i-1], dp[i-2])
-2. *"Count the number of ways to make change for amount n"* → **State:** dp[i] = number of ways to make amount i. **Transition:** dp[i] += dp[i - coin] for each coin
-3. *"Find the longest common subsequence of two strings"* → **State:** dp[i][j] = LCS of s1[0..i] and s2[0..j]. **Transition:** match → dp[i-1][j-1]+1, else max(dp[i-1][j], dp[i][j-1])
-4. *"Given weights and values, maximize value within capacity W"* → **State:** dp[i][w] = max value using items 0..i with capacity w. **Transition:** dp[i][w] = max(skip, take if fits)
+1. *"LIS length in one array"* → **dp[i] ending at i**, answer `max(dp)` (#300)
+2. *"How many LIS of max length?"* → **len + cnt**, sum cnt at maxLen (#673)
+3. *"LCS of two strings"* → **Day 13** — `dp[i][j]`, not Day 12
+4. *"Longest increasing — can you use tails?"* → **Length only** — yes O(n log n); **counting** — no, need O(n²)
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you define the state on problems you've never seen?
+**Scenario 1:** *"Longest decreasing subsequence in an array."*
 
-**Scenario 1:** *"Given an array, find the length of the longest increasing subsequence."*
+What's the state? **Same as LIS** — flip comparison to `nums[j] > nums[i]`, or reverse array and run LIS.
 
-What's the state? **dp[i] = length of LIS ending at index i.** Transition: dp[i] = max(dp[j] + 1) for all j < i where nums[j] < nums[i].
+**Scenario 2:** *"Count paths with strictly increasing values in a DAG."*
 
-**Scenario 2:** *"Find the minimum number of coins to make a given amount."*
+What's the state? **LIS-style on topological order** — `dp[v] = max/sum over predecessors with smaller value`.
 
-What's the state? **dp[i] = min coins to make amount i.** Transition: dp[i] = min(dp[i - coin] + 1) for each coin denomination.
+**Scenario 3:** *"Longest common subsequence of two arrays."*
 
-**Scenario 3:** *"Count paths in a grid from top-left to bottom-right, moving only right or down."*
+Which day? **Day 13** — `dp[i][j]` on two prefixes. Don't use Day 12's 1D trace.
 
-What's the state? **dp[i][j] = number of paths to reach cell (i,j).** Transition: dp[i][j] = dp[i-1][j] + dp[i][j-1].
-
-> **Answer key:** All three use DP patterns from this course. The *state and transition* change — the pipeline does not.
+> **Answer key:** One array + monotonic subsequence = Day 12. Two sequences = Day 13.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Wrong state definition** — If your state doesn't capture enough information, the transition can't be correct.
-2. **Forgetting base cases** — dp[0] (and sometimes dp[1]) must be set before the loop starts.
-3. **Wrong fill order** — If dp[i] depends on dp[i+1], you must fill right-to-left, not left-to-right.
-4. **Off-by-one errors** — DP arrays are usually size n+1 to include the empty/zero case.
-5. **Returning the wrong cell** — The answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] depending on the state definition.
+1. **Returning dp[n-1]** — LIS may peak before the last index.
+2. **Using LCS 2D visual for LIS** — 1D `dp[i]` trace only on Day 12.
+3. **tails+binary search for #673** — Cannot count ways; use `len`/`cnt` O(n²).
+4. **Forgetting strict `<`** — Equal values don't extend increasing subsequence.
+5. **On cnt tie: adding when length improved** — Replace cnt on better length; add only on **equal** length.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+On paper, fill `len` and `cnt` for `nums = [2,2,2,2,2]` without coding.
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+**Before you peek:** What's maxLen? What's the answer count?
 
-**Before you code:** Define the state in one sentence. Write the transition formula. Identify the base case. Then code.
-
-> 💡 **Hint:** Re-read the DP Pipeline from today's concept if stuck.
+> 💡 **Hint:** No strict increase possible beyond length 1 — five separate length-1 subsequences.
 
 ---
 
@@ -85,4 +74,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 12 complete! Tomorrow: the next level of your dynamic ascension. →*
+*Day 12 complete! Tomorrow: two-sequence DP — the LCS table's home. →*

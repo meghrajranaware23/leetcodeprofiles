@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Get Maximum in Generated Array
 
 > **Day 4** · [Get Maximum in Generated Array #1646](https://leetcode.com/problems/get-maximum-in-generated-array/) · Easy · 10 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Get Maximum in Generated Array on LeetCode](https://leetcode.com/problems/get-maximum-in-generated-array/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Run the Day 4 checklist on scratch paper before coding. Write the state sentence. Fill nums[0..7] by hand for n=7.
 
 ---
 
@@ -24,11 +25,13 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Formula-Driven Tabulation**.
+**Pattern:** Formula-Driven Tabulation — recurrence is **given** in the problem.
 
-What is the state? What does dp[i] represent for this problem?
+**Hint 1:** Checklist state: `nums[i]` = value at index i in the generated array.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Hint 2:** Bases: `nums[0]=0`, `nums[1]=1`. For `i ≥ 2`: if i even → `nums[i]=nums[i/2]`; if i odd → `nums[i]=nums[i/2]+nums[i/2+1]`.
+
+**Hint 3:** Answer is **max** over all nums[0..n] — track running max while tabulating.
 
 ---
 
@@ -37,26 +40,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Formula-Driven Tabulation
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Explicit generation rules (even/odd split)
+- Build array 0..n sequentially
+- Return aggregate (max), not last cell
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "generated array" / rules for even and odd i | Given recurrence — tabulate |
+| "maximum value" | Track max during fill, not return nums[n] |
+| Small n (≤ 100) | O(n) tabulation trivial |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why brute force fails:** Simulating without array repeats index lookups — still O(n) but tabulation makes dependencies explicit for learning.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Checklist: state = nums[i]."*
+2. *"i/2 and i/2+1 always < i for i≥2 — left-to-right safe."*
+3. *"Even vs odd branch in loop."*
+4. *"mx = max(mx, nums[i]) each step."*
 
 ---
 
@@ -64,61 +64,50 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
-
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+| **Recompute nums[i] recursively without memo** | Overlap on i/2 — unnecessary |
+| **Tabulate 0..n with formula** | O(n) each index once ✓ |
+| **Return nums[n] instead of max** | Wrong answer extraction |
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=6 example trace:
+i: 0  1  2  3  4  5  6
+   0  1  1  2  1  3  2
+              ↑     ↑
+         even:1  odd:1+2=3
+
+max = 3
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Given formula? | Answer cell |
+|---|---|---|
+| **Generated Array #1646** | Yes (even/odd) | max(nums) |
+| Fib / Trib | Yes (recurrence) | nums[n] |
+| Pascal row | Yes (two above) | full row |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**n=4 — fill checklist then table:**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+□ STATE: nums[i] = value at i
+□ TRANSITION: even → nums[i/2]; odd → nums[i/2]+nums[i/2+1]
+□ BASE: nums[0]=0, nums[1]=1
+□ ORDER: i=2..4 left-to-right
+
+i=2 (even): nums[1]=1
+i=3 (odd):  nums[1]+nums[2]=1+1=2
+i=4 (even): nums[2]=1
+
+nums = [0,1,1,2,1]  max=2 ✓
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Day 4 checklist turns a wordy problem into a 5-line loop.
 
 ---
 
@@ -171,23 +160,18 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(n), Space: O(n)
-
+**Complexity:** O(n) time · O(n) space
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Formula-Driven Tabulation"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Day 4 checklist first"** → State sentence before loop.
+- **"Even/odd = two transitions"** → Branch inside tabulation loop.
+- **"max, not nums[n]"** → Answer extraction step 6.
+- **"i/2 dependencies"** → Like Counting Bits — smaller index first.
 
 > 🎯 **Pattern Unlocked:** Formula-Driven Tabulation
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: Pascal row only — 1-row rolling from Day 4 visual. →*

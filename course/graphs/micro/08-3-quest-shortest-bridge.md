@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Shortest Bridge
 
 > **Day 8** · [Shortest Bridge #934](https://leetcode.com/problems/shortest-bridge/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Shortest Bridge on LeetCode](https://leetcode.com/problems/shortest-bridge/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Phase 1 — DFS to mark one entire island as `2`. Phase 2 — BFS from **all** `2` cells into `0`s until you hit a `1`. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,12 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Component + BFS Expansion**.
+Which pattern from today's concept applies? **Component + BFS Expansion** — two-phase Day 8 variant.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- **Phase 1 (DFS):** Find any `1`, flood entire connected island, mark as `2`.
+- **Phase 2 (BFS):** Enqueue every `2` cell. Expand layer-by-layer into `0`s (flip to `2`). When a neighbor is `1` (second island), return current `steps`.
+
+If you're stuck after 5 minutes: don't BFS from one cell on the island — multi-source BFS from the **whole** marked island boundary in phase 2.
 
 ---
 
@@ -35,27 +39,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Component + BFS Expansion
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Exactly two islands → find one, expand to the other
+- Flip water (`0`) during BFS — each flip = 1 bridge step
+- Shortest connection → BFS layers in phase 2
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "shortest bridge" | Min 0-cells to connect islands |
+| "two islands" | One DFS component + BFS to next |
+| "change 0s to 1" | BFS through water counting layers |
+| "4-directionally" | 4 dirs in this problem |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Phase 1 identifies island A. Phase 2 grows outward uniformly — first touch of island B is minimum water cells to bridge.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Find first 1, dfs mark entire island as 2."*
+2. *"Enqueue all cells with value 2."*
+3. *"BFS: expand to 0 (mark 2, enqueue) or 1 (return steps)."*
+4. *"steps++ after each BFS layer."*
 
 ---
 
@@ -63,12 +64,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS from every cell on island A** | Redundant — one multi-source BFS from all 2s |
+| **Try all bridge placements** | Exponential |
+| **DFS through water** | Doesn't guarantee shortest bridge |
+| **Skip marking full island in phase 1** | Incomplete frontier for phase 2 |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Mark island A once; **multi-source BFS** from its entire shape beats cell-by-cell search.
 
 ---
 
@@ -76,29 +77,38 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Shortest Path in Binary Matrix #1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/) | Pure point-to-point BFS | Phase 2 only |
+| [01 Matrix #542](https://leetcode.com/problems/01-matrix/) | Multi-source from 0s, no DFS phase | Related wave idea |
+| [Island Perimeter #463](https://leetcode.com/problems/island-perimeter/) | Count boundary edges | Component thinking |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Phase 1: DFS mark → Phase 2: BFS expand.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+grid:           After DFS (island A → 2):
+1 1 0 0 0       2 2 0 0 0
+1 0 0 0 0  →    2 0 0 0 0
+0 0 0 1 1       0 0 0 1 1   (island B still 1)
 
-Apply Component + BFS Expansion step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Phase 2 queue: all 2 cells
+Layer 0: expand to adjacent 0s → mark 2
+Layer 1, 2, ... until neighbor is 1 → return steps
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+```
+mark(r,c): grid[r][c]=2; dfs to neighbor 1s
+BFS:
+  while q:
+    process layer
+    for each 0 neighbor: grid=2, enqueue
+    for each 1 neighbor: return steps
+    steps++
+```
+
+> 💡 **The insight:** Phase 1 is Day 4 flood fill; Phase 2 is Day 8 step BFS — hybrid on one grid.
 
 ---
 
@@ -225,21 +235,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Component + BFS Expansion"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Two islands"** → DFS one, BFS to the other.
+- **"Mark as 2"** → Separates island A from B during expansion.
+- **"Multi-source phase 2"** → Queue **all** 2s, not one corner cell.
+- **"Return steps when hitting 1"** → Day 8 shortest path through water.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Component + BFS Expansion
+> 🎯 **Pattern Unlocked:** Component + BFS Expansion — find island, expand bridge layers.
 
 ---
 

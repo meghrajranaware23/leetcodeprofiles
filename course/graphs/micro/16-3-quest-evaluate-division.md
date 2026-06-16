@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Evaluate Division
 
 > **Day 16** · [Evaluate Division #399](https://leetcode.com/problems/evaluate-division/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Evaluate Division on LeetCode](https://leetcode.com/problems/evaluate-division/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** `A/B=k` → edge A→B weight k, B→A weight 1/k. Query X/Y → DFS from X multiplying edge weights to reach Y.
 
 ---
 
@@ -24,38 +25,32 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Weighted Graph Construction**.
-
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Use `unordered_map<string, map<string, double>>` or nested hash maps. Unknown variable in query → -1.0. DFS with visited per query to avoid cycles.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Weighted Graph Construction
+**Pattern used:** Weighted Graph Construction + Path Query
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Equations define ratios between variables
+- Queries ask for ratio between two variables
+- Transitive: a/b and b/c gives a/c
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "a/b=k" | Directed weighted edge a→b = k |
+| "evaluate X/Y" | DFS multiply path from X to Y |
+| Unknown variable | -1.0 |
+| Transitive equations | Graph connects components |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Division chains multiply — exactly path product in a weighted graph.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"For each eq: g[a][b]=k, g[b][a]=1/k."*
+2. *"Per query: if X or Y missing → -1."*
+3. *"DFS(X,Y,vis,product=1.0)."*
 
 ---
 
@@ -63,12 +58,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Union-Find without weights** | Loses ratio information |
+| **Single direction edge only** | Can't traverse b→a |
+| **Add ratios instead of multiply** | Wrong algebra |
+| **Rebuild graph per query** | Wasteful — build once |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** Graph build is O(E); each query is O(V+E) DFS.
 
 ---
 
@@ -76,29 +71,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Smallest String With Swaps #1202](https://leetcode.com/problems/smallest-string-with-swaps/) | UF not weighted | Different tool |
+| [Accounts Merge #721](https://leetcode.com/problems/accounts-merge/) | UF connectivity | Later rank |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Min on DAG | C-test 3 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+equations: a/b=2, b/c=3
+queries: a/c, b/a, a/e
 
-Apply Weighted Graph Construction step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Graph: a→b(2), b→a(0.5), b→c(3), c→b(⅓)
+
+a/c: 2 × 3 = 6 ✓
+b/a: 0.5 ✓
+a/e: e unknown → -1 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Build phase and query phase are separate — classic graph modeling.
 
 ---
 
@@ -195,21 +187,18 @@ class Solution {
 ```
 
 **Complexity:** O(Q · (V + E)) time · O(V + E) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Weighted Graph Construction"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Equation → weighted directed edge both ways."**
+- **"Query = path product."** → multiply, don't add.
+- **"Missing variable → -1."**
+- **"Build once, query many."**
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Weighted Graph Construction
+> 🎯 **Pattern Unlocked:** Weighted Graph Construction + Path Query
 
 ---
 

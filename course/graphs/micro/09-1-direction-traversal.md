@@ -1,125 +1,159 @@
+<!-- hand-authored -->
 # 📝 Direction-Aware Traversal
 
 > **Day 9** · Direction-Aware Traversal · ★★★☆☆ · 10 XP · 15 min read
 
 ---
 
-Your mission today: **understand Direction-Aware Traversal visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Days 2–8 mostly treated edges as **two-way doors**. Today the graph has **direction**: roads are one-way, routes were built wrong, paths must be recorded. Two tools: **DFS with path backtracking** (collect all routes) and **DFS on a rooted tree** counting **misdirected edges** (Reorder Routes).
+
+> **Preview contrast (Day 8 vs Day 9):** Day 8 = BFS for **shortest** steps. Day 9 = DFS for **all paths** or **edge-direction math** — depth-first, not layer-first.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Direction-Aware Traversal** — the core technique you'll use in today's quests.
+**Direction-aware traversal** — respect which way edges point; use DFS with explicit path state.
 
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+- **All paths (DAG)** — push node onto path list; at target save `path[:]`; recurse neighbors; **pop** (backtrack)
+- **Reorder routes** — treat undirected traversal with **cost 1** if edge opposes parent→child direction in DFS tree
+- **No global visited on DAG all-paths** — DAG has no cycles; path list backtrack replaces per-node permanent visited
+- **Tree rooted at 0** — every connection appears once; count wrong-way edges during DFS
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**All paths:** You're exploring a maze of one-way streets that never loops. At each intersection you write your route on a clipboard. Reaching the destination? Photocopy the clipboard. Back up? Erase the last street name. Siblings don't share partial routes because you **pop** after trying each branch.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Reorder routes:** City hall is node 0. You walk the road network as if every street were two-way, but tally a fine whenever you traverse a road **against** its original one-way sign (child → parent in the given direction). The DFS tree from 0 counts exactly the edges that need flipping.
 
-### 3. Visual walkthrough
+### 3. Visual — DFS path list backtrack
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+DAG:  0 → 1 → 3
+      ↓       ↑
+      2 ──────┘
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+path = []
+dfs(0):
+  push 0 → path=[0]
+  dfs(1): push → [0,1]
+    dfs(3): push → [0,1,3] → TARGET → save copy ✓
+    pop → [0,1]
+  pop → [0]
+  dfs(2): push → [0,2]
+    dfs(3): push → [0,2,3] → save copy ✓
+    pop, pop
+  pop → []
+
+BACKTRACK: push → recurse → pop at EVERY node after exploring children
 ```
 
-### 4. How the pattern works
+### 4. Visual — misdirected edge count in DFS tree
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+Given directed edges (one-way roads):
+  0 → 1,  3 → 1,  2 → 0,  4 → 2
+
+Build adjacency for DFS from 0:
+  0 → (1, cost=1)   // 0→1 matches direction, cost 0 going 1→0? 
+  Actually: from a, add (b,1) for edge a→b; add (b,0) for reverse b→a
+
+  adj[0]: (1,1), (2,0)  // 2→0 reversed as 0→2 costs 0? 
+  Standard trick:
+    for edge (a,b): adj[a].push(b,1); adj[b].push(a,0)
+  DFS from 0: sum cost when walking edge against original arrow
+
+Tree DFS from 0 visits all nodes (connected graph):
+  Each edge checked once; cost=1 means that edge points away from parent
+  → must flip. Total = min reorders.
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+### 5. The universal templates
 
-### 5. What problem does this solve?
+**All paths (DAG):**
+```
+function dfs(u):
+    path.push(u)
+    if u == target: res.append(copy(path))
+    else:
+        for v in graph[u]:
+            dfs(v)
+    path.pop()
+```
 
-| Problem family | How this pattern helps |
+**Reorder (rooted DFS tree):**
+```
+for edge (a,b) in connections:
+    adj[a].push(b, 1)   // a→b is correct direction when descending
+    adj[b].push(a, 0)   // reverse traverse costs 1 flip
+
+function dfs(u, parent):
+    flips = 0
+    for (v, cost) in adj[u]:
+        if v != parent:
+            flips += cost + dfs(v, u)
+    return flips
+```
+
+### 6. Why BFS or naive approaches fail
+
+| BFS for all paths | Problem |
 |---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+| BFS finds shortest, not all | Need DFS backtrack |
+| Queue can't easily enumerate paths | Path list + pop |
 
-### 6. Why brute force fails
-
-| Brute force | Problem |
+| Try every permutation of edges | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| Factorial | DFS tree counts each edge once |
 
-### 7. The key observation
+| Global visited in all-paths DAG | Problem |
+|---|---|
+| Blocks valid routes that revisit nodes via different paths | DAG: no cycles, backtrack suffices |
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+### 7. Day 8 vs Day 9 — the contrast
+
+| | **Day 8 — BFS Shortest** | **Day 9 — Directed DFS** |
+|---|---|---|
+| Goal | Min steps to target | **All** paths OR flip count |
+| Structure | Unweighted layers | DAG paths / rooted tree |
+| State | `(r,c,steps)` | **Path list** or edge cost |
+| Backtrack? | No | **Yes** for all paths |
+| Example | Binary Matrix | All Paths, Reorder Routes |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "all paths from source to target" | DFS + path push/pop |
+| "directed acyclic graph" | No cycle visited set needed |
+| "minimum edge reversals" / "reorder routes" | DFS tree + misdirected count |
+| "all paths lead to city zero" | Root at 0, sum flip costs |
+| "shortest path" only | **Day 8** BFS — not today |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `path.push` · `path.pop` · `path[:]` · `misdirected` · `cost 0/1` · `parent`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Forgetting `path.pop()` after recursion | Duplicates and wrong paths |
+| Saving path reference not copy | `res.append(path[:])` |
+| Global visited on all-paths DAG | Usually unnecessary — graph is DAG |
+| BFS for reorder routes | DFS tree edge accounting |
+| Wrong adjacency cost orientation | `(a,b): a→(b,1), b→(a,0)` |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Return all paths from node 0 to node n-1 in a DAG."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"DFS path backtrack: push u, at target save copy, recurse adj[u], pop. Not BFS — not Day 8."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Edges have direction. First quest: collect every path. →*

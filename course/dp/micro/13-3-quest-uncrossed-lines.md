@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Uncrossed Lines
 
 > **Day 13** · [Uncrossed Lines #1035](https://leetcode.com/problems/uncrossed-lines/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Uncrossed Lines on LeetCode](https://leetcode.com/problems/uncrossed-lines/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Draw lines on paper. Non-crossing pairs = matching values in **order**. That's LCS — same 2D table, different story.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **LCS in Visual Disguise**.
+Which DP pattern from today's concept applies? **LCS in Visual Disguise** — `nums1` and `nums2` are the two sequences; max uncrossed lines = LCS length.
 
-What is the state? What does dp[i] represent for this problem?
+Same recurrence as #1143: match → `dp[i-1][j-1]+1`, else `max(dp[i-1][j], dp[i][j-1])`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: lines crossing means order violated — count max **order-preserving** matches.
 
 ---
 
@@ -37,26 +38,20 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** LCS in Visual Disguise
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Two arrays, connect equal values with lines
+- Lines cannot cross → indices increase in **both** arrays
+- Maximize number of connections = LCS length
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "uncrossed" / "non-crossing" | Order-preserving matching = LCS |
+| "connect equal values" | Match when `nums1[i]==nums2[j]` |
+| "maximum number of lines" | Maximize count = LCS DP |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Crossing lines = order break — same as subsequence not substring."*
+2. *"Rename to LCS on nums1, nums2."*
+3. *"Copy #1143 code with int arrays."*
 
 ---
 
@@ -64,61 +59,46 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all pairs of connections, check crossing** | O(n⁴) or worse |
+| **Greedy match leftmost equal each time** | Wrong order of pairing |
+| **Graph matching algorithms** | Overkill — LCS O(mn) suffices |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Non-crossing = pick indices `i₁ < i₂` in nums1 and `j₁ < j₂` in nums2 — exactly LCS structure.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+nums1 = [1,4,2], nums2 = [1,2,4]
+Max uncrossed = 2  (connect 1-1 and 2-2) = LCS length 2
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Common Subsequence #1143](https://leetcode.com/problems/longest-common-subsequence/) | Strings instead of arrays | Identical DP |
+| [Maximum Length of Repeated Subarray #718](https://leetcode.com/problems/maximum-length-of-repeated-subarray/) | **Contiguous** — different DP | Not LCS |
+| [Delete Operation for Two Strings #583](https://leetcode.com/problems/delete-operation-for-two-strings/) | m+n-2*LCS deletions | LCS length in formula |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**nums1 = [1,4,2], nums2 = [1,2,4]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+LCS table (values):
+
+      1  2  4
+  1 [ 1  1  1 ]
+  4 [ 1  1  2 ]
+  2 [ 1  2  2 ]
+
+Answer dp[3][3] = 2
+Lines: (1,1) and (2,2) — no crossing
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** When the problem draws lines, think **hidden LCS**. Code is byte-for-byte #1143.
 
 ---
 
@@ -178,22 +158,19 @@ class Solution {
 }
 ```
 
-**Complexity:** Time: O(m*n), Space: O(m*n)
-
+**Complexity:** O(m · n) time · O(m · n) space
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"LCS in Visual Disguise"** → Name the DP pattern from the concept page.
+- **"Lines can't cross"** → Indices increase in both arrays → LCS.
+- **"Not a graph problem"** → 2D DP beats matching.
+- **"Same code as #1143"** → Recognition > reinvention.
+- **"LCS visual applies"** → Fill the canonical grid.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** LCS in Visual Disguise
+> 🎯 **Pattern Unlocked:** LCS in Visual Disguise — uncrossed lines = subsequence match count.
 
 ---
 

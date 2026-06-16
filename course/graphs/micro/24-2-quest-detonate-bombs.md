@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Detonate Maximum Bombs
 
 > **Day 24** · [Detonate Maximum Bombs #2101](https://leetcode.com/problems/detonate-maximum-bombs/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Detonate Maximum Bombs on LeetCode](https://leetcode.com/problems/detonate-maximum-bombs/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Build directed edges: bomb `i` triggers bomb `j` if `dist(i,j) ≤ radius[i]`. DFS from each start; track max component size.
 
 ---
 
@@ -24,38 +25,38 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Geometric Graph Construction**.
+**Geometric overlap graph + DFS.**
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `overlap(a,b)`: `(dx² + dy²) ≤ (long long)r_a²` — bomb `a` detonating reaches center of `b` if dist ≤ **a's radius**.
+- For each starting bomb `i`: DFS/BFS along built edges, count visited.
+- Answer = max count over all starting bombs.
+- n ≤ 1000 → O(n²) pair check is fine.
+
+Not Union-Find (directed). Not Dijkstra.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Geometric Graph Construction
+**Pattern used:** Geometric Graph Construction + DFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Points + radius in plane → pairwise edge test
+- "Detonates all bombs in range" → reachability on built graph
+- "Maximum" over starting choice → try each node as source
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "x, y, radius" per bomb | Node = index; edge = in-range |
+| "Chain detonation" | DFS/BFS component from start |
+| "Maximum bombs" | Max over all starts |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Once graph is built, detonation chain = reachable set from first blast.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"overlap(i,j): dist² ≤ r_i² (long long)."*
+2. *"dfs(u): mark vis; for all v if overlap(u,v) dfs(v)."*
+3. *"For each i: fresh vis, dfs(i), update best."*
 
 ---
 
@@ -63,12 +64,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Simulate without graph structure** | Chain tracking becomes ad hoc |
+| **Use r_i + r_j as threshold** | Wrong rule — only i's radius matters |
+| **32-bit overflow on coordinates** | Up to 10⁵ — square in long long |
+| **Single BFS from arbitrary bomb** | Must try every starting bomb |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** O(n²) modeling is the bottleneck; traversal is straightforward DFS.
 
 ---
 
@@ -76,29 +77,27 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Number of Boomerangs #447](https://leetcode.com/problems/number-of-boomerangs/) | Count pairs same distance | O(n²) geometry |
+| [Detonate Maximum Bombs #2101](https://leetcode.com/problems/detonate-maximum-bombs/) | Directed reachability | Build + DFS |
+| [Min Cost Connect Points #1584](https://leetcode.com/problems/min-cost-to-connect-all-points/) | MST on geometry | Day 21 |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+Bombs: (0,0,r=3), (5,0,r=2), (2,0,r=1)
 
-Apply Geometric Graph Construction step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+0 triggers 2? dist=2 ≤ 3 ✓
+0 triggers 1? dist=5 > 3 ✗
+2 triggers 1? dist=3 > 1 ✗
+
+Start at 0 → {0,2} count=2
+Start at 1 → {1} count=1
+Answer: 2
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Geometry defines edges; DFS counts chain length.
 
 ---
 
@@ -178,22 +177,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Radius blast chain"** → build directed reachability graph.
+- **"dist² ≤ r_i²"** → long long, per problem's trigger rule.
+- **"Max over all starters"** → reset visited each trial.
+- **"Not shortest path"** → DFS/BFS count, not Dijkstra.
+- **"Model first, traverse second"** → Day 24 theme.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Geometric Graph Construction"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Geometric Graph Construction
+> 🎯 **Pattern Unlocked:** Geometric Graph Construction + DFS
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: tree return-cost DFS for apples. →*

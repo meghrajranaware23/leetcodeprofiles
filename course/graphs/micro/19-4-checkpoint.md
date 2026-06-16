@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 19 Checkpoint
 
 > **Dijkstra's Algorithm** · 2 quests completed · ⭐ 120 XP earned
@@ -6,67 +7,62 @@
 
 ## 🔍 Pattern Signals — Recognition Drill
 
-Before you move on, practice **hearing the signal** in each phrase below:
+Day 19 = **min-heap `(dist, node)` + relax + stale skip** — B-Rank highest-priority pattern.
 
 | When you see... | Think... | Why |
 |---|---|---|
-| "shortest path" / "minimum steps" | BFS | First visit = shortest in unweighted |
-| "connected" / "reachable" | DFS/BFS | Traverse with visited set |
-| "grid" / "island" / "matrix" | Grid-as-graph | 4-directional BFS/DFS |
-| "prerequisites" / "dependencies" | Topological sort | DAG ordering |
-| "bipartite" / "two groups" | Graph 2-coloring | BFS/DFS with alternating colors |
-| "union" / "merge" / "equivalent" | Union-Find | Near-O(1) connectivity |
+| "network delay" / weighted shortest from source | Dijkstra min-heap | Non-negative edge weights |
+| "maximum probability" / multiply edge weights | Modified Dijkstra max-heap | Max product, same skeleton |
+| "minimum steps" unweighted | **BFS** — Day 8 | No heap needed |
+| "at most K stops" | **Day 20** Bellman-Ford layers | Stop limit breaks plain Dijkstra |
+| "minimum effort max height diff" | **Day 20** grid Dijkstra | Bottleneck relax |
 
 ### 🧠 Quick Recognition Test
 
-Read each mini-problem. Which pattern fires first?
-
-1. *"Find shortest path in an unweighted graph"* → **BFS** (queue + visited)
-2. *"Count connected components"* → **DFS/BFS** (restart from each unvisited node)
-3. *"Check if graph has a cycle"* → **DFS 3-color** or **topological sort**
-4. *"Minimum cost to connect all points"* → **MST / Kruskal's** with Union-Find
+1. *"Signal time to reach all nodes from source k"* → **Dijkstra** — answer = max dist
+2. *"Max probability path start→end"* → **Modified Dijkstra** — × and max-heap
+3. *"Shortest path in 0/1 matrix"* → **BFS** — unweighted
+4. *"Cheapest flight with ≤K layovers"* → **Day 20** — not plain Dijkstra
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-You've studied today's quests. Can you recognize the pattern on problems you've never seen?
+**Scenario 1:** *"Given road network with travel times, minimum time from A to all cities."*
 
-**Scenario 1:** *"Given a grid, count the number of islands."*
+Which pattern? **Dijkstra** — identical to Network Delay Time.
 
-Which pattern? **Grid DFS/BFS.** Each unvisited '1' cell starts a new component. Mark visited, count components.
+**Scenario 2:** *"Maximize reliability (product of link success rates) from server A to B."*
 
-**Scenario 2:** *"Given prerequisites, can you finish all courses?"*
+Which pattern? **Modified Dijkstra** — prob[start]=1, max-heap, multiply relax.
 
-Which pattern? **Cycle detection / topological sort.** If the prerequisite graph has a cycle, impossible.
+**Scenario 3:** *"Minimum number of flights with at most 2 transfers."*
 
-**Scenario 3:** *"Given a network, find minimum time for signal to reach all nodes."*
+Which pattern? **Day 20 K-stop BF** — layered relax, not Day 19 heap.
 
-Which pattern? **Dijkstra.** Weighted shortest path from source to all nodes.
-
-> **Answer key:** All three use patterns from today's training. The *combine logic* changes — the recursive skeleton does not.
+> **Answer key:** Weight + no extra constraint = Day 19. K stops or max-edge grid = Day 20.
 
 ---
 
 ## ⚠ Common Mistakes
 
-1. **Forgetting visited set** — Every graph traversal needs one to avoid infinite loops.
-2. **Using DFS for shortest path** — BFS guarantees minimum steps in unweighted graphs.
-3. **Not building adjacency list** — Convert edge list to adjacency list before traversing.
-4. **Not tracing on paper** — Graph problems are visual. Always draw first.
-5. **Confusing directed vs undirected** — Check if edges are one-way or bidirectional.
+1. **FIFO queue on weighted graph** — must use min-heap by dist.
+2. **Skipping stale skip** — `if d > dist[u]: continue` is required.
+3. **prob init 0 for max probability** — start at 1.0 at source.
+4. **Using Dijkstra with negative weights** — broken; use Bellman-Ford.
+5. **Returning dist[target] when all nodes must be reached** — Network Delay needs **max** dist.
 
 ---
 
 ## 🏋️ Mini Challenge
 
-### Related LeetCode Practice
+### [Path with Maximum Probability #1514](https://leetcode.com/problems/path-with-maximum-probability/)
 
-Pick one problem from today's pattern family and solve it on LeetCode without looking at the walkthrough.
+Re-implement from memory after #743. What three things change?
 
-**Before you code:** Say the pattern name out loud. Draw a 5-node graph. Trace your approach by hand.
+**Before you code:** Say "max not min, multiply not add, max-heap not min-heap."
 
-> 💡 **Hint:** Re-read the Pattern Recognition Breakdown from today's quests if stuck.
+> 💡 **Hint:** Same stale skip and adjacency build — only compare and combine differ.
 
 ---
 
@@ -79,4 +75,4 @@ Pick one problem from today's pattern family and solve it on LeetCode without lo
 
 ---
 
-*Day 19 complete! Tomorrow: the next territory of your ascension. →*
+*Day 19 complete! Tomorrow: shortest path with extra constraints. →*

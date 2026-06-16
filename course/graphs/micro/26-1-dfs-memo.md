@@ -1,125 +1,133 @@
+<!-- hand-authored -->
 # 📝 Graph DFS with Memoization
 
 > **Day 26** · DFS + Memoization · ★★★★★ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand DFS + Memoization visually** before you touch any code. Draw the graph on paper. Watch nodes get visited. Then the traversal becomes obvious.
+Day 26 pairs **DFS with memo** on a **DAG implied by problem structure** — and **BFS for bottleneck timing** on trees. Two different tools; both avoid redundant work.
+
+> **Quest 1:** Matrix where edges go to **strictly larger** values → implicit DAG → longest path via `dp[r][c]`.  
+> **Quest 2:** Tree idle time → BFS distances from server 0, then per-node **bottleneck** math on retransmissions.
 
 ---
 
-## Part 1 — Why Does This Work?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**DFS + Memoization** — the core technique you'll use in today's quests.
-
-Every graph problem reduces to one question: *How do I explore the connections?*
-- **BFS** (breadth-first): expand wavefront level by level — shortest path in unweighted graphs
-- **DFS** (depth-first): go deep before wide — connectivity, cycles, backtracking
-- **Union-Find**: merge connected groups efficiently — connectivity queries
-- **Dijkstra**: weighted shortest path — priority queue relaxation
-- **State-space**: treat configurations as nodes — abstract graph BFS
+| Technique | Graph shape | State | Recurrence |
+|---|---|---|---|
+| **DFS + memo on DAG** | Directed edges to increasing cells | `dp[r][c]` = LIP from (r,c) | `1 + max dfs(neighbors with greater value)` |
+| **Tree BFS + bottleneck** | Undirected tree, root 0 | `dist[i]` from BFS | Per leaf: last resend time + round-trip |
 
 ### 2. Simple explanation
 
-Think of a graph like a city map. Nodes are intersections, edges are roads. To explore:
-- **BFS** = flood filling outward — visit all neighbors before going deeper
-- **DFS** = walking one road to the end, then backtracking
+**Longest increasing path (#329):** From each cell, you may walk to a neighbor with **strictly higher** value. No cycles possible — values strictly increase along any walk. So the grid is a **DAG** (each cell points to larger neighbors). `dfs(r,c)` with memo returns longest path **starting** at (r,c). Answer = max over all starts.
 
-The visited set prevents infinite loops. The queue/stack determines exploration order.
+**Network idle (#2039):** Server 0 sends messages; node `i` retransmits every `patience[i]` seconds until it gets a reply. BFS gives one-way delay `dist[i]`. Round-trip = `2*dist[i]`. Last unnecessary send before reply arrives at `((roundTrip-1)/patience[i])*patience[i]`. Network idle when **last message of all nodes** has returned — take **max** over nodes, then +1.
 
-### 3. Visual walkthrough
+### 3. Visual — matrix DAG (decreasing forbidden)
 
 ```
-Graph:  0 — 1 — 2
-        |       |
-        3 — 4   5
+Matrix:
+  1  3
+  2  4
 
-BFS from 0:
-Queue: [0] → visit 0, enqueue 1,3
-Queue: [1,3] → visit 1, enqueue 2; visit 3, enqueue 4
-Queue: [2,4] → visit 2, enqueue 5; visit 4
-Queue: [5] → visit 5
-Visited: {0,1,3,2,4,5}
+Edges (only to strictly larger):
+  1→3, 1→2, 2→4, 3→4
+
+dfs(1)=1+max(dfs(3),dfs(2))=1+max(2,2)=3
+Path: 1→3→4 or 1→2→4  length 3
+
+No cycle: 4 has no larger neighbor → base 1
 ```
 
-### 4. How the pattern works
+**Why DAG:** edge (r,c)→(nr,nc) requires `mat[nr][nc] > mat[r][c]` — can't return.
+
+### 4. Visual — tree idle bottleneck
 
 ```
-function bfs(start):
-    queue = [start]
-    visited = {start}
-    while queue not empty:
-        node = queue.dequeue()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.enqueue(neighbor)
+dist from 0 via BFS:
+  node 0:0, node 1:1, node 2:2
+
+Node 2, patience=3:
+  roundTrip = 4
+  lastSend = ((4-1)/3)*3 = 3
+  finishes at 3+4 = 7
+
+Answer = max over all non-root nodes, then +1
 ```
 
-The magic: you never revisit a node. Each visit is O(1) amortized with a visited set.
+Each node is independent after BFS — **bottleneck** = max finish time.
 
-### 5. What problem does this solve?
+### 5. DFS + memo template (matrix DAG)
 
-| Problem family | How this pattern helps |
-|---|---|
-| Connectivity | DFS/BFS finds all reachable nodes |
-| Shortest path (unweighted) | BFS guarantees minimum steps |
-| Grid traversal | Treat cells as nodes, 4-directional edges |
-| Multi-source propagation | Initialize BFS from all sources |
-| Cycle detection | DFS with coloring or in-degree topo sort |
-| Weighted shortest path | Dijkstra with priority queue |
+```
+function dfs(r, c):
+    if dp[r][c]: return dp[r][c]
+    best = 1
+    for each neighbor (nr,nc) in bounds:
+        if mat[nr][nc] > mat[r][c]:
+            best = max(best, 1 + dfs(nr, nc))
+    dp[r][c] = best
+    return best
+
+answer = max dfs(r,c) over all cells
+```
+
+No global `visited` during recursion — memo handles overlap. Increasing constraint prevents cycles.
 
 ### 6. Why brute force fails
 
 | Brute force | Problem |
 |---|---|
-| Try all paths recursively without memo | Exponential time on dense graphs |
-| BFS without visited set | Infinite loops on cyclic graphs |
-| Dijkstra on unweighted graphs | Unnecessary priority queue overhead |
-| Nested loops for connectivity | O(n²) when O(n) BFS/DFS suffices |
-| Ignoring graph structure in grids | Miss the natural adjacency model |
+| **DFS without memo on matrix** | Same cell recomputed exponentially |
+| **BFS for longest path** | Longest ≠ shortest; need DAG DP |
+| **Allow equal-value moves** | Cycles possible — breaks DAG |
+| **Simulate every message event** | O(dist·patience) — bottleneck formula is O(n) |
+| **Dijkstra on tree for idle** | Unweighted tree BFS suffices |
 
-### 7. The key observation
+### 7. Day 26 vs Day 14 DAG
 
-**A graph is just nodes and edges.** Most interview problems are one of: traverse it, find shortest path, detect structure, or build it from input. Name the exploration strategy first.
+| | **Day 14 — Topo / ancestors** | **Day 26 — Matrix LIP** |
+|---|---|---|
+| DAG source | Explicit prerequisites | **Implicit** from value order |
+| Order | Kahn / topo | DFS memo — no topo needed |
+| Goal | Reachability / min cover | Longest path length |
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "shortest path" / "minimum steps" | BFS (unweighted) or Dijkstra (weighted) |
-| "connected" / "reachable" / "can visit" | DFS/BFS with visited set |
-| "grid" / "matrix" / "island" | Grid-as-graph, 4-directional BFS/DFS |
-| "course schedule" / "prerequisites" | Topological sort / cycle detection |
-| "bipartite" / "two groups" | Graph 2-coloring |
-| "union" / "merge groups" / "connected components" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
-| "all paths" / "backtrack" | DFS with path recording |
+| "Longest increasing path" in matrix | DFS + memo, only greater neighbors |
+| "Strictly increasing" | DAG — no cycle check needed |
+| "Network idle" / "patience" / "last reply" | BFS dist + bottleneck max |
+| "Tree" + "time until quiet" | Not Dijkstra — unit edges |
+| "Shortest path in matrix" | **BFS** — opposite objective |
 
-**Keywords:** `graph` · `node` · `edge` · `adjacent` · `connected` · `traverse` · `shortest`
+**Keywords:** `mat[nr][nc] > mat[r][c]` · `dp[r][c]` · `2*dist[i]` · `patience[i]` · `max bottleneck`
 
 ### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Forgetting visited set | Always track visited — cycles cause infinite loops |
-| Using DFS for shortest path | BFS guarantees shortest in unweighted graphs |
-| Not building adjacency list | Convert edge list to adjacency list first |
-| Off-by-one in grid bounds | Check `0 <= r < rows and 0 <= c < cols` |
-| Confusing directed vs undirected | Check if edges are one-way or two-way |
+| Use visited set that blocks memo reuse | Memo replaces visited on DAG |
+| Allow 4 dirs to equal or smaller | Strict `>` only |
+| Forget max over all starting cells | Any cell can start LIP |
+| Off-by-one on idle answer `+1` | Problem wants first idle **second** |
+| Integer division for lastSend | `((rt-1)/p)*p` pattern |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an m×n grid, count the number of islands."*
+> *"Find longest path in matrix where each step moves to a strictly higher cell value."*
 
 Before coding, say:
 
-> *"Grid-as-graph → DFS/BFS from each unvisited '1' cell, mark visited, count components."*
+> *"Implicit DAG — dfs+memo from every cell, edge if neighbor value greater. NOT BFS. NOT plain grid flood."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Memo on increasing DAG; bottleneck on tree BFS. First quest: longest path matrix. →*

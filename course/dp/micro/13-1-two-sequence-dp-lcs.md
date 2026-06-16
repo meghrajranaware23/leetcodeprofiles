@@ -1,34 +1,36 @@
+<!-- hand-authored -->
 # 📝 Two-Sequence DP — LCS
 
 > **Day 13** · Two-Sequence DP — LCS · ★★★☆☆ · 20 XP · 15 min read
 
 ---
 
-Your mission today: **understand Longest Common Subsequence visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 12 scanned **one array** backward (`j < i`). Day 13 compares **two sequences** — strings, arrays, or lines — with a **2D table**: `dp[i][j]` = answer for prefixes `s1[0..i-1]` and `s2[0..j-1]`. The **Longest Common Subsequence (LCS)** visual lives here — this is the canonical home for the match-diagonal / max-up-left grid. Day 12 deliberately did **not** use this table.
+
+> **Preview contrast (Day 12 vs Day 13):** Day 12 = 1D `dp[i]` on one array. Day 13 = **2D `dp[i][j]`** — match takes diagonal `↖`, else `max(↑, ←)`.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Longest Common Subsequence** — the core technique you'll use in today's quests.
+**LCS DP** — fill a table where each cell compares one character (or value) from each sequence.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[i][j]` = LCS length of `s1[0..i-1]` and `s2[0..j-1]`
+- **Match** — `s1[i-1] == s2[j-1]` → `dp[i][j] = dp[i-1][j-1] + 1` (diagonal ↖)
+- **No match** — `dp[i][j] = max(dp[i-1][j], dp[i][j-1])` (↑ or ←)
+- **Base** — row 0 and col 0 are 0 (empty prefix)
+- **Answer** — `dp[m][n]` (full strings)
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Walk two fingers along both strings. At each pair of positions, if the symbols **match**, you extend the best answer from **both previous prefixes** (without those symbols). If they don't match, you drop one symbol from either side and take the better of the two smaller subproblems. The 2D table records every prefix pair exactly once.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual walkthrough — canonical LCS 2D table
 
 ```
-2D DP table — Longest Common Subsequence:
+s1 = "ace",  s2 = "abcde"
 
       ""  a  b  c  d  e
   "" [ 0  0  0  0  0  0 ]
@@ -38,107 +40,88 @@ The recursion tree shows you which subproblems repeat. The DP table is you sayin
 
 Cell dependencies:
   ┌────────┐
-  │ dp[i-1]│──→ dp[i-1][j] (no match: take from above)
+  │ dp[i-1]│──→ dp[i-1][j] (↑ skip s1[i-1])
   │ [j-1]  │↘
-  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (match: diagonal + 1)
+  └────────┘  dp[i][j] = dp[i-1][j-1] + 1  (↖ match)
                 │
                 ▼
-            dp[i][j-1] (no match: take from left)
+            dp[i][j-1] (← skip s2[j-1])
 
 Match   → diagonal ↖ + 1
 No match → max(↑ above, ← left)
+
+Answer: dp[3][5] = 3  ("ace")
 ```
 
-### 4. The DP Pipeline
+**This is the canonical LCS grid — use it on Day 13, not on Day 12.**
 
-Apply the five-step pipeline to today's pattern:
-
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Longest Common Subsequence" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Longest Common Subsequence**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Fill order
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+for i = 1..m:
+  for j = 1..n:
+    if s1[i-1] == s2[j-1]:
+      dp[i][j] = dp[i-1][j-1] + 1
+    else:
+      dp[i][j] = max(dp[i-1][j], dp[i][j-1])
 ```
 
-### 7. Base cases & answer extraction
+Each cell depends only on **already-filled** cells above and left — top-left to bottom-right.
 
-| Component | Question |
+### 5. LCS in disguise
+
+Many problems hide two sequences:
+
+| Surface problem | Hidden sequences |
 |---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+| Uncrossed Lines | Two arrays — non-crossing = LCS order |
+| Edit distance | LCS variant with insert/delete cost |
+| Shortest common supersequence | Built from LCS length |
 
-### 8. Pattern signals & recognition clues
+If matching pairs must preserve **order** in both lists, think LCS.
+
+### 6. Day 12 LIS vs Day 13 LCS
+
+| | **Day 12 — LIS** | **Day 13 — LCS** |
+|---|---|---|
+| Sequences | 1 | 2 |
+| State | `dp[i]` | `dp[i][j]` |
+| Visual | 1D trace | **2D table above** |
+| Transition | `j < i` on one array | match ↖ or max ↑← |
+| Quest | #300, #673 | #1143, #1035 |
+
+### 7. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "longest common subsequence" | Classic 2D LCS table |
+| "two strings" / "two arrays" | `dp[i][j]` on prefixes |
+| "uncrossed lines" / "connect equal values" | LCS on the two arrays |
+| "increasing subsequence" one array | **Day 12** — not LCS |
+| "palindrome" | **Day 14** — expand or interval |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `dp[i][j]` · `match diagonal` · `max up left` · `two prefixes` · `subsequence`
 
-### 9. Common DP mistakes
+### 8. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using 1D LIS scan for two strings | Need 2D — two independent indices |
+| `dp[i][j] = dp[i-1][j-1] + 1` on mismatch | Only +1 when characters **match** |
+| Off-by-one: compare `s[i]` vs `s[j]` | Use `s[i-1]` vs `s[j-1]` when dp is 1-indexed |
+| Returning `dp[m-1][n-1]` with padded table | Answer is `dp[m][n]` if size `(m+1)×(n+1)` |
+| Confusing substring with subsequence | LCS skips chars — not contiguous |
 
-### 10. Recognition drill
+### 9. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"Given two strings text1 and text2, return the length of their longest common subsequence."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"dp[i][j] = LCS of prefixes. Match → dp[i-1][j-1]+1. Else max(dp[i-1][j], dp[i][j-1]). Fill 2D table — canonical LCS visual."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Two fingers, one table. First quest: classic LCS. →*

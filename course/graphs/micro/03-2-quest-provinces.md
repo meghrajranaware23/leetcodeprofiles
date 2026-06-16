@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Provinces
 
 > **Day 3** · [Number of Provinces #547](https://leetcode.com/problems/number-of-provinces/) · Medium · 15 min
@@ -10,23 +11,39 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Number of Provinces on LeetCode](https://leetcode.com/problems/number-of-provinces/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw cities as nodes; draw an edge when `isConnected[i][j]==1`. Count separate groups. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-See the full problem statement on LeetCode: **[Number of Provinces #547](https://leetcode.com/problems/number-of-provinces/)**
+There are `n` cities. `isConnected[i][j] == 1` if city `i` and city `j` are **directly** connected (undirected). A **province** is a maximal connected group.
 
-Work through the examples on paper before reading further.
+Return the number of provinces.
+
+```
+Input:  isConnected = [[1,1,0],[1,1,0],[0,0,1]]
+Output: 2
+Explanation: {0,1} and {2} are two provinces.
+
+Input:  isConnected = [[1,0,0],[0,1,0],[0,0,1]]
+Output: 3
+Explanation: Each city alone.
+```
 
 ---
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DFS Connected Components**.
+Which pattern from today's concept applies? **DFS connected components** — outer restart loop + flood each group.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+**Hint 1:** Treat the matrix as an adjacency list: neighbors of `i` are all `j` where `isConnected[i][j]==1` and `j != i`.
+
+**Hint 2:** `visited = [False]*n`, `components = 0`. For each `i`: if not visited, `components++` and `dfs(i)`.
+
+**Hint 3:** In `dfs(u)`: mark `visited[u]=True`; for each neighbor `v`, if not visited, `dfs(v)`.
+
+**Hint 4:** Union-Find also works (solution uses UF) — same "merge connected cities" idea as Day 1 Path Exists.
 
 ---
 
@@ -35,27 +52,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** DFS Connected Components
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Undirected connectivity → components
+- Matrix given instead of edge list → scan row `i` for neighbors
+- Answer is a **count** of groups → restart loop pattern
+- No shortest path → not BFS
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "provinces" / "circles" / "connected components" | Count groups |
+| Symmetric `isConnected` matrix | Undirected graph |
+| `isConnected[i][i]==1` always | Skip self or harmless |
+| "directly connected" | Edge in adjacency |
+| Return integer count | Outer loop increments |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each DFS from an unvisited node marks exactly one entire province. The outer loop counts how many times you must start a new DFS.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Convert matrix row to neighbor list (or scan inline)."*
+2. *"for i in range(n): if not vis[i]: count++, dfs(i)."*
+3. *"dfs marks every city in the province."*
+4. *"Example 1: dfs(0) marks 0,1; dfs(2) marks 2 → count=2."*
 
 ---
 
@@ -63,12 +79,13 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Count 1s on diagonal or matrix cells** | Doesn't measure connectivity |
+| **Single DFS from city 0 only** | Misses provinces not reachable from 0 |
+| **Pairwise check if path exists for all pairs** | O(n²) path queries; one DFS pass is O(n²) total |
+| **Treat matrix as directed** | Wrong — connection is mutual |
+| **DFS without global visited** | Revisit cities; wrong count |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Components = **how many times** you restart DFS on an unvisited node.
 
 ---
 
@@ -76,29 +93,35 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| Number of Islands #200 (Day 4) | Grid instead of matrix | Restart flood from each unvisited `1` |
+| Keys and Rooms #841 (next quest) | Directed edges, one component from 0 | Same DFS skeleton, different question |
+| Friend Circles = this problem | Same problem, old name | Component count |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Same restart loop — different graph input format.
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Restart loop — each new DFS = one province.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+isConnected:
+  0 — 1    2
 
-Apply DFS Connected Components step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+  [[1,1,0],
+   [1,1,0],
+   [0,0,1]]
+
+i=0: not visited → components=1, dfs(0)
+  dfs(0): mark 0 → neighbor 1 → dfs(1) marks 1
+i=1: already visited → skip
+i=2: not visited → components=2, dfs(2) marks 2
+
+Answer: 2 ✓
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** The outer `for i` loop is not the DFS — it's the **component counter**. DFS does the flooding inside each group.
 
 ---
 
@@ -179,22 +202,19 @@ class Solution {
 ```
 
 **Complexity:** O(n² · α(n)) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Provinces"** → connected components → **restart loop**.
+- **Matrix = adjacency** → row `i` lists neighbors.
+- **DFS picture:** each restart floods one province; solution uses UF (Day 1 tool).
+- **Skip `j==i`** or ignore self-loop — diagonal is always 1.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"DFS Connected Components"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+If you coded DFS with outer loop, compare to UF — both count merged groups.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** DFS Connected Components
+> 🎯 **Pattern Unlocked:** Component counting — unvisited node triggers new flood.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: directed graph, one start — can DFS reach every room? →*

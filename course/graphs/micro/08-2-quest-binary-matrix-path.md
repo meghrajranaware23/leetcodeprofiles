@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Shortest Path in Binary Matrix
 
 > **Day 8** · [Shortest Path in Binary Matrix #1091](https://leetcode.com/problems/shortest-path-in-binary-matrix/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Shortest Path in Binary Matrix on LeetCode](https://leetcode.com/problems/shortest-path-in-binary-matrix/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** BFS from (0,0). Track steps per **layer** or carry `(r,c,steps)`. Include **8 directions**. Return steps when you first reach (n-1,n-1). The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **BFS Shortest Path**.
+Which pattern from today's concept applies? **BFS Shortest Path** — unweighted grid, one start, one goal. Mark visited when entering a cell (`grid[r][c]=1`). Process queue **level-by-level** and increment `steps` after each layer (path length includes both endpoints).
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: not Day 6 — you don't need distances for every cell. Stop as soon as bottom-right is reached.
 
 ---
 
@@ -35,27 +36,25 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** BFS Shortest Path
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Shortest clear path" → BFS, not DFS
+- Single start `(0,0)`, single goal `(n-1,n-1)`
+- 8-directional movement → 8 neighbor offsets
+- Return path **length** (cells in path), not move count only
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "shortest path" | BFS layers |
+| "8-directionally" | Diagonal neighbors included |
+| "path length" | Count cells — layer BFS matches examples |
+| "0 = walkable" | Mark 1 when visited |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** All edges cost 1 (including diagonals). BFS explores increasing path lengths; first goal hit is shortest.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"If start or end is 1 → -1."*
+2. *"n==1 → return 1."*
+3. *"Queue (0,0), mark visited, steps=1 before loop or increment per layer."*
+4. *"8 dirs; on reaching (n-1,n-1) return current steps."*
 
 ---
 
@@ -63,12 +62,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **DFS backtracking all paths** | Exponential; may not find shortest first |
+| **Day 6 dist matrix for all cells** | Works but wasteful — early exit at goal suffices |
+| **4-direction only** | Wrong — problem allows diagonals |
+| **Dijkstra** | Unnecessary for unit weights |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** One BFS wave with layer counting — stop at first goal.
 
 ---
 
@@ -76,29 +75,32 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Shortest Bridge #934](https://leetcode.com/problems/shortest-bridge/) | Two-phase: mark island + BFS | Step-count BFS expansion |
+| [Nearest Exit from Entrance #1926](https://leetcode.com/problems/nearest-exit-from-entrance-in-maze/) | Goal = any border; `(r,c,steps)` | D-Rank test — Day 8 |
+| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | Abstract states, not grid | Layer BFS (later ranks) |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Layer BFS with 8 neighbors.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+3×3 grid (0=open):
+0 0 0
+0 1 0
+0 0 0
 
-Apply BFS Shortest Path step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+steps=1: start (0,0) in queue
+Layer at steps=2: cells distance 1 from start
+...
+First time (2,2) reached at steps=4 → return 4
+
+8 dirs: (1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)
+Skip if out of bounds or grid[nr][nc]==1
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** `(r,c,steps)` tuple and layer counter are equivalent — today's solution uses layers with `steps++` after each full queue slice.
 
 ---
 
@@ -192,22 +194,19 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"BFS Shortest Path"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"Shortest clear path"** → BFS, not DFS.
+- **"8-directional"** → 8 neighbor offsets, not 4.
+- **"One goal cell"** → Stop early — not Day 6 full matrix.
+- **"Layer steps = path length"** → Match problem's length definition.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** BFS Shortest Path
+> 🎯 **Pattern Unlocked:** BFS Shortest Path — layers until goal, 8-way grid.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: two phases — find island, then expand. →*

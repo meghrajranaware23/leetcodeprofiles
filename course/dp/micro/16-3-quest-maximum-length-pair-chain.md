@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Maximum Length of Pair Chain
 
 > **Day 16** · [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Maximum Length of Pair Chain on LeetCode](https://leetcode.com/problems/maximum-length-of-pair-chain/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** **Sort by pair end** (second value). Greedy: take next pair if `start > prev_end`. Day 12 LIS spirit on a timeline.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Interval Selection DP**.
+Which DP pattern from today's concept applies? **Interval Selection DP** — sort by `pairs[i][1]`, chain where `pairs[i][0] > end`.
 
-What is the state? What does dp[i] represent for this problem?
+Greedy scan after sort matches O(n log n) sort + O(n) scan — same optimal structure as activity selection.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: sort `[[1,2],[2,3],[3,4]]` — can you take both [1,2] and [3,4]?
 
 ---
 
@@ -37,26 +38,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Interval Selection DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Pairs `[start, end]` — chain if `start_next > end_prev`
+- Maximize count of pairs in chain
+- Sort unlocks greedy/DP scan
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "pair chain" / "pairs[i][1]" | Sort by end, greedy chain |
+| "a < b" in each pair | Interval `[a,b]` |
+| "maximum length of chain" | Activity selection / LIS on ends |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 12 bridge:** After sort by end, picking non-overlapping intervals = increasing chain on end times with start constraint — LIS cousin.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Sort by second coordinate (end)."*
+2. *"end = MIN, ans = 0."*
+3. *"If start > end, take pair, update end."*
+4. *"Return ans."*
 
 ---
 
@@ -64,61 +62,42 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all subsets of pairs** | O(2^n) |
+| **Sort by start only** | Greedy by start doesn't minimize blocking |
+| **O(n²) DP without sort** | Works but sort+greedy is simpler |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Sorting by **end** lets greedy maximize room for future pairs — classic interval scheduling.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+[[1,2],[2,3],[3,4]] sorted by end:
+  take [1,2], skip [2,3] (2 not > 2), take [3,4] → 2
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | One array, no intervals | Day 12 |
+| [Non-overlapping Intervals #435](https://leetcode.com/problems/non-overlapping-intervals/) | Min removals | Same sort-by-end greedy |
+| [Wiggle Subsequence #376](https://leetcode.com/problems/wiggle-subsequence/) | Directional subsequence | Today's other quest |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**pairs = [[1,2], [2,3], [3,4]]**
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+Sort by end: [[1,2],[2,3],[3,4]]
+end = MIN
+[1,2]: 1>MIN → take, ans=1, end=2
+[2,3]: 2>2? no → skip
+[3,4]: 3>2 → take, ans=2, end=4
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Sort by end + `start > end` is the interval version of "pick increasing chain."
 
 ---
 
@@ -166,21 +145,18 @@ class Solution {
 ```
 
 **Complexity:** O(n log n) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Interval Selection DP"** → Name the DP pattern from the concept page.
+- **"Sort by end, not start"** — Frees earliest finish for rest.
+- **"start > end" strict** — Chain requires gap between intervals.
+- **"Greedy = optimal"** — Activity selection proof.
+- **"Day 12 LIS cousin"** — Monotone chain after sort.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Interval Selection DP
+> 🎯 **Pattern Unlocked:** Interval Selection DP — sort by end, greedy chain.
 
 ---
 

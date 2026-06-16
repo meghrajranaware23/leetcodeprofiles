@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: All Paths From Source to Target
 
 > **Day 9** · [All Paths From Source to Target #797](https://leetcode.com/problems/all-paths-from-source-to-target/) · Medium · 15 min
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open All Paths From Source to Target on LeetCode](https://leetcode.com/problems/all-paths-from-source-to-target/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Maintain a `path` list. push → recurse → pop. Save `path[:]` at node `n-1`. The hints below are for *after* your attempt.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **DFS Path Recording**.
+Which pattern from today's concept applies? **DFS Path Recording** — graph is a **DAG** (no cycles). Push current node; if `u == target`, append copy of path; else DFS each neighbor; pop before returning.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+If you're stuck after 5 minutes: no BFS — you need **every** path, not shortest. No permanent visited set — backtrack handles branch isolation.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** DFS Path Recording
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "All paths" → enumerate, not optimize
+- Input is adjacency list of DAG → DFS safe without cycle guard
+- Source `0`, target `n-1` → fixed endpoints
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "all paths" | DFS + backtrack |
+| "directed acyclic graph" | No visited set on nodes |
+| "return list of paths" | Save `path[:]` at target |
+| adjacency list `graph[u]` | Recurse neighbors in order |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each root-to-target walk is independent. Push/pop ensures sibling branches don't contaminate each other's prefix.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"cur = []; dfs(0)."*
+2. *"push u; if u==n-1: res.append(cur[:])."*
+3. *"else: for v in graph[u]: dfs(v)."*
+4. *"pop u before return."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **BFS** | Finds shortest path only — misses other routes |
+| **Global visited set** | Blocks valid paths in DAG with multiple routes |
+| **Save path reference without copy** | All entries point to same mutated list |
+| **Skip pop after children** | Sibling paths include wrong prefix |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Backtrack IS the visited mechanism for path enumeration.
 
 ---
 
@@ -76,29 +74,32 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Binary Tree Paths #257](https://leetcode.com/problems/binary-tree-paths/) | Tree, string paths | push/pop at nodes |
+| [Path Sum II #113](https://leetcode.com/problems/path-sum-ii/) | Target filter at leaf | Same backtrack |
+| [Reorder Routes #1466](https://leetcode.com/problems/reorder-routes-to-make-all-paths-lead-to-the-city-zero/) | Count flips, not paths | Day 9 DFS variant |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
+**Enumerate paths by backtracking.**
 
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+graph = [[1,2],[3],[3],[]]
+       0→1, 0→2, 1→3, 2→3
 
-Apply DFS Path Recording step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+dfs(0): path=[0]
+  dfs(1): path=[0,1]
+    dfs(3): path=[0,1,3] → save [0,1,3] ✓
+    pop → [0,1]
+  pop → [0]
+  dfs(2): path=[0,2]
+    dfs(3): path=[0,2,3] → save [0,2,3] ✓
+
+Result: [[0,1,3],[0,2,3]]
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Same backtrack rhythm as tree path problems — graph is just adjacency list instead of left/right children.
 
 ---
 
@@ -161,22 +162,19 @@ class Solution {
 ```
 
 **Complexity:** O(2^n · n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"DFS Path Recording"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"All paths in DAG"** → DFS backtrack, not BFS.
+- **"push / pop / copy"** → Three-line backtrack cycle.
+- **"No visited set"** → DAG has no cycles to trap you.
+- **"Not Day 8"** → Shortest vs enumerate all.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** DFS Path Recording
+> 🎯 **Pattern Unlocked:** DFS Path Recording — push, save at target, pop.
 
 ---
 
-*One quest down. The next one builds on this pattern. →*
+*One quest down. Next: count misdirected edges in the DFS tree. →*

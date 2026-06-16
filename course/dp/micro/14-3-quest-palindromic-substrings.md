@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Palindromic Substrings
 
 > **Day 14** · [Palindromic Substrings #647](https://leetcode.com/problems/palindromic-substrings/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Palindromic Substrings on LeetCode](https://leetcode.com/problems/palindromic-substrings/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Same expand pattern as #5 — but **count** every valid expansion step instead of tracking max length.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Palindrome Counting DP**.
+Which DP pattern from today's concept applies? **Palindrome Counting DP** — identical expand to #5; `ans++` on each successful `(l,r)` pair while expanding.
 
-What is the state? What does dp[i] represent for this problem?
+Each single character is a palindrome — your loop should count at least `n` for `"aaa"`.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+If you're stuck after 5 minutes: for `s="aaa"`, list all palindromic substrings by hand — should be 6.
 
 ---
 
@@ -37,26 +38,20 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Palindrome Counting DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Count **substring** palindromes (contiguous)
+- Single string symmetry
+- Same expand mechanics as longest palindromic substring
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
-
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+| "count palindromic substrings" | Expand + increment counter |
+| "how many" + palindrome + substring | Not LPS subsequence (Day 15) |
+| "substring" | Contiguous — expand centers |
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"Same expand as #5."*
+2. *"Inner while loop: ans++ each time l,r valid."*
+3. *"Odd and even centers per index."*
 
 ---
 
@@ -64,61 +59,46 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Generate all substrings, check each** | O(n³) — expand is O(n²) |
+| **Interval dp[i][j] boolean table** | Works O(n²) but expand is simpler |
+| **Count LPS subsequences** | Wrong — subsequence ≠ substring |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Every expansion step discovers exactly one new palindromic substring centered at that radius.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+s = "aaa":
+  centers give: a, a, a, aa, aa, aaa → 6
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Palindromic Substring #5](https://leetcode.com/problems/longest-palindromic-substring/) | Track max instead of count | Same expand |
+| [Longest Palindromic Subsequence #516](https://leetcode.com/problems/longest-palindromic-subsequence/) | Subsequence — skip chars | Day 15 interval DP |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**s = "abc"** — expand and count:
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i=0: 'a' →1; no even
+i=1: 'b' →1; 'aba' not applicable
+i=2: 'c' →1
+Total: 3
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+**s = "aaa"**:
+
+```
+Each center radiates: 3 singles + 2 doubles + 1 triple = 6
+```
+
+> 💡 **The insight:** Counting is expand with `ans++` inside the while loop — no max tracking.
 
 ---
 
@@ -170,21 +150,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(1) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Palindrome Counting DP"** → Name the DP pattern from the concept page.
+- **"#5 with a counter"** → Same expand, `ans++` per radius.
+- **"Substring only"** → Not Day 15 LPS count.
+- **"Not LCS table"** → Center expansion on one string.
+- **"aaa → 6"** → Sanity check for counting.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Palindrome Counting DP
+> 🎯 **Pattern Unlocked:** Palindrome Counting DP — expand and count radii.
 
 ---
 

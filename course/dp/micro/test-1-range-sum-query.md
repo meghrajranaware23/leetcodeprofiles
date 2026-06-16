@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ E-Rank Test — Problem 1
 
 > [Range Sum Query - Immutable #303](https://leetcode.com/problems/range-sum-query-immutable/) · Easy · 100 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Range Sum Query - Immutable on LeetCode](https://leetcode.com/problems/range-sum-query-immutable/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Define the state. Write the transition. Fill the table by hand. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. The array never changes; queries repeat. Ask: *"What can I precompute once?"*
 
 ---
 
@@ -24,38 +25,52 @@ See the full problem statement on LeetCode: **[Range Sum Query - Immutable #303]
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the E-Rank curriculum. Define the state and transition before you code.
+> 🎯 **What's being tested:** **Prefix accumulation** — cousin of tabulation, not classic "choices at each step" DP. You build a table once, answer queries in O(1).
 
-Revisit your rank's cheat sheet. Is this linear DP, grid DP, knapsack, or state machine?
+**Hint 1:** Define `prefix[i]` = sum of `nums[0..i-1]` (or sum of first i elements). `prefix[0] = 0`.
+
+**Hint 2:** Build in constructor: `prefix[i+1] = prefix[i] + nums[i]` — one left-to-right pass (Day 3 fill order).
+
+**Hint 3:** Query `[left, right]` inclusive: `prefix[right+1] - prefix[left]`. No loop per query.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** Prefix Sum Preprocessing (E-Rank tabulation cousin)
+
 **How to identify from the statement:**
-- What is the state? What information describes a subproblem?
-- What are the choices at each state?
-- What's the transition formula?
+- Array **immutable** — build once, many queries
+- Range sum repeated — O(1) per query after O(n) build
+- Not overlapping subproblems — no memo on a recurrence tree
 
 **How a strong solver thinks before coding:**
-1. *"What does dp[i] represent?"*
-2. *"What's the base case?"*
-3. *"Linear, grid, knapsack, or state machine?"*
-4. *"Can I optimize the space?"*
+1. *"Many queries → precompute."*
+2. *"prefix[i] = cumulative sum — Day 3 bottom-up on one dimension."*
+3. *"Range sum = difference of two prefix values."*
+4. *"Not Fib, not Kadane — still table-filling mindset."*
+
+**E-Rank connection:** Day 3 tabulation taught **fill left-to-right**; prefix array is the simplest "dp" table where `prefix[i]` depends on `prefix[i-1]`.
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-DP problems have exponential recursion trees with massive overlap. Brute force means recomputing the same subproblems O(2^n) times. Define the state, cache it, and solve each subproblem exactly once.
+| Approach | Problem |
+|---|---|
+| **Sum left..right per query** | O(n) per query — TLE with many queries |
+| **Recompute from scratch each time** | Ignores immutability |
+| **Prefix array once** | O(n) build + O(1) query ✓ |
+
+**The insight:** Classic DP overlap isn't here — but **precomputed cumulative state** is the same engineering instinct as tabulation.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you define the state without the problem name telling you the pattern?
+*"Static array, many range aggregate queries (sum, min with sparse table, etc.)."*
 
-Read the statement once. Define dp[i] in one sentence. If you can write the transition in under 60 seconds, you're ready.
+If data doesn't change → **preprocess a table** in O(n) or O(n log n), query fast.
 
 ---
 
@@ -106,7 +121,7 @@ class NumArray {
 }
 ```
 
-**Complexity:** O(n) build · O(1) query · O(n) space
+**Complexity:** O(n) build time · O(1) query time · O(n) space
 
 </details>
 
@@ -114,10 +129,57 @@ class NumArray {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a E-Rank test"** → Use patterns from this rank's training.
-- **"State first, code second"** → Define dp[i] before writing any code.
-- **"Name the pattern"** → The code is just the transition formula in syntax.
+- **"Immutable + many queries"** → Precompute prefix — not classic recurrence DP.
+- **"prefix[i+1]-prefix[left]"** → Same tabulation instinct as Day 3.
+- **"Constructor = fill table; sumRange = read answer cell"** → Framework checklist applies.
+- **"Not every E-Rank problem is Fib"** → Pattern recognition over memorization.
 
 ---
 
 *1 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class NumArray {
+    vector<int> prefix;
+public:
+    NumArray(vector<int>& nums) {
+        prefix.resize(nums.size() + 1, 0);
+        for (int i = 0; i < (int)nums.size(); i++)
+            prefix[i + 1] = prefix[i] + nums[i];
+    }
+    int sumRange(int left, int right) {
+        return prefix[right + 1] - prefix[left];
+    }
+};
+```
+
+### Python
+```python
+class NumArray:
+    def __init__(self, nums: List[int]):
+        self.prefix = [0]
+        for num in nums:
+            self.prefix.append(self.prefix[-1] + num)
+    def sumRange(self, left: int, right: int) -> int:
+        return self.prefix[right + 1] - self.prefix[left]
+```
+
+### Java
+```java
+class NumArray {
+    int[] prefix;
+    public NumArray(int[] nums) {
+        prefix = new int[nums.length + 1];
+        for (int i = 0; i < nums.length; i++)
+            prefix[i + 1] = prefix[i] + nums[i];
+    }
+    public int sumRange(int left, int right) {
+        return prefix[right + 1] - prefix[left];
+    }
+}
+```
+
+**Complexity:** O(n) build time · O(1) query time · O(n) space

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Cheapest Flights Within K Stops
 
 > **Day 20** · [Cheapest Flights Within K Stops #787](https://leetcode.com/problems/cheapest-flights-within-k-stops/) · Medium · 15 min · 35 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Cheapest Flights Within K Stops on LeetCode](https://leetcode.com/problems/cheapest-flights-within-k-stops/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** **Not** plain Day 19 Dijkstra. Run k+1 **layers** of Bellman-Ford: each layer `tmp = dist.copy()`, relax all flights once.
 
 ---
 
@@ -24,9 +25,9 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Bellman-Ford / Modified Dijkstra**.
+Which pattern from today's concept applies? **Bellman-Ford / layered relax** — state is effectively `(city, stops_used)`; at most k stops = at most k+1 edges.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+Copy `dist` before each round so you don't chain multiple flights in one stop layer. Contrast Day 19 where one `dist[node]` finalize is OK.
 
 ---
 
@@ -35,27 +36,24 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 **Pattern used:** Bellman-Ford / Modified Dijkstra
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- Cheapest path with **at most K intermediate stops** (K+1 edges max)
+- Directed flight graph with prices
+- Plain Dijkstra wrong — cheaper path may need more stops
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "at most k stops" / "k layovers" | Bellman-Ford k+1 rounds |
+| "cheapest price" | Min cost relax |
+| "network delay" no limit | Day 19 Dijkstra |
+| "unweighted shortest" | BFS |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Layer i = best price using ≤ i edges. tmp copy prevents using 2 new edges in one layer.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"dist[src]=0; rest INF."*
+2. *"Repeat k+1 times: tmp=dist; for each flight relax into tmp."*
+3. *"dist=tmp after each round."*
+4. *"Return dist[dst] or -1."*
 
 ---
 
@@ -63,12 +61,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **Day 19 Dijkstra** | Freezes node too early — misses cheaper route with extra stop |
+| **BFS by stop count** | Can work with `(node, stops)` BFS — BF layers equivalent |
+| **One Bellman-Ford pass without tmp** | Allows unlimited edges in one iteration |
+| **DFS all paths** | Exponential |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight brute force misses:** Stop limit breaks Dijkstra's "visit once" — layered relax tracks `(city, stops)` implicitly.
 
 ---
 
@@ -76,29 +74,27 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
+| [Network Delay Time #743](https://leetcode.com/problems/network-delay-time/) | No stop cap | Dijkstra |
+| [Path With Minimum Effort #1631](https://leetcode.com/problems/path-with-minimum-effort/) | Grid bottleneck | Heap Dijkstra |
+| Bellman-Ford full | V-1 rounds | Negative weights |
 
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+Day 20 contrast: **K constraint → layers, not heap.**
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+src=0, dst=2, k=1, flights: 0→1 ($100), 0→2 ($500), 1→2 ($100)
 
-Apply Bellman-Ford / Modified Dijkstra step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+Layer 0: dist=[0, INF, INF]
+Layer 1: tmp from dist → dist[1]=100, dist[2]=500
+Layer 2 (k+1=2): relax 1→2 → dist[2]=min(500, 100+100)=200 ✓
+
+Without tmp copy in one pass: might chain incorrectly within layer
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Day 19 = one best dist per node. Day 20 K-flights = best dist per node **using bounded edges** — layers encode that.
 
 ---
 
@@ -161,19 +157,18 @@ class Solution {
 ```
 
 **Complexity:** O(k · E) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Bellman-Ford / Modified Dijkstra"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
+- **"At most K stops"** → not Day 19 Dijkstra.
+- **"k+1 relax rounds"** → each round = one more edge allowed.
+- **"tmp = dist.copy()"** → critical — no multi-hop within one layer.
+- **"Contrast #743"** → no stop limit there; heap works.
 
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
+If Dijkstra gave wrong answers on LeetCode, switch to layered BF.
 
 > 🎯 **Pattern Unlocked:** Bellman-Ford / Modified Dijkstra
 

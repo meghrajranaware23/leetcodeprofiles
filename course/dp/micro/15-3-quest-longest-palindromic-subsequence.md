@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Longest Palindromic Subsequence
 
 > **Day 15** · [Longest Palindromic Subsequence #516](https://leetcode.com/problems/longest-palindromic-subsequence/) · Medium · 15 min · 25 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Longest Palindromic Subsequence on LeetCode](https://leetcode.com/problems/longest-palindromic-subsequence/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** **Subsequence** — you CAN skip chars. Day 14 expand gave substring max 3 on `"bbbab"`; LPS answer is 4. Use interval `dp[i][j]`.
 
 ---
 
@@ -24,11 +25,11 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **2D Palindrome DP**.
+Which DP pattern from today's concept applies? **2D Palindrome DP** — `dp[i][j]` = LPS length in `s[i..j]`.
 
-What is the state? What does dp[i] represent for this problem?
+Match: `dp[i][j] = dp[i+1][j-1] + 2`. Else: `max(dp[i+1][j], dp[i][j-1])`. Fill `i` descending.
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in the 2D table cell by cell. Track which cells each cell depends on.
+If you're stuck after 5 minutes: compare Day 14 #5 expand on `"bbbab"` (substring 3) vs LPS (subsequence 4).
 
 ---
 
@@ -37,26 +38,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 **Pattern used:** 2D Palindrome DP
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- **Subsequence** — delete chars without reordering
+- Palindrome symmetry on ends
+- Maximize length in interval
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "palindromic subsequence" | Interval `dp[i][j]`, skip ends allowed |
+| "subsequence" (not substring) | `max(dp[i+1][j], dp[i][j-1])` on mismatch |
+| "longest" in one string | Fill intervals by length |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Day 14 bridge:** #5 expand = contiguous only. #516 = skip middle → longer answer possible.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"i from n-1 downto 0."*
+2. *"Match ends → inner + 2."*
+3. *"Mismatch → drop left or right end, take max."*
+4. *"Return dp[0][n-1]."*
 
 ---
 
@@ -64,61 +62,48 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Fill in
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Expand from center (#5)** | Only finds contiguous palindromes |
+| **Enumerate all subsequences** | O(2^n) |
+| **LCS(s, reverse(s))** | Works for length but interval DP is direct |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Interval `i..j` has O(n²) states — each depends only on smaller intervals inside or adjacent.
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+"bbbab": substring max "bbb"=3, subsequence "bbbb"=4 by skipping 'a'
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | What changes | Pattern stays the same |
+|---|---|---|
+| [Longest Palindromic Substring #5](https://leetcode.com/problems/longest-palindromic-substring/) | Substring — Day 14 expand | Contiguous only |
+| [Palindromic Substrings #647](https://leetcode.com/problems/palindromic-substrings/) | Count substrings | Expand |
+| [Word Break #139](https://leetcode.com/problems/word-break/) | Prefix partition | Today's other quest |
 
 ---
 
 ## 📖 Walkthrough
 
-Fill in the 2D table cell by cell. Track which cells each cell depends on.
+**s = "bbbab"** — interval fill:
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+i=4: dp[4][4]=1
+i=3: dp[3][4]=1 (b≠a → max(1,1)=1)
+...
+dp[0][4]:
+  s[0]=b, s[4]=b match → dp[1][3]+2
+  inner "bba" → dp[1][3]=2 ("bb")
+  dp[0][4] = 2+2 = 4
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+```
+if s[i]==s[j]: dp[i][j] = dp[i+1][j-1] + 2
+else:           dp[i][j] = max(dp[i+1][j], dp[i][j-1])
+```
+
+> 💡 **The insight:** Subsequence = optional skip via max of one-end-shorter intervals. Substring expand can't do this.
 
 ---
 
@@ -176,21 +161,18 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
 Before writing code, a strong solver's internal monologue sounds like this:
 
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"2D Palindrome DP"** → Name the DP pattern from the concept page.
+- **"Subsequence not substring"** — Day 14 expand fails here.
+- **"Match → inner + 2"** — Both ends taken together.
+- **"Mismatch → skip one end"** — max of shorter intervals.
+- **"Fill i descending"** — `dp[i+1][j-1]` must exist first.
 
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** 2D Palindrome DP
+> 🎯 **Pattern Unlocked:** 2D Palindrome DP — LPS interval, skip allowed.
 
 ---
 

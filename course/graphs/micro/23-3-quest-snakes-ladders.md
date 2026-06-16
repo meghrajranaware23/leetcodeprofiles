@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Snakes and Ladders
 
 > **Day 23** · [Snakes and Ladders #909](https://leetcode.com/problems/snakes-and-ladders/) · Medium · 15 min · 30 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Snakes and Ladders on LeetCode](https://leetcode.com/problems/snakes-and-ladders/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Draw the graph. Trace the traversal. The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** Nodes are square numbers 1..n². One move = roll 1–6, then apply snake/ladder. BFS from square 1.
 
 ---
 
@@ -24,38 +25,40 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which pattern from today's concept applies? Think about **Implicit Graph BFS**.
+**Board square BFS** — not a 4-directional grid walk.
 
-If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. Draw the graph and trace BFS/DFS by hand before looking at the solution structure.
+- `dist[square]` = minimum rolls to reach that square; `-1` = unvisited.
+- From square `s`, try `d = 1..6`: `ns = s + d` (cap at n²).
+- Map `ns` → `(r,c)` via **zigzag label**; if `board[r][c] != -1`, replace `ns` with that value (snake/ladder).
+- First BFS arrival at n² wins.
+
+Helper `label(s)` converts square number to board coordinates.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Implicit Graph BFS
+**Pattern used:** Implicit Board Graph BFS
 
 **How to identify this from the problem statement:**
-- Look for graph structure keywords — "node", "edge", "connected", "adjacent", "grid"
-- Ask: do I need **BFS** (shortest/levels), **DFS** (connectivity/cycles), or **Dijkstra** (weighted)?
-- Check if the input is explicit graph, implicit grid, or abstract state space
+- "Minimum moves" + dice → unweighted BFS
+- Board has teleports (snakes/ladders) → apply after landing
+- Squares numbered 1..n² in boustrophedon order
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "shortest path" / "minimum steps" | BFS with visited set |
-| "connected" / "reachable" | DFS/BFS from source |
-| "grid" / "island" / "matrix" | Grid-as-graph traversal |
-| "prerequisites" / "dependencies" | Topological sort |
-| "bipartite" / "two teams" | Graph 2-coloring |
-| "union" / "merge" / "equivalent" | Union-Find |
-| "minimum cost" / "network delay" | Dijkstra |
+| "square labeled 1 to n²" | Node = square index, not (r,c) primary |
+| "snake or ladder" | Post-process landing square |
+| "roll 1 to 6" | Up to 6 edges per node |
+| "return -1" if unreachable | Standard BFS failure |
 
-**Why this pattern works:** Graphs model relationships. The pattern names how you explore those relationships — wavefront (BFS), deep dive (DFS), or group merging (UF).
+**Why this pattern works:** Each roll is one edge cost. Teleport is part of the transition, not a separate BFS layer.
 
 **How a strong solver thinks before coding:**
-1. *"What are my nodes? What are my edges?"*
-2. *"BFS, DFS, Dijkstra, or Union-Find?"*
-3. *"Draw a small example graph and trace by hand."*
-4. *"What goes in my visited set?"*
+1. *"Write label(s) → (r,c) with zigzag rows."*
+2. *"dist[1]=0; queue {1}."*
+3. *"For d in 1..6: ns = min(s+d, n²); apply board teleport."*
+4. *"If dist[ns]==-1: dist[ns]=dist[s]+1; push."*
 
 ---
 
@@ -63,12 +66,12 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Approach | Problem |
 |---|---|
-| **Try all paths without pruning** | Exponential time — visited set is essential |
-| **DFS for shortest unweighted path** | BFS guarantees minimum steps |
-| **Dijkstra on unweighted graph** | BFS is simpler and equally correct |
-| **Nested loops for connectivity** | O(n²) when O(n) BFS/DFS works |
+| **DFS** | No shortest-roll guarantee |
+| **Treat (r,c) as BFS node without square logic** | Numbering is zigzag — off-by-one bugs |
+| **Separate BFS for teleport** | Teleport follows landing in same move |
+| **Revisit squares without dist[]** | Cycles through snakes possible |
 
-**The insight brute force misses:** Name the exploration strategy. BFS for shortest, DFS for connectivity, Dijkstra for weighted — then add a visited set.
+**The insight:** One graph on **square indices**; zigzag map is only for reading the board array.
 
 ---
 
@@ -76,29 +79,26 @@ If you're stuck after 5 minutes: revisit the concept page's visual walkthrough. 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Related tree problems | Different combine logic | Same recursive skeleton |
-| Same traversal order | Different processing per node | Same visit sequence |
-| Variant constraints | Extra state or early termination | Same flow direction |
-
-If you recognized this problem's pattern, you already have the skeleton for today's practice queue.
+| [Snakes and Ladders #909](https://leetcode.com/problems/snakes-and-ladders/) | This problem | Square BFS |
+| [Jump Game III #1306](https://leetcode.com/problems/jump-game-iii/) | Array indices, no dice | C-test — reachability BFS |
+| [Word Ladder #127](https://leetcode.com/problems/word-ladder/) | Word neighbors | Same implicit BFS skeleton |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace the pattern on a small graph before reading the code:
-
 ```
-Graph:  A — B — C
-        |       |
-        D — E   F
+n=2 board (squares 1-4):
+  After roll from 1 with d=1 → square 2
+  After roll d=2 → square 3
+  If square 3 has ladder to 4 → ns becomes 4 in same step
 
-Apply Implicit Graph BFS step by step on this graph.
-Draw it. Mark visited nodes at each step.
-Watch the queue/stack grow and shrink.
+dist[1]=0
+queue: 1 → expand rolls → mark dist for new squares
+stop when square n² first reached
 ```
 
-> 💡 **The insight:** The code is just the paper trace written in syntax. If you can trace it by hand, you can code it.
+> 💡 **The insight:** Dice defines edges; board array only affects **where you land**.
 
 ---
 
@@ -188,21 +188,17 @@ class Solution {
 ```
 
 **Complexity:** O(n²) time · O(n²) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
+- **"Dice + board teleports"** → BFS on square numbers.
+- **"Zigzag labeling"** → helper function, test on n=2.
+- **"Apply snake/ladder after landing"** → one transition per roll.
+- **"dist[] not bool[]"** → need minimum rolls.
+- **"Not word ladder, not lock"** → different neighbor generator, same BFS.
 
-- **"This is a graph problem"** → Draw it. Identify nodes and edges first.
-- **"Implicit Graph BFS"** → Name the pattern from the concept page.
-- **"BFS or DFS?"** → Shortest/levels = BFS. Connectivity/cycles = DFS.
-- **"Visited set"** → Every graph traversal needs one.
-
-If you tried DFS when BFS was cleaner (or vice versa), that's fine — the breakthrough is **naming the pattern family**, not memorizing one solution.
-
-> 🎯 **Pattern Unlocked:** Implicit Graph BFS
+> 🎯 **Pattern Unlocked:** Implicit Board Graph BFS
 
 ---
 

@@ -1,145 +1,145 @@
+<!-- hand-authored -->
 # 📝 Counting Decompositions
 
 > **Day 7** · Counting Decompositions · ★★★☆☆ · 15 XP · 15 min read
 
 ---
 
-Your mission today: **understand Path Counting DP visually** before you touch any code. Draw the recursion tree with overlapping calls. Fill the DP table by hand. Then the transitions become obvious.
+Day 6 asked **"take or skip for maximum?"** — two branches, **`max`**. Today asks **"how many ways?"** — same prefix idea, but you **add** valid branches. One quest decomposes a **string prefix** (1–2 char steps); the other counts **grid paths** (right or down). The visual is **summation**, not a take/skip fork.
+
+> **Preview contrast (Day 6 vs Day 7):** Day 6 = `max(skip, take)` on a line. Day 7 = **`dp[i] = dp[i-1] + dp[i-2]`** (when valid) — **count** ways to reach prefix `i`. Same 1D sweep direction; different aggregation.
 
 ---
 
-## Part 1 — Why Does DP Work Here?
+## Part 1 — Learn the Pattern
 
 ### 1. What is the pattern?
 
-**Path Counting DP** — the core technique you'll use in today's quests.
+**Counting Decompositions DP** — count how many valid ways to build a target (prefix, cell, amount) by summing transitions from smaller states.
 
-Every DP problem reduces to one question: *If I already know the answer to all smaller subproblems, how do I compute the answer to this one?*
-- **State** — what information do I need to describe a subproblem?
-- **Transition** — how do I compute dp[i] from previously solved states?
-- **Base case** — what are the smallest subproblems I can answer directly?
+- **State** — `dp[i]` = number of ways to reach / decode / fill prefix or cell `i`
+- **Transition** — **sum** over valid last steps: `dp[i] += dp[i - step]` for each valid step
+- **Not optimization** — no `max`/`min`; invalid steps contribute **0**, not −∞
+- **Two shapes today** — **1D prefix** (Decode Ways) · **2D grid** (Unique Paths)
 
 ### 2. Simple explanation
 
-Think of DP like building a house one brick at a time. Each brick (state) depends only on bricks already placed below it (previous states). You never re-lay a brick — once computed, the answer is final.
+Imagine tiling a hallway with 1-step and 2-step tiles (when rules allow). At position `i`, every valid way that ends with a 1-step comes from position `i-1`; every way that ends with a 2-step comes from `i-2`. You **add** those counts — you're not choosing the better one. On a grid, every path to `(i,j)` comes from above or from the left — again, **add**.
 
-The recursion tree shows you which subproblems repeat. The DP table is you saying: *"I'll solve each one exactly once."*
-
-### 3. Visual walkthrough
+### 3. Visual — Day 6 vs Day 7 (critical contrast)
 
 ```
-Decision diagram — take or skip:
+DAY 6 (Take/Skip — MAXIMUM):          DAY 7 (Counting — SUM):
 
-Item:    [3]   [4]   [2]   [8]
-          │     │     │     │
-          ▼     ▼     ▼     ▼
-  TAKE ──→ ■   SKIP ──→ ■   TAKE ──→ ■   TAKE ──→ ■
-  SKIP ──→ □   TAKE ──→ □   SKIP ──→ □   SKIP ──→ □
+  dp[i] = max( SKIP , TAKE )            dp[i] = WAYS from (i-1)
+              ↓      ↓                              +
+          dp[i-1]  dp[i-2]+val              WAYS from (i-2)
+          
+  "pick the better loot"                "count every valid path"
 
-DP array fills left-to-right:
-
-  dp[0]  dp[1]  dp[2]  dp[3]  dp[4]
-  ┌──────┬──────┬──────┬──────┬──────┐
-  │  0   │  3   │  4   │  5   │  12  │
-  └──────┴──────┴──────┴──────┴──────┘
-    ↑      ↑      ↑      ↑      ↑
-   base  max(   max(   max(   max(
-         take,  take,  take,  take,
-         skip)  skip)  skip)  skip)
-
-dp[i] = max(dp[i-1], dp[i-2] + nums[i])
+  Example nums [2,7,9]:                 Example "12":
+  dp: 2, 7, 11  (max)                   dp: 1, 1, 2  (1+"2" and "12")
 ```
 
-### 4. The DP Pipeline
+**If the problem says "how many," stop thinking take/skip.**
 
-Apply the five-step pipeline to today's pattern:
-
-```
-Step 1: BRUTE FORCE
-  → Write the recursive solution. Don't worry about efficiency.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree. Circle the repeated calls.
-  → "Path Counting DP" has overlapping subproblems because...
-
-Step 3: MEMOIZE (top-down)
-  → Add a cache. Before recursing, check if already computed.
-  → memo[state] = result
-
-Step 4: TABULATE (bottom-up)
-  → Define dp[i] (or dp[i][j]). Fill from base cases forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just the last 1-2 rows/values?
-```
-
-### 5. State definition
-
-**What does dp[i] represent?**
-
-The hardest part of DP is naming the state correctly. For **Path Counting DP**:
-- What parameters fully describe a subproblem?
-- Is the state a single index, two indices, or an index + capacity?
-- Can you state it in one sentence: *"dp[i] is the answer to..."*
-
-### 6. Transition logic
-
-**How do we compute dp[i]?**
-
-The transition is the heart of every DP solution:
-- What choices do I have at state i?
-- How does each choice connect to a previous state?
-- Is it min, max, sum, or count over the choices?
+### 4. Visual — string prefix (Decode Ways shape)
 
 ```
-dp[i] = best/sum over all valid choices c:
-          dp[previous_state(i, c)] + cost(c)
+s = "226"
+
+Index:  0   1   2   3   (dp[i] = ways to decode s[0..i-1])
+dp:     1   1   2   3
+
+At i=3 (char '6'):
+  1-digit "6" valid  → += dp[2] = 2
+  2-digit "26" valid → += dp[1] = 1
+  dp[3] = 3
+
+Ways: "2|2|6", "22|6", "2|26"
 ```
 
-### 7. Base cases & answer extraction
+Leading `'0'` kills a branch — always validate before adding.
 
-| Component | Question |
-|---|---|
-| Base case | What is the smallest subproblem? What does dp[0] (or dp[0][0]) equal? |
-| Fill order | Left-to-right? Bottom-up? By interval length? |
-| Answer | Is the answer dp[n], dp[n-1], max(dp[...]), or something else? |
+### 5. Visual — grid path count (Unique Paths shape)
+
+```
+3×3 grid — only right ↓ and down →
+
+dp[i][j] = dp[i-1][j] + dp[i][j-1]
+
+    j→  0   1   2
+  i 0   1   1   1
+  ↓ 1   1   2   3
+    2   1   3   6
+
+First row/col = 1 (only one way along edge)
+Answer: dp[m-1][n-1] = 6
+```
+
+**2D table, but same idea: sum incoming ways.**
+
+### 6. The universal templates
+
+**1D prefix counting:**
+```
+dp[0] = 1   // empty prefix
+for i = 1..n:
+    if valid_1_step(i): dp[i] += dp[i-1]
+    if valid_2_step(i): dp[i] += dp[i-2]
+return dp[n]
+```
+
+**2D grid counting:**
+```
+dp[0][j] = dp[i][0] = 1
+for i,j:
+    dp[i][j] = dp[i-1][j] + dp[i][j-1]
+return dp[m-1][n-1]
+```
+
+### 7. Day 6 vs Day 7 vs Day 8 — aggregation ladder
+
+| Day | Question | Combine with |
+|---|---|---|
+| **Day 6** | Best non-adjacent sum? | **`max`** |
+| **Day 7** | How many ways? | **`+`** |
+| **Day 8** | Cheapest path? | **`min` + cost** |
+
+Same "build from smaller subproblems" skeleton — **the operator changes**.
 
 ### 8. Pattern signals & recognition clues
 
 | When the problem says… | Think… |
 |---|---|
-| "how many ways" / "count paths" / "counting" | Counting DP — dp[i] = sum of valid transitions |
-| "minimum cost" / "cheapest" / "fewest" | Min-cost DP — dp[i] = min(options) + cost |
-| "maximum profit" / "best score" / "longest" | Max-value DP — dp[i] = max(options) |
-| "take or skip" / "rob houses" / "select items" | 0/1 Knapsack — dp[i] = max(take, skip) |
-| "unlimited supply" / "coins" / "denominations" | Unbounded Knapsack — try all items at each amount |
-| "longest increasing" / "subsequence" | LIS — dp[i] = max(dp[j]+1) for valid j < i |
-| "optimal" / "minimum cost" / "maximum profit" | DP — optimize over choices |
-| "how many ways" / "count paths" | DP — sum over transitions |
+| "how many ways" / "number of decodings" | 1D prefix sum DP |
+| "count paths" / "unique paths" | 2D sum from top and left |
+| "maximum sum non-adjacent" | **Day 6 max** — not today |
+| "minimum cost path" | **Day 8 min** — not today |
+| "partition string into valid pieces" | Often prefix counting with validation |
 
-**Keywords:** `minimum` · `maximum` · `count ways` · `longest` · `shortest` · `can you reach` · `partition`
+**Keywords:** `count` · `ways` · `+=` · `dp[i-1] + dp[i-2]` · `grid sum`
 
-### 9. Common DP mistakes
+### 9. Common beginner mistakes
 
 | Mistake | Fix |
 |---|---|
-| Wrong state definition | State must capture all info needed to make the optimal choice |
-| Missing base case | Always define dp[0] (and dp[1] if needed) before the loop |
-| Wrong fill order | Ensure dp[i] only depends on already-computed states |
-| Off-by-one in table size | dp array usually has size n+1 to include the empty/zero case |
-| Forgetting to return the right cell | Answer might be dp[n], dp[n-1], max(dp), or dp[0][n-1] |
+| Using `max` like Day 6 | Counting uses **sum** |
+| Forgetting `dp[0] = 1` | Empty prefix has one way |
+| Ignoring invalid `'0'` / leading zero pairs | Check before adding |
+| Drawing take/skip trees for decode | Use **prefix index** and valid step lengths |
+| Unique Paths: leaving interior cells 0 | First row/col must be 1 |
 
 ### 10. Recognition drill
 
 Read this problem aloud:
 
-> *"Given an array of integers, find the maximum sum of non-adjacent elements."*
+> *"A message contains letters A–Z encoded as digits 1–26. Count how many ways to decode the string."*
 
 Before coding, say:
 
-> *"State: dp[i] = max sum using elements 0..i. Transition: dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Base: dp[0] = nums[0], dp[1] = max(nums[0], nums[1]). Answer: dp[n-1]."*
+> *"Day 7 prefix counting: dp[i] += dp[i-1] if 1-digit valid; += dp[i-2] if 10–26 valid. Not take/skip — sum branches. Base dp[0]=1."*
 
 ---
 
-*You understand the pattern. Your first quest puts it into practice. →*
+*Count every valid decomposition. First quest: decode the string. →*

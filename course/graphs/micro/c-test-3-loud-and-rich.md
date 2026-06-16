@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ C-Rank Test — Problem 3
 
 > [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) · Medium · 150 XP
@@ -12,7 +13,7 @@ Open the problem on LeetCode and attempt it for **at least 15 minutes** before r
 
 **[→ Open Loud and Rich on LeetCode](https://leetcode.com/problems/loud-and-rich/)**
 
-> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. Draw the graph. Trace the traversal. No peeking until you've genuinely tried.
+> ⚔ **Hunter's rule:** This is a rank test — treat it like real interview practice. `[a,b]` in richer means **b is richer than a** — edge b→a. For each person, find the quietest among themselves and all richer ancestors.
 
 ---
 
@@ -24,38 +25,47 @@ See the full problem statement on LeetCode: **[Loud and Rich #851](https://leetc
 
 ## 💡 Hints
 
-> 🎯 **What's being tested:** Pattern recognition from the C-Rank curriculum. Name the pattern before you code.
+> 🎯 **What's being tested:** **DAG reachability + optimization** — Day 14–15 ancestor walk, but pick min `quiet[]` instead of listing all ancestors.
 
-Revisit your rank's cheat sheet. Which graph technique does this problem need?
+Build adj: for `[a,b]` richer, `adj[b].push(a)`. DFS with memo from each node: `ans[u] = u`, then for each richer child `v`, compare `quiet[dfs(v)]` with `quiet[ans[u]]`.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
+**Pattern used:** DAG DFS with Memo (min over reachable set)
+
 **How to identify from the statement:**
-- Read for graph structure clues
-- Determine exploration strategy
-- Name the pattern family before opening your editor
+- Partial order "richer than" → DAG (no cycles stated)
+- For each node: best among node + all nodes reachable via "richer" edges
+- `quiet[i]` is the weight to minimize
 
 **How a strong solver thinks before coding:**
-1. *"Draw the example graph."*
-2. *"What are my nodes and edges?"*
-3. *"BFS, DFS, Dijkstra, or Union-Find?"*
-4. *"What goes in my visited set?"*
+1. *"Edge b→a if b richer than a."*
+2. *"dfs(u): best = u; for v in adj[u]: cand = dfs(v); pick quieter."*
+3. *"Memo per node — shared subproblems."*
+
+**C-Rank connection:** Course Schedule IV asks "is u reachable?"; Loud and Rich asks "who is the quietest reachable node?"
 
 ---
 
 ## ❌ Why Brute Force Fails
 
-Graph problems have natural O(V+E) traversal solutions. Brute force typically means exponential path enumeration or missing visited sets. Trust the exploration strategy.
+| Approach | Problem |
+|---|---|
+| **BFS each node, scan all reachable** | O(n · (V+E)) without memo |
+| **Reverse edge direction** | Walks wrong way in richness |
+| **Sort by quiet globally** | Ignores richer constraint |
+
+**The insight:** Same DAG DFS as ancestors — combine step picks min quiet instead of collecting a list.
 
 ---
 
 ## 🎯 Transfer to Unseen Problems
 
-Can you spot the pattern without the problem name telling you?
+*"Among all nodes reachable in a DAG, find the one optimizing some property."*
 
-Read the statement once. Say the pattern aloud. If you can name it in under 30 seconds, you're ready.
+Reachability + aggregation (min/max/count) with memo on DAG DFS.
 
 ---
 
@@ -150,10 +160,93 @@ class Solution {
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-- **"This is a C-Rank test"** → Use patterns from this rank's training.
-- **"Draw first, code second"** → Visual tracing beats guessing.
-- **"Name the pattern"** → The code is just the template filled in.
+- **"Richer → edge to poorer."** → b→a for `[a,b]`.
+- **"Quietest among self + richer descendants."** → DFS min with memo.
+- **"DAG DFS like Day 14 ancestors."** → combine step differs.
+- **"Memo avoids recomputing subtrees."**
 
 ---
 
 *3 of 3 test problems. Continue to the next. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+    vector<vector<int>> adj;
+    vector<int> quiet, ans;
+    int dfs(int u) {
+        if (ans[u] != -1) return ans[u];
+        ans[u] = u;
+        for (int v : adj[u]) {
+            int cand = dfs(v);
+            if (quiet[cand] < quiet[ans[u]]) ans[u] = cand;
+        }
+        return ans[u];
+    }
+public:
+    vector<int> loudAndRich(vector<vector<int>>& richer, vector<int>& quiet) {
+        int n = quiet.size();
+        this->quiet = quiet;
+        adj.assign(n, {});
+        for (auto& r : richer) adj[r[1]].push_back(r[0]);
+        ans.assign(n, -1);
+        vector<int> res(n);
+        for (int i = 0; i < n; i++) res[i] = dfs(i);
+        return res;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def loudAndRich(self, richer: List[List[int]], quiet: List[int]) -> List[int]:
+        n = len(quiet)
+        adj = [[] for _ in range(n)]
+        for a, b in richer:
+            adj[b].append(a)
+        memo = {}
+        def dfs(u):
+            if u in memo: return memo[u]
+            best = u
+            for v in adj[u]:
+                cand = dfs(v)
+                if quiet[cand] < quiet[best]:
+                    best = cand
+            memo[u] = best
+            return best
+        return [dfs(i) for i in range(n)]
+```
+
+### Java
+```java
+class Solution {
+    private List<List<Integer>> adj;
+    private int[] quiet, ans;
+    public int[] loudAndRich(int[][] richer, int[] quiet) {
+        int n = quiet.length;
+        this.quiet = quiet;
+        adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (int[] r : richer) adj.get(r[1]).add(r[0]);
+        ans = new int[n];
+        Arrays.fill(ans, -1);
+        int[] res = new int[n];
+        for (int i = 0; i < n; i++) res[i] = dfs(i);
+        return res;
+    }
+    private int dfs(int u) {
+        if (ans[u] != -1) return ans[u];
+        ans[u] = u;
+        for (int v : adj.get(u)) {
+            int cand = dfs(v);
+            if (quiet[cand] < quiet[ans[u]]) ans[u] = cand;
+        }
+        return ans[u];
+    }
+}
+```
+
+**Complexity:** O(n + E) time · O(n) space

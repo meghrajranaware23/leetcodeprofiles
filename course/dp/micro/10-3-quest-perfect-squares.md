@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Perfect Squares
 
 > **Day 10** · [Perfect Squares #279](https://leetcode.com/problems/perfect-squares/) · Medium · 15 min · 20 XP
@@ -10,7 +11,7 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 **[→ Open Perfect Squares on LeetCode](https://leetcode.com/problems/perfect-squares/)**
 
-> ⚔ **Hunter's rule:** Spend at least 5 minutes with pen and paper. Which DP pattern from today's concept applies? What's the state? What's the transition? The hints below are for *after* your attempt.
+> ⚔ **Hunter's rule:** For n=12, try peeling j² = 1, 4, 9 last. Each gives dp[remainder]+1 — pick **min**.
 
 ---
 
@@ -24,11 +25,15 @@ Work through the examples on paper before reading further.
 
 ## 💡 Hints
 
-Which DP pattern from today's concept applies? Think about **Minimization with Multiple Choices**.
+**Pattern:** Day 10 **Minimization with Multiple Choices**.
 
-What is the state? What does dp[i] represent for this problem?
+- `dp[i]` = minimum number of perfect squares summing to `i`
+- `dp[0] = 0`
+- For each `i`, loop `j` while `j*j ≤ i`:
+  - `dp[i] = min(dp[i], dp[i - j*j] + 1)`
+- Answer: `dp[n]`
 
-If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+Lagrange four-square theorem guarantees an answer ≤ 4 — DP finds the minimum.
 
 ---
 
@@ -37,26 +42,23 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 **Pattern used:** Minimization with Multiple Choices
 
 **How to identify this from the problem statement:**
-- Does the problem ask for an optimal value (min/max) or a count of ways?
-- Can the problem be broken into overlapping subproblems?
-- Is there a clear decision at each step (take/skip, include/exclude)?
+- Represent `n` as sum of squares — **how few** terms
+- Unlimited reuse of same square (4+4+4)
+- Classic inner loop over `j` with j² ≤ i
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "minimum" / "maximum" / "optimal" | DP — optimize over choices |
-| "how many ways" / "count" / "number of" | DP — sum transitions |
-| "can you reach" / "is it possible" | DP — boolean reachability |
-| "longest" / "shortest" subsequence | DP — sequence comparison |
-| "partition into" / "subset sum" | Knapsack DP |
-| "using at most k" / "with capacity" | Bounded knapsack or state machine |
+| "least number of perfect square numbers" | min DP |
+| "sum to n" | subtract j², 1 + dp[rest] |
+| "break integer max product" | **Integer Break** — max, not min |
 
-**Why brute force fails:** Without DP, the recursive solution recomputes the same subproblems exponentially many times. The recursion tree has O(2^n) or O(n!) nodes, but only O(n) or O(n²) unique subproblems.
+**Why inner loop:** Many square sizes can be the "last layer" — try all.
 
 **How a strong solver thinks before coding:**
-1. *"What's the state? What does dp[i] represent?"*
-2. *"What are my choices at each state?"*
-3. *"What's the transition formula?"*
-4. *"What's the base case? What's the answer cell?"*
+1. *"dp[0]=0."*
+2. *"dp[i] starts INF."*
+3. *"For j=1; j*j<=i: relax min."*
+4. *"Return dp[n]."*
 
 ---
 
@@ -64,61 +66,47 @@ If you're stuck after 5 minutes: revisit the concept page's DP Pipeline. Draw th
 
 | Approach | Problem |
 |---|---|
-| **Naive recursion without caching** | O(2^n) — same subproblems recomputed exponentially |
-| **Trying all subsets with nested loops** | O(2^n) or O(n!) — misses the optimal substructure |
-| **Greedy without proof** | Greedy doesn't work when locally optimal ≠ globally optimal |
-| **Not identifying the state** | Without a clear state, no way to cache or tabulate |
+| **Try all combinations of squares** | Exponential |
+| **Greedy: always take largest square** | Fails — e.g. 12 = 4+4+4 not 9+1+1+1 |
+| **Only check if sqrt is integer** | Need **sum** of squares, not one square |
+| **Max instead of min** | Wrong objective |
 
-**The insight brute force misses:** The recursion tree has massive overlap. DP exploits this by solving each unique subproblem exactly once.
+**The insight brute force misses:** Order doesn't matter — only remaining sum after peeling j².
 
 ```
-Exponential tree:           DP table:
-     f(5)                   dp: [0, 1, 1, 2, 3, 5]
-    /    \                        → O(n) time
-  f(4)   f(3)                     → each cell filled once
-  / \    / \
-f(3) f(2) f(2) f(1)        Same answer, no repeated work.
- ...  ...  ...
-→ O(2^n) calls
+n=12: dp[12]=3 via 4+4+4
+Greedy largest-first 9+1+1+1 → 4 terms — not minimal
 ```
 
 ---
 
-## 🔗 The DP Pipeline Applied
+## 🔗 Same Pattern, Other Problems
 
-```
-Step 1: BRUTE FORCE
-  → Write the naive recursive solution for this problem.
-
-Step 2: IDENTIFY OVERLAP
-  → Draw the recursion tree for a small example.
-  → Which calls repeat?
-
-Step 3: MEMOIZE
-  → Add memo[state] = result before each return.
-  → Check memo before recursing.
-
-Step 4: TABULATE
-  → Define dp[...]. Fill from base case forward.
-  → dp[state] = transition(previous states)
-
-Step 5: OPTIMIZE SPACE
-  → Do you need the whole table? Or just prev/curr?
-```
+| Problem | Peel / choice | Aggregate |
+|---|---|---|
+| [Coin Change #322](https://leetcode.com/problems/coin-change/) | coin value | min |
+| [Integer Break #343](https://leetcode.com/problems/integer-break/) | split j | max |
+| [Perfect Squares #279](https://leetcode.com/problems/perfect-squares/) | j² | min |
 
 ---
 
 ## 📖 Walkthrough
 
-Draw the recursion tree. Circle the repeated subproblems. Then fill the DP table left-to-right.
+**Example:** `n = 13`
 
 ```
-Fill the DP table cell by cell for the example from the problem.
-At each cell, write which previous cells it depends on.
-Watch the transition formula produce the correct value.
+dp[0]=0
+dp[1]=1 (1)
+dp[4]=1 (4)
+dp[9]=1 (9)
+dp[13]=min(
+  dp[12]+1 = 3+1 = 4,
+  dp[9]+1  = 1+1 = 2,
+  dp[4]+1  = 1+1 = 2
+) → 2  (9+4)
 ```
 
-> 💡 **The insight:** The code is just the table-filling written in syntax. If you can fill the table by hand, you can code it.
+> 💡 **The insight:** Each square peel is one multi-option — same skeleton as Integer Break but **min** and j² steps.
 
 ---
 
@@ -169,19 +157,14 @@ class Solution {
 ```
 
 **Complexity:** O(n · √n) time · O(n) space
-
 ---
 
 ## 💭 What Should Have Clicked in Your Mind?
 
-Before writing code, a strong solver's internal monologue sounds like this:
-
-- **"State is..."** → dp[i] represents the answer for the first i elements (or whatever the state is).
-- **"Transition is..."** → dp[i] = max/min/sum of (choices connecting to previous states).
-- **"Base case is..."** → dp[0] = ... (the smallest subproblem answered directly).
-- **"Minimization with Multiple Choices"** → Name the DP pattern from the concept page.
-
-If you tried brute force first, that's fine — the breakthrough is **defining the state and transition**, not memorizing one solution.
+- **"Fewest squares summing to n"** → min DP + inner j.
+- **"j*j <= i"** — only valid square peels.
+- **"dp[0]=0"** — zero needs zero squares.
+- **"Contrast Integer Break"** — max splits vs min square layers.
 
 > 🎯 **Pattern Unlocked:** Minimization with Multiple Choices
 
