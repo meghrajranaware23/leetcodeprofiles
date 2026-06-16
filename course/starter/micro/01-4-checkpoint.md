@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 1 Checkpoint
 
 > **Your LeetCode Home Base** · 1 quest completed · ⭐ 30 XP available
@@ -10,13 +11,14 @@ Before you move on, confirm you can recall today's workflow:
 
 1. What was today's skill? → **Platform Setup & Daily Workflow**
 2. What was today's mission? → *Make LeetCode yours before you chase problems.*
-3. What was the expected outcome? → Account created, editor chosen, first Accepted submission, daily slot scheduled
+3. Name the four steps of the daily loop → **Read → Try → Learn → Reflect**
+4. What is the difference between **Run** and **Submit**?
 
 ---
 
 ## 📓 Reflection Journal
 
-Write your answers in your mistake journal (notebook or doc):
+Write your answers in your mistake journal:
 
 - Why am I doing this? What does success look like in 90 days?
 
@@ -33,11 +35,11 @@ Write your answers in your mistake journal (notebook or doc):
 
 ## 🪞 Mistake Mirror
 
-Common mistakes from today's skill area:
+Common Day 1 mistakes — which did you catch?
 
-1. **Skipping the reading framework** — slows long-term growth
-2. **Not logging where you got stuck** — slows long-term growth
-3. **Moving on without completing the habit action** — slows long-term growth
+1. **Skipped setup and jumped to a random problem** — you miss language settings and submit flow practice
+2. **Confused Run with Submit** — Run only checks visible examples; Submit is the real judge
+3. **Opened Discuss or Editorial before attempting** — you never build the "try first" reflex
 
 > Which one did you catch yourself doing today? Write it down — that's growth.
 
@@ -45,17 +47,18 @@ Common mistakes from today's skill area:
 
 ## 🏋️ Mini Challenge (Optional)
 
-Re-attempt today's hardest quest **without** looking at the solution. Time yourself: 10 minutes max.
+Re-submit FizzBuzz **without** looking at the solution. Time yourself: 5 minutes max. Focus on clean Run → Submit flow.
 
 ---
 
 ## 📚 Practice Queue
 
-If you're ahead, try these related problems:
+If you're ahead, repeat the submit flow on any Easy you've already solved elsewhere:
 
 | Problem | Difficulty | Skill |
 |---|---|---|
 | [FizzBuzz #412](https://leetcode.com/problems/fizzbuzz/) | Easy | First Submission Workflow |
+| [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Easy | Warmup repeat |
 
 ---
 

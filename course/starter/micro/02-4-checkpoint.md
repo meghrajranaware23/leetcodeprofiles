@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ✅ Day 2 Checkpoint
 
 > **Read Before You Code** · 2 quests completed · ⭐ 40 XP available
@@ -6,17 +7,14 @@
 
 ## 🔍 Skill Check
 
-Before you move on, confirm you can recall today's workflow:
-
 1. What was today's skill? → **4-Part Problem Reading Framework**
-2. What was today's mission? → *Understand the problem completely before opening your editor.*
-3. What was the expected outcome? → Can summarize any Easy problem in 4 sentences without coding
+2. List the four parts in order → **Title → Constraints → Examples → Output**
+3. Which Palindrome example catches trailing-zero bugs? → **Example 3 (`x = 10`)**
+4. What did Defanging IP teach that Palindrome didn't? → **Exact output string format**
 
 ---
 
 ## 📓 Reflection Journal
-
-Write your answers in your mistake journal (notebook or doc):
 
 - What part of the problem statement did I almost skip?
 
@@ -33,30 +31,28 @@ Write your answers in your mistake journal (notebook or doc):
 
 ## 🪞 Mistake Mirror
 
-Common mistakes from today's skill area:
+Common Day 2 reading mistakes:
 
-1. **Skipping the reading framework** — slows long-term growth
-2. **Not logging where you got stuck** — slows long-term growth
-3. **Moving on without completing the habit action** — slows long-term growth
+1. **Skipped constraints and missed negative inputs** — Example 2 exists for a reason
+2. **Assumed output format** — boolean vs string vs array must be explicit
+3. **Read examples once at speed** — slow pass catches edge cases like `x = 10`
 
-> Which one did you catch yourself doing today? Write it down — that's growth.
+> Which one did you catch yourself doing today?
 
 ---
 
 ## 🏋️ Mini Challenge (Optional)
 
-Re-attempt today's hardest quest **without** looking at the solution. Time yourself: 10 minutes max.
+Pick [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) — write the 4-part card from memory in under 90 seconds. No editor.
 
 ---
 
 ## 📚 Practice Queue
 
-If you're ahead, try these related problems:
-
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) | Easy | Problem Reading |
-| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output Format Reading |
+| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Easy | Phase 1 proof preview |
+| [Reverse String #344](https://leetcode.com/problems/reverse-string/) | Easy | Phase 2 — still read first |
 
 ---
 

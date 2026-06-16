@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Defanging an IP Address
 
 > **Day 2** · [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) · Easy · 10 min · 10 XP
@@ -6,28 +7,40 @@
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
 **[→ Open Defanging an IP Address on LeetCode](https://leetcode.com/problems/defanging-an-ip-address/)**
 
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Output Format Reading**. The hints below are for *after* your attempt.
+> ⚔ **Mentor's rule:** Part ④ today is **output format** — read the expected string character-by-character before coding.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Output Format Reading**.
+Given a valid IPv4 `address`, replace every `.` with `"[.]"`.
 
-**[→ Open Defanging an IP Address on LeetCode](https://leetcode.com/problems/defanging-an-ip-address/)** for the full statement, examples, and constraints.
+**Example 1:**
+```
+Input: address = "1.1.1.1"
+Output: "1[.]1[.]1[.]1"
+```
+
+**Example 2:**
+```
+Input: address = "255.100.50.0"
+Output: "255[.]100[.]50[.]0"
+```
+
+**Constraints:** Valid IPv4 string (no leading zeros games — guaranteed valid input)
+
+**Output format audit:** Each dot becomes **three characters**: `[`, `.`, `]` — not `"[.]"` as one magic token unless your language has replace.
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
+1. Read the output literally: `"1[.]1[.]1[.]1"` has brackets around each dot only
+2. Loop character-by-character: if `c == '.'`, append `"[.]"`, else append `c`
+3. String replace (Python/Java) is acceptable — but trace Example 1 on paper first
+4. No edge-case tricks — valid IPv4 only; focus on exact output string
 
 ---
 
@@ -35,18 +48,7 @@ Given the problem on LeetCode, apply today's skill: **Output Format Reading**.
 
 **Skill practiced today:** Output Format Reading
 
-**Why this problem:** String manipulation with obvious I/O; reinforces reading output format carefully
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about output format reading."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+**Why this problem:** Obvious I/O — rewards careful reading of punctuation in the output spec
 
 ---
 
@@ -54,12 +56,10 @@ Given the problem on LeetCode, apply today's skill: **Output Format Reading**.
 
 | Approach | Problem |
 |---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
+| Output `"1.1.1.1"` unchanged | Misread — dots must be defanged |
+| Output `"1[.]1.1.1"` (one dot) | Partial transform — trace all four dots |
+| Extra spaces in output | LeetCode compares exact strings |
+| Skip Example 2 | Longer IP confirms same rule on every dot |
 
 ---
 
@@ -67,15 +67,24 @@ Given the problem on LeetCode, apply today's skill: **Output Format Reading**.
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output Format Reading |
+| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output format |
+| [Goal Parser Interpretation #1678](https://leetcode.com/problems/goal-parser-interpretation/) | Easy | String output rules |
+| [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) | Easy | Today's reading framework |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
+**Example 1:** `"1.1.1.1"`
 
-> 💡 **The code is just the paper trace written in syntax.**
+| char | action | result so far |
+|------|--------|---------------|
+| 1 | append | `1` |
+| . | append `[.]` | `1[.]` |
+| 1 | append | `1[.]1` |
+| ... | repeat | `1[.]1[.]1[.]1` |
+
+**Plain English:** Walk the string; every `.` becomes `[.]`.
 
 ---
 
@@ -110,14 +119,13 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"This problem looks trivial — that's the point. I practiced reading exact output."*
+- *"Tracing one character at a time prevented a half-defanged string."*
+- *"Tomorrow I trace numbers; today I trace punctuation."*
 
 > 🎯 **Skill practiced:** Output Format Reading
 

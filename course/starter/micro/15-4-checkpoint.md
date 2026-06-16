@@ -1,63 +1,42 @@
+<!-- hand-authored -->
 # ✅ Day 15 Checkpoint
 
-> **Your Long-Term Roadmap** · 2 quests completed · ⭐ 40 XP available
+> **Starter Path Complete** · Pick your Ascension pack
 
 ---
 
 ## 🔍 Skill Check
 
-Before you move on, confirm you can recall today's workflow:
-
-1. What was today's skill? → **Roadmap & Pack Selection**
-2. What was today's mission? → *You're not done learning — you're done being a beginner.*
-3. What was the expected outcome? → Picks first Ascension pack; has written 90-day goals
+1. Which pack from the selection matrix fits you?
+2. Contains Duplicate: one thing improved since Day 5?
+3. Your 90-day one-sentence commitment?
 
 ---
 
 ## 📓 Reflection Journal
 
-Write your answers in your mistake journal (notebook or doc):
-
-- What changed in 15 days? What will I do in the next 15?
+- What habit will I keep after Starter Path?
 
 ---
 
 ## 🔁 Habit Builder
 
-**Today's habit:** Commit to one Ascension pack start date within 7 days.
-
-- [ ] I completed this habit action today
-- [ ] I will repeat it tomorrow before opening LeetCode
+Keep: **20 min daily, same time, journal one line.**
 
 ---
 
 ## 🪞 Mistake Mirror
 
-Common mistakes from today's skill area:
-
-1. **Skipping the reading framework** — slows long-term growth
-2. **Not logging where you got stuck** — slows long-term growth
-3. **Moving on without completing the habit action** — slows long-term growth
-
-> Which one did you catch yourself doing today? Write it down — that's growth.
+1. Skipped re-solve comparison table
+2. No Ascension pack chosen — still "random Easies"
+3. Forgot final challenge: test-3 Maximum Subarray
 
 ---
 
-## 🏋️ Mini Challenge (Optional)
+## 🏋️ Final Challenge
 
-Re-attempt today's hardest quest **without** looking at the solution. Time yourself: 10 minutes max.
-
----
-
-## 📚 Practice Queue
-
-If you're ahead, try these related problems:
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Two Sum #1](https://leetcode.com/problems/two-sum/) | Easy | Belonging Milestone |
-| [Contains Duplicate #217](https://leetcode.com/problems/contains-duplicate/) | Easy | Growth Proof |
+Complete **test-3 Maximum Subarray** — stretch with full workflow. Kadane deferred to Arrays/DP packs.
 
 ---
 
-*Day 15 complete. Final challenge ahead. →*
+*You built the system. Now ascend. →*

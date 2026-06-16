@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # 📝 Guide: Read Before You Code
 
 > **Day 2** · 4-Part Problem Reading Framework · ★☆☆☆☆ · 10 XP · 8 min read
@@ -8,70 +9,75 @@
 
 **Learning objective:** Apply the 4-part reading framework (title → constraints → examples → output)
 
+**Bridge from Day 1:** Yesterday you learned the platform loop. Today you slow down the **Read** step — most Wrong Answers come from misreading, not bad logic.
+
 ---
 
 ## Part 1 — 4-Part Problem Reading Framework
 
-### 1. Why this matters
+### 1. Why reading is a skill
 
-Most beginners fail here because they treat LeetCode like a speed contest. **4-Part Problem Reading Framework** is the foundation that separates people who quit from people who rank up. Today you build that foundation.
+You can write perfect code for the wrong problem. The 4-part framework takes 90 seconds and prevents hours of debugging.
 
 ### 2. The skill in one sentence
 
-> **4-Part Problem Reading Framework** — Understand the problem completely before opening your editor.
+> **Read title → constraints → examples → output format** — in that order, twice (fast, then slow).
 
-### 3. Step-by-step workflow
-
-1. Read the full problem statement without touching your editor
-2. Write down: input format, output format, constraints, and 2 custom test cases
-3. Trace the given examples by hand on paper
-4. Spend 5 minutes attempting a solution (brute force is fine)
-5. Only then: open hints, then the walkthrough
-
-### 4. Visual walkthrough
+### 3. The framework (annotated on Palindrome Number)
 
 ```
-Problem: [Any LeetCode Easy]
+Palindrome Number #9
+────────────────────────────────────────────────────────
+① TITLE     "Is this integer a palindrome?"
+            → No string conversion hint in title; think digits
 
-Step 1 — TITLE:    What is being asked? (one sentence)
-Step 2 — CONSTRAINTS: n ≤ ? · values range? · edge cases?
-Step 3 — EXAMPLES:  Trace Example 1 by hand → verify output
-Step 4 — PLAN:      Brute force in plain English (3 lines max)
-Step 5 — CODE:      Translate plan to syntax
+② CONSTRAINTS
+            -2^31 <= x <= 2^31 - 1
+            → x can be NEGATIVE → -121 is NOT a palindrome
+            → x = 0 is valid → single digit counts
+
+③ EXAMPLES
+            x = 121  → true   (reads same forward/backward as digits)
+            x = -121 → false  (negative + ends in 1)
+            x = 10   → false  (trailing zero — not same reversed)
+
+④ OUTPUT     Return boolean true/false — not the reversed number
 ```
 
-### 5. What strong beginners do
+### 4. Read twice: fast scan, slow audit
+
+| Pass | Goal | Time |
+|------|------|------|
+| **Fast** | One-sentence problem summary | 20 sec |
+| **Slow** | Every constraint → one edge case | 60 sec |
+
+### 5. What strong readers do
 
 | Weak habit | Strong habit |
 |---|---|
-| Open editor before reading | Read title → constraints → examples → output first |
-| Skip examples ("I get it") | Hand-trace every example before coding |
-| Code immediately on stuck | Write brute force on paper for 5 minutes |
-| Copy editorial and move on | Close editorial, re-solve from memory tomorrow |
-| Random Easy problems daily | Follow today's skill-focused workflow |
+| Skim title and open editor | Write 4-part notes before coding |
+| Ignore negative numbers in constraints | List "what if x < 0?" from Example 2 |
+| Assume output format | Confirm: boolean vs array vs string |
+| Read examples once | Ask: "Which example would break a lazy solution?" |
+| Skip output-format problems | Defanging IP: exact punctuation matters |
 
 ### 6. The key insight
 
-> You don't need to be fast. You need to be **systematic**. Today's skill — **4-Part Problem Reading Framework** — is one step in a repeatable workflow.
+> **Examples are free test cases.** Example 3 (`x = 10`) exists because many solvers forget trailing zeros.
 
-### 7. Common beginner mistakes
+### 7. Common Day 2 mistakes
 
 | Mistake | Fix |
 |---|---|
-| Skipping constraints | Constraints tell you valid input ranges and edge cases |
-| Not tracing examples | Examples are free test cases — use them |
-| Opening editor too early | 5 minutes of paper work saves 30 minutes of debugging |
-| Giving up before 5 minutes | Getting stuck is data — log where you stopped |
-| Not logging mistakes | Your mistake journal is your fastest teacher |
+| Treating negative numbers as palindromes | Example 2 exists — read it |
+| Returning reversed integer instead of bool | Part ④ — output format |
+| Ignoring string output punctuation | Defanging IP: `[.]` not `.` literally in output spec |
+| Reading once at full speed | Fast pass + slow pass |
 
 ### 8. Try it now (60 seconds)
 
-Pick any Easy problem on LeetCode. Without coding:
-1. State the problem in one sentence
-2. Name one edge case from the constraints
-3. Trace Example 1 on paper
-
+Open [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) — fill in the 4-part card on paper **without** coding.
 
 ---
 
-*You've got the playbook. Time to put it on LeetCode. →*
+*You've got the reading lens. Today's quests reward slow reading. →*

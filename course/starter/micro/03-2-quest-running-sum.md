@@ -1,81 +1,62 @@
+<!-- hand-authored -->
 # ⚔ Quest: Running Sum of 1d Array
 
-> **Day 3** · [Running Sum of 1d Array #1480](https://leetcode.com/problems/running-sum-of-1d-array/) · Easy · 10 min · 10 XP
+> **Day 3** · [Running Sum #1480](https://leetcode.com/problems/running-sum-of-1d-array/) · Easy · 10 min · 10 XP
 
 ---
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+**[→ Open Running Sum on LeetCode](https://leetcode.com/problems/running-sum-of-1d-array/)**
 
-**[→ Open Running Sum of 1d Array on LeetCode](https://leetcode.com/problems/running-sum-of-1d-array/)**
-
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Hand Tracing**. The hints below are for *after* your attempt.
+> ⚔ **Mentor's rule:** Fill the hand-trace table below **before** coding.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Hand Tracing**.
+Return `runningSum` where `runningSum[i] = sum(nums[0]..nums[i])`.
 
-**[→ Open Running Sum of 1d Array on LeetCode](https://leetcode.com/problems/running-sum-of-1d-array/)** for the full statement, examples, and constraints.
+**Example 1:** `nums = [1,2,3,4]` → `[1,3,6,10]`
+
+**Example 2:** `nums = [1,1,1,1,1]` → `[1,2,3,4,5]`
+
+**Example 3:** `nums = [3,1,2,10,1]` → `[3,4,6,16,17]`
+
+**Constraints:** `1 <= nums.length <= 1000`
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
-
----
-
-## 🔍 Strategy Breakdown
-
-**Skill practiced today:** Hand Tracing
-
-**Why this problem:** Trivial logic; perfect for hand-tracing each example step
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about hand tracing."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+1. `runningSum[0]` stays `nums[0]` — loop starts at index 1
+2. Each step: `nums[i] += nums[i-1]` (in-place is fine)
+3. Trace Example 1 row-by-row — if your table matches `[1,3,6,10]`, your code will too
+4. Custom test: `[5]` → output `[5]`
 
 ---
 
-## ❌ Why Jumping to Code Fails
+## 📖 Walkthrough (hand trace)
 
-| Approach | Problem |
+**Example 1:** `[1, 2, 3, 4]`
+
+| i | before | operation | after |
+|---|--------|-----------|-------|
+| 0 | 1 | (unchanged) | 1 |
+| 1 | 2 | 2+1 | 3 |
+| 2 | 3 | 3+3 | 6 |
+| 3 | 4 | 4+6 | 10 |
+
+**Plain English:** Each position adds the previous running total.
+
+---
+
+## 🔗 Related
+
+| Problem | Skill |
 |---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
-
----
-
-## 🔗 Problems That Build the Same Skill
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Running Sum of 1d Array #1480](https://leetcode.com/problems/running-sum-of-1d-array/) | Easy | Hand Tracing |
-
----
-
-## 📖 Walkthrough
-
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
-
-> 💡 **The code is just the paper trace written in syntax.**
+| [Find Pivot Index #724](https://leetcode.com/problems/find-pivot-index/) | Prefix sums (Day 10) |
+| [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Today's quest 2 |
 
 ---
 
@@ -112,14 +93,12 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"The trace table IS my algorithm — code was copy-paste."*
+- *"I invented `[5]` as a custom test — single element still works."*
 
 > 🎯 **Skill practiced:** Hand Tracing
 

@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Palindrome Number
 
 > **Day 2** · [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) · Easy · 10 min · 10 XP
@@ -6,28 +7,38 @@
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
 **[→ Open Palindrome Number on LeetCode](https://leetcode.com/problems/palindrome-number/)**
 
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Problem Reading**. The hints below are for *after* your attempt.
+> ⚔ **Mentor's rule:** Complete the 4-part reading card from today's guide **before** your editor. Apply **Problem Reading**.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Problem Reading**.
+Given an integer `x`, return `true` if `x` is a palindrome, and `false` otherwise.
 
-**[→ Open Palindrome Number on LeetCode](https://leetcode.com/problems/palindrome-number/)** for the full statement, examples, and constraints.
+**Example 1:** `x = 121` → `true`
+
+**Example 2:** `x = -121` → `false` (reads `-121` from right; not same as `-121`)
+
+**Example 3:** `x = 10` → `false` (reads `01` from right; not same as `10`)
+
+**Constraints:** `-2^31 <= x <= 2^31 - 1`
+
+**4-part reading notes (fill before coding):**
+- ① Title: palindrome on **integer**, not string
+- ② Constraints: negatives possible; zero edge case
+- ③ Example 3: trailing zero trap
+- ④ Output: boolean
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
+1. Example 2 answers "what if x is negative?" — read it before coding
+2. Example 3 (`10`) breaks solutions that only compare digit reversal without handling trailing zeros
+3. Brute force: convert to string and compare — valid if you read output is boolean
+4. Without strings: reverse half the digits (optional optimization after brute force works)
 
 ---
 
@@ -35,18 +46,14 @@ Given the problem on LeetCode, apply today's skill: **Problem Reading**.
 
 **Skill practiced today:** Problem Reading
 
-**Why this problem:** Clean examples, clear constraints, good for practicing the reading framework
+**Why this problem:** Clean examples, clear constraints — perfect for the 4-part framework
 
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about problem reading."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+**Reading audit checklist:**
+| Example | What it teaches |
+|---------|-----------------|
+| 121 | Basic true case |
+| -121 | Negative → false |
+| 10 | Trailing zero → false |
 
 ---
 
@@ -54,12 +61,10 @@ Given the problem on LeetCode, apply today's skill: **Problem Reading**.
 
 | Approach | Problem |
 |---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
+| Skip Example 2 | Return true for `-121` |
+| Ignore Example 3 | Return true for `10` |
+| Return reversed number | Output must be boolean |
+| String conversion without reading constraints | Works but you miss the reading practice |
 
 ---
 
@@ -67,15 +72,23 @@ Given the problem on LeetCode, apply today's skill: **Problem Reading**.
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) | Easy | Problem Reading |
+| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Easy | Phase 1 proof — string palindrome |
+| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output format reading (today's quest 2) |
+| [Reverse Integer #7](https://leetcode.com/problems/reverse-integer/) | Medium | Digit reversal (later) |
 
 ---
 
 ## 📖 Walkthrough
 
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
+**Example 1:** `x = 121`
 
-> 💡 **The code is just the paper trace written in syntax.**
+Read digits left: `1-2-1`. Read right: `1-2-1`. Match → `true`.
+
+**Example 3:** `x = 10`
+
+Read right: `01` ≠ `10` → `false`. *This example exists to catch lazy solvers.*
+
+**Plain English:** If x is negative, false. Otherwise check if digits read the same both ways.
 
 ---
 
@@ -119,14 +132,13 @@ class Solution {
 ```
 
 **Complexity:** O(log n) time · O(1) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"Example 3 saved me — I almost shipped code that failed on `10`."*
+- *"I wrote the 4-part card in 90 seconds and avoided a Wrong Answer."*
+- *"Brute force string compare is fine today if I understood every example first."*
 
 > 🎯 **Skill practiced:** Problem Reading
 

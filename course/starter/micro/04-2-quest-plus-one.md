@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Plus One
 
 > **Day 4** · [Plus One #66](https://leetcode.com/problems/plus-one/) · Easy · 10 min · 10 XP
@@ -6,76 +7,56 @@
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
 **[→ Open Plus One on LeetCode](https://leetcode.com/problems/plus-one/)**
 
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Edge Case Thinking**. The hints below are for *after* your attempt.
+> ⚔ Write `// Edge cases:` comment first — today's habit.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Edge Case Thinking**.
+Large integer as digit array. Add 1. Return resulting array.
 
-**[→ Open Plus One on LeetCode](https://leetcode.com/problems/plus-one/)** for the full statement, examples, and constraints.
+**Example 1:** `[1,2,3]` → `[1,2,4]`
+
+**Example 2:** `[4,3,2,1]` → `[4,3,2,2]`
+
+**Example 3:** `[9,9,9]` → `[1,0,0,0]`
+
+**Constraints:** `1 <= digits.length <= 100`, digits valid, no leading zeros except `0` itself
+
+**Edge cases from constraints:** all 9s; single digit; no carry (Example 1)
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
-
----
-
-## 🔍 Strategy Breakdown
-
-**Skill practiced today:** Edge Case Thinking
-
-**Why this problem:** Classic carry edge case (999→1000); forces constraint thinking
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about edge case thinking."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+1. Process from **right to left**
+2. If digit < 9, increment and return immediately
+3. If digit == 9, set to 0 and continue carry
+4. If carry exits left side, insert 1 at front (Example 3)
 
 ---
 
-## ❌ Why Jumping to Code Fails
+## 📖 Walkthrough — Example 3
 
-| Approach | Problem |
+```
+[9, 9, 9] + 1
+
+i=2: 9→0 carry
+i=1: 9→0 carry
+i=0: 9→0 carry
+prepend 1 → [1,0,0,0]
+```
+
+---
+
+## 🔗 Related
+
+| Problem | Skill |
 |---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
-
----
-
-## 🔗 Problems That Build the Same Skill
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Plus One #66](https://leetcode.com/problems/plus-one/) | Easy | Edge Case Thinking |
-
----
-
-## 📖 Walkthrough
-
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
-
-> 💡 **The code is just the paper trace written in syntax.**
+| [Add Binary #67](https://leetcode.com/problems/add-binary/) | Carry (Day 14) |
+| [Length of Last Word #58](https://leetcode.com/problems/length-of-last-word/) | Today's quest 2 |
 
 ---
 
@@ -124,14 +105,12 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"Example 3 is why I read constraints — all 9s is the classic trap."*
+- *"I wrote edge cases before code and caught the prepend-1 case."*
 
 > 🎯 **Skill practiced:** Edge Case Thinking
 

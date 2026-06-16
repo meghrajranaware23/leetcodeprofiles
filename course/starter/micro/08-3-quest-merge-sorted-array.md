@@ -1,81 +1,30 @@
+<!-- hand-authored -->
 # ⚔ Quest: Merge Sorted Array
 
 > **Day 8** · [Merge Sorted Array #88](https://leetcode.com/problems/merge-sorted-array/) · Easy · 10 min · 10 XP
 
 ---
 
-## 🎯 Try the Problem First
+**[→ Open on LeetCode](https://leetcode.com/problems/merge-sorted-array/)**
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
-**[→ Open Merge Sorted Array on LeetCode](https://leetcode.com/problems/merge-sorted-array/)**
-
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Approach Comparison**. The hints below are for *after* your attempt.
+> ⚔ Compare two approaches in journal after editorial: forward vs **backward** merge.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Approach Comparison**.
+Merge `nums2` into `nums1` in-place. `nums1` has size `m+n` with first `m` elements filled.
 
-**[→ Open Merge Sorted Array on LeetCode](https://leetcode.com/problems/merge-sorted-array/)** for the full statement, examples, and constraints.
+**Example:** `nums1 = [1,2,3,0,0,0], m=3`, `nums2 = [2,5,6], n=3` → `[1,2,2,3,5,6]`
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
-
----
-
-## 🔍 Strategy Breakdown
-
-**Skill practiced today:** Approach Comparison
-
-**Why this problem:** Merge logic; multiple valid approaches to compare
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about approach comparison."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
-
----
-
-## ❌ Why Jumping to Code Fails
-
-| Approach | Problem |
-|---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
-
----
-
-## 🔗 Problems That Build the Same Skill
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Merge Sorted Array #88](https://leetcode.com/problems/merge-sorted-array/) | Easy | Approach Comparison |
-
----
-
-## 📖 Walkthrough
-
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
-
-> 💡 **The code is just the paper trace written in syntax.**
+1. Forward merge overwrites unmerged data — editorial often merges from **end**
+2. Three pointers: `i=m-1`, `j=n-1`, `k=m+n-1`
+3. Place larger at `nums1[k]`, decrement
+4. Trace Example on paper backward
 
 ---
 
@@ -122,14 +71,11 @@ class Solution {
 ```
 
 **Complexity:** O(m+n) time · O(1) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"Backward merge was the editorial insight — I wrote one sentence why forward fails."*
 
 > 🎯 **Skill practiced:** Approach Comparison
 

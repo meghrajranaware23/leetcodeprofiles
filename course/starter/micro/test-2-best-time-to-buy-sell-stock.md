@@ -1,41 +1,49 @@
+<!-- hand-authored -->
 # 🎯 Phase 2 Proof — Best Time to Buy and Sell Stock
 
 > [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) · Easy · 50 XP
 
 ---
 
-You've completed **First Wins**. Now prove you can apply the skills independently.
+Prove **Phase 2 independent workflow**: read → trace → attempt → debug — minimal hints.
 
-**[→ Open Best Time to Buy and Sell Stock on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)**
+**[→ Open on LeetCode](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)**
 
-> ⚔ **Phase proof rule:** Spend at least 10 minutes attempting this on your own. Use your full workflow: read → trace → plan → code. No hints until you've tried.
+> ⚔ 10-minute honest attempt before hints.
 
 ---
 
 ## The Problem
 
-**[Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)** — see full statement on LeetCode.
+One buy, one sell. Max profit. Must buy before sell.
 
-**What's being tested:** Independent Solving — Classic interview problem; tests independent thinking + editorial learning
+**Example:** `[7,1,5,3,6,4]` → `5` (buy 1, sell 6)
+
+**Example 2:** `[7,6,4,3,1]` → `0`
 
 ---
 
 ## 💡 Hints
 
-1. Apply the workflow from this phase — don't skip steps
-2. Trace all examples on paper first
-3. Brute force is acceptable if it passes constraints
+> 🎯 **Synthesizes Days 6–10:** attempt rule (Day 6), debug trace (Day 7), editorial-style insight without copying (Day 8), independent checklist (Day 10).
+
+**Hint 1 (Day 6):** Log stuck point if brute force TLE — that's data.
+
+**Hint 2 (Day 7):** Trace `[7,1,5,3,6,4]` — track min price seen so far and best profit.
+
+**Hint 3 (Day 10):** One pass: update `minPrice`, `best = max(best, price - minPrice)`.
+
+**Hint 4 (seed only):** Full **Kadane** / DP stock series lives in **Arrays & DP Ascension** — today: running minimum is enough.
 
 ---
 
-## 🔍 Strategy Breakdown
+## 📖 Running-min trace
 
-**Skill tested:** Independent Solving
-
-**Mentor thinking:**
-1. *"I've practiced this skill for 5 days — I know the workflow."*
-2. *"Read constraints first. List edge cases."*
-3. *"Plan on paper. Code second."*
+```
+price: 7  1  5  3  6  4
+min:   7  1  1  1  1  1
+profit:0  0  4  4  5  5  → answer 5
+```
 
 ---
 
@@ -90,9 +98,53 @@ class Solution {
 
 ## 💭 What a Mentor Would Tell You
 
-- *"Getting this wrong after an honest attempt is fine — note what broke in your workflow."*
-- *"Getting this right proves your **process** works, not just your memory."*
+- *"Independent workflow worked — I traced running min before coding."*
+- *"I'll learn Kadane properly in a topic pack; today was process proof."*
 
 ---
 
-*1 of 1 phase proof. Claim your phase completion. →*
+*Phase 2 proof complete. →*
+
+## Solution
+
+### C++
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int minP = INT_MAX, best = 0;
+        for (int p : prices) {
+            minP = min(minP, p);
+            best = max(best, p - minP);
+        }
+        return best;
+    }
+};
+```
+
+### Python
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        min_p, best = float('inf'), 0
+        for p in prices:
+            min_p = min(min_p, p)
+            best = max(best, p - min_p)
+        return best
+```
+
+### Java
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int minP = Integer.MAX_VALUE, best = 0;
+        for (int p : prices) {
+            minP = Math.min(minP, p);
+            best = Math.max(best, p - minP);
+        }
+        return best;
+    }
+}
+```
+
+**Complexity:** O(n) time · O(1) space

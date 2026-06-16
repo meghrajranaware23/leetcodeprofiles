@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Length of Last Word
 
 > **Day 4** · [Length of Last Word #58](https://leetcode.com/problems/length-of-last-word/) · Easy · 10 min · 10 XP
@@ -6,76 +7,42 @@
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
 **[→ Open Length of Last Word on LeetCode](https://leetcode.com/problems/length-of-last-word/)**
-
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Boundary Cases**. The hints below are for *after* your attempt.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Boundary Cases**.
+Return length of last word in string (words separated by spaces).
 
-**[→ Open Length of Last Word on LeetCode](https://leetcode.com/problems/length-of-last-word/)** for the full statement, examples, and constraints.
+**Example 1:** `"Hello World"` → `5`
+
+**Example 2:** `"   fly me   to   the moon  "` → `4` ("moon")
+
+**Example 3:** `"luffy is still joyboy"` → `6` ("joyboy")
+
+**Constraints:** At least one word; string contains English letters and spaces
+
+**Edge case from constraints:** **Trailing spaces** — last word is not at `s.length()-1`
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
-
----
-
-## 🔍 Strategy Breakdown
-
-**Skill practiced today:** Boundary Cases
-
-**Why this problem:** Trailing spaces edge case; teaches careful example reading
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about boundary cases."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+1. Walk from the **end** — skip trailing spaces first
+2. Count characters until next space or start
+3. Example 2 exists solely for trailing-space trap
+4. `"a"` alone → return 1
 
 ---
 
-## ❌ Why Jumping to Code Fails
+## 📖 Walkthrough — Example 2
 
-| Approach | Problem |
-|---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
-
-> **The insight:** Speed comes from **process**, not from skipping steps.
-
----
-
-## 🔗 Problems That Build the Same Skill
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Length of Last Word #58](https://leetcode.com/problems/length-of-last-word/) | Easy | Boundary Cases |
-
----
-
-## 📖 Walkthrough
-
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
-
-> 💡 **The code is just the paper trace written in syntax.**
+```
+"   fly me   to   the moon  "
+                              ↑ start at end, skip spaces
+                    moon      → length 4
+```
 
 ---
 
@@ -117,14 +84,12 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(1) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"I almost counted trailing spaces — Example 2 saved me."*
+- *"Boundary case: start from the end when the trap is at the end."*
 
 > 🎯 **Skill practiced:** Boundary Cases
 

@@ -1,97 +1,45 @@
-# 📝 Guide: Your Long-Term Roadmap
+<!-- hand-authored -->
+# 📝 Guide: Long-Term Roadmap
 
-> **Day 15** · Roadmap & Pack Selection · ★★☆☆☆ · 10 XP · 8 min read
-
----
-
-**Your mission today:** *You're not done learning — you're done being a beginner.*
-
-**Learning objective:** Choose next Ascension pack; commit to 90-day plan; prove readiness
+> **Day 15** · Long-Term Roadmap Design · ★☆☆☆☆ · 10 XP · 8 min read
 
 ---
 
-## Part 1 — Roadmap & Pack Selection
-
-### 1. Why this matters
-
-Most beginners fail here because they treat LeetCode like a speed contest. **Roadmap & Pack Selection** is the foundation that separates people who quit from people who rank up. Today you build that foundation.
-
-### 2. The skill in one sentence
-
-> **Roadmap & Pack Selection** — You're not done learning — you're done being a beginner.
-
-### 3. Step-by-step workflow
-
-1. Read the full problem statement without touching your editor
-2. Write down: input format, output format, constraints, and 2 custom test cases
-3. Trace the given examples by hand on paper
-4. Spend 5 minutes attempting a solution (brute force is fine)
-5. Only then: open hints, then the walkthrough
-
-### 4. Visual walkthrough
-
-```
-Problem: [Any LeetCode Easy]
-
-Step 1 — TITLE:    What is being asked? (one sentence)
-Step 2 — CONSTRAINTS: n ≤ ? · values range? · edge cases?
-Step 3 — EXAMPLES:  Trace Example 1 by hand → verify output
-Step 4 — PLAN:      Brute force in plain English (3 lines max)
-Step 5 — CODE:      Translate plan to syntax
-```
-
-### 5. What strong beginners do
-
-| Weak habit | Strong habit |
-|---|---|
-| Open editor before reading | Read title → constraints → examples → output first |
-| Skip examples ("I get it") | Hand-trace every example before coding |
-| Code immediately on stuck | Write brute force on paper for 5 minutes |
-| Copy editorial and move on | Close editorial, re-solve from memory tomorrow |
-| Random Easy problems daily | Follow today's skill-focused workflow |
-
-### 6. The key insight
-
-> You don't need to be fast. You need to be **systematic**. Today's skill — **Roadmap & Pack Selection** — is one step in a repeatable workflow.
-
-### 7. Common beginner mistakes
-
-| Mistake | Fix |
-|---|---|
-| Skipping constraints | Constraints tell you valid input ranges and edge cases |
-| Not tracing examples | Examples are free test cases — use them |
-| Opening editor too early | 5 minutes of paper work saves 30 minutes of debugging |
-| Giving up before 5 minutes | Getting stuck is data — log where you stopped |
-| Not logging mistakes | Your mistake journal is your fastest teacher |
-
-### 8. Try it now (60 seconds)
-
-Pick any Easy problem on LeetCode. Without coding:
-1. State the problem in one sentence
-2. Name one edge case from the constraints
-3. Trace Example 1 on paper
-
+**Mission:** You built the habit. Now pick your first **Ascension pack** and commit 90 days.
 
 ---
 
-### Picking your Ascension pack
+## 90-Day Commitment (one sentence)
 
-| Signal from Starter Path | Recommended pack |
-|---|---|
-| Loved array tracing & pointers | Arrays & Strings Ascension |
-| Climbing Stairs clicked | Recursion & Backtracking |
-| Valid Parentheses felt natural | Trees Ascension (then Graphs) |
-| Stock problem intrigued you | Dynamic Programming Ascension |
-
-**Default if unsure:** Arrays & Strings Ascension — most beginner-friendly.
-
-**Your 90-day commitment (write this now):**
-- Pack chosen: _______________
-- Start date: _______________
-- Weekly target: 5–7 problems + 1 review session
-
-> 💡 **Mentor note:** You're not done learning — you're done being a **beginner**. The final challenge (Maximum Subarray) is a stretch. Use your full workflow.
+Write in journal: *"For 90 days I will ___ at the same time daily."*
 
 ---
 
-*You've got the playbook. Time to put it on LeetCode. →*
+## Ascension Pack Selection Matrix
+
+| If you enjoyed… | Start with… | Why |
+|-----------------|-------------|-----|
+| Array problems, tracing examples | **Arrays & Strings Ascension** | Recognition-first pointer patterns |
+| Recursion feel in Climbing Stairs | **Recursion & Backtracking Ascension** | Call stack visualization |
+| Tree-like thinking | **Trees Ascension** | DFS/BFS foundations |
+| Connected components feel | **Graphs Ascension** | BFS/DFS on grids |
+| Optimization hints in stock problem | **Dynamic Programming Ascension** | DP pipeline from brute force |
+
+---
+
+## Contains Duplicate re-solve (Day 5 vs Day 15)
+
+| Growth check | Day 5 | Day 15 target |
+|--------------|-------|---------------|
+| Approach | Pairs or set? | Set (or sort) confidently |
+| Hints used? | Maybe | None |
+| Time | Baseline | Faster |
+| Workflow | Learning | Proof |
+
+---
+
+## Starter Path complete
+
+You have: platform workflow, reading, tracing, debugging, editorial discipline, independent solves, practice plan, and pack direction.
+
+*Two Sum today = belonging milestone. Re-solve Contains Duplicate = growth proof. →*

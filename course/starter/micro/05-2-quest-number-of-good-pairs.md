@@ -1,3 +1,4 @@
+<!-- hand-authored -->
 # ⚔ Quest: Number of Good Pairs
 
 > **Day 5** · [Number of Good Pairs #1512](https://leetcode.com/problems/number-of-good-pairs/) · Easy · 10 min · 10 XP
@@ -6,76 +7,50 @@
 
 ## 🎯 Try the Problem First
 
-Open the problem on LeetCode and attempt it **before** reading hints or solutions.
-
 **[→ Open Number of Good Pairs on LeetCode](https://leetcode.com/problems/number-of-good-pairs/)**
 
-> ⚔ **Mentor's rule:** Spend at least 5 minutes with pen and paper. Apply today's skill: **Brute Force First**. The hints below are for *after* your attempt.
+> ⚔ **5-minute timer.** Write brute force on paper first.
 
 ---
 
 ## The Problem
 
-Given the problem on LeetCode, apply today's skill: **Brute Force First**.
+Pair `(i,j)` is good if `nums[i] == nums[j]` and `i < j`. Return count.
 
-**[→ Open Number of Good Pairs on LeetCode](https://leetcode.com/problems/number-of-good-pairs/)** for the full statement, examples, and constraints.
+**Example 1:** `nums = [1,2,3,1,1,3]` → `4`
+
+**Example 2:** `nums = [1,1,1,1]` → `6`
+
+**Example 3:** `nums = [1,2,3]` → `0`
+
+**Constraints:** `1 <= nums.length <= 100` — brute force O(n²) fits
 
 ---
 
 ## 💡 Hints
 
-1. Re-read the constraints — what edge cases do they hint at?
-2. Trace Example 1 by hand before writing any code
-3. Start with the simplest approach that could work (brute force is fine)
-
-
----
-
-## 🔍 Strategy Breakdown
-
-**Skill practiced today:** Brute Force First
-
-**Why this problem:** Brute force works; teaches start simple, optimize later
-
-**How to read this problem:**
-1. What is the input? What is the output?
-2. What do the examples tell you about the expected behavior?
-3. What's the simplest approach that handles all examples?
-
-**How a mentor thinks (before coding):**
-1. *"I've seen this type — it's about brute force first."*
-2. *"Let me trace Example 1 on paper first."*
-3. *"What's my brute force? Does it fit the constraints?"*
-4. *"Only then do I open my editor."*
+1. **Brute force:** nested loops, count pairs where `nums[i]==nums[j]` and `i<j`
+2. Trace Example 1: pairs at indices (0,3), (0,4), (3,4), (2,5) → 4
+3. Example 2: four 1s → C(4,2) = 6 pairs
+4. Optimize later: track counts as you scan (optional after brute force AC)
 
 ---
 
-## ❌ Why Jumping to Code Fails
+## 📖 Walkthrough — Example 1
 
-| Approach | Problem |
-|---|---|
-| Open editor immediately | You code before understanding — bugs multiply |
-| Skip example tracing | You miss edge cases the examples reveal |
-| Copy without understanding | You can't re-solve tomorrow without the editorial |
-| Give up before 5 minutes | You never build the "attempt first" habit |
+```
+nums = [1,2,3,1,1,3]
+index:  0 1 2 3 4 5
 
-> **The insight:** Speed comes from **process**, not from skipping steps.
+Equal pairs (i<j):
+(0,3) both 1
+(0,4) both 1
+(3,4) both 1
+(2,5) both 3
+→ 4 pairs
+```
 
----
-
-## 🔗 Problems That Build the Same Skill
-
-| Problem | Difficulty | Skill |
-|---|---|---|
-| [Number of Good Pairs #1512](https://leetcode.com/problems/number-of-good-pairs/) | Easy | Brute Force First |
-
----
-
-## 📖 Walkthrough
-
-Trace Example 1 on paper step by step. Write your brute force in plain English (3 lines). Only then translate to code.
-
-> 💡 **The code is just the paper trace written in syntax.**
+**Plain English (brute force):** Try every pair; count matches.
 
 ---
 
@@ -125,14 +100,12 @@ class Solution {
 ```
 
 **Complexity:** O(n) time · O(n) space
-
 ---
 
 ## 💭 What a Mentor Would Tell You
 
-- *"I didn't need the optimal solution — I needed a **correct** solution with a clear process."*
-- *"Tracing the example first would have saved me from that off-by-one bug."*
-- *"Getting stuck for 3 minutes is normal. Giving up at 30 seconds is the real problem."*
+- *"I double-looped first — it worked. Then I saw the count pattern."*
+- *"Brute force AC today is a win; I'll optimize on review."*
 
 > 🎯 **Skill practiced:** Brute Force First
 
