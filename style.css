@@ -105,6 +105,8 @@ img {
   display: flex;
   align-items: center;
   gap: 4px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .nav-logo .logo-mark {
@@ -135,6 +137,10 @@ img {
 }
 
 .nav-links a:hover {
+  color: var(--text-primary);
+}
+
+.nav-links a.nav-active {
   color: var(--text-primary);
 }
 
@@ -351,6 +357,34 @@ img {
 .btn-secondary:hover {
   color: var(--text-primary);
   border-color: var(--red-border);
+}
+
+.hero-ctas-secondary {
+  margin-top: 12px;
+}
+
+.btn-ghost {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  padding: 8px 0;
+  transition: color 200ms ease;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  color: var(--text-secondary);
+}
+
+a.btn-primary,
+a.btn-secondary {
+  text-decoration: none;
+  display: inline-block;
 }
 
 .hero-social {
@@ -1501,5 +1535,248 @@ img {
   .btn-primary,
   .btn-secondary {
     width: 100%;
+  }
+}
+
+/* ============================================
+   START HERE (FTUE)
+   ============================================ */
+.start-here {
+  padding: 80px 80px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.start-here-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.start-here-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 48px;
+}
+
+.start-here-step {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 36px 32px;
+  transition: background 200ms ease;
+}
+
+.start-here-step:hover {
+  background: var(--bg-hover);
+}
+
+.start-here-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--red-primary);
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.start-here-step-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-top: 8px;
+}
+
+.start-here-step-desc {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+.start-here-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--red-primary);
+  transition: color 150ms;
+}
+
+.start-here-link:hover {
+  color: var(--red-bright);
+}
+
+/* ============================================
+   PACKS TEASER
+   ============================================ */
+.packs-teaser-cta {
+  text-align: center;
+  margin-top: 48px;
+}
+
+.packs-teaser-note {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 16px;
+}
+
+.pack-badge-live {
+  background: var(--red-primary);
+  color: #fff;
+  border-color: var(--red-primary);
+}
+
+.pack-card-featured {
+  border-color: var(--red-border);
+  box-shadow: 0 0 40px rgba(229, 0, 0, 0.08);
+}
+
+/* ============================================
+   PACKS CATALOG PAGE
+   ============================================ */
+.packs-page-hero {
+  padding: 120px 80px 60px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+}
+
+.packs-page-hero-inner {
+  max-width: 720px;
+}
+
+.packs-page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-top: 12px;
+}
+
+.packs-page-subtitle {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 20px;
+}
+
+.packs-featured-section {
+  padding: 60px 80px 20px;
+}
+
+.packs-featured-header {
+  max-width: 1100px;
+  margin: 0 auto 32px;
+}
+
+.packs-section-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  letter-spacing: 0.06em;
+}
+
+.packs-section-desc {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.packs-featured-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.packs-featured-wrap .pack-card {
+  max-width: 100%;
+}
+
+.packs-connect-strip {
+  padding: 48px 80px 80px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+}
+
+.packs-connect-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.packs-connect-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+.packs-connect-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.packs-connect-link {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--red-primary);
+  transition: color 150ms;
+}
+
+.packs-connect-link:hover {
+  color: var(--red-bright);
+}
+
+a.final-btn {
+  text-decoration: none;
+  display: inline-block;
+}
+
+@media (max-width: 1024px) {
+  .start-here {
+    padding: 60px 24px;
+  }
+
+  .start-here-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .packs-page-hero {
+    padding: 100px 24px 40px;
+  }
+
+  .packs-page-title {
+    font-size: 52px;
+  }
+
+  .packs-featured-section {
+    padding: 40px 24px 16px;
+  }
+
+  .packs-connect-strip {
+    padding: 32px 24px 60px;
+  }
+
+  .packs-connect-inner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

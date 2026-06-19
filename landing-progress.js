@@ -10,7 +10,7 @@ import {
 } from './starter-progress.js';
 import { PACK_IDS } from './progress-store.js';
 
-function initLandingProgress() {
+export function initLandingProgress() {
   loadArraysProgress();
   const arraysSummary = getArraysSummary();
   const arraysContinueUrl = getArraysContinueUrl();
@@ -96,5 +96,3 @@ function renderPackProgress(progressId, startBtnId, summary, continueUrl, defaul
   if (label) label.textContent = `${summary.completedCount}/${summary.totalLessons} lessons`;
   if (xp) xp.textContent = `${summary.totalXp.toLocaleString()} XP`;
 }
-
-document.addEventListener('DOMContentLoaded', initLandingProgress);

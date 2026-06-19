@@ -12,6 +12,7 @@ export default defineConfig({
         recursionReader: resolve(__dirname, 'recursion-reader.html'),
         dpReader: resolve(__dirname, 'dp-reader.html'),
         starterReader: resolve(__dirname, 'starter-reader.html'),
+        packs: resolve(__dirname, 'packs.html'),
       },
     },
   },

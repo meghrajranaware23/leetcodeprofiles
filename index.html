@@ -7,35 +7,9 @@
   <title>LeetCode Profiles — DSA Rank Packs | Level Up Your Coding</title>
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body data-page="home">
 
-  <!-- ======== NAVBAR ======== -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-logo">
-      <span class="logo-mark">■</span>
-      <span class="logo-leet">LEETCODE</span>
-      <span class="logo-profiles">PROFILES</span>
-    </div>
-    <div class="nav-links">
-      <a href="#packs">Packs</a>
-      <a href="#how-it-works">How It Works</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#legends">Legends</a>
-    </div>
-    <button class="nav-cta">START GRINDING →</button>
-    <button class="hamburger" id="hamburger" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </nav>
-
-  <!-- Mobile Menu -->
-  <div class="mobile-menu" id="mobile-menu">
-    <a href="#packs">Packs</a>
-    <a href="#how-it-works">How It Works</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#legends">Legends</a>
-    <a href="#" class="nav-cta" style="margin-top:20px;">START GRINDING →</a>
-  </div>
+  <div id="site-nav"></div>
 
   <!-- ======== HERO ======== -->
   <section class="hero" id="hero">
@@ -48,8 +22,11 @@
       </div>
       <p class="hero-subtext">Most coders grind 500 problems with zero direction. Legends follow a system. Our 30-day focused packs take you from E-Rank to S-Rank — one topic at a time.</p>
       <div class="hero-ctas">
-        <button class="btn-primary">CHOOSE YOUR PACK →</button>
-        <button class="btn-secondary">HOW IT WORKS</button>
+        <a href="./starter-reader.html" class="btn-primary">NEW TO LEETCODE? START HERE →</a>
+        <a href="./packs.html" class="btn-secondary">PICK A TOPIC PACK →</a>
+      </div>
+      <div class="hero-ctas-secondary">
+        <button type="button" class="btn-ghost" data-scroll="#how-it-works">HOW IT WORKS</button>
       </div>
       <div class="hero-social">
         <span>42,000+ coders follow LeetCode Profiles</span>
@@ -106,6 +83,37 @@
     </div>
   </section>
 
+  <!-- ======== START HERE (FTUE) ======== -->
+  <section class="start-here animate-on-scroll" id="start-here">
+    <div class="start-here-inner">
+      <div class="section-header">
+        <div class="section-overline">YOUR PATH</div>
+        <h2 class="section-title">START HERE</h2>
+        <p class="section-subtitle">Three steps from zero direction to ranked mastery.</p>
+      </div>
+      <div class="start-here-steps">
+        <div class="start-here-step">
+          <div class="start-here-num">01</div>
+          <h3 class="start-here-step-title">Build Your Foundation</h3>
+          <p class="start-here-step-desc">New to LeetCode? Complete the 15-Day Starter Path — setup, first wins, and daily habits.</p>
+          <a href="./starter-reader.html" class="start-here-link">Start Starter Path →</a>
+        </div>
+        <div class="start-here-step">
+          <div class="start-here-num">02</div>
+          <h3 class="start-here-step-title">Pick Your Weak Topic</h3>
+          <p class="start-here-step-desc">Graphs? DP? Recursion? Choose the battlefield costing you interviews and commit to 30 days.</p>
+          <a href="./packs.html" class="start-here-link">Browse All Packs →</a>
+        </div>
+        <div class="start-here-step">
+          <div class="start-here-num">03</div>
+          <h3 class="start-here-step-title">Rank Up. Prove It.</h3>
+          <p class="start-here-step-desc">Progress E-Rank → S-Rank inside each pack. Daily quests, checkpoints, and a final legend challenge.</p>
+          <a href="#ranks" class="start-here-link" data-scroll="#ranks">See the Rank System →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ======== RANK SYSTEM ======== -->
   <section class="rank-system animate-on-scroll" id="ranks">
     <div class="section-header">
@@ -153,176 +161,17 @@
     </div>
   </section>
 
-  <!-- ======== PACKS SHOWCASE ======== -->
-  <section class="packs animate-on-scroll" id="packs">
+  <!-- ======== PACKS TEASER ======== -->
+  <section class="packs packs-teaser animate-on-scroll" id="packs">
     <div class="section-header">
       <div class="section-overline">THE ARSENAL</div>
       <h2 class="section-title">CHOOSE YOUR BATTLEFIELD</h2>
       <p class="section-subtitle">Pick your weak topic. Destroy it in 30 days. New to LeetCode? Start with the 15-Day Starter Path.</p>
     </div>
-    <div class="packs-grid">
-      <!-- Pack 1 — Recursion & Backtracking Ascension (LIVE) -->
-      <div class="pack-card" style="border-color: var(--red-border);">
-        <div class="pack-top">
-          <span class="pack-icon">🔄</span>
-          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
-        </div>
-        <div class="pack-name">Recursion & Backtracking</div>
-        <p class="pack-desc">Visual-first recursive thinking — call stacks, backtracking, and pattern recognition</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 30 Days</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./recursion-reader.html" class="pack-btn" id="recursion-start">START PACK →</a>
-        </div>
-      </div>
-      <!-- Pack 2 — Trees Ascension (LIVE) -->
-      <div class="pack-card" style="border-color: var(--red-border);">
-        <div class="pack-top">
-          <span class="pack-icon">🌲</span>
-          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
-        </div>
-        <div class="pack-name">Trees Ascension</div>
-        <p class="pack-desc">Visual-first tree learning — DFS, BFS, BST, LCA, tries, and tree DP</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 30 Days</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./trees-reader.html" class="pack-btn" id="trees-start">START PACK →</a>
-        </div>
-      </div>
-      <!-- Pack 3 — Graphs Ascension (LIVE) -->
-      <div class="pack-card" style="border-color: var(--red-border);">
-        <div class="pack-top">
-          <span class="pack-icon">🕸️</span>
-          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
-        </div>
-        <div class="pack-name">Graphs Ascension</div>
-        <p class="pack-desc">Visual-first graph learning — BFS, DFS, Union-Find, Dijkstra, and more</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 30 Days</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./graphs-reader.html" class="pack-btn" id="graphs-start">START PACK →</a>
-        </div>
-      </div>
-      <!-- Pack 4 — DP (LIVE) -->
-      <div class="pack-card" style="border-color: var(--red-border);">
-        <div class="pack-top">
-          <span class="pack-icon">⚡</span>
-          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
-        </div>
-        <div class="pack-name">Dynamic Programming</div>
-        <p class="pack-desc">Visual-first DP learning — state transitions, the DP pipeline, and pattern recognition</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 30 Days</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./dp-reader.html" class="pack-btn" id="dp-start">START PACK →</a>
-        </div>
-      </div>
-      <!-- Pack 5 — Arrays & Strings (LIVE) -->
-      <div class="pack-card" style="border-color: var(--red-border);">
-        <div class="pack-top">
-          <span class="pack-icon">📐</span>
-          <span class="pack-badge" style="background: var(--red-primary); color: #fff; border-color: var(--red-primary);">AVAILABLE NOW</span>
-        </div>
-        <div class="pack-name">Arrays &amp; Strings</div>
-        <p class="pack-desc">Two pointers, sliding window, prefix sums — interview essentials</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 30 Problems</span>
-          <span class="pack-stat">⚔ 6 Ranks</span>
-          <span class="pack-stat">💻 3 Languages</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">C++</span>
-          <span class="lang-pill">Python</span>
-          <span class="lang-pill">Java</span>
-        </div>
-        <div class="pack-progress" id="arrays-pack-progress" hidden>
-          <div class="pack-progress-header">
-            <span class="pack-progress-label">0/25 lessons</span>
-            <span class="pack-progress-xp">0 XP</span>
-          </div>
-          <div class="pack-progress-bar">
-            <div class="pack-progress-fill"></div>
-          </div>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./course-reader.html" class="pack-btn" id="arrays-strings-start">START PACK →</a>
-        </div>
-      </div>
-      <!-- Pack 6 — LeetCode Starter Path (onboarding) -->
-      <div class="pack-card" id="starter-pack-card">
-        <div class="pack-top">
-          <span class="pack-icon">🚀</span>
-          <span class="pack-badge">BEGINNER</span>
-        </div>
-        <div class="pack-name">LeetCode Starter Path</div>
-        <p class="pack-desc">Beginner onboarding — set up your workflow, build daily habits, and earn your first accepted submissions in 15 days.</p>
-        <hr class="pack-divider">
-        <div class="pack-stats">
-          <span class="pack-stat">📋 15 Days</span>
-          <span class="pack-stat">🎯 3 Phases</span>
-          <span class="pack-stat">🌱 Beginner</span>
-        </div>
-        <div class="pack-langs">
-          <span class="lang-pill">Setup</span>
-          <span class="lang-pill">First Wins</span>
-          <span class="lang-pill">Momentum</span>
-        </div>
-        <div class="pack-progress" id="starter-pack-progress" hidden>
-          <div class="pack-progress-header">
-            <span class="pack-progress-label">0/67 lessons</span>
-            <span class="pack-progress-xp">0 XP</span>
-          </div>
-          <div class="pack-progress-bar">
-            <div class="pack-progress-fill"></div>
-          </div>
-        </div>
-        <div class="pack-bottom">
-          <div class="pack-price">$12 <span class="currency">USD</span></div>
-          <a href="./starter-reader.html" class="pack-btn" id="starter-start">START PATH →</a>
-        </div>
-      </div>
+    <div class="packs-grid" id="packsTeaserGrid"></div>
+    <div class="packs-teaser-cta">
+      <a href="./packs.html" class="btn-primary">VIEW ALL PACKS →</a>
+      <p class="packs-teaser-note">6 packs available — Starter Path + 5 Ascension topics</p>
     </div>
   </section>
 
@@ -465,7 +314,7 @@
           <li><span class="check">✓</span> C++, Python, Java code</li>
           <li><span class="check">✓</span> Lifetime access</li>
         </ul>
-        <button class="pricing-btn outline">PICK A PACK</button>
+        <button type="button" class="pricing-btn outline" data-scroll="#packs">PICK A PACK</button>
       </div>
       <!-- Card 2 — All Packs Bundle -->
       <div class="pricing-card featured">
@@ -483,7 +332,7 @@
           <li><span class="check">✓</span> Legend certificate on completion</li>
           <li><span class="check">✓</span> Private Discord access</li>
         </ul>
-        <button class="pricing-btn filled">GET EVERYTHING →</button>
+        <button type="button" class="pricing-btn filled" data-scroll="#packs">GET EVERYTHING →</button>
       </div>
     </div>
   </section>
@@ -497,7 +346,7 @@
         <div class="red-line">NEITHER SHOULD YOU.</div>
       </div>
       <p class="final-subtext">42,000+ coders follow LeetCode Profiles. It's time to actually level up.</p>
-      <button class="final-btn">START YOUR RANK-UP →</button>
+      <a href="./packs.html" class="final-btn">START YOUR RANK-UP →</a>
     </div>
   </section>
 
@@ -505,25 +354,22 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-left">
-        <div class="nav-logo">
+        <a href="./index.html" class="nav-logo" aria-label="LeetCode Profiles home">
           <span class="logo-mark">■</span>
           <span class="logo-leet">LEETCODE</span>
           <span class="logo-profiles">PROFILES</span>
-        </div>
+        </a>
         <p class="footer-tagline">Made for coders who refuse to stay E-Rank.</p>
       </div>
       <div class="footer-links">
-        <a href="#packs">Packs</a>
+        <a href="./packs.html">Packs</a>
         <a href="#pricing">Pricing</a>
-        <a href="#">Discord</a>
-        <a href="#">Instagram</a>
-        <a href="#">YouTube</a>
+        <a href="./index.html">Home</a>
       </div>
       <div class="footer-copy">© 2025 LeetCode Profiles. All rights reserved.</div>
     </div>
   </footer>
 
-  <script src="./script.js"></script>
-  <script type="module" src="./landing-progress.js"></script>
+  <script type="module" src="./script.js"></script>
 </body>
 </html>

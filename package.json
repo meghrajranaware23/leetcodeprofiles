@@ -7,10 +7,16 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build:starter": "node scripts/build-starter-course.js"
+    "build:starter": "node scripts/build-starter-course.js",
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
   },
   "devDependencies": {
+    "firebase-tools": "^15.16.0",
     "typescript": "~6.0.2",
     "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "firebase": "^12.15.0"
   }
 }

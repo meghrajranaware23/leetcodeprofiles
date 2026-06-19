@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════ */
 
 import { COURSE_LESSONS } from './starter-content.js';
+import { initReaderNav } from './reader-nav.js';
 import {
   P1_LESSONS,
   P2_LESSONS,
@@ -90,6 +91,7 @@ let attemptStartTime = null;
 
 /* ─── Init ─── */
 function init() {
+  initReaderNav('leetcode-starter');
   loadProgress();
   migrateLegacyProgress();
   const hadSavedSidebar = initSidebarState();

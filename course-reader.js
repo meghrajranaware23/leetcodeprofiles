@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════ */
 
 import { COURSE_LESSONS } from './course-content.js';
+import { initReaderNav } from './reader-nav.js';
 import {
   ERANK_LESSONS,
   DRANK_LESSONS,
@@ -100,6 +101,7 @@ let attemptStartTime = null;
 
 /* ─── Init ─── */
 function init() {
+  initReaderNav('arrays-strings');
   loadProgress();
   migrateLegacyProgress();
   const hadSavedSidebar = initSidebarState();

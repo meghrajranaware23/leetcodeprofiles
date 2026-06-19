@@ -117,8 +117,163 @@ body {
 .cr-topbar-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
+  flex: 1;
+}
+
+/* ─── Pack Switcher ─── */
+.cr-pack-switcher {
+  position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.cr-pack-switcher-inner {
+  position: relative;
+}
+
+.cr-pack-switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-sub);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  max-width: 200px;
+}
+
+.cr-pack-switcher-btn:hover,
+.cr-pack-switcher-btn.open {
+  border-color: var(--red-border);
+  background: var(--bg-hover);
+}
+
+.cr-pack-switcher-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.cr-pack-switcher-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cr-pack-switcher-chevron {
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: transform var(--transition-fast);
+}
+
+.cr-pack-switcher-btn.open .cr-pack-switcher-chevron {
+  transform: rotate(180deg);
+}
+
+.cr-pack-switcher-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 280px;
+  max-width: 320px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  overflow: hidden;
+}
+
+.cr-pack-switcher-menu-header {
+  padding: 10px 16px;
+  font-family: var(--font-sub);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+.cr-pack-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cr-pack-switcher-item:hover {
+  background: var(--bg-hover);
+}
+
+.cr-pack-switcher-item.is-current {
+  background: var(--red-muted);
+}
+
+.cr-pack-switcher-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.cr-pack-switcher-item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cr-pack-switcher-item-title {
+  display: block;
+  font-family: var(--font-sub);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cr-pack-switcher-item-meta {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.cr-pack-switcher-current {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--red-primary);
+  flex-shrink: 0;
+}
+
+.cr-pack-switcher-catalog {
+  display: block;
+  padding: 12px 16px;
+  font-family: var(--font-sub);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--red-primary);
+  text-decoration: none;
+  text-align: center;
+  background: var(--bg-elevated);
+  transition: background var(--transition-fast);
+}
+
+.cr-pack-switcher-catalog:hover {
+  background: var(--bg-hover);
 }
 
 .cr-back-btn {
@@ -1033,6 +1188,14 @@ body {
     display: none;
   }
   .cr-course-title {
+    display: none;
+  }
+  .cr-pack-switcher-btn {
+    max-width: 140px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .cr-back-btn span {
     display: none;
   }
   .cr-progress-info {
