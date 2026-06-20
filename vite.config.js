@@ -13,6 +13,7 @@ export default defineConfig({
         dpReader: resolve(__dirname, 'dp-reader.html'),
         starterReader: resolve(__dirname, 'starter-reader.html'),
         packs: resolve(__dirname, 'packs.html'),
+        signIn: resolve(__dirname, 'sign-in.html'),
       },
     },
   },

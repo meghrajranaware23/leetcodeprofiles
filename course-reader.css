@@ -361,6 +361,19 @@ button:focus-visible,
   flex-shrink: 0;
 }
 
+.cr-reader-auth {
+  display: flex;
+  align-items: center;
+}
+
+.cr-reader-auth:empty {
+  display: none;
+}
+
+.cr-reader-auth .auth-profile-menu {
+  z-index: 500;
+}
+
 .cr-progress-info {
   display: flex;
   align-items: center;

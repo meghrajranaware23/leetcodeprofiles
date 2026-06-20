@@ -5,6 +5,7 @@
 
 import { COURSE_LESSONS } from './graphs-content.js';
 import { initReaderNav } from './reader-nav.js';
+import { guardPage } from './auth/auth-guard.js';
 import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
 import {
   activateMilestoneDialog,
@@ -1988,9 +1989,10 @@ function bindEvents() {
    ═══════════════════════════════════════ */
 let booted = false;
 
-function boot() {
+async function boot() {
   if (booted) return;
   booted = true;
+  if (!(await guardPage())) return;
   init();
 }
 

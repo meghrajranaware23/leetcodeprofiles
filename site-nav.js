@@ -3,6 +3,8 @@
    ══════════════════════════════════════════════════════════ */
 
 import './firebase.js';
+import { initAuthAwareLinks } from './auth/auth-guard.js';
+import { mountProfileMenu } from './auth/auth-ui.js';
 
 const NAVBAR_OFFSET = 64;
 
@@ -28,7 +30,10 @@ export function initSiteNav(options = {}) {
         <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
         <a href="./starter-reader.html">Starter Path</a>
       </div>
-      <a href="./packs.html" class="nav-cta">START GRINDING →</a>
+      <div class="nav-actions">
+        <div id="nav-auth" class="nav-auth"></div>
+        <a href="./packs.html" class="nav-cta" data-auth-target="./packs.html">START GRINDING →</a>
+      </div>
       <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
@@ -39,12 +44,16 @@ export function initSiteNav(options = {}) {
       <a href="${isHome ? '#how-it-works' : './index.html#how-it-works'}">How It Works</a>
       <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
       <a href="./starter-reader.html">Starter Path</a>
-      <a href="./packs.html" class="nav-cta">START GRINDING →</a>
+      <div id="mobile-nav-auth" class="mobile-nav-auth"></div>
+      <a href="./packs.html" class="nav-cta" data-auth-target="./packs.html">START GRINDING →</a>
     </div>
   `;
 
   initNavbarScroll();
   initMobileMenu();
+  initAuthAwareLinks(mount);
+  mountProfileMenu('nav-auth');
+  mountProfileMenu('mobile-nav-auth', { compact: true });
 }
 
 export function scrollToSection(selector) {
@@ -63,6 +72,8 @@ export function initCtaLinks() {
       scrollToSection(target);
     });
   });
+
+  initAuthAwareLinks(document);
 }
 
 function initNavbarScroll() {

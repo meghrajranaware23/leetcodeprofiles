@@ -4,6 +4,7 @@
 
 import './firebase.js';
 import { PACK_CATALOG, getAllPacksSorted } from './pack-catalog.js';
+import { mountProfileMenu } from './auth/auth-ui.js';
 
 export function initReaderNav(currentPackId) {
   const backBtn = document.getElementById('backBtn');
@@ -13,6 +14,8 @@ export function initReaderNav(currentPackId) {
     const label = backBtn.querySelector('span');
     if (label) label.textContent = 'All Packs';
   }
+
+  mountProfileMenu('reader-auth', { compact: true });
 
   const mount = document.getElementById('packSwitcher');
   if (!mount) return;

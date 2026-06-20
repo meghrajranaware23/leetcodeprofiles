@@ -1,4 +1,5 @@
 import { getFeaturedPack, getTopicPacks, getTeaserPacks } from './pack-catalog.js';
+import { guardPage } from './auth/auth-guard.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
 
 function renderPackCard(pack, { featured = false } = {}) {
@@ -70,7 +71,9 @@ function renderTeaser() {
   gridEl.innerHTML = teaserPacks.map(pack => renderPackCard(pack)).join('');
 }
 
-export function initPacksPage() {
+export async function initPacksPage() {
+  if (!(await guardPage())) return;
+
   initSiteNav({ activePage: 'packs' });
   renderCatalog();
   initScrollAnimations();
