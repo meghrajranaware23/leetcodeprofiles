@@ -673,9 +673,10 @@ button:focus-visible,
   width: 100%;
   min-width: 0;
   margin: 0 auto;
-  padding: 48px 40px 32px;
+  padding: 48px 40px calc(var(--bottom-nav-h) + 40px);
   flex: 1;
   animation: fadeInContent 0.4s ease;
+  overflow-x: clip;
 }
 
 @keyframes fadeInContent {
@@ -1216,7 +1217,7 @@ button:focus-visible,
   }
 
   .cr-content {
-    padding: 32px 20px 24px;
+    padding: 32px 20px calc(var(--bottom-nav-h) + 32px);
   }
 
   .cr-bottom-nav {
@@ -1255,6 +1256,17 @@ button:focus-visible,
     display: none;
   }
   .cr-progress-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .cr-progress-text {
+    font-size: 11px;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+  }
+  .cr-progress-bar-mini {
     display: none;
   }
   .cr-xp-badge {
@@ -1285,6 +1297,30 @@ button:focus-visible,
     font-size: 12px !important;
   }
 
+  .cr-content table {
+    font-size: 13px;
+  }
+  .cr-content thead th {
+    white-space: normal;
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+  .cr-content tbody td {
+    font-size: 13px;
+    word-break: break-word;
+    padding: 8px 12px;
+  }
+
+  .cr-try-first-zone,
+  .cr-hints-zone,
+  .cr-walkthrough-zone,
+  .cr-solution-zone-content,
+  .cr-mini-challenge-zone,
+  .cr-problem-zone {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .code-tab-btn {
     padding: 10px 14px;
     font-size: 12px;
@@ -1293,13 +1329,18 @@ button:focus-visible,
 
 @media (max-width: 480px) {
   .cr-content {
-    padding: 24px 16px 16px;
+    padding: 24px 16px calc(var(--bottom-nav-h) + 24px);
   }
   .cr-content h1 {
     font-size: 26px;
   }
-  .cr-mark-complete-btn span {
-    display: none;
+
+  .cr-try-first-zone,
+  .cr-hints-zone,
+  .cr-walkthrough-zone,
+  .cr-solution-zone-content,
+  .cr-mini-challenge-zone {
+    padding: 14px 12px;
   }
 
   .cr-bottom-nav {
@@ -1765,7 +1806,8 @@ button:focus-visible,
   text-transform: uppercase;
   color: var(--text-dim);
   margin-bottom: 6px;
-  max-width: 140px;
+  max-width: 220px;
+  line-height: 1.35;
 }
 .cr-mission-panel.mission-ready .cr-mission-status-text {
   color: #4AFF9E;
@@ -2713,5 +2755,267 @@ a.cr-lc-link:hover {
 @media (min-width: 1440px) {
   :root {
     --content-max-w: 900px;
+  }
+}
+
+
+/* ═══════════════════════════════════════
+   ASCII DIAGRAM BLOCKS (shared pack readers)
+   ═══════════════════════════════════════ */
+.cr-diagram-wrap {
+  max-width: 100%;
+  overflow: hidden;
+  margin: 16px 0;
+  width: 100%;
+}
+
+.cr-diagram-block {
+  position: relative;
+  margin: 0 !important;
+  border-color: rgba(74, 158, 255, 0.28) !important;
+  background: rgba(74, 158, 255, 0.04) !important;
+  overflow: visible;
+  transform: scale(var(--diagram-scale, 1));
+  transform-origin: top left;
+  width: max-content;
+  max-width: none;
+}
+
+.cr-diagram-block code,
+.cr-diagram-block .cr-diagram-code {
+  display: block;
+  padding: 16px 14px !important;
+  font-family: var(--font-code) !important;
+  font-size: clamp(8px, 2.4vw, 13.5px) !important;
+  line-height: 1.35 !important;
+  overflow-x: visible;
+  white-space: pre;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  tab-size: 2;
+}
+
+.cr-diagram-stack {
+  border-color: rgba(74, 255, 158, 0.25) !important;
+  background: rgba(74, 255, 158, 0.03) !important;
+}
+
+.cr-diagram-tree {
+  border-color: rgba(74, 158, 255, 0.28) !important;
+}
+
+.cr-diagram-grid {
+  border-color: rgba(255, 215, 0, 0.22) !important;
+  background: rgba(255, 215, 0, 0.03) !important;
+}
+
+.cr-diagram-flowchart {
+  border-color: rgba(255, 107, 53, 0.28) !important;
+  background: rgba(255, 107, 53, 0.04) !important;
+}
+
+.cr-diagram-trie {
+  border-color: rgba(74, 255, 158, 0.28) !important;
+  background: rgba(74, 255, 158, 0.04) !important;
+}
+
+.cr-diagram-graph {
+  border-color: rgba(168, 130, 255, 0.28) !important;
+  background: rgba(168, 130, 255, 0.04) !important;
+}
+
+.cr-diagram-pointer {
+  border-color: rgba(74, 220, 255, 0.28) !important;
+  background: rgba(74, 220, 255, 0.04) !important;
+}
+
+.cr-diagram-window {
+  border-color: rgba(74, 255, 158, 0.28) !important;
+  background: rgba(74, 255, 158, 0.04) !important;
+}
+
+.cr-diagram-table {
+  border-color: rgba(255, 180, 74, 0.28) !important;
+  background: rgba(255, 180, 74, 0.04) !important;
+}
+
+[data-pack="graphs"] .cr-diagram-grid code,
+[data-pack="graphs"] .cr-diagram-grid .cr-diagram-code {
+  font-size: clamp(7px, 2vw, 12.5px) !important;
+}
+
+[data-pack="arrays-strings"] .cr-diagram-grid code,
+[data-pack="arrays-strings"] .cr-diagram-grid .cr-diagram-code {
+  font-size: clamp(7px, 2vw, 12.5px) !important;
+}
+
+[data-pack="dp"] .cr-diagram-grid code,
+[data-pack="dp"] .cr-diagram-grid .cr-diagram-code {
+  font-size: clamp(6.5px, 1.85vw, 12px) !important;
+}
+
+[data-pack="dp"] .cr-diagram-flowchart code,
+[data-pack="dp"] .cr-diagram-flowchart .cr-diagram-code {
+  font-size: clamp(6px, 1.7vw, 11.5px) !important;
+}
+
+[data-pack="starter"] .cr-diagram-grid code,
+[data-pack="starter"] .cr-diagram-grid .cr-diagram-code,
+[data-pack="starter"] .cr-diagram-table code,
+[data-pack="starter"] .cr-diagram-table .cr-diagram-code {
+  font-size: clamp(7px, 2vw, 12.5px) !important;
+}
+
+[data-pack="starter"] .cr-diagram-flowchart code,
+[data-pack="starter"] .cr-diagram-flowchart .cr-diagram-code,
+[data-pack="starter"] .cr-diagram-trace code,
+[data-pack="starter"] .cr-diagram-trace .cr-diagram-code {
+  font-size: clamp(6.5px, 1.85vw, 12px) !important;
+}
+
+/* ═══════════════════════════════════════
+   STARTER PATH — onboarding zones & prose
+   ═══════════════════════════════════════ */
+[data-pack="starter"] .cr-content p {
+  line-height: 1.78;
+}
+
+@media (max-width: 768px) {
+  [data-pack="starter"] .cr-content {
+    font-size: 16.5px;
+  }
+}
+
+[data-pack="starter"] .cr-content blockquote {
+  border-left: 4px solid rgba(74, 158, 255, 0.45);
+  background: rgba(74, 158, 255, 0.06);
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  margin: 20px 0;
+}
+
+[data-pack="starter"] .cr-skill-check-zone,
+[data-pack="starter"] .cr-reflection-zone,
+[data-pack="starter"] .cr-habit-zone,
+[data-pack="starter"] .cr-mistake-zone,
+[data-pack="starter"] .cr-practice-queue-zone,
+[data-pack="starter"] .cr-onboarding-section,
+[data-pack="starter"] .cr-completion-section {
+  margin: 28px 0;
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg-elevated);
+}
+
+[data-pack="starter"] .cr-skill-check-zone {
+  border-left: 4px solid rgba(74, 158, 255, 0.5);
+  background: rgba(74, 158, 255, 0.04);
+}
+
+[data-pack="starter"] .cr-reflection-zone {
+  border-left: 4px solid rgba(168, 130, 255, 0.5);
+  background: rgba(168, 130, 255, 0.04);
+}
+
+[data-pack="starter"] .cr-habit-zone {
+  border-left: 4px solid rgba(74, 255, 158, 0.5);
+  background: rgba(74, 255, 158, 0.04);
+}
+
+[data-pack="starter"] .cr-mistake-zone {
+  border-left: 4px solid rgba(255, 180, 74, 0.5);
+  background: rgba(255, 180, 74, 0.04);
+}
+
+[data-pack="starter"] .cr-practice-queue-zone {
+  border-left: 4px solid rgba(255, 161, 22, 0.45);
+  background: rgba(255, 161, 22, 0.04);
+}
+
+[data-pack="starter"] .cr-onboarding-section {
+  border-left: 4px solid rgba(74, 158, 255, 0.45);
+  background: rgba(74, 158, 255, 0.03);
+}
+
+[data-pack="starter"] .cr-completion-section {
+  border-left: 4px solid rgba(255, 215, 0, 0.45);
+  background: rgba(255, 215, 0, 0.04);
+}
+
+[data-pack="starter"] .cr-skill-check-zone h2,
+[data-pack="starter"] .cr-reflection-zone h2,
+[data-pack="starter"] .cr-habit-zone h2,
+[data-pack="starter"] .cr-mistake-zone h2,
+[data-pack="starter"] .cr-practice-queue-zone h2,
+[data-pack="starter"] .cr-onboarding-section h2,
+[data-pack="starter"] .cr-completion-section h2 {
+  margin-top: 0 !important;
+}
+
+[data-pack="starter"] .cr-habit-zone ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+[data-pack="starter"] .cr-habit-zone li {
+  position: relative;
+  padding: 12px 14px 12px 40px;
+  margin-bottom: 10px;
+  background: rgba(74, 255, 158, 0.06);
+  border: 1px solid rgba(74, 255, 158, 0.2);
+  border-radius: 8px;
+  line-height: 1.5;
+  min-height: 44px;
+}
+
+[data-pack="starter"] .cr-habit-zone li::before {
+  content: '☐';
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  font-size: 16px;
+  color: rgba(74, 255, 158, 0.8);
+}
+
+@media (max-width: 480px) {
+  [data-pack="starter"] a.cr-lc-btn {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  [data-pack="starter"] .cr-skill-check-zone,
+  [data-pack="starter"] .cr-reflection-zone,
+  [data-pack="starter"] .cr-habit-zone,
+  [data-pack="starter"] .cr-mistake-zone,
+  [data-pack="starter"] .cr-practice-queue-zone,
+  [data-pack="starter"] .cr-onboarding-section,
+  [data-pack="starter"] .cr-completion-section {
+    padding: 16px 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cr-diagram-block code,
+  .cr-diagram-block .cr-diagram-code {
+    font-size: clamp(7px, 2.1vw, 12px) !important;
+    padding: 12px 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cr-diagram-block code,
+  .cr-diagram-block .cr-diagram-code {
+    font-size: clamp(6.5px, 1.9vw, 11px) !important;
+    padding: 10px 8px !important;
+  }
+
+  .cr-mark-complete-btn {
+    font-size: 11px;
+    padding: 10px 12px;
+    letter-spacing: 0.4px;
   }
 }

@@ -5,6 +5,7 @@
 
 import { COURSE_LESSONS } from './dp-content.js';
 import { initReaderNav } from './reader-nav.js';
+import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
 import {
   activateMilestoneDialog,
   deactivateMilestoneDialog,
@@ -105,8 +106,12 @@ let scrollObserver = null;
 let attemptTimerInterval = null;
 let attemptStartTime = null;
 
+const diagramEnhancer = createDiagramEnhancer('dp');
+diagramEnhancer.bindContent(contentEl);
+
 /* ─── Init ─── */
 function init() {
+  document.body.dataset.pack = 'dp';
   initReaderNav('dynamic-programming');
   loadProgress();
   migrateLegacyProgress();
@@ -899,6 +904,7 @@ function renderLesson(lesson) {
   void contentEl.offsetWidth;
   contentEl.classList.add('fade-in');
 
+  diagramEnhancer.enhanceVisualBlocks();
   postProcessCodeBlocks();
   addCopyButtons();
   createTabbedCodeBlocks();
@@ -1128,6 +1134,7 @@ function revealSolution(lesson) {
       section.classList.remove('cr-gated-section');
       section.querySelector('.cr-section-gate')?.remove();
     });
+    diagramEnhancer.enhanceVisualBlocks();
     postProcessCodeBlocks();
     addCopyButtons();
     createTabbedCodeBlocks();
@@ -1409,6 +1416,7 @@ function clearAttemptTimer() {
    ═══════════════════════════════════════ */
 function postProcessCodeBlocks() {
   contentEl.querySelectorAll('pre code').forEach(block => {
+    if (block.closest('.cr-diagram-block')) return;
     if (!block.classList.contains('hljs')) {
       hljs.highlightElement(block);
     }
@@ -1417,6 +1425,7 @@ function postProcessCodeBlocks() {
 
 function addCopyButtons() {
   contentEl.querySelectorAll('pre').forEach(pre => {
+    if (pre.classList.contains('cr-diagram-block')) return;
     if (pre.querySelector('.cr-copy-btn')) return;
 
     const btn = document.createElement('button');
@@ -1664,6 +1673,7 @@ function updateCompleteButton() {
   markCompleteBtn.classList.toggle('ready', !isCompleted && allStepsDone);
   markCompleteBtn.disabled = !isCompleted && AVAILABLE_LESSON_IDS.has(lesson.id) && !allStepsDone;
 
+  let label;
   if (isCompleted) {
     const labels = {
       quest: 'Quest Complete',
@@ -1673,7 +1683,7 @@ function updateCompleteButton() {
       concept: 'Lesson Complete',
       intro: 'Briefing Complete',
     };
-    span.textContent = labels[lesson.type] || 'Completed';
+    label = labels[lesson.type] || 'Completed';
   } else if (allStepsDone) {
     const claimLabels = {
       quest: 'Claim Quest XP',
@@ -1682,10 +1692,14 @@ function updateCompleteButton() {
       concept: 'Complete Lesson',
       intro: 'Begin Ascension',
     };
-    span.textContent = claimLabels[lesson.type] || 'Claim XP';
+    label = claimLabels[lesson.type] || 'Claim XP';
   } else {
-    span.textContent = 'Complete Objectives First';
+    label = 'Complete Objectives First';
   }
+
+  label = compactCompleteLabel(label);
+  span.textContent = label;
+  markCompleteBtn.setAttribute('aria-label', label);
 }
 
 function updateProgress() {
@@ -1705,8 +1719,11 @@ function updateProgress() {
   const completed = getCompletedCount();
   const xp = getTotalXP();
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const isCompactProgress = window.matchMedia('(max-width: 768px)').matches;
 
-  progressText.textContent = `${completed} / ${total} ${rankLabel}`;
+  progressText.textContent = isCompactProgress
+    ? `${completed}/${total}`
+    : `${completed} / ${total} ${rankLabel}`;
   progressFill.style.width = `${pct}%`;
   xpValue.textContent = xp.toLocaleString();
 }
@@ -1900,6 +1917,9 @@ function bindEvents() {
     if (window.innerWidth > 768) {
       closeSidebar();
     }
+    updateProgress();
+    updateCompleteButton();
+    diagramEnhancer.handleResize();
   });
 
   window.addEventListener('beforeunload', () => {

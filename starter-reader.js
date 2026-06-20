@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════ */
 
 import { COURSE_LESSONS } from './starter-content.js';
+import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
 import { initReaderNav } from './reader-nav.js';
 import {
   activateMilestoneDialog,
@@ -95,8 +96,12 @@ let scrollObserver = null;
 let attemptTimerInterval = null;
 let attemptStartTime = null;
 
+const diagramEnhancer = createDiagramEnhancer('starter');
+diagramEnhancer.bindContent(contentEl);
+
 /* ─── Init ─── */
 function init() {
+  document.body.dataset.pack = 'starter';
   initReaderNav('leetcode-starter');
   loadProgress();
   migrateLegacyProgress();
@@ -744,7 +749,7 @@ function getMissionHeader(lesson) {
     checkpoint: { icon: '✅', title: 'Checkpoint Milestone', subtitle: 'Recap today\'s patterns and practice — at your own pace.' },
     test: { icon: '🎯', title: 'Rank Test — Prove Yourself', subtitle: 'Attempt each problem before revealing the solution.' },
     concept: { icon: '📝', title: 'Lesson Objectives', subtitle: 'Learn the pattern, then tackle the quests.' },
-    intro: { icon: '⚔️', title: 'Mission Briefing', subtitle: 'Understand the ascension system before Day 1.' },
+    intro: { icon: '⚔️', title: 'Mission Briefing', subtitle: 'Understand the Starter Path system before Day 1.' },
     complete: { icon: '🏆', title: 'Phase Complete', subtitle: 'Your Starter Path journey — earned through practice.' },
   };
   return headers[lesson.type] || headers.concept;
@@ -852,7 +857,7 @@ function renderLesson(lesson) {
     html += `<span class="cr-meta-pill rank" style="--pill-rank-color: ${meta.color}">${meta.label.replace(/^[^\s]+\s/, '')}</span>`;
   }
   if (lesson.type) {
-    const typeLabels = { quest: '⚔ Quest', checkpoint: '✅ Checkpoint', test: '🎯 Test', concept: '📝 Concept', complete: '🏆 Complete' };
+    const typeLabels = { quest: '⚔ Quest', checkpoint: '✅ Checkpoint', test: '🎯 Test', concept: '📝 Mentor Guide', complete: '🏆 Complete' };
     if (typeLabels[lesson.type]) {
       html += `<span class="cr-meta-pill type">${typeLabels[lesson.type]}</span>`;
     }
@@ -879,10 +884,12 @@ function renderLesson(lesson) {
   void contentEl.offsetWidth;
   contentEl.classList.add('fade-in');
 
+  diagramEnhancer.enhanceVisualBlocks();
   postProcessCodeBlocks();
   addCopyButtons();
   createTabbedCodeBlocks();
   enhanceProblemLayout(lesson);
+  enhanceStarterLayout(lesson);
   applySolutionGating(lesson);
   injectCheckpointStats(lesson);
   injectLiveStats(lesson);
@@ -912,6 +919,39 @@ function enhanceProblemLayout(lesson) {
   });
 
   styleLeetCodeCTAs();
+}
+
+function enhanceStarterLayout(lesson) {
+  if (!['checkpoint', 'intro', 'complete'].includes(lesson.type)) return;
+
+  const patternsByType = {
+    checkpoint: [
+      { pattern: /skill check/i, className: 'cr-skill-check-zone' },
+      { pattern: /reflection/i, className: 'cr-reflection-zone' },
+      { pattern: /habit/i, className: 'cr-habit-zone' },
+      { pattern: /mistake mirror/i, className: 'cr-mistake-zone' },
+      { pattern: /practice queue/i, className: 'cr-practice-queue-zone' },
+    ],
+    intro: [
+      { pattern: /how it works|phase system|course goals/i, className: 'cr-onboarding-section' },
+    ],
+    complete: [
+      { pattern: /skills unlocked|what'?s next|recommendation matrix|phase \d — unlocked|phase \d - unlocked/i, className: 'cr-completion-section' },
+    ],
+  };
+
+  const patterns = patternsByType[lesson.type] || [];
+  const h2s = Array.from(contentEl.querySelectorAll('h2'));
+  h2s.forEach((h2, i) => {
+    const text = h2.textContent;
+    const nextH2 = h2s[i + 1] || null;
+    for (const { pattern, className } of patterns) {
+      if (pattern.test(text)) {
+        wrapSectionUntil(h2, nextH2, className);
+        break;
+      }
+    }
+  });
 }
 
 function wrapSectionUntil(startH2, stopBefore, className) {
@@ -1068,21 +1108,21 @@ function gateTestSolution(lesson, solutionRevealed) {
 }
 
 function gateCheckpointHints(lesson) {
-  if (!isStepDone(lesson.id, 'attempt')) {
-    contentEl.querySelectorAll('.cr-mini-challenge-zone blockquote, .cr-mini-challenge-zone h4').forEach(el => {
-      if (el.closest('.cr-hint-gated')) return;
-      const wrap = document.createElement('div');
-      wrap.className = 'cr-hint-gated cr-gated-section';
-      el.parentNode.insertBefore(wrap, el);
-      wrap.appendChild(el);
-      const gate = createGatePanel(
-        'hints',
-        'Hint Locked',
-        'Attempt the mini challenge on LeetCode first, then mark <strong>"I\'ve Attempted This"</strong> to unlock hints.'
-      );
-      wrap.insertBefore(gate, wrap.firstChild);
-    });
-  }
+  if (isStepDone(lesson.id, 'reflection')) return;
+
+  contentEl.querySelectorAll('.cr-mini-challenge-zone blockquote, .cr-mini-challenge-zone h4').forEach(el => {
+    if (el.closest('.cr-hint-gated')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'cr-hint-gated cr-gated-section';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+    const gate = createGatePanel(
+      'hints',
+      'Hint Locked',
+      'Complete the reflection prompts in the checklist above, then return for optional mini-challenge hints.'
+    );
+    wrap.insertBefore(gate, wrap.firstChild);
+  });
 }
 
 function unlockHintsAndWalkthrough(lesson) {
@@ -1108,6 +1148,7 @@ function revealSolution(lesson) {
       section.classList.remove('cr-gated-section');
       section.querySelector('.cr-section-gate')?.remove();
     });
+    diagramEnhancer.enhanceVisualBlocks();
     postProcessCodeBlocks();
     addCopyButtons();
     createTabbedCodeBlocks();
@@ -1329,6 +1370,7 @@ function clearAttemptTimer() {
    ═══════════════════════════════════════ */
 function postProcessCodeBlocks() {
   contentEl.querySelectorAll('pre code').forEach(block => {
+    if (block.closest('.cr-diagram-block')) return;
     if (!block.classList.contains('hljs')) {
       hljs.highlightElement(block);
     }
@@ -1337,6 +1379,7 @@ function postProcessCodeBlocks() {
 
 function addCopyButtons() {
   contentEl.querySelectorAll('pre').forEach(pre => {
+    if (pre.classList.contains('cr-diagram-block')) return;
     if (pre.querySelector('.cr-copy-btn')) return;
 
     const btn = document.createElement('button');
@@ -1584,6 +1627,7 @@ function updateCompleteButton() {
   markCompleteBtn.classList.toggle('ready', !isCompleted && allStepsDone);
   markCompleteBtn.disabled = !isCompleted && AVAILABLE_LESSON_IDS.has(lesson.id) && !allStepsDone;
 
+  let label;
   if (isCompleted) {
     const labels = {
       quest: 'Quest Complete',
@@ -1593,19 +1637,23 @@ function updateCompleteButton() {
       concept: 'Lesson Complete',
       intro: 'Briefing Complete',
     };
-    span.textContent = labels[lesson.type] || 'Completed';
+    label = labels[lesson.type] || 'Completed';
   } else if (allStepsDone) {
     const claimLabels = {
       quest: 'Claim Quest XP',
       checkpoint: 'Complete Checkpoint',
       test: 'Pass Test Problem',
       concept: 'Complete Lesson',
-      intro: 'Begin Ascension',
+      intro: 'Start Day 1 →',
     };
-    span.textContent = claimLabels[lesson.type] || 'Claim XP';
+    label = claimLabels[lesson.type] || 'Claim XP';
   } else {
-    span.textContent = 'Complete Objectives First';
+    label = 'Complete Objectives First';
   }
+
+  label = compactCompleteLabel(label);
+  span.textContent = label;
+  markCompleteBtn.setAttribute('aria-label', label);
 }
 
 function updateProgress() {
@@ -1620,7 +1668,11 @@ function updateProgress() {
   const xp = getTotalXP();
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  progressText.textContent = `${completed} / ${total} ${rankLabel}`;
+  const isCompactProgress = window.matchMedia('(max-width: 768px)').matches;
+
+  progressText.textContent = isCompactProgress
+    ? `${completed}/${total}`
+    : `${completed} / ${total} ${rankLabel}`;
   progressFill.style.width = `${pct}%`;
   xpValue.textContent = xp.toLocaleString();
 }
@@ -1802,6 +1854,9 @@ function bindEvents() {
     if (window.innerWidth > 768) {
       closeSidebar();
     }
+    updateProgress();
+    updateCompleteButton();
+    diagramEnhancer.handleResize();
   });
 
   window.addEventListener('beforeunload', () => {
