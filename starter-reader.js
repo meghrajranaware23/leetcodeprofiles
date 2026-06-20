@@ -6,6 +6,12 @@
 import { COURSE_LESSONS } from './starter-content.js';
 import { initReaderNav } from './reader-nav.js';
 import {
+  activateMilestoneDialog,
+  deactivateMilestoneDialog,
+  initMilestoneDialog,
+  isMilestoneOpen,
+} from './reader-ui.js';
+import {
   P1_LESSONS,
   P2_LESSONS,
   P3_LESSONS,
@@ -1673,12 +1679,14 @@ function showMilestone(lesson) {
   milestoneOverlay.hidden = false;
   milestoneOverlay.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+  activateMilestoneDialog(milestoneBtn);
 }
 
 function hideMilestone() {
   milestoneOverlay.hidden = true;
   milestoneOverlay.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  deactivateMilestoneDialog();
 
   const recIdx = getRecommendedNextIndex();
   if (recIdx !== -1 && recIdx !== currentLessonIndex) {
@@ -1767,9 +1775,11 @@ function bindEvents() {
   milestoneOverlay.addEventListener('click', (e) => {
     if (e.target === milestoneOverlay) hideMilestone();
   });
+  initMilestoneDialog({ overlay: milestoneOverlay, milestoneBtn, hideMilestone });
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (isMilestoneOpen()) return;
 
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();

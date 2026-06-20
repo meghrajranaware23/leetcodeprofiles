@@ -26,6 +26,18 @@
 
   --border:         #1A1A1A;
   --border-bright:  #252525;
+
+  /* Breakpoints (for reference in media queries) */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /* Safe area */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 /* === GLOBAL RESET === */
@@ -45,7 +57,6 @@ body {
   font-family: 'Sora', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
 }
 
 ::selection {
@@ -69,9 +80,30 @@ button {
   font-family: inherit;
 }
 
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--red-bright);
+  outline-offset: 2px;
+}
+
 img {
   max-width: 100%;
   display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ============================================
@@ -83,8 +115,8 @@ img {
   left: 0;
   width: 100%;
   z-index: 100;
-  padding: 0 48px;
-  height: 64px;
+  padding: var(--safe-top) calc(48px + var(--safe-right)) 0 calc(48px + var(--safe-left));
+  height: calc(64px + var(--safe-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -166,12 +198,16 @@ img {
 .hamburger {
   display: none;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
   cursor: pointer;
   z-index: 300;
   background: none;
   border: none;
-  padding: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
 }
 
 .hamburger span {
@@ -200,7 +236,7 @@ img {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   background: rgba(6, 6, 6, 0.98);
   z-index: 200;
   display: flex;
@@ -208,6 +244,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 32px;
+  padding: calc(24px + var(--safe-top)) calc(24px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(24px + var(--safe-left));
+  overflow-y: auto;
   opacity: 0;
   pointer-events: none;
   transition: opacity 300ms ease;
@@ -232,11 +270,15 @@ img {
   color: var(--red-primary);
 }
 
+.mobile-menu .nav-cta {
+  margin-top: 20px;
+}
+
 /* ============================================
    SECTION 2 — HERO
    ============================================ */
 .hero {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   padding: 120px 80px;
@@ -667,7 +709,8 @@ a.btn-secondary {
 
 .pack-stats {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 12px 24px;
 }
 
 .pack-stat {
@@ -857,6 +900,10 @@ a.btn-secondary {
   }
   .continue-btn {
     text-align: center;
+  }
+
+  .rank-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1321,7 +1368,7 @@ a.btn-secondary {
    SECTION 9 — FOOTER
    ============================================ */
 .footer {
-  padding: 48px 80px;
+  padding: 48px calc(80px + var(--safe-right)) calc(48px + var(--safe-bottom)) calc(80px + var(--safe-left));
   background: #040404;
   border-top: 2px solid var(--red-primary);
 }
@@ -1335,7 +1382,7 @@ a.btn-secondary {
 .footer-tagline {
   font-family: 'Sora', sans-serif;
   font-size: 13px;
-  color: var(--text-dim);
+  color: var(--text-secondary);
   margin-top: 8px;
 }
 
@@ -1380,7 +1427,7 @@ a.btn-secondary {
    ============================================ */
 @media (max-width: 1024px) {
   .navbar {
-    padding: 0 24px;
+    padding: var(--safe-top) calc(24px + var(--safe-right)) 0 calc(24px + var(--safe-left));
   }
 
   .nav-links {
@@ -1535,6 +1582,39 @@ a.btn-secondary {
   .btn-primary,
   .btn-secondary {
     width: 100%;
+  }
+
+  .step-number {
+    font-size: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rank-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-card {
+    padding: 20px 16px;
+  }
+
+  .pack-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .pack-btn {
+    width: 100%;
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-number {
+    font-size: 56px;
   }
 }
 

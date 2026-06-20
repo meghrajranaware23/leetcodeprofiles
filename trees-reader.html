@@ -29,6 +29,11 @@
   <!-- ═══════════ TOP BAR ═══════════ -->
   <header class="cr-topbar" id="topbar">
     <div class="cr-topbar-left">
+      <button class="cr-sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+        <span class="cr-toggle-bar"></span>
+        <span class="cr-toggle-bar"></span>
+        <span class="cr-toggle-bar"></span>
+      </button>
       <a href="./packs.html" class="cr-back-btn" id="backBtn" aria-label="Back to all packs">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
         <span>All Packs</span>
@@ -67,13 +72,6 @@
       </nav>
     </aside>
 
-    <!-- SIDEBAR TOGGLE (always visible on mobile) -->
-    <button class="cr-sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-      <span class="cr-toggle-bar"></span>
-      <span class="cr-toggle-bar"></span>
-      <span class="cr-toggle-bar"></span>
-    </button>
-
     <!-- MAIN CONTENT -->
     <main class="cr-main" id="main">
       <article class="cr-content" id="content">
@@ -90,7 +88,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
           <span>Previous</span>
         </button>
-        <button class="cr-mark-complete-btn" id="markCompleteBtn">
+        <button class="cr-mark-complete-btn" id="markCompleteBtn" type="button" aria-label="Mark as complete">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           <span>Mark as Complete</span>
         </button>

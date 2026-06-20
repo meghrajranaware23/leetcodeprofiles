@@ -26,10 +26,10 @@ export function initSiteNav(options = {}) {
         <a href="${isHome ? '#ranks' : './index.html#ranks'}">Ranks</a>
         <a href="${isHome ? '#how-it-works' : './index.html#how-it-works'}">How It Works</a>
         <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
-        <a href="./packs.html" class="${isHome ? '' : 'nav-active'}">Start</a>
+        <a href="./starter-reader.html">Starter Path</a>
       </div>
       <a href="./packs.html" class="nav-cta">START GRINDING →</a>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
+      <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
     </nav>
@@ -38,8 +38,8 @@ export function initSiteNav(options = {}) {
       <a href="${isHome ? '#ranks' : './index.html#ranks'}">Ranks</a>
       <a href="${isHome ? '#how-it-works' : './index.html#how-it-works'}">How It Works</a>
       <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
-      <a href="./packs.html">Start</a>
-      <a href="./packs.html" class="nav-cta" style="margin-top:20px;">START GRINDING →</a>
+      <a href="./starter-reader.html">Starter Path</a>
+      <a href="./packs.html" class="nav-cta">START GRINDING →</a>
     </div>
   `;
 
@@ -81,21 +81,38 @@ function initNavbarScroll() {
   window.addEventListener('scroll', onScroll);
 }
 
+function setMobileMenuOpen(open) {
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (!hamburger || !mobileMenu) return;
+
+  hamburger.classList.toggle('active', open);
+  mobileMenu.classList.toggle('active', open);
+  hamburger.setAttribute('aria-expanded', String(open));
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
 function initMobileMenu() {
   const hamburger = document.getElementById('hamburger');
   const mobileMenu = document.getElementById('mobile-menu');
   if (!hamburger || !mobileMenu) return;
 
   hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    mobileMenu.classList.toggle('active');
+    const open = !mobileMenu.classList.contains('active');
+    setMobileMenuOpen(open);
   });
 
   mobileMenu.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
-      hamburger.classList.remove('active');
-      mobileMenu.classList.remove('active');
+      setMobileMenuOpen(false);
     });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+      setMobileMenuOpen(false);
+      hamburger.focus();
+    }
   });
 }
 
