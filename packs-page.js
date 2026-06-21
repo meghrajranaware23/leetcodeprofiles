@@ -1,4 +1,4 @@
-import { getFeaturedPack, getTeaserPacks, getTopicPacks } from './pack-catalog.js';
+import { getFeaturedPack, getTeaserPacks, getTopicPacks, getPackCtaLabel } from './pack-catalog.js';
 import { guardPage, showAuthLoader, hideAuthLoader } from './auth/auth-guard.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { waitForProgressSync } from './auth/progress-sync-service.js';
@@ -47,7 +47,7 @@ export function renderPackCard(pack, { featured = false } = {}) {
       </div>
       ${progressHtml}
       <div class="pack-bottom pack-bottom--cta-only">
-        <a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${pack.startLabel}</a>
+        <a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${getPackCtaLabel(pack)}</a>
       </div>
     </div>
   `;

@@ -142,6 +142,15 @@ export function getPackById(id) {
   return PACK_CATALOG.find(p => p.id === id) || null;
 }
 
+/** Pack card / CTA label — "Start Trees →" or "Continue Graphs →" */
+export function getPackCtaLabel(pack, { continued = false } = {}) {
+  if (pack.kind === 'onboarding') {
+    return continued ? 'Continue Path →' : 'Start Path →';
+  }
+  const verb = continued ? 'Continue' : 'Start';
+  return `${verb} ${pack.shortTitle} →`;
+}
+
 /** Packs shown on homepage teaser (Starter + Arrays + 2 topic packs) */
 export function getTeaserPacks() {
   const featured = getFeaturedPack();

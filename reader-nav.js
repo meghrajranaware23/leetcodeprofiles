@@ -6,8 +6,10 @@ import './firebase.js';
 import { ROUTES } from './routes.js';
 import { PACK_CATALOG, getAllPacksSorted } from './pack-catalog.js';
 import { mountProfileMenu } from './auth/auth-ui.js';
+import { initSidebarResize } from './sidebar-resize.js';
 
 export function initReaderNav(currentPackId) {
+  initSidebarResize();
   const backBtn = document.getElementById('backBtn');
   if (backBtn) {
     backBtn.href = ROUTES.packs;
@@ -16,7 +18,7 @@ export function initReaderNav(currentPackId) {
     if (label) label.textContent = 'All Packs';
   }
 
-  mountProfileMenu('reader-auth', { compact: true });
+  mountProfileMenu('reader-auth');
 
   const mount = document.getElementById('packSwitcher');
   if (!mount) return;

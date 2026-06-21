@@ -1,4 +1,4 @@
-import { getFeaturedPack } from './pack-catalog.js';
+import { getFeaturedPack, getPackCtaLabel } from './pack-catalog.js';
 import {
   getActivePacksCount,
   getAllPackSummaries,
@@ -25,15 +25,16 @@ export function hydratePackProgress(pack, summary) {
 
   if (!summary?.hasProgress) {
     startBtn.href = pack.readerUrl;
-    startBtn.textContent = pack.startLabel;
+    startBtn.textContent = getPackCtaLabel(pack, { continued: false });
     card?.classList.remove('pack-card--active');
     if (topRankPill) topRankPill.hidden = true;
+    if (progressEl) progressEl.hidden = true;
     return;
   }
 
+  startBtn.textContent = getPackCtaLabel(pack, { continued: true });
   getPackContinueUrl(pack.id).then((url) => {
     startBtn.href = url;
-    startBtn.textContent = 'CONTINUE →';
   });
 
   const rankLabel = getRankPillLabel(summary.currentRank);

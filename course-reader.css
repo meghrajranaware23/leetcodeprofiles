@@ -3,6 +3,8 @@
    Solo Leveling dark theme · Educative.io–style layout
    ══════════════════════════════════════════════════════════ */
 
+@import url('./auth/auth-profile.css');
+
 /* ─── Design Tokens ─── */
 :root {
   --bg-primary: #060606;
@@ -39,7 +41,7 @@
 
   /* Layout */
   --topbar-h: 56px;
-  --sidebar-w: 300px;
+  --sidebar-w: 320px;
   --content-max-w: 820px;
 
   /* Transitions */
@@ -453,6 +455,98 @@ button:focus-visible,
   transition: transform var(--transition-base);
 }
 
+.cr-sidebar-resize {
+  position: fixed;
+  top: calc(var(--topbar-h) + var(--safe-top));
+  left: calc(var(--sidebar-w) - 10px);
+  bottom: 0;
+  width: 20px;
+  z-index: 920;
+  pointer-events: none;
+}
+
+.cr-sidebar-resize.is-near-edge,
+.cr-sidebar-resize.is-dragging {
+  pointer-events: auto;
+  cursor: col-resize;
+}
+
+.cr-sidebar-resize::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--red-border);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.cr-sidebar-resize.is-near-edge::before,
+.cr-sidebar-resize.is-dragging::before {
+  opacity: 1;
+}
+
+.cr-sidebar-resize-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  cursor: col-resize;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.cr-sidebar-resize.is-near-edge .cr-sidebar-resize-grip,
+.cr-sidebar-resize.is-dragging .cr-sidebar-resize-grip {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.cr-sidebar-resize-grip:hover,
+.cr-sidebar-resize-grip:focus-visible,
+.cr-sidebar-resize.is-dragging .cr-sidebar-resize-grip {
+  border-color: var(--red-border);
+  color: var(--text-secondary);
+  background: #141414;
+}
+
+.cr-sidebar-resize.is-dragging .cr-sidebar-resize-grip {
+  color: #ffffff;
+}
+
+body.cr-sidebar-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.cr-sidebar-resizing .cr-sidebar {
+  transition: none;
+}
+
 .cr-sidebar-header {
   padding: 20px 20px 12px;
   border-bottom: 1px solid var(--border-subtle);
@@ -478,7 +572,7 @@ button:focus-visible,
 
 .cr-rank-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 20px;
   cursor: pointer;
@@ -557,7 +651,7 @@ button:focus-visible,
 
 .cr-lesson-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 10px 20px 10px 36px;
   min-height: 44px;
@@ -1207,10 +1301,38 @@ button:focus-visible,
 }
 
 
+@media (min-width: 769px) {
+  .cr-rank-title,
+  .cr-day-title,
+  .cr-lesson-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.35;
+  }
+
+  .cr-day-header {
+    align-items: flex-start;
+  }
+
+  .cr-lesson-icon,
+  .cr-rank-dot,
+  .cr-rank-chevron,
+  .cr-lesson-check,
+  .cr-day-indicator,
+  .cr-day-chevron {
+    margin-top: 2px;
+  }
+}
+
 /* ═══════════════════════════════════════
    RESPONSIVE — MOBILE
    ═══════════════════════════════════════ */
 @media (max-width: 768px) {
+  .cr-sidebar-resize {
+    display: none !important;
+  }
+
   .cr-sidebar {
     transform: translateX(-100%);
     width: 280px;
