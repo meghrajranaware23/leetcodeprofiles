@@ -130,6 +130,20 @@ img {
   -webkit-backdrop-filter: blur(10px);
 }
 
+.navbar--app {
+  justify-content: space-between;
+}
+
+.navbar--app .nav-actions--app {
+  margin-left: auto;
+}
+
+.nav-actions--app {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .nav-logo {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
@@ -445,7 +459,8 @@ img {
 }
 
 a.btn-primary,
-a.btn-secondary {
+a.btn-secondary,
+a.btn-ghost {
   text-decoration: none;
   display: inline-block;
 }
@@ -803,15 +818,41 @@ a.btn-secondary {
 }
 .pack-progress-header {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 8px;
   letter-spacing: 0.04em;
 }
+.pack-rank-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  flex-shrink: 0;
+}
+.pack-rank-pill.rank-e { color: #666666; background: rgba(102, 102, 102, 0.12); }
+.pack-rank-pill.rank-d { color: #4A9EFF; background: rgba(74, 158, 255, 0.12); }
+.pack-rank-pill.rank-c { color: #4AFF9E; background: rgba(74, 255, 158, 0.12); }
+.pack-rank-pill.rank-b { color: #FFD700; background: rgba(255, 215, 0, 0.12); }
+.pack-rank-pill.rank-a { color: #FF6B35; background: rgba(255, 107, 53, 0.12); }
+.pack-rank-pill.rank-s { color: #E50000; background: rgba(229, 0, 0, 0.12); }
+.pack-rank-pill.rank-p1 { color: #4A9EFF; background: rgba(74, 158, 255, 0.12); }
+.pack-rank-pill.rank-p2 { color: #4AFF9E; background: rgba(74, 255, 158, 0.12); }
+.pack-rank-pill.rank-p3 { color: #FFD700; background: rgba(255, 215, 0, 0.12); }
+.pack-rank-pill.rank-none { color: var(--text-secondary); background: rgba(255, 255, 255, 0.04); }
 .pack-progress-xp {
   color: var(--rank-b, #FFD700);
+  margin-left: auto;
 }
 .pack-progress-bar {
   height: 4px;
@@ -890,6 +931,19 @@ a.btn-secondary {
 }
 .continue-recommended {
   color: #e59600;
+}
+.continue-sync-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 10px 0 0;
+  letter-spacing: 0.02em;
+}
+.continue-sync-hint::before {
+  content: '☁ ';
+  opacity: 0.7;
+}
+.continue-section--packs {
+  padding-top: 24px;
 }
 .continue-btn {
   display: inline-block;
@@ -1295,6 +1349,8 @@ a.btn-secondary {
   letter-spacing: 0.06em;
   border-radius: 0;
   transition: all 200ms ease;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .pricing-btn.outline {
@@ -1423,10 +1479,26 @@ a.btn-secondary {
   color: var(--text-primary);
 }
 
+.footer-links a[target="_blank"]::after {
+  content: ' ↗';
+  font-size: 10px;
+  opacity: 0.5;
+}
+
 .footer-copy {
   font-family: 'Sora', sans-serif;
   font-size: 12px;
   color: var(--text-dim);
+}
+
+.footer--app {
+  padding: 32px calc(80px + var(--safe-right)) calc(32px + var(--safe-bottom)) calc(80px + var(--safe-left));
+  border-top: 1px solid var(--border);
+}
+
+.footer-content--app {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* ============================================
@@ -1742,6 +1814,29 @@ a.btn-secondary {
 /* ============================================
    PACKS CATALOG PAGE
    ============================================ */
+.marketing-page-hero {
+  padding: 120px 80px 60px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  max-width: 720px;
+}
+
+.marketing-page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-top: 12px;
+}
+
+.marketing-page-subtitle {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 20px;
+}
+
 .packs-page-hero {
   padding: 120px 80px 60px;
   background: var(--bg-primary);
@@ -1766,6 +1861,16 @@ a.btn-secondary {
   color: var(--text-secondary);
   line-height: 1.7;
   margin-top: 20px;
+}
+
+.packs-page-hero--return {
+  padding-bottom: 40px;
+  padding-top: 120px;
+}
+
+.packs-hero-divider {
+  margin: 0 8px;
+  opacity: 0.5;
 }
 
 .packs-featured-section {
@@ -2096,6 +2201,38 @@ a.final-btn {
   word-break: break-all;
 }
 
+.auth-profile-progress {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--red-primary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.auth-profile-link,
+.auth-my-progress-link {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: left;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.auth-profile-link:hover,
+.auth-my-progress-link:hover {
+  color: var(--red-bright);
+  background: var(--red-muted);
+}
+
 .auth-sign-out-btn {
   width: 100%;
   min-height: 40px;
@@ -2130,4 +2267,326 @@ a.final-btn {
   margin-top: 12px;
   box-shadow: none;
   border: 1px solid var(--border);
+}
+
+/* ======== HUNTER HQ GAMIFICATION ======== */
+.continue-card {
+  border-left: 4px solid var(--continue-rank-color, var(--red-primary));
+}
+.continue-rank-badge {
+  display: inline-flex;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.pack-top-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.pack-top-rank {
+  font-size: 10px;
+}
+.pack-card--active {
+  border-top: 2px solid var(--pack-rank-color, var(--red-primary));
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--pack-rank-color, var(--red-primary)) 8%, transparent),
+    var(--bg-card) 45%
+  );
+}
+.pack-bottom--cta-only {
+  margin-top: 14px;
+}
+.pack-btn--full {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.packs-page-hero--return .packs-page-title {
+  animation: hunter-pulse 3s ease-in-out infinite;
+}
+.packs-return-peak {
+  color: var(--red-primary);
+  font-weight: 600;
+}
+@keyframes hunter-pulse {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50% { text-shadow: 0 0 24px rgba(229, 0, 0, 0.35); }
+}
+.packs-featured-section {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 48px;
+  margin-bottom: 16px;
+}
+
+/* ======== HUNTER PROFILE CARD ======== */
+.profile-page {
+  padding: 120px 24px 80px;
+  background: var(--bg-primary);
+  min-height: 70vh;
+}
+.profile-page-inner {
+  max-width: 560px;
+  margin: 0 auto;
+}
+.profile-page-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.profile-page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--text-primary);
+  margin: 8px 0 12px;
+}
+.profile-page-subtitle {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+.profile-page-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.profile-action-btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.profile-action-btn--primary {
+  background: var(--red-primary);
+  color: #fff;
+  border-color: var(--red-border);
+}
+.profile-action-btn--primary:hover {
+  background: var(--red-bright);
+  box-shadow: 0 0 20px var(--red-glow);
+}
+.profile-action-btn--secondary {
+  background: transparent;
+  color: var(--text-primary);
+}
+.profile-action-btn--secondary:hover {
+  border-color: var(--red-border);
+  color: var(--red-bright);
+}
+.hunter-card-wrap {
+  display: flex;
+  justify-content: center;
+}
+.hunter-card-export {
+  width: 100%;
+  max-width: 480px;
+  padding: 28px 24px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(229, 0, 0, 0.12) 0%, transparent 55%),
+    linear-gradient(180deg, #141414 0%, #0a0a0a 100%);
+  border: 1px solid var(--red-border);
+  box-shadow: 0 0 60px rgba(229, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+.hunter-card-export::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+.hunter-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+.hunter-card-brand {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--red-primary);
+}
+.hunter-card-site {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+.hunter-card-identity {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+.hunter-card-avatar,
+.hunter-card-initials {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 2px solid var(--red-border);
+  box-shadow: 0 0 24px rgba(229, 0, 0, 0.25);
+  margin: 0 auto 12px;
+  display: block;
+  object-fit: cover;
+}
+.hunter-card-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+.hunter-card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+.hunter-card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red-primary);
+  margin: 0;
+}
+.hunter-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+.hunter-card-stat {
+  text-align: center;
+  padding: 12px 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+}
+.hunter-card-stat-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.hunter-card-stat-value {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.hunter-card-ranks {
+  position: relative;
+  z-index: 1;
+}
+.hunter-card-ranks-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.hunter-card-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.hunter-card-row:last-child {
+  border-bottom: none;
+}
+.hunter-card-row-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hunter-card-row-body {
+  flex: 1;
+  min-width: 0;
+}
+.hunter-card-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.hunter-card-row-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.hunter-card-row-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.hunter-card-row-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red-dark), var(--red-bright));
+  border-radius: 2px;
+}
+.hunter-card-row-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.hunter-card-row--active .hunter-card-row-title {
+  color: #fff;
+}
+.hunter-card-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .profile-page-title {
+    font-size: 42px;
+  }
+  .hunter-card-stats {
+    grid-template-columns: 1fr;
+  }
+  .profile-page-actions {
+    flex-direction: column;
+  }
+  .profile-action-btn {
+    width: 100%;
+  }
 }

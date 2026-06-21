@@ -1,4 +1,8 @@
 import {
+  getActivePackSummary,
+  getPackContinueUrl,
+} from './progress-facade.js';
+import {
   loadProgress as loadArraysProgress,
   getProgressSummary as getArraysSummary,
   getContinueUrl as getArraysContinueUrl,
@@ -9,66 +13,40 @@ import {
   getContinueUrl as getStarterContinueUrl,
 } from './starter-progress.js';
 import { PACK_IDS } from './progress-store.js';
+import { renderContinueBanner as renderHQContinueBanner } from './hunter-hq.js';
 
-export function initLandingProgress() {
+export async function initLandingProgress() {
   loadArraysProgress();
-  const arraysSummary = getArraysSummary();
-  const arraysContinueUrl = getArraysContinueUrl();
-
-  renderContinueBanner(arraysSummary, arraysContinueUrl);
-  renderPackProgress('arrays-pack-progress', 'arrays-strings-start', arraysSummary, arraysContinueUrl, './course-reader.html', 'START PACK →');
-
   loadStarterProgress(PACK_IDS.STARTER);
-  const starterSummary = getStarterSummary(PACK_IDS.STARTER);
-  const starterContinueUrl = getStarterContinueUrl(PACK_IDS.STARTER);
 
-  renderPackProgress('starter-pack-progress', 'starter-start', starterSummary, starterContinueUrl, './starter-reader.html', 'START PATH →');
-}
+  let summary = await getActivePackSummary();
+  let continueUrl = summary ? await getPackContinueUrl(summary.packId) : null;
 
-function renderContinueBanner(summary, continueUrl) {
-  const section = document.getElementById('continueSection');
-  if (!section || !summary.hasProgress) return;
-
-  section.hidden = false;
-
-  const title = document.getElementById('continueTitle');
-  const meta = document.getElementById('continueMeta');
-  const fill = document.getElementById('continueProgressFill');
-  const last = document.getElementById('continueLast');
-  const btn = document.getElementById('continueBtn');
-  const recommended = document.getElementById('continueRecommended');
-
-  if (title) {
-    title.textContent = summary.currentRank?.includes('Complete')
-      ? `${summary.currentRank} — Review Your Journey`
-      : 'Continue Arrays & Strings Ascension';
-  }
-
-  if (meta) {
-    meta.textContent = `${summary.completedCount} / ${summary.totalLessons} lessons · ${summary.totalXp.toLocaleString()} XP · ${summary.currentRank}`;
-  }
-
-  if (fill) fill.style.width = `${summary.completionPercent}%`;
-
-  if (last && summary.lastVisited) {
-    last.textContent = `Last visited: ${summary.lastVisited.icon} ${summary.lastVisited.title}`;
-  } else if (last) {
-    last.textContent = '';
-  }
-
-  if (recommended) {
-    if (summary.recommendedNext && summary.lastVisited?.id !== summary.recommendedNext.id) {
-      recommended.textContent = `Recommended next: ${summary.recommendedNext.icon} ${summary.recommendedNext.title}`;
-      recommended.hidden = false;
-    } else {
-      recommended.hidden = true;
+  if (!summary?.hasProgress) {
+    const arraysSummary = getArraysSummary();
+    if (arraysSummary.hasProgress) {
+      summary = arraysSummary;
+      continueUrl = getArraysContinueUrl();
     }
   }
 
-  if (btn) {
-    btn.href = continueUrl;
-    btn.textContent = summary.completedCount > 0 ? 'CONTINUE LEARNING →' : 'START LEARNING →';
+  if (summary?.hasProgress && continueUrl) {
+    renderHQContinueBanner(summary, continueUrl);
+    showSyncHint();
   }
+
+  const arraysSummary = getArraysSummary();
+  const arraysContinueUrl = getArraysContinueUrl();
+  renderPackProgress('arrays-pack-progress', 'arrays-strings-start', arraysSummary, arraysContinueUrl, './course-reader.html', 'START PACK →');
+
+  const starterSummary = getStarterSummary(PACK_IDS.STARTER);
+  const starterContinueUrl = getStarterContinueUrl(PACK_IDS.STARTER);
+  renderPackProgress('starter-pack-progress', 'starter-start', starterSummary, starterContinueUrl, '/starter', 'START PATH →');
+}
+
+function showSyncHint() {
+  const hint = document.getElementById('continueSyncHint');
+  if (hint) hint.hidden = false;
 }
 
 function renderPackProgress(progressId, startBtnId, summary, continueUrl, defaultUrl, defaultLabel) {

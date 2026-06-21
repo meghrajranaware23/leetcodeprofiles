@@ -19,6 +19,8 @@ function hideAuthLoader() {
   document.getElementById(LOADER_ID)?.remove();
 }
 
+export { showAuthLoader, hideAuthLoader };
+
 export function getSignInUrl(next = DEFAULT_POST_AUTH_URL) {
   const params = new URLSearchParams();
   params.set('next', next);
@@ -36,9 +38,39 @@ export function getRedirectTarget() {
 
 function isSafeRedirect(url) {
   if (!url || typeof url !== 'string') return false;
-  if (url.startsWith('//') || url.includes('://')) return false;
-  if (url.startsWith('/') && !url.startsWith('./')) return false;
-  return url.startsWith('./') || url.startsWith('/');
+  if (url.startsWith('//') || /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url)) return false;
+  return url.startsWith('/') || url.startsWith('./');
+}
+
+function getAuthNextPath() {
+  const path = window.location.pathname;
+  if (path === '/packs' || path === '/home' || path.endsWith('/packs.html')) {
+    return `/packs${window.location.search}${window.location.hash}`;
+  }
+  if (path === '/profile' || path.endsWith('/profile.html')) {
+    return `/profile${window.location.search}${window.location.hash}`;
+  }
+  return `${path}${window.location.search}${window.location.hash}`;
+}
+
+export async function getPostAuthDestination() {
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get('next');
+  if (next && isSafeRedirect(next)) {
+    return next;
+  }
+
+  try {
+    const { getContinuePackSummary, getPackContinueUrl } = await import('../progress-facade.js');
+    const active = await getContinuePackSummary();
+    if (active?.hasProgress) {
+      return await getPackContinueUrl(active.packId);
+    }
+  } catch (err) {
+    console.warn('Could not resolve post-auth continue URL:', err);
+  }
+
+  return DEFAULT_POST_AUTH_URL;
 }
 
 export async function guardPage() {
@@ -47,9 +79,7 @@ export async function guardPage() {
   hideAuthLoader();
 
   if (!getCurrentUser()) {
-    const file = window.location.pathname.split('/').pop() || 'packs.html';
-    const nextUrl = `./${file}${window.location.search}${window.location.hash}`;
-    window.location.replace(getSignInUrl(nextUrl));
+    window.location.replace(getSignInUrl(getAuthNextPath()));
     return false;
   }
 

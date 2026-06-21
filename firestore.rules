@@ -2,11 +2,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
 
-      allow create: if request.auth != null
-        && request.auth.uid == userId
+    function isAllowedPackId(packId) {
+      return packId in [
+        'arrays-strings',
+        'graphs',
+        'trees',
+        'dynamic-programming',
+        'recursion',
+        'leetcode-starter',
+        '_meta'
+      ];
+    }
+
+    function isValidProgressPayload() {
+      return request.resource.size() < 900000
+        && request.resource.data.keys().hasAll(['packId', 'version', 'updatedAt'])
+        && request.resource.data.packId is string
+        && request.resource.data.version is number
+        && request.resource.data.updatedAt is string;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
         && request.resource.data.uid == userId
         && request.resource.data.provider == 'google'
         && request.resource.data.keys().hasAll([
@@ -17,13 +40,22 @@ service cloud.firestore {
           'lastLoginAt'
         ]);
 
-      allow update: if request.auth != null
-        && request.auth.uid == userId
+      allow update: if isOwner(userId)
         && request.resource.data.uid == resource.data.uid
         && request.resource.data.provider == resource.data.provider
         && request.resource.data.createdAt == resource.data.createdAt;
 
       allow delete: if false;
+
+      match /progress/{packId} {
+        allow read: if isOwner(userId) && isAllowedPackId(packId);
+
+        allow create, update: if isOwner(userId)
+          && isAllowedPackId(packId)
+          && (packId == '_meta' || isValidProgressPayload());
+
+        allow delete: if false;
+      }
     }
   }
 }

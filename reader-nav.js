@@ -3,13 +3,14 @@
    ══════════════════════════════════════════════════════════ */
 
 import './firebase.js';
+import { ROUTES } from './routes.js';
 import { PACK_CATALOG, getAllPacksSorted } from './pack-catalog.js';
 import { mountProfileMenu } from './auth/auth-ui.js';
 
 export function initReaderNav(currentPackId) {
   const backBtn = document.getElementById('backBtn');
   if (backBtn) {
-    backBtn.href = './packs.html';
+    backBtn.href = ROUTES.packs;
     backBtn.setAttribute('aria-label', 'Back to all packs');
     const label = backBtn.querySelector('span');
     if (label) label.textContent = 'All Packs';
@@ -44,7 +45,7 @@ export function initReaderNav(currentPackId) {
             ${pack.id === currentPackId ? '<span class="cr-pack-switcher-current">Current</span>' : ''}
           </a>
         `).join('')}
-        <a href="./packs.html" class="cr-pack-switcher-catalog">View All Packs →</a>
+        <a href="${ROUTES.packs}" class="cr-pack-switcher-catalog">View All Packs →</a>
       </div>
     </div>
   `;

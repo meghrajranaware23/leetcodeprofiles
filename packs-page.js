@@ -1,8 +1,11 @@
-import { getFeaturedPack, getTopicPacks, getTeaserPacks } from './pack-catalog.js';
-import { guardPage } from './auth/auth-guard.js';
+import { getFeaturedPack, getTeaserPacks, getTopicPacks } from './pack-catalog.js';
+import { guardPage, showAuthLoader, hideAuthLoader } from './auth/auth-guard.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
+import { waitForProgressSync } from './auth/progress-sync-service.js';
+import { initHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
+import { redirectLegacyPaths } from './routes.js';
 
-function renderPackCard(pack, { featured = false } = {}) {
+export function renderPackCard(pack, { featured = false } = {}) {
   const badgeClass = pack.badgeStyle === 'live'
     ? 'pack-badge pack-badge-live'
     : 'pack-badge';
@@ -14,6 +17,7 @@ function renderPackCard(pack, { featured = false } = {}) {
   const progressHtml = pack.progressId
     ? `<div class="pack-progress" id="${pack.progressId}" hidden>
         <div class="pack-progress-header">
+          <span class="pack-rank-pill rank-none">Not Started</span>
           <span class="pack-progress-label">0/0 lessons</span>
           <span class="pack-progress-xp">0 XP</span>
         </div>
@@ -27,7 +31,10 @@ function renderPackCard(pack, { featured = false } = {}) {
     <div class="pack-card${featuredClass}" id="pack-${pack.id}" style="${borderStyle}">
       <div class="pack-top">
         <span class="pack-icon">${pack.icon}</span>
-        <span class="${badgeClass}">${pack.badge}</span>
+        <div class="pack-top-badges">
+          <span class="pack-top-rank pack-rank-pill rank-none" hidden>Not Started</span>
+          <span class="${badgeClass}">${pack.badge}</span>
+        </div>
       </div>
       <div class="pack-name">${pack.title}</div>
       <p class="pack-desc">${pack.description}</p>
@@ -39,25 +46,29 @@ function renderPackCard(pack, { featured = false } = {}) {
         ${pack.pills.map(p => `<span class="lang-pill">${p}</span>`).join('')}
       </div>
       ${progressHtml}
-      <div class="pack-bottom">
-        <div class="pack-price">${pack.price} <span class="currency">USD</span></div>
-        <a href="${pack.readerUrl}" class="pack-btn" id="${pack.startBtnId}">${pack.startLabel}</a>
+      <div class="pack-bottom pack-bottom--cta-only">
+        <a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${pack.startLabel}</a>
       </div>
     </div>
   `;
 }
 
-function renderCatalog() {
+function renderCatalogFeatured(summaryById) {
   const featured = getFeaturedPack();
-  const topics = getTopicPacks();
-
   const featuredEl = document.getElementById('packsFeatured');
-  const gridEl = document.getElementById('packsGrid');
-
   if (featuredEl) {
     featuredEl.innerHTML = renderPackCard(featured, { featured: true });
+    if (summaryById) {
+      hydrateFeaturedPack(summaryById);
+    }
   }
+}
 
+function renderCatalog() {
+  const topics = getTopicPacks();
+  renderCatalogFeatured(null);
+
+  const gridEl = document.getElementById('packsGrid');
   if (gridEl) {
     gridEl.innerHTML = topics.map(pack => renderPackCard(pack)).join('');
   }
@@ -72,10 +83,21 @@ function renderTeaser() {
 }
 
 export async function initPacksPage() {
+  if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  initSiteNav({ activePage: 'packs' });
-  renderCatalog();
+  showAuthLoader();
+  try {
+    await waitForProgressSync();
+  } finally {
+    hideAuthLoader();
+  }
+
+  initSiteNav({ variant: 'app' });
+  await initHunterHQ({
+    renderPackCard,
+    renderCatalogFeatured,
+  });
   initScrollAnimations();
 }
 

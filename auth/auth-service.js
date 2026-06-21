@@ -11,6 +11,7 @@ import {
 import { auth } from '../firebase.js';
 import { isPopupBlockedError } from './auth-errors.js';
 import { syncUserProfile } from './user-service.js';
+import { initProgressSync } from './progress-sync-service.js';
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -27,8 +28,22 @@ setPersistence(auth, browserLocalPersistence).catch(() => {
   /* Non-fatal — Firebase falls back to default persistence. */
 });
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user;
+  if (user) {
+    try {
+      await syncUserProfile(user);
+    } catch (err) {
+      console.error('Failed to sync user profile:', err);
+    }
+    try {
+      await initProgressSync(user);
+    } catch (err) {
+      console.error('Failed to init progress sync:', err);
+    }
+  } else {
+    await initProgressSync(null);
+  }
   if (!authReady) {
     authReady = true;
     authReadyResolve(user);
@@ -46,24 +61,12 @@ export function getCurrentUser() {
 export async function completeRedirectSignIn() {
   const result = await getRedirectResult(auth);
   if (!result?.user) return null;
-
-  try {
-    await syncUserProfile(result.user);
-  } catch (err) {
-    console.error('Failed to sync user profile after redirect sign-in:', err);
-  }
-
   return result.user;
 }
 
 export async function signInWithGoogle() {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    try {
-      await syncUserProfile(result.user);
-    } catch (err) {
-      console.error('Failed to sync user profile after popup sign-in:', err);
-    }
     return result.user;
   } catch (error) {
     if (isPopupBlockedError(error)) {

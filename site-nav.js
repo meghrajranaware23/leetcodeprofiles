@@ -1,59 +1,101 @@
 /* ══════════════════════════════════════════════════════════
-   SITE NAV — Shared header for index.html and packs.html
+   SITE NAV — Marketing nav + minimal app nav (logged-in)
    ══════════════════════════════════════════════════════════ */
 
 import './firebase.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
 import { mountProfileMenu } from './auth/auth-ui.js';
+import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
+import { ROUTES } from './routes.js';
 
 const NAVBAR_OFFSET = 64;
 
-export function initSiteNav(options = {}) {
-  const { activePage = 'home' } = options;
-  const mount = document.getElementById('site-nav');
-  if (!mount) return;
+function buildMarketingNavHtml({ activePage, isLoggedIn }) {
+  const packsActive = activePage === 'packs' ? 'nav-active' : '';
+  const pricingActive = activePage === 'pricing' ? 'nav-active' : '';
+  const ranksActive = activePage === 'ranks' ? 'nav-active' : '';
+  const howActive = activePage === 'how-it-works' ? 'nav-active' : '';
+  const homeActive = activePage === 'home' ? 'nav-active' : '';
 
-  const isHome = activePage === 'home';
-  const isPacks = activePage === 'packs';
+  const logoHref = isLoggedIn ? ROUTES.packs : ROUTES.marketing;
+  const packsHref = ROUTES.packs;
+  const packsLabel = 'Packs';
+  const navCtaHtml = isLoggedIn
+    ? ''
+    : `<a href="${ROUTES.packs}" class="nav-cta" data-auth-target="${ROUTES.packs}">START GRINDING →</a>`;
 
-  mount.innerHTML = `
+  return `
     <nav class="navbar" id="navbar">
-      <a href="./index.html" class="nav-logo" aria-label="LeetCode Profiles home">
+      <a href="${logoHref}" class="nav-logo" aria-label="LeetCode Profiles home">
         <span class="logo-mark">■</span>
         <span class="logo-leet">LEETCODE</span>
         <span class="logo-profiles">PROFILES</span>
       </a>
       <div class="nav-links">
-        <a href="./packs.html" class="${isPacks ? 'nav-active' : ''}">Packs</a>
-        <a href="${isHome ? '#ranks' : './index.html#ranks'}">Ranks</a>
-        <a href="${isHome ? '#how-it-works' : './index.html#how-it-works'}">How It Works</a>
-        <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
-        <a href="./starter-reader.html">Starter Path</a>
+        <a href="${ROUTES.marketing}" class="${homeActive}">Home</a>
+        <a href="${packsHref}" class="${packsActive}" data-auth-target="${packsHref}">${packsLabel}</a>
+        <a href="${ROUTES.ranks}" class="${ranksActive}">Ranks</a>
+        <a href="${ROUTES.howItWorks}" class="${howActive}">How It Works</a>
+        <a href="${ROUTES.pricing}" class="${pricingActive}">Pricing</a>
       </div>
       <div class="nav-actions">
         <div id="nav-auth" class="nav-auth"></div>
-        <a href="./packs.html" class="nav-cta" data-auth-target="./packs.html">START GRINDING →</a>
+        ${navCtaHtml}
       </div>
       <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
     </nav>
     <div class="mobile-menu" id="mobile-menu">
-      <a href="./packs.html">Packs</a>
-      <a href="${isHome ? '#ranks' : './index.html#ranks'}">Ranks</a>
-      <a href="${isHome ? '#how-it-works' : './index.html#how-it-works'}">How It Works</a>
-      <a href="${isHome ? '#pricing' : './index.html#pricing'}">Pricing</a>
-      <a href="./starter-reader.html">Starter Path</a>
+      <a href="${ROUTES.marketing}">Home</a>
+      <a href="${packsHref}" data-auth-target="${packsHref}">${packsLabel}</a>
+      <a href="${ROUTES.ranks}">Ranks</a>
+      <a href="${ROUTES.howItWorks}">How It Works</a>
+      <a href="${ROUTES.pricing}">Pricing</a>
       <div id="mobile-nav-auth" class="mobile-nav-auth"></div>
-      <a href="./packs.html" class="nav-cta" data-auth-target="./packs.html">START GRINDING →</a>
+      ${navCtaHtml}
     </div>
   `;
+}
 
-  initNavbarScroll();
-  initMobileMenu();
-  initAuthAwareLinks(mount);
+function buildAppNavHtml() {
+  return `
+    <nav class="navbar navbar--app" id="navbar">
+      <a href="${ROUTES.packs}" class="nav-logo" aria-label="LeetCode Profiles packs">
+        <span class="logo-mark">■</span>
+        <span class="logo-leet">LEETCODE</span>
+        <span class="logo-profiles">PROFILES</span>
+      </a>
+      <div class="nav-actions nav-actions--app">
+        <div id="nav-auth" class="nav-auth"></div>
+      </div>
+    </nav>
+  `;
+}
+
+export async function initSiteNav(options = {}) {
+  const { activePage = 'home', variant = 'marketing' } = options;
+  const mount = document.getElementById('site-nav');
+  if (!mount) return;
+
+  await waitForAuth();
+  const isLoggedIn = Boolean(getCurrentUser());
+  const useAppNav = variant === 'app' || (variant === 'auto' && isLoggedIn && activePage === 'packs');
+
+  mount.innerHTML = useAppNav
+    ? buildAppNavHtml()
+    : buildMarketingNavHtml({ activePage, isLoggedIn });
+
+  if (!useAppNav) {
+    initNavbarScroll();
+    initMobileMenu();
+    initAuthAwareLinks(mount);
+    mountProfileMenu('mobile-nav-auth', { compact: true });
+  } else {
+    initNavbarScroll();
+  }
+
   mountProfileMenu('nav-auth');
-  mountProfileMenu('mobile-nav-auth', { compact: true });
 }
 
 export function scrollToSection(selector) {
@@ -64,15 +106,6 @@ export function scrollToSection(selector) {
 }
 
 export function initCtaLinks() {
-  document.querySelectorAll('[data-scroll]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      const target = el.getAttribute('data-scroll');
-      if (!target || !target.startsWith('#')) return;
-      e.preventDefault();
-      scrollToSection(target);
-    });
-  });
-
   initAuthAwareLinks(document);
 }
 

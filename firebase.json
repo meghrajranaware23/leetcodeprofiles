@@ -7,10 +7,15 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/packs", "destination": "/packs.html" },
+      { "source": "/home", "destination": "/packs.html" },
+      { "source": "/profile", "destination": "/profile.html" },
+      { "source": "/sign-in", "destination": "/sign-in.html" },
+      { "source": "/pricing", "destination": "/pricing.html" },
+      { "source": "/ranks", "destination": "/ranks.html" },
+      { "source": "/how-it-works", "destination": "/how-it-works.html" },
+      { "source": "/starter", "destination": "/starter-reader.html" },
+      { "source": "**", "destination": "/index.html" }
     ]
   },
   "firestore": {

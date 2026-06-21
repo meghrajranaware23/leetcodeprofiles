@@ -11,7 +11,7 @@ export const PACK_CATALOG = Object.freeze([
     title: 'LeetCode Starter Path',
     shortTitle: 'Starter Path',
     description: 'Beginner onboarding — set up your workflow, build daily habits, and earn your first accepted submissions in 15 days.',
-    readerUrl: './starter-reader.html',
+    readerUrl: '/starter',
     duration: '15 Days',
     stats: ['📋 15 Days', '🎯 3 Phases', '🌱 Beginner'],
     pills: ['Setup', 'First Wins', 'Momentum'],
@@ -41,7 +41,7 @@ export const PACK_CATALOG = Object.freeze([
     featured: false,
     order: 1,
     price: '$12',
-    progressId: null,
+    progressId: 'recursion-pack-progress',
     startBtnId: 'recursion-start',
   },
   {
@@ -61,7 +61,7 @@ export const PACK_CATALOG = Object.freeze([
     featured: false,
     order: 2,
     price: '$12',
-    progressId: null,
+    progressId: 'trees-pack-progress',
     startBtnId: 'trees-start',
   },
   {
@@ -81,7 +81,7 @@ export const PACK_CATALOG = Object.freeze([
     featured: false,
     order: 3,
     price: '$12',
-    progressId: null,
+    progressId: 'graphs-pack-progress',
     startBtnId: 'graphs-start',
   },
   {
@@ -101,7 +101,7 @@ export const PACK_CATALOG = Object.freeze([
     featured: false,
     order: 4,
     price: '$12',
-    progressId: null,
+    progressId: 'dynamic-programming-pack-progress',
     startBtnId: 'dp-start',
   },
   {

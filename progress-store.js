@@ -65,7 +65,7 @@ export const PACK_REGISTRY = Object.freeze({
     id: PACK_IDS.STARTER,
     title: 'LeetCode Starter Path',
     shortTitle: 'Starter Path',
-    readerUrl: './starter-reader.html',
+    readerUrl: '/starter',
     available: true,
     kind: 'onboarding',
     durationDays: 15,
@@ -241,7 +241,8 @@ export function readRootStore() {
   }
 }
 
-export function writeRootStore(root) {
+export function writeRootStore(root, options = {}) {
+  const { suppressSync = false } = options;
   try {
     const payload = {
       ...root,
@@ -250,11 +251,33 @@ export function writeRootStore(root) {
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(ROOT_STORAGE_KEY, JSON.stringify(payload));
+
+    if (!suppressSync) {
+      const packId = payload.activePackId;
+      if (packId && payload.packs?.[packId]) {
+        packChangeListeners.forEach((listener) => {
+          try {
+            listener(packId, payload.packs[packId]);
+          } catch (err) {
+            console.warn('Progress write listener failed:', err);
+          }
+        });
+      }
+    }
+
     return true;
   } catch (err) {
     console.warn('Could not write progress to localStorage:', err);
     return false;
   }
+}
+
+const packChangeListeners = new Set();
+
+/** Subscribe to pack progress writes (used by cloud sync). Returns unsubscribe fn. */
+export function onPackWrite(listener) {
+  packChangeListeners.add(listener);
+  return () => packChangeListeners.delete(listener);
 }
 
 export function getPackProgress(root, packId = DEFAULT_PACK_ID) {

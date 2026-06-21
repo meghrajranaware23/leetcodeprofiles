@@ -1,14 +1,24 @@
 import './firebase.js';
 import { completeRedirectSignIn, getCurrentUser, waitForAuth } from './auth/auth-service.js';
-import { getRedirectTarget } from './auth/auth-guard.js';
+import { getPostAuthDestination } from './auth/auth-guard.js';
 import { initSignInPage } from './auth/auth-ui.js';
+import { waitForProgressSync } from './auth/progress-sync-service.js';
+import { redirectLegacyPaths } from './routes.js';
+
+async function redirectAfterAuth() {
+  await waitForProgressSync();
+  const destination = await getPostAuthDestination();
+  window.location.replace(destination);
+}
 
 async function boot() {
+  if (redirectLegacyPaths()) return;
+
   await waitForAuth();
 
   const redirectUser = await completeRedirectSignIn();
   if (redirectUser || getCurrentUser()) {
-    window.location.replace(getRedirectTarget());
+    await redirectAfterAuth();
     return;
   }
 
@@ -21,7 +31,7 @@ async function boot() {
     buttonEl: button,
     errorEl,
     onSuccess: () => {
-      window.location.replace(getRedirectTarget());
+      redirectAfterAuth();
     },
   });
 }

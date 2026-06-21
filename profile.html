@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your Hunter Profile Card — showcase ranks, XP, and pack progress across LeetCode Profiles.">
+  <title>Profile — LeetCode Profiles</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-page="profile">
+
+  <div id="site-nav"></div>
+
+  <section class="profile-page">
+    <div class="profile-page-inner">
+      <div class="profile-page-header animate-on-scroll">
+        <div class="section-overline">HUNTER IDENTITY</div>
+        <h1 class="profile-page-title">YOUR HUNTER CARD</h1>
+        <p class="profile-page-subtitle">Rank-forward profile built for sharing. Export your card and flex your progress.</p>
+      </div>
+
+      <div id="hunterCard" class="hunter-card-wrap animate-on-scroll"></div>
+
+      <div class="profile-page-actions animate-on-scroll">
+        <button type="button" class="profile-action-btn profile-action-btn--primary" id="hunterCardShare">Share Card</button>
+        <button type="button" class="profile-action-btn profile-action-btn--secondary" id="hunterCardDownload">Download PNG</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer footer--app">
+    <div class="footer-content footer-content--app">
+      <a href="/packs" class="nav-logo" aria-label="LeetCode Profiles packs">
+        <span class="logo-mark">■</span>
+        <span class="logo-leet">LEETCODE</span>
+        <span class="logo-profiles">PROFILES</span>
+      </a>
+      <div class="footer-copy">© 2025 LeetCode Profiles. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script type="module" src="./profile-page.js"></script>
+</body>
+</html>

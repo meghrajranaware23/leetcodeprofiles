@@ -22,11 +22,11 @@
       </div>
       <p class="hero-subtext">Most coders grind 500 problems with zero direction. Legends follow a system. Our 30-day focused packs take you from E-Rank to S-Rank — one topic at a time.</p>
       <div class="hero-ctas">
-        <a href="./starter-reader.html" class="btn-primary">NEW TO LEETCODE? START HERE →</a>
-        <a href="./packs.html" class="btn-secondary" data-auth-target="./packs.html">PICK A TOPIC PACK →</a>
+        <a href="/starter" class="btn-primary">NEW TO LEETCODE? START HERE →</a>
+        <a href="/packs" class="btn-secondary" data-auth-target="/packs">PICK A TOPIC PACK →</a>
       </div>
       <div class="hero-ctas-secondary">
-        <button type="button" class="btn-ghost" data-scroll="#how-it-works">HOW IT WORKS</button>
+        <a href="/how-it-works" class="btn-ghost">HOW IT WORKS</a>
       </div>
       <div class="hero-social">
         <span>42,000+ coders follow LeetCode Profiles</span>
@@ -77,6 +77,7 @@
           </div>
           <p class="continue-last" id="continueLast"></p>
           <p class="continue-recommended" id="continueRecommended" hidden></p>
+          <p class="continue-sync-hint" id="continueSyncHint" hidden>Sign in to save progress across devices.</p>
         </div>
         <a href="./course-reader.html" class="continue-btn" id="continueBtn">CONTINUE LEARNING →</a>
       </div>
@@ -96,19 +97,19 @@
           <div class="start-here-num">01</div>
           <h3 class="start-here-step-title">Build Your Foundation</h3>
           <p class="start-here-step-desc">New to LeetCode? Complete the 15-Day Starter Path — setup, first wins, and daily habits.</p>
-          <a href="./starter-reader.html" class="start-here-link">Start Starter Path →</a>
+          <a href="/starter" class="start-here-link">Start Starter Path →</a>
         </div>
         <div class="start-here-step">
           <div class="start-here-num">02</div>
           <h3 class="start-here-step-title">Pick Your Weak Topic</h3>
           <p class="start-here-step-desc">Graphs? DP? Recursion? Choose the battlefield costing you interviews and commit to 30 days.</p>
-          <a href="./packs.html" class="start-here-link" data-auth-target="./packs.html">Browse All Packs →</a>
+          <a href="/packs" class="start-here-link" data-auth-target="/packs">Browse All Packs →</a>
         </div>
         <div class="start-here-step">
           <div class="start-here-num">03</div>
           <h3 class="start-here-step-title">Rank Up. Prove It.</h3>
           <p class="start-here-step-desc">Progress E-Rank → S-Rank inside each pack. Daily quests, checkpoints, and a final legend challenge.</p>
-          <a href="#ranks" class="start-here-link" data-scroll="#ranks">See the Rank System →</a>
+          <a href="/ranks" class="start-here-link">See the Rank System →</a>
         </div>
       </div>
     </div>
@@ -170,7 +171,7 @@
     </div>
     <div class="packs-grid" id="packsTeaserGrid"></div>
     <div class="packs-teaser-cta">
-      <a href="./packs.html" class="btn-primary" data-auth-target="./packs.html">VIEW ALL PACKS →</a>
+      <a href="/packs" class="btn-primary" data-auth-target="/packs">VIEW ALL PACKS →</a>
       <p class="packs-teaser-note">6 packs available — Starter Path + 5 Ascension topics</p>
     </div>
   </section>
@@ -314,7 +315,7 @@
           <li><span class="check">✓</span> C++, Python, Java code</li>
           <li><span class="check">✓</span> Lifetime access</li>
         </ul>
-        <button type="button" class="pricing-btn outline" data-scroll="#packs">PICK A PACK</button>
+        <a href="/packs" class="pricing-btn outline" data-auth-target="/packs">PICK A PACK</a>
       </div>
       <!-- Card 2 — All Packs Bundle -->
       <div class="pricing-card featured">
@@ -332,7 +333,7 @@
           <li><span class="check">✓</span> Legend certificate on completion</li>
           <li><span class="check">✓</span> Private Discord access</li>
         </ul>
-        <button type="button" class="pricing-btn filled" data-scroll="#packs">GET EVERYTHING →</button>
+        <a href="/packs" class="pricing-btn filled" data-auth-target="/packs">GET EVERYTHING →</a>
       </div>
     </div>
   </section>
@@ -346,7 +347,7 @@
         <div class="red-line">NEITHER SHOULD YOU.</div>
       </div>
       <p class="final-subtext">42,000+ coders follow LeetCode Profiles. It's time to actually level up.</p>
-      <a href="./packs.html" class="final-btn" data-auth-target="./packs.html">START YOUR RANK-UP →</a>
+      <a href="/packs" class="final-btn" data-auth-target="/packs">START YOUR RANK-UP →</a>
     </div>
   </section>
 
@@ -354,7 +355,7 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-left">
-        <a href="./index.html" class="nav-logo" aria-label="LeetCode Profiles home">
+        <a href="/" class="nav-logo" aria-label="LeetCode Profiles home">
           <span class="logo-mark">■</span>
           <span class="logo-leet">LEETCODE</span>
           <span class="logo-profiles">PROFILES</span>
@@ -362,9 +363,12 @@
         <p class="footer-tagline">Made for coders who refuse to stay E-Rank.</p>
       </div>
       <div class="footer-links">
-        <a href="./packs.html">Packs</a>
-        <a href="#pricing">Pricing</a>
-        <a href="./index.html">Home</a>
+        <a href="/packs" data-auth-target="/packs">Packs</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/ranks">Ranks</a>
+        <a href="/how-it-works">How It Works</a>
+        <a href="https://www.instagram.com/leetcodeprofiles" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://www.youtube.com/@leetcodeprofiless" target="_blank" rel="noopener noreferrer">YouTube</a>
       </div>
       <div class="footer-copy">© 2025 LeetCode Profiles. All rights reserved.</div>
     </div>

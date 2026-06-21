@@ -1,5 +1,8 @@
 import { getCurrentUser, signOutUser, signInWithGoogle, waitForAuth } from './auth-service.js';
 import { getAuthErrorMessage, isPopupCancelledError } from './auth-errors.js';
+import { getAllPackSummaries } from '../progress-facade.js';
+import { formatProfileProgressLine } from '../rank-display.js';
+import { ROUTES } from '../routes.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -41,14 +44,18 @@ function bindProfileMenu(container) {
     btn.setAttribute('aria-expanded', String(willOpen));
   });
 
+  menu.querySelectorAll('.auth-profile-link').forEach((link) => {
+    link.addEventListener('click', () => closeAllProfileMenus());
+  });
+
   menu.querySelector('.auth-sign-out-btn')?.addEventListener('click', async () => {
     closeAllProfileMenus();
     await signOutUser();
-    window.location.href = './index.html';
+    window.location.href = ROUTES.marketing;
   });
 }
 
-function renderProfileHtml(user, { compact = false } = {}) {
+function renderProfileHtml(user, { compact = false, progressLine = '' } = {}) {
   const displayName = escapeHtml(user.displayName || 'Grinder');
   const email = escapeHtml(user.email || '');
   const initials = escapeHtml(getInitials(user.displayName, user.email));
@@ -58,6 +65,9 @@ function renderProfileHtml(user, { compact = false } = {}) {
     : `<span class="auth-profile-initials" aria-hidden="true">${initials}</span>`;
 
   const compactClass = compact ? ' auth-profile--compact' : '';
+  const progressHtml = progressLine
+    ? `<span class="auth-profile-progress">${escapeHtml(progressLine)}</span>`
+    : '';
 
   return `
     <div class="auth-profile${compactClass}">
@@ -68,25 +78,38 @@ function renderProfileHtml(user, { compact = false } = {}) {
         <div class="auth-profile-info">
           <span class="auth-profile-name">${displayName}</span>
           ${email ? `<span class="auth-profile-email">${email}</span>` : ''}
+          ${progressHtml}
         </div>
-        <button class="auth-sign-out-btn" type="button">Sign out</button>
+        <a href="${ROUTES.profile}" class="auth-profile-link">Profile</a>
+        <a href="${ROUTES.packs}" class="auth-profile-link">My Progress</a>
+        <button class="auth-sign-out-btn" type="button">Sign Out</button>
       </div>
     </div>
   `;
+}
+
+async function loadProgressLine() {
+  try {
+    const summaries = await getAllPackSummaries();
+    return formatProfileProgressLine(summaries);
+  } catch {
+    return '';
+  }
 }
 
 export function mountProfileMenu(mountId, options = {}) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
 
-  waitForAuth().then(() => {
+  waitForAuth().then(async () => {
     const user = getCurrentUser();
     if (!user) {
       mount.innerHTML = '';
       return;
     }
 
-    mount.innerHTML = renderProfileHtml(user, options);
+    const progressLine = await loadProgressLine();
+    mount.innerHTML = renderProfileHtml(user, { ...options, progressLine });
     bindProfileMenu(mount);
 
     if (!document.body.dataset.authProfileBound) {
