@@ -10,11 +10,18 @@ export const USER_FIELDS = {
   provider: 'provider',
   createdAt: 'createdAt',
   lastLoginAt: 'lastLoginAt',
+  entitlements: 'entitlements',
+  subscription: 'subscription',
 };
+
+export const FIRESTORE_COLLECTIONS = Object.freeze({
+  SUBSCRIPTIONS: 'subscriptions',
+  PLANS: 'plans',
+});
 
 export const AUTH_PROVIDER = 'google';
 
-/** Reserved for future subscription / progress sync — not written yet. */
+/** @deprecated Use USER_FIELDS.subscription */
 export const FUTURE_USER_FIELDS = {
   subscription: 'subscription',
   progressSync: 'progressSync',

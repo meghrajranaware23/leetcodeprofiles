@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "cd server && npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "build:starter": "node scripts/build-starter-course.js",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
+    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview",
+    "deploy:firestore": "firebase deploy --only firestore:rules,firestore:indexes",
+    "setup:paypal-plans": "node scripts/setup-paypal-plans.js",
+    "print:firebase-json": "node scripts/print-firebase-json-for-render.js"
   },
   "devDependencies": {
     "firebase-tools": "^15.16.0",

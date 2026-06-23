@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: lp-subscription-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PAYPAL_MODE
+        value: live
+      - key: FRONTEND_BASE_URL
+        value: https://leetcodeprofiles.com
+      - key: CORS_ORIGINS
+        value: http://localhost:5173,https://leetcodeprofiles.com,https://www.leetcodeprofiles.com,https://leetcodeprofiles-ee772.web.app,https://leetcodeprofiles-ee772.firebaseapp.com
+      # Set these in the Render Dashboard (Environment → Secret Files / env vars):
+      - key: PAYPAL_CLIENT_ID_LIVE
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET_LIVE
+        sync: false
+      - key: PAYPAL_CLIENT_ID_SANDBOX
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET_SANDBOX
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID_LIVE
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID_SANDBOX
+        sync: false
+      - key: PAYPAL_PLAN_MONTHLY_LIVE
+        sync: false
+      - key: PAYPAL_PLAN_MONTHLY_SANDBOX
+        sync: false
+      - key: PAYPAL_PLAN_YEARLY_LIVE
+        sync: false
+      - key: PAYPAL_PLAN_YEARLY_SANDBOX
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: RECONCILE_JOB_SECRET
+        sync: false
+
+  # Optional: daily subscription reconciliation (enable after first deploy)
+  # - type: cron
+  #   name: lp-subscription-reconcile
+  #   runtime: node
+  #   schedule: "0 6 * * *"
+  #   buildCommand: echo "cron"
+  #   startCommand: curl -X POST "$RENDER_EXTERNAL_URL/api/jobs/reconcile" -H "x-job-secret:$RECONCILE_JOB_SECRET"

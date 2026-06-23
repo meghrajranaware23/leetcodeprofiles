@@ -7,10 +7,11 @@ import { PACK_REGISTRY } from './progress-store.js';
 import { normalizePackId } from './auth/entitlements-service.js';
 
 const DEFAULT_BENEFITS = Object.freeze([
-  '30-day structured curriculum',
+  'All premium ascension packs unlocked',
+  '30-day structured curriculum per pack',
   'All 6 ranks (E → S)',
   'C++, Python & Java solutions',
-  'Lifetime access — pay once, own forever',
+  'Cancel anytime — billed via PayPal',
 ]);
 
 /**
@@ -42,10 +43,10 @@ export function renderPremiumGate(contentEl, { packId, packTitle, lesson }) {
         <p class="cr-premium-gate-overline">PREMIUM CONTENT</p>
         <h1 class="cr-premium-gate-heading" id="premium-gate-heading">Unlock ${escapeHtml(title)}</h1>
         <p class="cr-premium-gate-lead">
-          ${escapeHtml(lessonName)} is part of the full pack. Purchase access to continue your ascension.
+          ${escapeHtml(lessonName)} is part of the full pack. Subscribe to Full Arsenal to continue your ascension.
         </p>
         <ul class="cr-premium-gate-benefits">${benefitsHtml}</ul>
-        <a href="${PRICING_URL}" class="cr-premium-gate-cta" target="_blank" rel="noopener noreferrer">
+        <a href="${PRICING_URL}" class="cr-premium-gate-cta">
           Subscribe &amp; Unlock →
         </a>
       </div>

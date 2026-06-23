@@ -2,14 +2,15 @@
    ENTITLEMENTS SERVICE — Pack access / subscription checks
    ══════════════════════════════════════════════════════════ */
 
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { getCurrentUser, waitForAuth } from './auth-service.js';
 import { USERS_COLLECTION, USER_FIELDS } from './constants.js';
 import { PACK_IDS } from '../progress-store.js';
 
 /** Firestore field on users/{uid} */
-export const ENTITLEMENTS_FIELD = 'entitlements';
+export const ENTITLEMENTS_FIELD = USER_FIELDS.entitlements;
+export const SUBSCRIPTION_FIELD = USER_FIELDS.subscription;
 
 /** HTML data-pack shorthand → canonical pack ID */
 const PACK_ID_ALIASES = Object.freeze({
@@ -31,18 +32,24 @@ export const PREMIUM_PACK_IDS = Object.freeze([
  * {
  *   status: 'active' | 'inactive',
  *   plan: 'pack' | 'bundle',
- *   ownedPacks: string[],  // canonical PACK_IDS values
- *   expiresAt: string | null,  // null = lifetime (one-time purchase)
+ *   ownedPacks: string[],
+ *   expiresAt: string | null,
+ *   source?: 'paypal',
+ *   subscriptionId?: string,
+ *   updatedAt?: string,
  * }
  */
 
 /** @type {object | null} */
 let cachedEntitlements = null;
+/** @type {object | null} */
+let cachedSubscription = null;
 let entitlementsReady = false;
+/** @type {(() => void) | null} */
+let unsubscribeSnapshot = null;
 /** @type {Set<(entitlements: object | null) => void>} */
 const listeners = new Set();
 
-/** Resolve data-pack attribute or alias to canonical pack ID. */
 export function normalizePackId(packIdOrAlias) {
   if (!packIdOrAlias) return '';
   const key = String(packIdOrAlias).trim();
@@ -63,6 +70,27 @@ function parseEntitlements(raw) {
     plan: raw.plan === 'bundle' ? 'bundle' : 'pack',
     ownedPacks,
     expiresAt: raw.expiresAt ?? null,
+    source: raw.source ?? null,
+    subscriptionId: raw.subscriptionId ?? null,
+    updatedAt: raw.updatedAt ?? null,
+  };
+}
+
+function parseSubscription(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  return {
+    paypalSubscriptionId: raw.paypalSubscriptionId ?? null,
+    planSlug: raw.planSlug ?? null,
+    status: raw.status ?? null,
+    billingInterval: raw.billingInterval ?? null,
+    startDate: raw.startDate ?? null,
+    currentPeriodEnd: raw.currentPeriodEnd ?? null,
+    nextBillingDate: raw.nextBillingDate ?? null,
+    cancelAtPeriodEnd: Boolean(raw.cancelAtPeriodEnd),
+    cancelledAt: raw.cancelledAt ?? null,
+    renewalStatus: raw.renewalStatus ?? null,
+    lastPaymentAt: raw.lastPaymentAt ?? null,
+    updatedAt: raw.updatedAt ?? null,
   };
 }
 
@@ -85,24 +113,44 @@ function notifyListeners() {
   }
 }
 
-async function loadEntitlementsForUser(user) {
-  if (!user?.uid) {
-    cachedEntitlements = null;
-    return;
-  }
-
-  try {
-    const userRef = doc(db, USERS_COLLECTION, user.uid);
-    const snapshot = await getDoc(userRef);
-    const raw = snapshot.exists() ? snapshot.data()?.[ENTITLEMENTS_FIELD] : null;
-    cachedEntitlements = parseEntitlements(raw);
-  } catch (err) {
-    console.error('Failed to load entitlements:', err);
-    cachedEntitlements = null;
+function stopEntitlementsListener() {
+  if (unsubscribeSnapshot) {
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
   }
 }
 
-/** Subscribe to entitlement changes (e.g. refresh sidebar after purchase). */
+function startEntitlementsListener(user) {
+  stopEntitlementsListener();
+
+  if (!user?.uid) {
+    cachedEntitlements = null;
+    cachedSubscription = null;
+    entitlementsReady = true;
+    notifyListeners();
+    return;
+  }
+
+  const userRef = doc(db, USERS_COLLECTION, user.uid);
+  unsubscribeSnapshot = onSnapshot(
+    userRef,
+    (snapshot) => {
+      const data = snapshot.exists() ? snapshot.data() : null;
+      cachedEntitlements = parseEntitlements(data?.[ENTITLEMENTS_FIELD]);
+      cachedSubscription = parseSubscription(data?.[SUBSCRIPTION_FIELD]);
+      entitlementsReady = true;
+      notifyListeners();
+    },
+    (err) => {
+      console.error('Entitlements snapshot failed:', err);
+      cachedEntitlements = null;
+      cachedSubscription = null;
+      entitlementsReady = true;
+      notifyListeners();
+    }
+  );
+}
+
 export function onEntitlementsChanged(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -112,35 +160,45 @@ export function getEntitlements() {
   return cachedEntitlements;
 }
 
-/** Load entitlements from Firestore for the signed-in user. */
-export async function initEntitlements() {
-  await waitForAuth();
-  await loadEntitlementsForUser(getCurrentUser());
-  entitlementsReady = true;
-  notifyListeners();
+export function getSubscription() {
+  return cachedSubscription;
 }
 
-/** Re-fetch entitlements (call after sign-in or purchase webhook). */
+export function hasActiveSubscription() {
+  if (!cachedSubscription) return false;
+  const activeStatuses = new Set(['ACTIVE', 'APPROVED']);
+  if (activeStatuses.has(cachedSubscription.status)) return true;
+  if (cachedSubscription.status === 'CANCELLED' && cachedSubscription.currentPeriodEnd) {
+    return Date.parse(cachedSubscription.currentPeriodEnd) > Date.now();
+  }
+  return isEntitlementActive(cachedEntitlements);
+}
+
+export async function initEntitlements() {
+  await waitForAuth();
+  startEntitlementsListener(getCurrentUser());
+}
+
 export async function refreshEntitlements() {
-  await loadEntitlementsForUser(getCurrentUser());
-  entitlementsReady = true;
-  notifyListeners();
+  startEntitlementsListener(getCurrentUser());
+}
+
+export function teardownEntitlements() {
+  stopEntitlementsListener();
+  cachedEntitlements = null;
+  cachedSubscription = null;
+  entitlementsReady = false;
 }
 
 export function areEntitlementsReady() {
   return entitlementsReady;
 }
 
-/** Full bundle / Full Arsenal access. */
 export function hasFullArsenalAccess() {
   if (!isEntitlementActive(cachedEntitlements)) return false;
   return cachedEntitlements.plan === 'bundle';
 }
 
-/**
- * Whether the signed-in user owns full access to a pack.
- * Reads Firestore entitlements when present; otherwise preview-only.
- */
 export function hasPackAccess(packId) {
   const id = normalizePackId(packId);
   if (id === PACK_IDS.STARTER) return true;
