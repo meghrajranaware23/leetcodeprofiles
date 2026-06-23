@@ -1,3 +1,14 @@
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Load .env before reading process.env (ESM imports run before script-level dotenv.config)
+if (!process.env.RENDER) {
+  config({ path: resolve(__dirname, '../../.env') });
+}
+
 const mode = process.env.PAYPAL_MODE === 'live' ? 'live' : 'sandbox';
 const suffix = mode.toUpperCase();
 
@@ -29,8 +40,8 @@ export function getPayPalPlanId(planSlug) {
 
 export function assertPayPalConfig() {
   const missing = [];
-  if (!paypalConfig.clientId) missing.push('PAYPAL_CLIENT_ID');
-  if (!paypalConfig.clientSecret) missing.push('PAYPAL_CLIENT_SECRET');
+  if (!paypalConfig.clientId) missing.push(`PAYPAL_CLIENT_ID_${suffix}`);
+  if (!paypalConfig.clientSecret) missing.push(`PAYPAL_CLIENT_SECRET_${suffix}`);
   if (missing.length) {
     throw new Error(`Missing PayPal config for mode=${paypalConfig.mode}: ${missing.join(', ')}`);
   }

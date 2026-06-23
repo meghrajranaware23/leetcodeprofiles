@@ -1,11 +1,12 @@
 import { config } from 'dotenv';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { paypalConfig, assertPayPalConfig } from '../server/config/paypal-config.js';
-import { paypalRequest } from '../server/services/paypal-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../.env') });
+
+const { paypalConfig, assertPayPalConfig } = await import('../server/config/paypal-config.js');
+const { paypalRequest } = await import('../server/services/paypal-client.js');
 
 async function createProduct() {
   return paypalRequest('/v1/catalogs/products', {

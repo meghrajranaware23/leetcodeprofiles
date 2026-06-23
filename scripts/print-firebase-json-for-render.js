@@ -1,6 +1,6 @@
 /**
- * Prints Firebase service account JSON as a single line for Render env var.
- * Usage: node scripts/print-firebase-json-for-render.js
+ * Prints Firebase service account for Render env vars.
+ * Usage: npm run print:firebase-json
  */
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
@@ -16,6 +16,17 @@ if (!existsSync(path)) {
 }
 
 const json = JSON.parse(readFileSync(path, 'utf8'));
-console.log('\nCopy this entire line into Render → Environment → FIREBASE_SERVICE_ACCOUNT_JSON:\n');
-console.log(JSON.stringify(json));
-console.log('\n');
+const oneLine = JSON.stringify(json);
+const base64 = Buffer.from(oneLine).toString('base64');
+
+console.log('\n=== RECOMMENDED for Render (most reliable) ===\n');
+console.log('Variable name: FIREBASE_SERVICE_ACCOUNT_BASE64');
+console.log('Value (copy entire line below):\n');
+console.log(base64);
+
+console.log('\n=== Alternative: FIREBASE_SERVICE_ACCOUNT_JSON ===\n');
+console.log('Variable name: FIREBASE_SERVICE_ACCOUNT_JSON');
+console.log('Value (copy entire line below):\n');
+console.log(oneLine);
+
+console.log('\nRemove FIREBASE_SERVICE_ACCOUNT_JSON from Render if you use BASE64 instead.\n');
