@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { verifyFirebaseToken } from '../middleware/verify-firebase-token.js';
 import { paypalConfig } from '../config/paypal-config.js';
+import { PLAN_SLUGS, SUBSCRIPTION_PRICES } from '../constants.js';
 import {
   createUserSubscription,
   activateUserSubscription,
@@ -76,16 +77,16 @@ router.get('/plans', (_req, res) => {
     environment: paypalConfig.mode,
     plans: [
       {
-        slug: 'full_arsenal_monthly',
+        slug: PLAN_SLUGS.MONTHLY,
         displayName: 'Full Arsenal — Monthly',
         billingInterval: 'month',
-        price: { amount: '9.99', currency: 'USD' },
+        price: SUBSCRIPTION_PRICES.full_arsenal_monthly,
       },
       {
-        slug: 'full_arsenal_yearly',
+        slug: PLAN_SLUGS.YEARLY,
         displayName: 'Full Arsenal — Yearly',
         billingInterval: 'year',
-        price: { amount: '79.99', currency: 'USD' },
+        price: SUBSCRIPTION_PRICES.full_arsenal_yearly,
       },
     ],
   });

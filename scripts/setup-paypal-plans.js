@@ -64,7 +64,7 @@ async function main() {
     product.id,
     'Full Arsenal — Monthly',
     'MONTH',
-    '9.99'
+    '4.99'
   );
   console.log('Monthly Plan ID:', monthly.id);
 
@@ -72,7 +72,7 @@ async function main() {
     product.id,
     'Full Arsenal — Yearly',
     'YEAR',
-    '79.99'
+    '29.99'
   );
   console.log('Yearly Plan ID:', yearly.id);
 

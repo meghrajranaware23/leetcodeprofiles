@@ -14,6 +14,12 @@ export const PLAN_SLUGS = Object.freeze({
 
 export const VALID_PLAN_SLUGS = new Set(Object.values(PLAN_SLUGS));
 
+/** Display-only subscription prices (actual billing uses PayPal plan IDs). */
+export const SUBSCRIPTION_PRICES = Object.freeze({
+  full_arsenal_monthly: { amount: '4.99', currency: 'USD' },
+  full_arsenal_yearly: { amount: '29.99', currency: 'USD' },
+});
+
 export const COLLECTIONS = Object.freeze({
   USERS: 'users',
   SUBSCRIPTIONS: 'subscriptions',
