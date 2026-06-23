@@ -4,7 +4,7 @@
 
 1. Firebase Admin service account for project `leetcodeprofiles-ee772` at `server/secrets/firebase-admin.json`
 2. PayPal Developer account with Sandbox and Live apps
-3. Copy `.env.example` to `.env` and fill in credentials
+3. Fill in credentials in `.env` (local only — never commit)
 
 ## Create PayPal plans
 

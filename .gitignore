@@ -25,6 +25,5 @@ dist-ssr
 *.sw?
 .env
 .env.*
-!.env.example
 server/secrets/
 server/node_modules/
