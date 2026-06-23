@@ -1,5 +1,8 @@
 /** Central route paths — single source of truth for user-facing URLs. */
 
+/** External pricing / subscription page */
+export const PRICING_URL = 'https://leetcodeprofiles.com/pricing';
+
 export const ROUTES = Object.freeze({
   marketing: '/',
   packs: '/packs',

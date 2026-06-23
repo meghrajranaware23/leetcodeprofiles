@@ -678,10 +678,21 @@ body.cr-sidebar-resizing .cr-sidebar {
 .cr-lesson-item.completed .cr-lesson-check {
   opacity: 1;
 }
-.cr-lesson-item.locked {
+.cr-lesson-item.locked,
+.cr-lesson-item.coming-soon {
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.cr-lesson-item.premium-locked {
+  opacity: 0.65;
+  cursor: pointer;
+}
+
+.cr-lesson-item.premium-locked:hover {
+  opacity: 0.85;
+  background: var(--bg-hover);
 }
 
 .cr-lesson-icon {
@@ -1619,7 +1630,7 @@ body.cr-sidebar-resizing .cr-sidebar {
   height: 22px;
   border-radius: 6px;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-bright);
+  border: 1px solid var(--red-border);
   color: var(--text-dim);
   font-family: var(--font-sub);
   font-size: 0.68rem;
@@ -1641,6 +1652,14 @@ body.cr-sidebar-resizing .cr-sidebar {
   font-size: 0.62rem;
 }
 
+.cr-day-indicator.locked {
+  font-size: 12px;
+  line-height: 1;
+  border-color: var(--border-bright);
+  background: var(--bg-elevated);
+  box-shadow: none;
+}
+
 .cr-day-title {
   flex: 1;
   min-width: 0;
@@ -1652,6 +1671,10 @@ body.cr-sidebar-resizing .cr-sidebar {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.cr-day-header.coming-soon-day {
+  opacity: 0.55;
 }
 
 .cr-day-header.expanded .cr-day-title,
@@ -3152,5 +3175,144 @@ a.cr-lc-link:hover {
     font-size: 11px;
     padding: 10px 12px;
     letter-spacing: 0.4px;
+  }
+}
+
+/* ═══════════════════════════════════════
+   PREMIUM GATE — Upgrade screen
+   ═══════════════════════════════════════ */
+.cr-premium-gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(70vh, 640px);
+  padding: 48px 24px;
+}
+
+.cr-premium-gate-inner {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 40px;
+  background: linear-gradient(145deg, rgba(20, 20, 24, 0.95) 0%, rgba(12, 12, 16, 0.98) 100%);
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    0 0 80px rgba(201, 162, 39, 0.06);
+}
+
+.cr-premium-gate-icon-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cr-premium-gate-icon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.2) 0%, transparent 70%);
+  box-shadow: 0 0 32px rgba(201, 162, 39, 0.25);
+}
+
+.cr-premium-gate-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  color: #C9A227;
+}
+
+.cr-premium-gate-overline {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #C9A227;
+  margin: 0 0 12px;
+}
+
+.cr-premium-gate-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 5vw, 36px);
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  line-height: 1.1;
+}
+
+.cr-premium-gate-lead {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 28px;
+}
+
+.cr-premium-gate-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  text-align: left;
+}
+
+.cr-premium-gate-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cr-premium-gate-benefits li:last-child {
+  border-bottom: none;
+}
+
+.cr-premium-gate-check {
+  flex-shrink: 0;
+  color: #C9A227;
+  font-weight: 700;
+}
+
+.cr-premium-gate-cta {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  color: #ffffff;
+  background: var(--red-primary);
+  border: none;
+  border-bottom: none;
+  transition: background 200ms ease, box-shadow 200ms ease;
+  box-sizing: border-box;
+}
+
+.cr-content .cr-premium-gate-cta,
+.cr-content .cr-premium-gate-cta:hover {
+  color: #ffffff;
+  border-bottom: none;
+}
+
+.cr-premium-gate-cta:hover {
+  background: var(--red-bright);
+  box-shadow: 0 0 30px var(--red-glow);
+  color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .cr-premium-gate-inner {
+    padding: 36px 24px;
   }
 }

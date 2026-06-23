@@ -6,6 +6,16 @@
 import { COURSE_LESSONS } from './trees-content.js';
 import { initReaderNav } from './reader-nav.js';
 import { guardPage } from './auth/auth-guard.js';
+import { initEntitlements, hasPackAccess, onEntitlementsChanged } from './auth/entitlements-service.js';
+import {
+  buildRankDayIndex,
+  getLessonAccessState,
+  getLessonSidebarMeta,
+  getDaySidebarMeta,
+  isLessonNavigable,
+  isLessonViewable,
+} from './pack-access.js';
+import { renderPremiumGate } from './premium-gate.js';
 import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
 import {
   activateMilestoneDialog,
@@ -110,6 +120,18 @@ let attemptStartTime = null;
 const diagramEnhancer = createDiagramEnhancer('trees');
 diagramEnhancer.bindContent(contentEl);
 
+const PACK_ID = 'trees';
+const rankDayIndex = buildRankDayIndex(COURSE_LESSONS);
+
+function getAccessContext() {
+  return {
+    packId: PACK_ID,
+    isRankShipped: (rank) => getUnlockedRanks().has(rank),
+    hasPackAccess: hasPackAccess(PACK_ID),
+    rankDayIndex,
+  };
+}
+
 /* ─── Init ─── */
 function init() {
   document.body.dataset.pack = 'trees';
@@ -123,7 +145,7 @@ function init() {
   const restoredFromSave = !hash && !!getLastVisited();
   if (hash) {
     const idx = COURSE_LESSONS.findIndex(l => l.id === hash);
-    if (idx !== -1 && isLessonAccessible(COURSE_LESSONS[idx])) {
+    if (idx !== -1 && isLessonNavigable(COURSE_LESSONS[idx], getAccessContext())) {
       currentLessonIndex = idx;
     }
   } else {
@@ -147,9 +169,7 @@ function init() {
 }
 
 function isLessonAccessible(lesson) {
-  if (!lesson.content) return false;
-  if (AVAILABLE_LESSON_IDS.has(lesson.id)) return true;
-  return getUnlockedRanks().has(lesson.rank);
+  return isLessonViewable(lesson, getAccessContext());
 }
 
 
@@ -390,11 +410,17 @@ function buildSidebar() {
         const dayProgress = dayItems.filter(({ lesson }) => completedSet.has(lesson.id)).length;
         const hasActiveLesson = dayItems.some(({ idx }) => idx === currentLessonIndex);
         const indicatorLabel = dayCompleted ? '✓' : dayProgress > 0 ? `${dayProgress}/${dayItems.length}` : '○';
+        const { showLock: dayShowLock, lockClass: dayLockClass } = getDaySidebarMeta(dayItems, getAccessContext(), isLocked);
+        const dayHeaderLockClass = dayLockClass ? `${dayLockClass}-day` : '';
+        const dayIndicatorClass = dayShowLock
+          ? 'cr-day-indicator locked'
+          : `cr-day-indicator ${dayCompleted ? 'completed' : (dayProgress > 0 ? 'in-progress' : '')}`;
+        const dayIndicatorContent = dayShowLock ? '🔒' : indicatorLabel;
 
         html += `
           <div class="cr-day-group ${dayExpanded ? 'expanded' : ''} ${hasActiveLesson ? 'has-active-lesson' : ''}" data-day-id="${dayId}">
-            <button type="button" class="cr-day-header ${dayExpanded ? 'expanded' : ''} ${hasActiveLesson ? 'has-active-lesson' : ''}" data-day-id="${dayId}" aria-expanded="${dayExpanded ? 'true' : 'false'}" aria-controls="${dayId}-lessons">
-              <span class="cr-day-indicator ${dayCompleted ? 'completed' : (dayProgress > 0 ? 'in-progress' : '')}" aria-hidden="true">${indicatorLabel}</span>
+            <button type="button" class="cr-day-header ${dayExpanded ? 'expanded' : ''} ${hasActiveLesson ? 'has-active-lesson' : ''} ${dayHeaderLockClass}" data-day-id="${dayId}" aria-expanded="${dayExpanded ? 'true' : 'false'}" aria-controls="${dayId}-lessons">
+              <span class="${dayIndicatorClass}" aria-hidden="true">${dayIndicatorContent}</span>
               <span class="cr-day-title">${dayLabel}</span>
               <svg class="cr-day-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="9 18 15 12 9 6"/>
@@ -406,7 +432,7 @@ function buildSidebar() {
         dayItems.forEach(({ lesson, idx }) => {
           const isCompleted = completedSet.has(lesson.id);
           const isActive = idx === currentLessonIndex;
-          const lessonLocked = isLocked || !lesson.content;
+          const { title: lockTitle, icon, lockClass } = getLessonSidebarMeta(lesson, getAccessContext(), isLocked);
           const isRecommended = getRecommendedNext()?.id === lesson.id;
           const stepCount = getStepProgressCount(lesson);
           const stepBadge = !isCompleted && stepCount.done > 0
@@ -417,11 +443,11 @@ function buildSidebar() {
           if (isActive) classes += ' active';
           if (isCompleted) classes += ' completed';
           if (isRecommended) classes += ' recommended';
-          if (lessonLocked) classes += ' locked';
+          if (lockClass) classes += ` ${lockClass}`;
 
           html += `
-            <div class="${classes}" data-index="${idx}" data-id="${lesson.id}" title="${lessonLocked ? 'Coming soon' : ''}">
-              <span class="cr-lesson-icon">${lessonLocked ? '🔒' : (lesson.icon || '📄')}</span>
+            <div class="${classes}" data-index="${idx}" data-id="${lesson.id}" title="${lockTitle}">
+              <span class="cr-lesson-icon">${icon}</span>
               <span class="cr-lesson-title">${lesson.title}</span>
               ${isRecommended ? '<span class="cr-lesson-rec-badge">NEXT</span>' : ''}
               ${stepBadge}
@@ -436,7 +462,7 @@ function buildSidebar() {
         dayItems.forEach(({ lesson, idx }) => {
           const isCompleted = completedSet.has(lesson.id);
           const isActive = idx === currentLessonIndex;
-          const lessonLocked = isLocked || !lesson.content;
+          const { title: lockTitle, icon, lockClass } = getLessonSidebarMeta(lesson, getAccessContext(), isLocked);
           const isRecommended = getRecommendedNext()?.id === lesson.id;
           const stepCount = getStepProgressCount(lesson);
           const stepBadge = !isCompleted && stepCount.done > 0
@@ -447,11 +473,11 @@ function buildSidebar() {
           if (isActive) classes += ' active';
           if (isCompleted) classes += ' completed';
           if (isRecommended) classes += ' recommended';
-          if (lessonLocked) classes += ' locked';
+          if (lockClass) classes += ` ${lockClass}`;
 
           html += `
-            <div class="${classes}" data-index="${idx}" data-id="${lesson.id}" title="${lessonLocked ? 'Coming soon' : ''}">
-              <span class="cr-lesson-icon">${lessonLocked ? '🔒' : (lesson.icon || '📄')}</span>
+            <div class="${classes}" data-index="${idx}" data-id="${lesson.id}" title="${lockTitle}">
+              <span class="cr-lesson-icon">${icon}</span>
               <span class="cr-lesson-title">${lesson.title}</span>
               ${isRecommended ? '<span class="cr-lesson-rec-badge">NEXT</span>' : ''}
               ${stepBadge}
@@ -640,7 +666,9 @@ function loadLesson(index) {
   if (index < 0 || index >= COURSE_LESSONS.length) return;
 
   const lesson = COURSE_LESSONS[index];
-  if (!isLessonAccessible(lesson)) {
+  const accessState = getLessonAccessState(lesson, getAccessContext());
+
+  if (accessState === 'coming-soon') {
     showLockedToast(lesson);
     return;
   }
@@ -649,10 +677,27 @@ function loadLesson(index) {
   setLastVisited(lesson.id, index);
   clearAttemptTimer();
 
-  // Update URL hash
   history.replaceState(null, '', `#${lesson.id}`);
 
-  // Show loading
+  const mainEl = $('main');
+  if (mainEl) mainEl.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (accessState === 'premium-locked') {
+    if (scrollObserver) {
+      scrollObserver.disconnect();
+      scrollObserver = null;
+    }
+    renderPremiumGate(contentEl, { packId: PACK_ID, lesson });
+    markCompleteBtn.hidden = true;
+    updateSidebarActive();
+    updateNavButtons();
+    updateSidebarRecommended();
+    return;
+  }
+
+  markCompleteBtn.hidden = false;
+
   contentEl.innerHTML = `
     <div class="cr-loading">
       <div class="cr-spinner"></div>
@@ -660,12 +705,6 @@ function loadLesson(index) {
     </div>
   `;
 
-  // Scroll to top of main
-  const mainEl = $('main');
-  if (mainEl) mainEl.scrollTop = 0;
-  window.scrollTo({ top: 0, behavior: 'instant' });
-
-  // Render markdown content
   requestAnimationFrame(() => {
     renderLesson(lesson);
     updateSidebarActive();
@@ -1771,7 +1810,7 @@ function rebuildSidebarDayIndicators() {
     const dayCompleted = lessons.every(l => completedSet.has(l.id));
     const dayProgress = lessons.filter(l => completedSet.has(l.id)).length;
     const indicator = dayGroup.querySelector('.cr-day-indicator');
-    if (indicator) {
+    if (indicator && !indicator.classList.contains('locked')) {
       indicator.classList.toggle('completed', dayCompleted);
       indicator.classList.toggle('in-progress', !dayCompleted && dayProgress > 0);
       indicator.textContent = dayCompleted ? '✓' : dayProgress > 0 ? `${dayProgress}/${lessons.length}` : '○';
@@ -1909,7 +1948,7 @@ function bindEvents() {
     // Lesson item click → navigate
     const lessonItem = e.target.closest('.cr-lesson-item');
     if (lessonItem) {
-      if (lessonItem.classList.contains('locked')) {
+      if (lessonItem.classList.contains('coming-soon')) {
         const lesson = COURSE_LESSONS[parseInt(lessonItem.dataset.index, 10)];
         if (lesson) showLockedToast(lesson);
         return;
@@ -1993,7 +2032,12 @@ async function boot() {
   if (booted) return;
   booted = true;
   if (!(await guardPage())) return;
+  await initEntitlements();
   init();
+  onEntitlementsChanged(() => {
+    buildSidebar();
+    loadLesson(currentLessonIndex);
+  });
 }
 
 if (document.readyState === 'loading') {

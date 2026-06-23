@@ -41,8 +41,20 @@ onAuthStateChanged(auth, async (user) => {
     } catch (err) {
       console.error('Failed to init progress sync:', err);
     }
+    try {
+      const { refreshEntitlements } = await import('./entitlements-service.js');
+      await refreshEntitlements();
+    } catch (err) {
+      console.error('Failed to refresh entitlements:', err);
+    }
   } else {
     await initProgressSync(null);
+    try {
+      const { refreshEntitlements } = await import('./entitlements-service.js');
+      await refreshEntitlements();
+    } catch (err) {
+      console.error('Failed to clear entitlements:', err);
+    }
   }
   if (!authReady) {
     authReady = true;
