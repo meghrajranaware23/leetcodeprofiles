@@ -51,7 +51,12 @@ async function boot() {
 
   document.querySelectorAll('[data-subscribe-card]').forEach((card) => {
     const planSlug = card.dataset.planSlug;
-    initSubscriptionButtons(card, { planSlug });
+    initSubscriptionButtons(card, {
+      planSlug,
+      onActivated: () => {
+        showAlert('Subscription active! All premium packs are unlocked.', 'success');
+      },
+    });
 
     if (preselectedPlan === planSlug && getCurrentUser()) {
       const btn = card.querySelector('[data-subscribe-btn]');

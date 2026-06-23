@@ -12,6 +12,8 @@ services:
         value: production
       - key: PAYPAL_MODE
         value: live
+      - key: RAZORPAY_MODE
+        value: test
       - key: FRONTEND_BASE_URL
         value: https://leetcodeprofiles.com
       - key: CORS_ORIGINS
@@ -40,6 +42,36 @@ services:
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
       - key: RECONCILE_JOB_SECRET
+        sync: false
+      - key: RAZORPAY_TEST_KEY_ID
+        sync: false
+      - key: RAZORPAY_TEST_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_TEST_WEBHOOK_SECRET
+        sync: false
+      - key: RAZORPAY_TEST_PLAN_MONTHLY
+        sync: false
+      - key: RAZORPAY_TEST_PLAN_YEARLY
+        sync: false
+      - key: RAZORPAY_LIVE_KEY_ID
+        sync: false
+      - key: RAZORPAY_LIVE_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_LIVE_WEBHOOK_SECRET
+        sync: false
+      - key: RAZORPAY_LIVE_PLAN_MONTHLY
+        sync: false
+      - key: RAZORPAY_LIVE_PLAN_YEARLY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: RAZORPAY_PLAN_MONTHLY
+        sync: false
+      - key: RAZORPAY_PLAN_YEARLY
         sync: false
 
   # Optional: daily subscription reconciliation (enable after first deploy)

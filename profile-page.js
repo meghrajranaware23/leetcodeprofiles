@@ -18,13 +18,18 @@ import {
   getSubscriptionStatusLabel,
 } from './checkout/subscription-status.js';
 import { cancelSubscription } from './checkout/subscription-checkout.js';
+import { cancelRazorpaySubscription } from './checkout/razorpay-checkout.js';
 import { resolveApiBaseUrl } from './checkout/subscription-status.js';
 
 function renderSubscriptionPanel(subscription) {
   const container = document.getElementById('subscriptionPanel');
   if (!container) return;
 
-  if (!subscription?.paypalSubscriptionId) {
+  const subId = subscription.subscriptionId
+    || subscription.paypalSubscriptionId
+    || subscription.razorpaySubscriptionId;
+
+  if (!subId) {
     container.innerHTML = `
       <div class="profile-subscription">
         <div class="profile-subscription-title">SUBSCRIPTION</div>
@@ -44,7 +49,11 @@ function renderSubscriptionPanel(subscription) {
   const planLabel = formatPlanLabel(subscription.planSlug);
   const interval = formatBillingInterval(subscription.billingInterval);
   const renewal = formatDate(subscription.nextBillingDate || subscription.currentPeriodEnd);
-  const canCancel = ['ACTIVE', 'APPROVED'].includes(subscription.status);
+  const provider = subscription.provider || 'paypal';
+  const canCancel = provider === 'razorpay'
+    ? ['active', 'authenticated'].includes(subscription.status)
+    : ['ACTIVE', 'APPROVED'].includes(subscription.status);
+  const providerLabel = provider === 'razorpay' ? 'Razorpay' : 'PayPal';
 
   container.innerHTML = `
     <div class="profile-subscription">
@@ -52,7 +61,7 @@ function renderSubscriptionPanel(subscription) {
       <div class="profile-subscription-status">${statusLabel}</div>
       <p class="profile-subscription-meta">
         <strong>${planLabel}</strong><br>
-        Billed per ${interval}<br>
+        Billed per ${interval} via ${providerLabel}<br>
         ${canCancel ? `Next billing: ${renewal}` : `Access until: ${renewal}`}
       </p>
       <div class="profile-subscription-actions">
@@ -78,7 +87,11 @@ function renderSubscriptionPanel(subscription) {
     }
 
     try {
-      await cancelSubscription(subscription.paypalSubscriptionId);
+      if (provider === 'razorpay') {
+        await cancelRazorpaySubscription(subId);
+      } else {
+        await cancelSubscription(subId);
+      }
       if (cancelStatus) {
         cancelStatus.textContent = 'Subscription cancelled. Access continues until period end.';
       }

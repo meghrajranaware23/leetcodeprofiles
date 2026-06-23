@@ -115,6 +115,24 @@ export function formatDate(iso) {
 
 export function getSubscriptionStatusLabel(subscription) {
   if (!subscription) return 'No subscription';
+
+  const provider = subscription.provider || 'paypal';
+
+  if (provider === 'razorpay') {
+    if (subscription.status === 'active' || subscription.status === 'authenticated') {
+      return 'Active';
+    }
+    if (subscription.status === 'cancelled') {
+      return subscription.currentPeriodEnd && Date.parse(subscription.currentPeriodEnd) > Date.now()
+        ? 'Cancelled — access until period end'
+        : 'Cancelled';
+    }
+    if (subscription.status === 'expired' || subscription.status === 'completed') return 'Expired';
+    if (subscription.status === 'halted') return 'Suspended';
+    if (subscription.renewalStatus === 'past_due') return 'Payment past due';
+    return subscription.status || 'Unknown';
+  }
+
   if (subscription.status === 'ACTIVE' || subscription.status === 'APPROVED') {
     return 'Active';
   }

@@ -5,11 +5,19 @@ import {
   fetchRuntimeConfig,
   resolveApiBaseUrl,
 } from './subscription-status.js';
+import { showPaymentSelector } from './payment-selector.js';
+import {
+  createRazorpaySubscription,
+  openRazorpayCheckout,
+} from './razorpay-checkout.js';
 
 const PENDING_SUBSCRIPTION_KEY = 'lp_pending_subscription';
 
-function savePendingSubscription(subscriptionId, planSlug) {
-  sessionStorage.setItem(PENDING_SUBSCRIPTION_KEY, JSON.stringify({ subscriptionId, planSlug }));
+function savePendingSubscription(subscriptionId, planSlug, provider = 'paypal') {
+  sessionStorage.setItem(
+    PENDING_SUBSCRIPTION_KEY,
+    JSON.stringify({ subscriptionId, planSlug, provider })
+  );
 }
 
 export function getPendingSubscription() {
@@ -32,7 +40,7 @@ function getReturnSubscriptionId() {
 
 function buildSignInUrl(planSlug) {
   const continueUrl = `${ROUTES.pricing}?plan=${encodeURIComponent(planSlug)}`;
-  return `${ROUTES.signIn}?continue=${encodeURIComponent(continueUrl)}`;
+  return `${ROUTES.signIn}?next=${encodeURIComponent(continueUrl)}`;
 }
 
 export async function createSubscription(planSlug) {
@@ -44,7 +52,7 @@ export async function createSubscription(planSlug) {
 
   const result = await apiPost('/api/subscriptions/create', { planSlug });
   if (result.subscriptionId) {
-    savePendingSubscription(result.subscriptionId, planSlug);
+    savePendingSubscription(result.subscriptionId, planSlug, 'paypal');
   }
   return result;
 }
@@ -120,7 +128,42 @@ export async function loadPayPalSdk(clientId) {
   });
 }
 
-export async function initSubscriptionButtons(container, { planSlug, onStatus }) {
+async function startPayPalCheckout(planSlug, setStatus) {
+  setStatus('Starting PayPal checkout…');
+  const result = await createSubscription(planSlug);
+  if (!result) return null;
+
+  if (result.approvalUrl) {
+    window.location.href = result.approvalUrl;
+    return result;
+  }
+
+  throw new Error('Could not start PayPal checkout.');
+}
+
+async function startRazorpayCheckout(planSlug, setStatus) {
+  setStatus('Starting Razorpay checkout…');
+  const result = await createRazorpaySubscription(planSlug);
+  if (!result?.subscriptionId) {
+    throw new Error('Could not start Razorpay checkout.');
+  }
+
+  savePendingSubscription(result.subscriptionId, planSlug, 'razorpay');
+
+  const verifyResult = await openRazorpayCheckout({
+    subscriptionId: result.subscriptionId,
+    planSlug,
+    onStatus: setStatus,
+  });
+
+  clearPendingSubscription();
+  const { refreshEntitlements } = await import('../auth/entitlements-service.js');
+  await refreshEntitlements();
+
+  return verifyResult;
+}
+
+export async function initSubscriptionButtons(container, { planSlug, onStatus, onActivated }) {
   if (!container) return;
 
   const statusEl = container.querySelector('[data-subscribe-status]');
@@ -137,22 +180,38 @@ export async function initSubscriptionButtons(container, { planSlug, onStatus })
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = buildSignInUrl(planSlug);
+      return;
+    }
+
     btn.disabled = true;
-    setStatus('Starting checkout…');
+    setStatus('Loading payment options…');
 
     try {
-      const result = await createSubscription(planSlug);
-      if (!result) return;
-
-      if (result.approvalUrl) {
-        window.location.href = result.approvalUrl;
+      const provider = await showPaymentSelector();
+      if (!provider) {
+        setStatus('');
         return;
       }
 
-      setStatus('Could not start PayPal checkout.', true);
+      if (provider === 'paypal') {
+        await startPayPalCheckout(planSlug, setStatus);
+        return;
+      }
+
+      if (provider === 'razorpay') {
+        await startRazorpayCheckout(planSlug, setStatus);
+        setStatus('');
+        onActivated?.({ provider: 'razorpay' });
+        return;
+      }
     } catch (err) {
-      if (err.status === 409) {
+      if (err.status === 409 || err.code === 'ACTIVE_SUBSCRIPTION_EXISTS') {
         setStatus('You already have an active subscription. Manage it on your profile.', true);
+      } else if (err.code === 'CHECKOUT_CANCELLED') {
+        setStatus('Checkout cancelled. You can subscribe anytime.');
       } else if (err.message === 'Sign in required') {
         window.location.href = buildSignInUrl(planSlug);
       } else {

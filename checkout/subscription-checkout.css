@@ -186,3 +186,128 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Payment method selection modal */
+.payment-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.payment-modal[hidden] {
+  display: none;
+}
+
+body.payment-modal-open {
+  overflow: hidden;
+}
+
+.payment-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.payment-modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(145deg, rgba(24, 24, 32, 0.98), rgba(12, 12, 18, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+.payment-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.payment-modal__close:hover {
+  color: #fff;
+}
+
+.payment-modal__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.payment-modal__subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.payment-modal__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.payment-option:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.payment-option--recommended {
+  border-color: rgba(220, 38, 38, 0.5);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.payment-option--recommended:hover {
+  border-color: rgba(220, 38, 38, 0.7);
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.payment-option__badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ef4444;
+  margin-bottom: 0.15rem;
+}
+
+.payment-option__label {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.payment-option__desc {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+}

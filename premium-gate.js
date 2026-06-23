@@ -11,7 +11,7 @@ const DEFAULT_BENEFITS = Object.freeze([
   '30-day structured curriculum per pack',
   'All 6 ranks (E → S)',
   'C++, Python & Java solutions',
-  'Cancel anytime — billed via PayPal',
+  'Cancel anytime — billed via PayPal or Razorpay',
 ]);
 
 /**

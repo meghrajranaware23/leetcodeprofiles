@@ -79,7 +79,13 @@ function parseEntitlements(raw) {
 function parseSubscription(raw) {
   if (!raw || typeof raw !== 'object') return null;
   return {
+    provider: raw.provider ?? (raw.razorpaySubscriptionId ? 'razorpay' : 'paypal'),
+    subscriptionId: raw.subscriptionId
+      ?? raw.paypalSubscriptionId
+      ?? raw.razorpaySubscriptionId
+      ?? null,
     paypalSubscriptionId: raw.paypalSubscriptionId ?? null,
+    razorpaySubscriptionId: raw.razorpaySubscriptionId ?? null,
     planSlug: raw.planSlug ?? null,
     status: raw.status ?? null,
     billingInterval: raw.billingInterval ?? null,
@@ -166,10 +172,20 @@ export function getSubscription() {
 
 export function hasActiveSubscription() {
   if (!cachedSubscription) return false;
-  const activeStatuses = new Set(['ACTIVE', 'APPROVED']);
-  if (activeStatuses.has(cachedSubscription.status)) return true;
-  if (cachedSubscription.status === 'CANCELLED' && cachedSubscription.currentPeriodEnd) {
-    return Date.parse(cachedSubscription.currentPeriodEnd) > Date.now();
+  const provider = cachedSubscription.provider || 'paypal';
+  const activePayPal = new Set(['ACTIVE', 'APPROVED']);
+  const activeRazorpay = new Set(['active', 'authenticated']);
+
+  if (provider === 'razorpay') {
+    if (activeRazorpay.has(cachedSubscription.status)) return true;
+    if (cachedSubscription.status === 'cancelled' && cachedSubscription.currentPeriodEnd) {
+      return Date.parse(cachedSubscription.currentPeriodEnd) > Date.now();
+    }
+  } else {
+    if (activePayPal.has(cachedSubscription.status)) return true;
+    if (cachedSubscription.status === 'CANCELLED' && cachedSubscription.currentPeriodEnd) {
+      return Date.parse(cachedSubscription.currentPeriodEnd) > Date.now();
+    }
   }
   return isEntitlementActive(cachedEntitlements);
 }

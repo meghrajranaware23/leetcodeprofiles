@@ -4,10 +4,12 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { paypalConfig, assertPayPalConfig } from './config/paypal-config.js';
+import { razorpayConfig, assertRazorpayConfig } from './config/razorpay-config.js';
 import { initFirebaseAdmin } from './config/firebase-admin.js';
 import { getPublicApiUrl, isRender } from './config/app-config.js';
 import subscriptionsRouter from './routes/subscriptions.js';
 import webhooksRouter from './routes/webhooks.js';
+import razorpayRouter, { razorpayWebhookRouter } from './routes/razorpay.js';
 import configRouter from './routes/config.js';
 import { reconcileSubscriptions } from './jobs/reconcile-subscriptions.js';
 
@@ -37,6 +39,12 @@ const allowedOrigins = (process.env.CORS_ORIGINS || defaultOrigins.join(','))
 async function bootstrap() {
   try {
     assertPayPalConfig();
+    try {
+      assertRazorpayConfig();
+      console.log(`Razorpay mode: ${razorpayConfig.mode}`);
+    } catch (rzpErr) {
+      console.warn(`Razorpay not configured: ${rzpErr.message}`);
+    }
     await initFirebaseAdmin();
     console.log(`PayPal mode: ${paypalConfig.mode}`);
     console.log(`Public API URL: ${getPublicApiUrl()}`);
@@ -76,6 +84,7 @@ app.get('/', (_req, res) => {
     health: '/health',
     config: '/api/config',
     webhook: '/api/paypal/webhook',
+    razorpayWebhook: '/api/razorpay/webhook',
   });
 });
 
@@ -89,10 +98,12 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/paypal/webhook', express.raw({ type: 'application/json' }), webhooksRouter);
+app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }), razorpayWebhookRouter);
 app.use(express.json());
 
 app.use('/api/config', configRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/razorpay', razorpayRouter);
 
 app.post('/api/jobs/reconcile', async (req, res) => {
   const secret = process.env.RECONCILE_JOB_SECRET;
