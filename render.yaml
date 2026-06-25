@@ -63,16 +63,6 @@ services:
         sync: false
       - key: RAZORPAY_LIVE_PLAN_YEARLY
         sync: false
-      - key: RAZORPAY_KEY_ID
-        sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
-      - key: RAZORPAY_WEBHOOK_SECRET
-        sync: false
-      - key: RAZORPAY_PLAN_MONTHLY
-        sync: false
-      - key: RAZORPAY_PLAN_YEARLY
-        sync: false
 
   # Optional: daily subscription reconciliation (enable after first deploy)
   # - type: cron

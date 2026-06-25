@@ -38,9 +38,7 @@ async function resolveRazorpayKeyId() {
 
   const mode = import.meta.env.VITE_RAZORPAY_MODE === 'live' ? 'live' : 'test';
   if (mode === 'live') {
-    return import.meta.env.VITE_RAZORPAY_LIVE_KEY_ID
-      || import.meta.env.VITE_RAZORPAY_KEY_ID
-      || null;
+    return import.meta.env.VITE_RAZORPAY_LIVE_KEY_ID || null;
   }
   return import.meta.env.VITE_RAZORPAY_TEST_KEY_ID || null;
 }

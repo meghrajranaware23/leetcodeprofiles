@@ -11,27 +11,14 @@ if (!process.env.RENDER) {
 const mode = process.env.RAZORPAY_MODE === 'live' ? 'live' : 'test';
 const suffix = mode === 'live' ? 'LIVE' : 'TEST';
 
-function env(primary, fallback) {
-  return process.env[primary] || (fallback ? process.env[fallback] : undefined);
-}
-
 export const razorpayConfig = {
   mode,
-  keyId: env(`RAZORPAY_${suffix}_KEY_ID`, mode === 'live' ? 'RAZORPAY_KEY_ID' : undefined),
-  keySecret: env(`RAZORPAY_${suffix}_KEY_SECRET`, mode === 'live' ? 'RAZORPAY_KEY_SECRET' : undefined),
-  webhookSecret: env(
-    `RAZORPAY_${suffix}_WEBHOOK_SECRET`,
-    mode === 'live' ? 'RAZORPAY_WEBHOOK_SECRET' : undefined
-  ),
+  keyId: process.env[`RAZORPAY_${suffix}_KEY_ID`],
+  keySecret: process.env[`RAZORPAY_${suffix}_KEY_SECRET`],
+  webhookSecret: process.env[`RAZORPAY_${suffix}_WEBHOOK_SECRET`],
   plans: {
-    full_arsenal_monthly: env(
-      `RAZORPAY_${suffix}_PLAN_MONTHLY`,
-      mode === 'live' ? 'RAZORPAY_PLAN_MONTHLY' : undefined
-    ),
-    full_arsenal_yearly: env(
-      `RAZORPAY_${suffix}_PLAN_YEARLY`,
-      mode === 'live' ? 'RAZORPAY_PLAN_YEARLY' : undefined
-    ),
+    full_arsenal_monthly: process.env[`RAZORPAY_${suffix}_PLAN_MONTHLY`],
+    full_arsenal_yearly: process.env[`RAZORPAY_${suffix}_PLAN_YEARLY`],
   },
 };
 

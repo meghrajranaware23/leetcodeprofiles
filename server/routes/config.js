@@ -2,11 +2,19 @@ import { Router } from 'express';
 import { paypalConfig } from '../config/paypal-config.js';
 import { razorpayConfig } from '../config/razorpay-config.js';
 import { getPublicApiUrl, getFrontendBaseUrl, isRender } from '../config/app-config.js';
-import { PLAN_SLUGS, SUBSCRIPTION_PRICES, RAZORPAY_SUBSCRIPTION_PRICES } from '../constants.js';
+import { PLAN_SLUGS, SUBSCRIPTION_PRICES } from '../constants.js';
+import { fetchRazorpayPlanPrices } from '../services/razorpay-client.js';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
+router.get('/', async (_req, res) => {
+  let razorpayPrices = null;
+  try {
+    razorpayPrices = await fetchRazorpayPlanPrices();
+  } catch (err) {
+    console.warn('Razorpay price fetch failed:', err.message);
+  }
+
   res.json({
     paypalClientId: paypalConfig.clientId,
     razorpayKeyId: razorpayConfig.keyId || null,
@@ -20,13 +28,13 @@ router.get('/', (_req, res) => {
         slug: PLAN_SLUGS.MONTHLY,
         billingInterval: 'month',
         price: SUBSCRIPTION_PRICES.full_arsenal_monthly,
-        razorpayPrice: RAZORPAY_SUBSCRIPTION_PRICES.full_arsenal_monthly,
+        razorpayPrice: razorpayPrices?.full_arsenal_monthly || null,
       },
       {
         slug: PLAN_SLUGS.YEARLY,
         billingInterval: 'year',
         price: SUBSCRIPTION_PRICES.full_arsenal_yearly,
-        razorpayPrice: RAZORPAY_SUBSCRIPTION_PRICES.full_arsenal_yearly,
+        razorpayPrice: razorpayPrices?.full_arsenal_yearly || null,
       },
     ],
   });

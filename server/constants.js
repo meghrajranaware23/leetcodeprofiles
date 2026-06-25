@@ -20,12 +20,6 @@ export const SUBSCRIPTION_PRICES = Object.freeze({
   full_arsenal_yearly: { amount: '29.99', currency: 'USD' },
 });
 
-/** Razorpay display prices (INR — actual billing uses Razorpay plan IDs). */
-export const RAZORPAY_SUBSCRIPTION_PRICES = Object.freeze({
-  full_arsenal_monthly: { amount: '399', currency: 'INR' },
-  full_arsenal_yearly: { amount: '2499', currency: 'INR' },
-});
-
 export const PAYMENT_PROVIDERS = Object.freeze({
   PAYPAL: 'paypal',
   RAZORPAY: 'razorpay',

@@ -103,3 +103,43 @@ export function parseRazorpaySubscriptionDates(subscription) {
 export function extractUidFromRazorpaySubscription(subscription) {
   return subscription?.notes?.uid || null;
 }
+
+function formatRazorpayPlanPrice(plan) {
+  const rawAmount = plan?.item?.amount;
+  const currency = (plan?.item?.currency || 'INR').toUpperCase();
+  if (rawAmount == null) return null;
+
+  const major = rawAmount / 100;
+  const amount = currency === 'INR'
+    ? String(Math.round(major))
+    : major.toFixed(2).replace(/\.00$/, '');
+
+  return { amount, currency };
+}
+
+/**
+ * Fetch display prices from configured Razorpay plan IDs.
+ * Billing at checkout always uses the plan linked to the subscription.
+ */
+export async function fetchRazorpayPlanPrices() {
+  if (!razorpayConfig.keyId || !razorpayConfig.keySecret) {
+    return null;
+  }
+
+  const client = getClient();
+  const prices = {};
+
+  await Promise.all(
+    Object.entries(razorpayConfig.plans).map(async ([slug, planId]) => {
+      if (!planId) return;
+      try {
+        const plan = await client.plans.fetch(planId);
+        prices[slug] = formatRazorpayPlanPrice(plan);
+      } catch (err) {
+        console.warn(`Failed to fetch Razorpay plan ${planId}:`, err.message);
+      }
+    })
+  );
+
+  return Object.keys(prices).length ? prices : null;
+}

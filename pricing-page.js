@@ -7,8 +7,45 @@ import { initEntitlements, hasActiveSubscription } from './auth/entitlements-ser
 import {
   initSubscriptionButtons,
   initCheckoutPage,
+  fetchRuntimeConfig,
 } from './checkout/subscription-checkout.js';
 import { resolveApiBaseUrl } from './checkout/subscription-status.js';
+import { detectUserCountry, isIndia } from './checkout/payment-selector.js';
+
+function formatDisplayPrice(price) {
+  if (!price?.amount) return null;
+  if (price.currency === 'INR') return `₹${price.amount}`;
+  if (price.currency === 'USD') return `$${price.amount}`;
+  return `${price.amount} ${price.currency}`;
+}
+
+async function applyPricingFromConfig() {
+  try {
+    const cfg = await fetchRuntimeConfig();
+    const country = await detectUserCountry();
+    const india = isIndia(country);
+
+    document.querySelectorAll('[data-subscribe-card]').forEach((card) => {
+      const slug = card.dataset.planSlug;
+      const plan = cfg.plans?.find((p) => p.slug === slug);
+      if (!plan) return;
+
+      const priceObj = india && plan.razorpayPrice ? plan.razorpayPrice : plan.price;
+      const formatted = formatDisplayPrice(priceObj);
+      if (!formatted) return;
+
+      const amountEl = card.querySelector('.subscribe-amount');
+      const perEl = card.querySelector('.subscribe-per');
+      if (amountEl) amountEl.textContent = formatted;
+      if (perEl) {
+        const interval = plan.billingInterval === 'year' ? 'year' : 'month';
+        perEl.textContent = `per ${interval} · billed automatically`;
+      }
+    });
+  } catch (err) {
+    console.warn('Could not load dynamic pricing:', err.message);
+  }
+}
 
 function showAlert(message, type = 'success') {
   const el = document.getElementById('subscribeAlert');
@@ -23,6 +60,7 @@ async function boot() {
 
   try {
     await resolveApiBaseUrl();
+    await applyPricingFromConfig();
   } catch (err) {
     console.error(err.message);
   }
