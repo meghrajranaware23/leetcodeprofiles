@@ -101,8 +101,12 @@ export async function openRazorpayCheckout({ subscriptionId, planSlug, onStatus 
 
     const rzp = new Razorpay(options);
     rzp.on('payment.failed', (response) => {
-      const msg = response.error?.description || 'Payment failed';
-      reject(new Error(msg));
+      const desc = response.error?.description || 'Payment failed';
+      let message = desc;
+      if (/recurring/i.test(desc)) {
+        message += ' Try UPI in test mode (e.g. success@razorpay) or use subscription test card 5267 3181 8797 5449.';
+      }
+      reject(new Error(message));
     });
     rzp.open();
   });
