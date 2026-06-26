@@ -11,8 +11,8 @@ export function buildPageBackHtml() {
 }
 
 function resolveFallback(mode) {
-  if (mode === 'app') return ROUTES.packs;
-  return getCurrentUser() ? ROUTES.packs : ROUTES.marketing;
+  if (mode === 'app') return ROUTES.courses;
+  return getCurrentUser() ? ROUTES.courses : ROUTES.marketing;
 }
 
 function canUseHistoryBack() {

@@ -178,7 +178,10 @@
   text-decoration: none;
   color: var(--text-primary);
   background: var(--red-primary);
+  border: none;
   padding: 14px 28px;
+  border-radius: 6px;
+  cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -232,6 +235,10 @@
   font-weight: 600;
   color: var(--red-primary);
   text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .packs-method-banner-link:hover {

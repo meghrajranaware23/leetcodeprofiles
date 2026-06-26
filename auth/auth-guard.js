@@ -44,11 +44,17 @@ function isSafeRedirect(url) {
 
 function getAuthNextPath() {
   const path = window.location.pathname;
+  if (path.startsWith('/courses')) {
+    return `${path}${window.location.search}${window.location.hash}`;
+  }
   if (path === '/packs' || path === '/home' || path.endsWith('/packs.html')) {
-    return `/packs${window.location.search}${window.location.hash}`;
+    return `/courses${window.location.search}${window.location.hash}`;
   }
   if (path === '/profile' || path.endsWith('/profile.html')) {
-    return `/profile${window.location.search}${window.location.hash}`;
+    return `/courses/profile${window.location.search}${window.location.hash}`;
+  }
+  if (path === '/method' || path.endsWith('/method.html')) {
+    return `/courses/guide${window.location.search}${window.location.hash}`;
   }
   return `${path}${window.location.search}${window.location.hash}`;
 }

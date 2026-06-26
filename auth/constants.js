@@ -27,5 +27,5 @@ export const FUTURE_USER_FIELDS = {
   progressSync: 'progressSync',
 };
 
-export const DEFAULT_POST_AUTH_URL = '/packs';
+export const DEFAULT_POST_AUTH_URL = '/courses';
 export const SIGN_IN_URL = '/sign-in';

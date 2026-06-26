@@ -12,7 +12,7 @@ export function initReaderNav(currentPackId) {
   initSidebarResize();
   const backBtn = document.getElementById('backBtn');
   if (backBtn) {
-    backBtn.href = ROUTES.packs;
+    backBtn.href = ROUTES.courses;
     backBtn.setAttribute('aria-label', 'Back to all packs');
     const label = backBtn.querySelector('span');
     if (label) label.textContent = 'All Packs';
@@ -47,7 +47,7 @@ export function initReaderNav(currentPackId) {
             ${pack.id === currentPackId ? '<span class="cr-pack-switcher-current">Current</span>' : ''}
           </a>
         `).join('')}
-        <a href="${ROUTES.packs}" class="cr-pack-switcher-catalog">View All Packs →</a>
+        <a href="${ROUTES.courses}" class="cr-pack-switcher-catalog">View All Packs →</a>
       </div>
     </div>
   `;

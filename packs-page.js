@@ -1,13 +1,7 @@
-import { getFeaturedPack, getTeaserPacks, getTopicPacks, getPackCtaLabel } from './pack-catalog.js';
-import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
-import { waitForSessionBootstrap } from './auth/auth-service.js';
-import { onProgressSyncUpdated } from './auth/progress-sync-service.js';
-import { initSiteNav, initScrollAnimations } from './site-nav.js';
-import { initHunterHQ, refreshHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
-import { redirectLegacyPaths } from './routes.js';
-import { initBrandLogos, injectFavicon } from './brand-logo.js';
-import { initSiteFooter } from './site-footer.js';
-import { initAuthAwareLinks } from './auth/auth-guard.js';
+import { getFeaturedPack, getTeaserPacks, getPackCtaLabel } from './pack-catalog.js';
+import { guardPage } from './auth/auth-guard.js';
+import { redirectLegacyPaths, ROUTES } from './routes.js';
+import { hydrateFeaturedPack } from './hunter-hq.js';
 
 export function renderPackCard(pack, { featured = false } = {}) {
   const badgeClass = pack.badgeStyle === 'live'
@@ -91,7 +85,7 @@ export function renderPackCard(pack, { featured = false } = {}) {
   `;
 }
 
-function renderCatalogFeatured(summaryById) {
+export function renderCatalogFeatured(summaryById) {
   const featured = getFeaturedPack();
   const featuredEl = document.getElementById('packsFeatured');
   if (featuredEl) {
@@ -99,16 +93,6 @@ function renderCatalogFeatured(summaryById) {
     if (summaryById) {
       hydrateFeaturedPack(summaryById);
     }
-  }
-}
-
-function renderCatalog() {
-  const topics = getTopicPacks();
-  renderCatalogFeatured(null);
-
-  const gridEl = document.getElementById('packsGrid');
-  if (gridEl) {
-    gridEl.innerHTML = topics.map(pack => renderPackCard(pack)).join('');
   }
 }
 
@@ -120,40 +104,11 @@ function renderTeaser() {
   gridEl.innerHTML = teaserPacks.map(pack => renderPackCard(pack)).join('');
 }
 
-const hunterHQOptions = {
-  renderPackCard,
-  renderCatalogFeatured,
-};
-
-async function refreshAfterSync() {
-  const summaries = await refreshHunterHQ(hunterHQOptions);
-  await initSiteNav({ variant: 'app', summaries });
-}
-
 export async function initPacksPage() {
   if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  const summariesPromise = initHunterHQ(hunterHQOptions);
-  const navPromise = initSiteNav({ variant: 'app' });
-
-  const summaries = await summariesPromise;
-  await navPromise;
-
-  hideAuthLoader();
-  injectFavicon();
-  initSiteFooter({ variant: 'marketing' });
-  initAuthAwareLinks(document);
-  initBrandLogos();
-  initScrollAnimations();
-
-  await initSiteNav({ variant: 'app', summaries });
-
-  onProgressSyncUpdated(({ changed }) => {
-    if (changed) refreshAfterSync();
-  });
-
-  waitForSessionBootstrap().then(() => refreshAfterSync());
+  window.location.replace(`${ROUTES.courses}${window.location.search}${window.location.hash}`);
 }
 
 export function initHomeTeaser() {

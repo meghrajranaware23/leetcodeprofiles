@@ -23,12 +23,12 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
   const howActive = activePage === 'how-it-works' ? 'nav-active' : '';
   const homeActive = activePage === 'home' ? 'nav-active' : '';
 
-  const logoHref = isLoggedIn ? ROUTES.packs : ROUTES.marketing;
-  const packsHref = ROUTES.packs;
+  const logoHref = isLoggedIn ? ROUTES.courses : ROUTES.marketing;
+  const packsHref = isLoggedIn ? ROUTES.courses : ROUTES.packs;
   const packsLabel = 'Packs';
   const navCtaHtml = isLoggedIn
     ? ''
-    : `<a href="${ROUTES.packs}" class="nav-cta" data-auth-target="${ROUTES.packs}">START GRINDING →</a>`;
+    : `<a href="${ROUTES.courses}" class="nav-cta" data-auth-target="${ROUTES.courses}">START GRINDING →</a>`;
 
   return `
     <nav class="navbar" id="navbar">

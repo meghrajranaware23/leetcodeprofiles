@@ -199,7 +199,7 @@ function renderProfileHtml(user, {
           ${email ? `<span class="auth-profile-email">${email}</span>` : ''}
           ${progressHtml}
         </div>
-        <a href="${ROUTES.profile}" class="auth-profile-link">Profile</a>
+        <a href="${ROUTES.coursesProfile}" class="auth-profile-link">Profile</a>
         ${upgradeBtn}
         ${signOutBtn}
     `;

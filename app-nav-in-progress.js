@@ -65,7 +65,7 @@ function renderEmptyState({ mobile = false } = {}) {
     <div class="${mobile ? 'in-progress-sheet-empty' : 'app-nav-progress-empty'}">
       <p class="${mobile ? 'in-progress-sheet-empty-title' : 'app-nav-progress-empty-title'}">No packs in progress yet</p>
       <p class="${mobile ? 'in-progress-sheet-empty-text' : 'app-nav-progress-empty-text'}">Start a pack below and pick up right where you left off from here.</p>
-      <a href="${ROUTES.packs}" class="${linkClass}">Browse packs →</a>
+      <a href="${ROUTES.courses}" class="${linkClass}">Browse packs →</a>
     </div>
   `;
 }

@@ -7,7 +7,7 @@ const COPYRIGHT = '© 2026 LeetCode Profiles. All rights reserved.';
 function exploreLinksHtml() {
   return `
     <a href="${ROUTES.marketing}">Home</a>
-    <a href="${ROUTES.packs}" data-auth-target="${ROUTES.packs}">Packs</a>
+    <a href="${ROUTES.courses}" data-auth-target="${ROUTES.courses}">Packs</a>
     <a href="${ROUTES.features}">Features</a>
     <a href="${ROUTES.pricing}">Pricing</a>
     <a href="${ROUTES.ranks}">Ranks</a>
@@ -54,7 +54,7 @@ function buildAppFooterHtml() {
   return `
     <div class="footer-content footer-content--app footer-grid footer-grid--app">
       <div class="footer-col footer-col-brand">
-        ${buildLogoHtml({ href: ROUTES.packs, ariaLabel: 'LeetCode Profiles packs' })}
+        ${buildLogoHtml({ href: ROUTES.courses, ariaLabel: 'LeetCode Profiles courses' })}
       </div>
       <nav class="footer-links footer-links-app" aria-label="Legal and help">
         ${legalLinksHtml()}

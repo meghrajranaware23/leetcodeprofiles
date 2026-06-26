@@ -1,8 +1,8 @@
 import './firebase.js';
-import { redirectLegacyPaths } from './routes.js';
+import { ROUTES, redirectLegacyPaths } from './routes.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
-import { getCurrentUser } from './auth/auth-service.js';
+import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
 import { initEntitlements, hasActiveSubscription } from './auth/entitlements-service.js';
 import {
   initSubscriptionButtons,
@@ -90,6 +90,12 @@ function showAlert(message, type = 'success') {
 
 async function boot() {
   if (redirectLegacyPaths()) return;
+
+  await waitForAuth();
+  if (getCurrentUser()) {
+    window.location.replace(`${ROUTES.coursesPricing}${window.location.search}${window.location.hash}`);
+    return;
+  }
 
   await initSiteNav({ activePage: 'pricing', variant: 'marketing' });
   initAuthAwareLinks(document);

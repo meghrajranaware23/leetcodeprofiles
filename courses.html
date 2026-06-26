@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LeetCode Profiles courses — packs, progress, profile, and subscription in one place.">
+  <title>Courses — LeetCode Profiles</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./method-page.css">
+  <link rel="stylesheet" href="./checkout/subscription-checkout.css">
+</head>
+<body data-page="courses">
+
+  <div id="site-nav"></div>
+
+  <main id="courses-app" class="courses-app">
+
+    <!-- PACKS -->
+    <div id="panel-packs" class="courses-panel" data-courses-panel="packs">
+      <section class="packs-page-hero" id="packsDefaultHero">
+        <div class="packs-page-hero-inner">
+          <div class="section-overline">THE ARSENAL</div>
+          <h1 class="packs-page-title">CHOOSE YOUR BATTLEFIELD</h1>
+          <p class="packs-page-subtitle">New to LeetCode? Start with the Starter Path. Already grinding? Pick the topic that's costing you interviews and rank up in 30 days.</p>
+        </div>
+      </section>
+      <section class="packs-page-hero packs-page-hero--return" id="packsReturnHero" hidden>
+        <div class="packs-page-hero-inner">
+          <div class="section-overline">YOUR ARSENAL</div>
+          <h1 class="packs-page-title">KEEP RANKING UP</h1>
+          <div class="packs-hero-stats" aria-label="Your progress">
+            <span class="packs-hero-stat" id="packsReturnXp">0 XP earned</span>
+            <span class="packs-hero-stat" id="packsReturnCount">0 packs in progress</span>
+            <span class="packs-hero-stat packs-hero-stat--peak" id="packsReturnPeak">Peak: Not ranked yet</span>
+          </div>
+        </div>
+      </section>
+      <section class="packs-method-banner-wrap" id="packsMethodBanner" hidden>
+        <div class="packs-method-banner">
+          <div class="packs-method-banner-body">
+            <p class="packs-method-banner-title">New here? Read how our learning method works</p>
+            <p class="packs-method-banner-text">Interviews reward fast pattern recognition—not random problem grinding. We teach one DSA topic at a time until you can spot the approach immediately.</p>
+            <button type="button" class="packs-method-banner-link" data-courses-tab-jump="guide">Read the guide →</button>
+          </div>
+          <button type="button" class="packs-method-banner-dismiss" id="packsMethodBannerDismiss" aria-label="Dismiss">×</button>
+        </div>
+      </section>
+      <section class="packs-featured-section animate-on-scroll">
+        <div class="packs-section-inner">
+          <div class="packs-featured-header">
+            <h2 class="packs-section-label">START HERE</h2>
+            <p class="packs-section-desc">15-day onboarding before you tackle topic packs.</p>
+          </div>
+          <div class="packs-featured-wrap" id="packsFeatured"></div>
+        </div>
+      </section>
+      <section class="packs packs-catalog animate-on-scroll" id="topic-packs">
+        <div class="packs-section-inner">
+          <div class="packs-featured-header">
+            <h2 class="packs-section-label">ASCENSION PACKS</h2>
+            <p class="packs-section-desc" id="packsAscensionDesc">30 days. 6 ranks. One topic at a time.</p>
+          </div>
+          <div class="packs-grid-wrap">
+            <div class="packs-grid" id="packsGrid"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FREE GUIDE -->
+    <div id="panel-guide" class="courses-panel" data-courses-panel="guide" hidden>
+      <main class="method-page">
+        <article class="method-prose">
+          <header class="method-header">
+            <p class="method-eyebrow">Learning guide</p>
+            <h1 class="method-title">How LeetCode Profiles Works</h1>
+            <p class="method-lead">A structured approach to mastering Data Structures &amp; Algorithms through pattern recognition—not random problem lists.</p>
+          </header>
+          <section class="method-section" aria-labelledby="method-interview">
+            <h2 id="method-interview">The interview reality</h2>
+            <p>Coding interviews and online assessments are timed. You rarely have enough room to invent a completely new algorithm from scratch. What separates candidates who perform well is how quickly they recognize which technique a problem requires.</p>
+            <p>When you see a sliding window problem, you should think <em>sliding window</em> within seconds—not after ten minutes of trial and error. That speed comes from pattern recognition, not raw intelligence or memorizing hundreds of solutions.</p>
+            <aside class="method-callout">
+              <strong>Key insight:</strong> Interview success is largely about recognizing familiar patterns under time pressure. The goal is to train your brain to map new questions to techniques you already understand.
+            </aside>
+          </section>
+          <section class="method-section" aria-labelledby="method-grinding">
+            <h2 id="method-grinding">Why random grinding often fails</h2>
+            <p>Many developers solve hundreds of LeetCode problems without seeing real improvement. They jump between topics, skip explanations, and memorize solutions without understanding why they work.</p>
+            <p>The result: they know individual answers but cannot reliably identify the approach when a slightly different question appears in an interview. Experience helps, but unstructured practice does not build the reflex you need when the clock is running.</p>
+          </section>
+          <section class="method-section" aria-labelledby="method-different">
+            <h2 id="method-different">What makes this platform different</h2>
+            <p>LeetCode Profiles is not another collection of random questions. It is a structured learning roadmap designed to help you master one DSA topic at a time.</p>
+            <ul class="method-list">
+              <li><strong>One topic per pack.</strong> Each learning pack focuses on a single major area—Recursion, Trees, Graphs, Dynamic Programming, and more.</li>
+              <li><strong>Researched patterns.</strong> For every topic, we identify the interview patterns that actually matter—not every possible variation, but the ones that show up repeatedly.</li>
+              <li><strong>Curated problems.</strong> Problems are selected deliberately to reinforce the day's concept. Nothing is added just to inflate the count.</li>
+              <li><strong>Mastery before moving on.</strong> The aim is to finish a pack feeling confident you can handle almost any interview question in that topic—because you understand the patterns behind them.</li>
+            </ul>
+          </section>
+          <section class="method-section" aria-labelledby="method-daily">
+            <h2 id="method-daily">How each day in a pack works</h2>
+            <p>Every pack follows the same daily structure. Each day generally includes four learning pages:</p>
+            <ol class="method-steps">
+              <li>
+                <span class="method-step-label">Concept introduction</span>
+                <p>The first page explains the day's pattern using clear language, intuition, and worked examples—before you write any code.</p>
+              </li>
+              <li>
+                <span class="method-step-label">Curated practice (2 problems)</span>
+                <p>The next two pages contain carefully selected LeetCode problems tied directly to today's concept.</p>
+              </li>
+              <li>
+                <span class="method-step-label">Detailed solutions</span>
+                <p>Every solution includes the approach, reasoning, intuition, and pattern discussion—not just the final code. You learn <em>why</em> the method works.</p>
+              </li>
+              <li>
+                <span class="method-step-label">Optional extra practice</span>
+                <p>The final page recommends additional problems for users who want more reps on the same concept. The core path stays focused; extras are there when you need them.</p>
+              </li>
+            </ol>
+            <p>This same process repeats each day, gradually building your understanding throughout the pack.</p>
+          </section>
+          <section class="method-section" aria-labelledby="method-philosophy">
+            <h2 id="method-philosophy">Our learning philosophy</h2>
+            <p>We prioritize quality over quantity. Instead of encouraging you to grind through hundreds of unrelated problems, we focus on deep understanding—why a problem is solved a particular way, when to apply a technique, and how to recognize it in unfamiliar questions.</p>
+            <aside class="method-callout">
+              <strong>Remember:</strong> The objective is not to memorize solutions. By the end of a pack, you should read a new interview question and immediately sense which pattern it belongs to.
+            </aside>
+          </section>
+          <section class="method-section" aria-labelledby="method-starter">
+            <h2 id="method-starter">The Starter Path</h2>
+            <p>If you are new to DSA or structured problem solving, begin with the <strong>Starter Path</strong>—a 15-day onboarding course that introduces fundamentals through simpler examples.</p>
+            <p>It builds confidence and daily habits before you tackle the main Ascension packs. Think of it as laying the foundation: once you understand how the system works, you are ready to commit to a full 30-day topic pack.</p>
+          </section>
+          <footer class="method-footer">
+            <button type="button" class="method-cta" data-courses-tab-jump="packs">Browse Packs →</button>
+          </footer>
+        </article>
+      </main>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div id="panel-progress" class="courses-panel" data-courses-panel="progress" hidden>
+      <div class="courses-progress-panel" data-progress-mount></div>
+    </div>
+
+    <!-- PRICING -->
+    <div id="panel-pricing" class="courses-panel" data-courses-panel="pricing" hidden>
+      <section class="pricing-hero pricing-hero--app">
+        <div class="pricing-hero-inner animate-on-scroll">
+          <div class="section-overline">INVEST IN YOUR RANK</div>
+          <h1 class="pricing-hero-title">UNLOCK THE FULL ARSENAL</h1>
+          <p class="pricing-hero-subtitle">One subscription. Every premium ascension pack. Structured daily missions from E-Rank to S-Rank — built for interview prep, not random grinding.</p>
+        </div>
+      </section>
+      <div id="subscribeAlert" class="subscribe-alert" hidden></div>
+      <section id="subscribe" class="subscribe-section subscribe-section--app animate-on-scroll">
+        <div class="subscribe-intro">
+          <h2 class="subscribe-intro-title">Choose your billing cycle</h2>
+          <p class="subscribe-intro-text">Get immediate access to Arrays &amp; Strings, Recursion, Trees, Graphs, Dynamic Programming, and every future premium pack we release.</p>
+        </div>
+        <div class="subscribe-cards">
+          <div class="subscribe-card" data-subscribe-card data-plan-slug="full_arsenal_monthly">
+            <div class="subscribe-label">Monthly</div>
+            <div class="subscribe-price-block">
+              <div class="subscribe-amount">$4.99</div>
+              <div class="subscribe-per">per month · billed automatically</div>
+            </div>
+            <hr class="subscribe-divider">
+            <ul class="subscribe-features">
+              <li><span class="check">✓</span> All 5 premium ascension packs today</li>
+              <li><span class="check">✓</span> Full E → S rank progression per pack</li>
+              <li><span class="check">✓</span> C++, Python &amp; Java walkthroughs</li>
+              <li><span class="check">✓</span> Progress sync across devices</li>
+              <li><span class="check">✓</span> Flexible — cancel whenever you want</li>
+            </ul>
+            <button type="button" class="subscribe-btn subscribe-btn--outline" data-subscribe-btn>Start Monthly Plan</button>
+            <p class="subscribe-status" data-subscribe-status hidden></p>
+          </div>
+          <div class="subscribe-card subscribe-card--featured" data-subscribe-card data-plan-slug="full_arsenal_yearly">
+            <div class="subscribe-badge">Most Popular</div>
+            <div class="subscribe-label">Yearly</div>
+            <div class="subscribe-price-block">
+              <div class="subscribe-amount">$29.99</div>
+              <div class="subscribe-per">per year · billed automatically</div>
+              <div class="subscribe-savings">Save ~50% vs monthly</div>
+            </div>
+            <hr class="subscribe-divider">
+            <ul class="subscribe-features">
+              <li><span class="check">✓</span> Everything in Monthly, best long-term value</li>
+              <li><span class="check">✓</span> All future premium packs included</li>
+              <li><span class="check">✓</span> 180+ curated daily problems</li>
+              <li><span class="check">✓</span> Legend certificate on S-Rank completion</li>
+              <li><span class="check">✓</span> One payment — uninterrupted access all year</li>
+            </ul>
+            <button type="button" class="subscribe-btn subscribe-btn--filled" data-subscribe-btn>Start Yearly Plan →</button>
+            <p class="subscribe-status" data-subscribe-status hidden></p>
+          </div>
+        </div>
+        <div class="subscribe-trust">
+          <span>Recurring billing via PayPal or Razorpay</span>
+          <span>Premium access while your subscription is active</span>
+          <span>Manage or cancel from your account anytime</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="panel-profile" class="courses-panel" data-courses-panel="profile" hidden>
+      <section class="profile-page">
+        <div class="profile-page-inner">
+          <div class="profile-page-header animate-on-scroll">
+            <div class="section-overline">HUNTER IDENTITY</div>
+            <h1 class="profile-page-title">YOUR HUNTER CARD</h1>
+            <p class="profile-page-subtitle">Rank-forward profile built for sharing. Export your card and flex your progress.</p>
+          </div>
+          <div id="hunterCard" class="hunter-card-wrap animate-on-scroll"></div>
+          <div class="profile-page-actions animate-on-scroll">
+            <button type="button" class="profile-action-btn profile-action-btn--primary" id="hunterCardShare">Share Card</button>
+            <button type="button" class="profile-action-btn profile-action-btn--secondary" id="hunterCardDownload">Download PNG</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script type="module" src="./courses-app.js"></script>
+</body>
+</html>

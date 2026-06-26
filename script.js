@@ -17,7 +17,7 @@ async function boot() {
   const user = await waitForAuth();
 
   if (user) {
-    window.location.replace(ROUTES.packs);
+    window.location.replace(ROUTES.courses);
     return;
   }
 

@@ -1,4 +1,4 @@
-import { ROUTES } from '../routes.js';
+import { ROUTES, isCoursesPath } from '../routes.js';
 
 const HIGHLIGHT_CLASS = 'subscribe-section--highlight';
 const NAVBAR_OFFSET = 64;
@@ -26,18 +26,26 @@ export function scrollToSubscribeSection({ highlight = true } = {}) {
 }
 
 export function navigateToSubscriptionSection({ highlight = true } = {}) {
-  const onPricing = window.location.pathname === ROUTES.pricing
-    || window.location.pathname === '/pricing.html';
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const onPricing = path === ROUTES.pricing
+    || path === '/pricing.html'
+    || path === ROUTES.coursesPricing;
 
   if (onPricing) {
     scrollToSubscribeSection({ highlight });
     if (window.location.hash !== '#subscribe') {
-      history.replaceState(null, '', `${ROUTES.pricing}#subscribe`);
+      history.replaceState(null, '', `${path}#subscribe`);
     }
     return;
   }
 
-  window.location.href = `${ROUTES.pricing}#subscribe`;
+  if (isCoursesPath(path)) {
+    window.dispatchEvent(new CustomEvent('courses:navigate-tab', { detail: { tab: 'pricing' } }));
+    window.setTimeout(() => scrollToSubscribeSection({ highlight }), 150);
+    return;
+  }
+
+  window.location.href = `${ROUTES.coursesPricing}#subscribe`;
 }
 
 export function initSubscribeSectionFromHash() {

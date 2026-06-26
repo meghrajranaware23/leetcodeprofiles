@@ -35,8 +35,8 @@ export async function createUserSubscription(uid, planSlug) {
   const subscription = await createSubscription({
     planId,
     uid,
-    returnUrl: `${baseUrl}/pricing?subscription_success=true`,
-    cancelUrl: `${baseUrl}/pricing?subscription_cancelled=true`,
+    returnUrl: `${baseUrl}/courses/pricing?subscription_success=true`,
+    cancelUrl: `${baseUrl}/courses/pricing?subscription_cancelled=true`,
   });
 
   return {

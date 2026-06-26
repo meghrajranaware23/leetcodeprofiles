@@ -19,13 +19,21 @@ function cleanUrlDevPlugin() {
     '/starter': '/starter-reader.html',
   };
 
+  /** Only SPA tab URLs — not /courses/*.js (panel modules live in courses/ folder). */
+  const coursesAppRoute = /^\/courses(\/(packs|guide|progress|pricing|profile))?$/;
+
   return {
     name: 'clean-url-dev',
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         if (!req.url) return next();
         const [pathname, query = ''] = req.url.split('?');
-        const target = rewrites[pathname];
+        const normalized = pathname.replace(/\/+$/, '') || '/';
+        if (coursesAppRoute.test(normalized)) {
+          req.url = query ? `/courses.html?${query}` : '/courses.html';
+          return next();
+        }
+        const target = rewrites[normalized];
         if (target) {
           req.url = query ? `${target}?${query}` : target;
         }
@@ -59,6 +67,7 @@ export default defineConfig(({ mode }) => {
           recursionReader: resolve(__dirname, 'recursion-reader.html'),
           dpReader: resolve(__dirname, 'dp-reader.html'),
           starterReader: resolve(__dirname, 'starter-reader.html'),
+          courses: resolve(__dirname, 'courses.html'),
           packs: resolve(__dirname, 'packs.html'),
           profile: resolve(__dirname, 'profile.html'),
           signIn: resolve(__dirname, 'sign-in.html'),

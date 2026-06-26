@@ -7,6 +7,8 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      { "source": "/courses", "destination": "/courses.html" },
+      { "source": "/courses/**", "destination": "/courses.html" },
       { "source": "/packs", "destination": "/packs.html" },
       { "source": "/home", "destination": "/packs.html" },
       { "source": "/profile", "destination": "/profile.html" },

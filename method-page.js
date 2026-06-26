@@ -1,24 +1,11 @@
-import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
-import { initSiteNav } from './site-nav.js';
-import { redirectLegacyPaths } from './routes.js';
-import { initBrandLogos, injectFavicon } from './brand-logo.js';
-import { initSiteFooter } from './site-footer.js';
-import { initAuthAwareLinks } from './auth/auth-guard.js';
-import { initPageBack } from './page-back.js';
-import { getAllPackSummaries } from './progress-facade.js';
+import { guardPage } from './auth/auth-guard.js';
+import { redirectLegacyPaths, ROUTES } from './routes.js';
 
 async function initMethodPage() {
   if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  const summaries = await getAllPackSummaries();
-  await initSiteNav({ variant: 'app', activePage: 'method', summaries });
-  hideAuthLoader();
-  injectFavicon();
-  initSiteFooter({ variant: 'app' });
-  initAuthAwareLinks(document);
-  initBrandLogos();
-  await initPageBack();
+  window.location.replace(`${ROUTES.coursesGuide}${window.location.search}${window.location.hash}`);
 }
 
 if (document.body.dataset.page === 'method') {

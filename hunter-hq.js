@@ -201,7 +201,7 @@ async function renderHunterHQContent({ renderPackCard, renderCatalogFeatured }) 
   updateAscensionHeader(activeCount);
   initMethodBanner(hasAnyProgress);
 
-  renderCatalogFeatured(summaryById);
+  renderCatalogFeatured?.(summaryById);
 
   const sortedTopics = await getTopicPacksSortedForDisplay();
   const gridEl = document.getElementById('packsGrid');

@@ -39,7 +39,7 @@ function getReturnSubscriptionId() {
 }
 
 function buildSignInUrl(planSlug) {
-  const continueUrl = `${ROUTES.pricing}?plan=${encodeURIComponent(planSlug)}`;
+  const continueUrl = `${ROUTES.coursesPricing}?plan=${encodeURIComponent(planSlug)}`;
   return `${ROUTES.signIn}?next=${encodeURIComponent(continueUrl)}`;
 }
 
@@ -98,7 +98,7 @@ export async function handleSubscriptionReturn() {
     await refreshEntitlements();
 
     if (window.history.replaceState) {
-      window.history.replaceState({}, '', ROUTES.pricing);
+      window.history.replaceState({}, '', ROUTES.coursesPricing);
     }
 
     return { type: 'activated', result };
