@@ -12,9 +12,9 @@ async function boot() {
   if (redirectLegacyPaths()) return;
 
   showAuthLoader();
-  await waitForAuth();
+  const user = await waitForAuth();
 
-  if (getCurrentUser()) {
+  if (user) {
     window.location.replace(ROUTES.packs);
     return;
   }

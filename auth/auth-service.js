@@ -1,9 +1,7 @@
 import {
   GoogleAuthProvider,
-  browserLocalPersistence,
   getRedirectResult,
   onAuthStateChanged,
-  setPersistence,
   signInWithPopup,
   signInWithRedirect,
   signOut,
@@ -22,10 +20,6 @@ let persistenceReady = false;
 
 let bootstrapPromise = Promise.resolve();
 let bootstrapGeneration = 0;
-
-setPersistence(auth, browserLocalPersistence).catch(() => {
-  /* Non-fatal — Firebase falls back to default persistence. */
-});
 
 async function bootstrapSession(user) {
   const generation = ++bootstrapGeneration;
@@ -67,19 +61,25 @@ async function bootstrapSession(user) {
   }
 }
 
-const authReadyPromise = auth.authStateReady().then(() => {
+async function initAuthState() {
+  await auth.authStateReady();
   persistenceReady = true;
   currentUser = auth.currentUser;
   authReady = true;
   bootstrapPromise = bootstrapSession(currentUser);
   return currentUser;
-});
+}
+
+const authReadyPromise = initAuthState();
 
 onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-
   if (!persistenceReady) return;
 
+  const prevUid = currentUser?.uid ?? null;
+  const nextUid = user?.uid ?? null;
+  if (prevUid === nextUid) return;
+
+  currentUser = user;
   bootstrapPromise = bootstrapSession(user);
 });
 
@@ -92,7 +92,7 @@ export function waitForSessionBootstrap() {
 }
 
 export function getCurrentUser() {
-  return currentUser;
+  return currentUser ?? auth.currentUser;
 }
 
 export async function completeRedirectSignIn() {

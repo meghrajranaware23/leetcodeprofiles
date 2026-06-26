@@ -1,6 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getAuth } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  getAuth,
+  initializeAuth,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -14,7 +18,21 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+function createAuth() {
+  try {
+    return initializeAuth(app, {
+      persistence: browserLocalPersistence,
+    });
+  } catch (err) {
+    if (err.code === 'auth/already-initialized') {
+      return getAuth(app);
+    }
+    throw err;
+  }
+}
+
+export const auth = createAuth();
 export const db = getFirestore(app);
 
 export let analytics = null;

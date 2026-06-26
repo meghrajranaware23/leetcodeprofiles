@@ -1,5 +1,5 @@
 import './firebase.js';
-import { completeRedirectSignIn, getCurrentUser, waitForAuth } from './auth/auth-service.js';
+import { completeRedirectSignIn, waitForAuth } from './auth/auth-service.js';
 import { getPostAuthDestination } from './auth/auth-guard.js';
 import { initSignInPage } from './auth/auth-ui.js';
 import { waitForProgressSync } from './auth/progress-sync-service.js';
@@ -15,10 +15,10 @@ async function redirectAfterAuth() {
 async function boot() {
   if (redirectLegacyPaths()) return;
 
-  await waitForAuth();
+  const user = await waitForAuth();
 
   const redirectUser = await completeRedirectSignIn();
-  if (redirectUser || getCurrentUser()) {
+  if (redirectUser || user) {
     await redirectAfterAuth();
     return;
   }

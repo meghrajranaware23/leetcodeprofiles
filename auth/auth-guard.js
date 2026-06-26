@@ -75,9 +75,9 @@ export async function getPostAuthDestination() {
 
 export async function guardPage() {
   showAuthLoader();
-  await waitForAuth();
+  const user = await waitForAuth();
 
-  if (!getCurrentUser()) {
+  if (!user) {
     hideAuthLoader();
     window.location.replace(getSignInUrl(getAuthNextPath()));
     return false;
