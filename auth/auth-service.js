@@ -18,11 +18,7 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 let currentUser = null;
 let authReady = false;
-let authReadyResolve;
-
-const authReadyPromise = new Promise((resolve) => {
-  authReadyResolve = resolve;
-});
+let persistenceReady = false;
 
 let bootstrapPromise = Promise.resolve();
 let bootstrapGeneration = 0;
@@ -71,13 +67,18 @@ async function bootstrapSession(user) {
   }
 }
 
+const authReadyPromise = auth.authStateReady().then(() => {
+  persistenceReady = true;
+  currentUser = auth.currentUser;
+  authReady = true;
+  bootstrapPromise = bootstrapSession(currentUser);
+  return currentUser;
+});
+
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
 
-  if (!authReady) {
-    authReady = true;
-    authReadyResolve(user);
-  }
+  if (!persistenceReady) return;
 
   bootstrapPromise = bootstrapSession(user);
 });
