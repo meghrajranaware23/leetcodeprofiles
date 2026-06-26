@@ -26,6 +26,7 @@ const PROGRESS_SUBCOLLECTION = 'progress';
 const META_DOC_ID = '_meta';
 const ALLOWED_PACK_IDS = new Set(Object.values(PACK_IDS));
 const DEBOUNCE_MS = 1000;
+const SESSION_BOOTSTRAP_PREFIX = 'lp_progress_bootstrapped_';
 
 let syncUserId = null;
 let isApplyingRemote = false;
@@ -33,6 +34,38 @@ let syncReadyPromise = null;
 let syncReadyResolve = null;
 
 const debounceTimers = new Map();
+const syncUpdateListeners = new Set();
+
+function sessionBootstrapKey(uid) {
+  return `${SESSION_BOOTSTRAP_PREFIX}${uid}`;
+}
+
+function isSessionBootstrapped(uid) {
+  if (!uid) return false;
+  try {
+    return sessionStorage.getItem(sessionBootstrapKey(uid)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markSessionBootstrapped(uid) {
+  if (!uid) return;
+  try {
+    sessionStorage.setItem(sessionBootstrapKey(uid), '1');
+  } catch {
+    // sessionStorage unavailable
+  }
+}
+
+function clearSessionBootstrap(uid) {
+  if (!uid) return;
+  try {
+    sessionStorage.removeItem(sessionBootstrapKey(uid));
+  } catch {
+    // sessionStorage unavailable
+  }
+}
 
 function resetSyncReady() {
   syncReadyPromise = new Promise((resolve) => {
@@ -44,6 +77,21 @@ resetSyncReady();
 
 function markSyncReady() {
   syncReadyResolve?.();
+}
+
+function notifyProgressSyncUpdated(changed) {
+  for (const listener of syncUpdateListeners) {
+    try {
+      listener({ changed });
+    } catch (err) {
+      console.error('Progress sync listener failed:', err);
+    }
+  }
+}
+
+export function onProgressSyncUpdated(listener) {
+  syncUpdateListeners.add(listener);
+  return () => syncUpdateListeners.delete(listener);
 }
 
 export function waitForProgressSync() {
@@ -187,21 +235,54 @@ async function updateUserProgressSyncMeta(uid) {
   }
 }
 
+async function runFullProgressSync(uid) {
+  await pullProgress(uid);
+  await migrateLocalToCloud(uid);
+  await updateUserProgressSyncMeta(uid);
+  markSessionBootstrapped(uid);
+}
+
+async function runBackgroundProgressSync(uid) {
+  try {
+    const changed = await pullProgress(uid);
+    if (changed) {
+      notifyProgressSyncUpdated(true);
+    }
+  } catch (err) {
+    console.error('Background progress sync failed:', err);
+  }
+}
+
 export async function initProgressSync(user) {
-  resetSyncReady();
+  const previousUid = syncUserId;
 
   if (!user?.uid) {
+    if (previousUid) {
+      clearSessionBootstrap(previousUid);
+    }
     syncUserId = null;
+    resetSyncReady();
     markSyncReady();
     return;
   }
 
-  syncUserId = user.uid;
+  const uid = user.uid;
+  const uidChanged = previousUid !== uid;
+  syncUserId = uid;
+
+  const sessionReady = !uidChanged && isSessionBootstrapped(uid);
+
+  if (sessionReady) {
+    resetSyncReady();
+    markSyncReady();
+    runBackgroundProgressSync(uid);
+    return;
+  }
+
+  resetSyncReady();
 
   try {
-    await pullProgress(user.uid);
-    await migrateLocalToCloud(user.uid);
-    await updateUserProgressSyncMeta(user.uid);
+    await runFullProgressSync(uid);
   } catch (err) {
     console.error('Progress sync initialization failed:', err);
   } finally {

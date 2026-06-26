@@ -2073,14 +2073,19 @@ a.final-btn {
 /* ============================================
    AUTH — Sign-in, profile menu, guard loader
    ============================================ */
+.boot-splash,
 .auth-guard-loader {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
+}
+
+.auth-guard-loader {
+  display: flex;
 }
 
 .auth-guard-spinner {

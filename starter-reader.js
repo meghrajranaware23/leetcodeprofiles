@@ -6,7 +6,7 @@
 import { COURSE_LESSONS } from './starter-content.js';
 import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
 import { initReaderNav } from './reader-nav.js';
-import { guardPage } from './auth/auth-guard.js';
+import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
 import {
   activateMilestoneDialog,
   deactivateMilestoneDialog,
@@ -1885,6 +1885,7 @@ async function boot() {
   if (booted) return;
   booted = true;
   if (!(await guardPage())) return;
+  hideAuthLoader();
   init();
 }
 

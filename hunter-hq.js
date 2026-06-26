@@ -190,9 +190,7 @@ function updateAscensionHeader(activeCount) {
   }
 }
 
-export async function initHunterHQ({ renderPackCard, renderCatalogFeatured }) {
-  invalidateProgressCache();
-
+async function renderHunterHQContent({ renderPackCard, renderCatalogFeatured }) {
   const summaries = await getAllPackSummaries();
   const summaryById = new Map(summaries.map(s => [s.packId, s]));
   const hasAnyProgress = summaries.some(s => hasMeaningfulProgress(s));
@@ -213,6 +211,17 @@ export async function initHunterHQ({ renderPackCard, renderCatalogFeatured }) {
       hydratePackProgress(pack, summaryById.get(pack.id));
     });
   }
+
+  return summaries;
+}
+
+export async function initHunterHQ({ renderPackCard, renderCatalogFeatured }) {
+  return renderHunterHQContent({ renderPackCard, renderCatalogFeatured });
+}
+
+export async function refreshHunterHQ({ renderPackCard, renderCatalogFeatured }) {
+  invalidateProgressCache();
+  return renderHunterHQContent({ renderPackCard, renderCatalogFeatured });
 }
 
 export function hydrateFeaturedPack(summaryById) {

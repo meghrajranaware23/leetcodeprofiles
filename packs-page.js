@@ -1,8 +1,9 @@
 import { getFeaturedPack, getTeaserPacks, getTopicPacks, getPackCtaLabel } from './pack-catalog.js';
-import { guardPage, showAuthLoader, hideAuthLoader } from './auth/auth-guard.js';
+import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
+import { waitForSessionBootstrap } from './auth/auth-service.js';
+import { onProgressSyncUpdated } from './auth/progress-sync-service.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
-import { waitForProgressSync } from './auth/progress-sync-service.js';
-import { initHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
+import { initHunterHQ, refreshHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
 import { redirectLegacyPaths } from './routes.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
 
@@ -83,25 +84,38 @@ function renderTeaser() {
   gridEl.innerHTML = teaserPacks.map(pack => renderPackCard(pack)).join('');
 }
 
+const hunterHQOptions = {
+  renderPackCard,
+  renderCatalogFeatured,
+};
+
+async function refreshAfterSync() {
+  const summaries = await refreshHunterHQ(hunterHQOptions);
+  await initSiteNav({ variant: 'app', summaries });
+}
+
 export async function initPacksPage() {
   if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  showAuthLoader();
-  try {
-    await waitForProgressSync();
-  } finally {
-    hideAuthLoader();
-  }
+  const summariesPromise = initHunterHQ(hunterHQOptions);
+  const navPromise = initSiteNav({ variant: 'app' });
 
-  initSiteNav({ variant: 'app' });
-  await initHunterHQ({
-    renderPackCard,
-    renderCatalogFeatured,
-  });
+  const summaries = await summariesPromise;
+  await navPromise;
+
+  hideAuthLoader();
   injectFavicon();
   initBrandLogos();
   initScrollAnimations();
+
+  await initSiteNav({ variant: 'app', summaries });
+
+  onProgressSyncUpdated(({ changed }) => {
+    if (changed) refreshAfterSync();
+  });
+
+  waitForSessionBootstrap().then(() => refreshAfterSync());
 }
 
 export function initHomeTeaser() {

@@ -5,7 +5,7 @@
 
 import { COURSE_LESSONS } from './dp-content.js';
 import { initReaderNav } from './reader-nav.js';
-import { guardPage } from './auth/auth-guard.js';
+import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
 import { initEntitlements, hasPackAccess, onEntitlementsChanged } from './auth/entitlements-service.js';
 import {
   buildRankDayIndex,
@@ -1991,7 +1991,8 @@ async function boot() {
   if (booted) return;
   booted = true;
   if (!(await guardPage())) return;
-  await initEntitlements();
+  hideAuthLoader();
+  initEntitlements();
   init();
   onEntitlementsChanged(() => {
     buildSidebar();

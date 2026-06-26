@@ -24,46 +24,70 @@ const authReadyPromise = new Promise((resolve) => {
   authReadyResolve = resolve;
 });
 
+let bootstrapPromise = Promise.resolve();
+let bootstrapGeneration = 0;
+
 setPersistence(auth, browserLocalPersistence).catch(() => {
   /* Non-fatal — Firebase falls back to default persistence. */
 });
 
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  if (user) {
-    try {
-      await syncUserProfile(user);
-    } catch (err) {
-      console.error('Failed to sync user profile:', err);
+async function bootstrapSession(user) {
+  const generation = ++bootstrapGeneration;
+  try {
+    if (user) {
+      try {
+        await syncUserProfile(user);
+      } catch (err) {
+        console.error('Failed to sync user profile:', err);
+      }
+      try {
+        await initProgressSync(user);
+      } catch (err) {
+        console.error('Failed to init progress sync:', err);
+      }
+      try {
+        const { refreshEntitlements } = await import('./entitlements-service.js');
+        await refreshEntitlements();
+      } catch (err) {
+        console.error('Failed to refresh entitlements:', err);
+      }
+    } else {
+      try {
+        await initProgressSync(null);
+      } catch (err) {
+        console.error('Failed to reset progress sync:', err);
+      }
+      try {
+        const { refreshEntitlements } = await import('./entitlements-service.js');
+        await refreshEntitlements();
+      } catch (err) {
+        console.error('Failed to clear entitlements:', err);
+      }
     }
-    try {
-      await initProgressSync(user);
-    } catch (err) {
-      console.error('Failed to init progress sync:', err);
-    }
-    try {
-      const { refreshEntitlements } = await import('./entitlements-service.js');
-      await refreshEntitlements();
-    } catch (err) {
-      console.error('Failed to refresh entitlements:', err);
-    }
-  } else {
-    await initProgressSync(null);
-    try {
-      const { refreshEntitlements } = await import('./entitlements-service.js');
-      await refreshEntitlements();
-    } catch (err) {
-      console.error('Failed to clear entitlements:', err);
+  } finally {
+    if (generation === bootstrapGeneration) {
+      // Bootstrap complete for the current auth generation.
     }
   }
+}
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+
   if (!authReady) {
     authReady = true;
     authReadyResolve(user);
   }
+
+  bootstrapPromise = bootstrapSession(user);
 });
 
 export function waitForAuth() {
   return authReadyPromise;
+}
+
+export function waitForSessionBootstrap() {
+  return bootstrapPromise;
 }
 
 export function getCurrentUser() {

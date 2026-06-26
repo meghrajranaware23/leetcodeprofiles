@@ -61,13 +61,6 @@ function showAlert(message, type = 'success') {
 async function boot() {
   if (redirectLegacyPaths()) return;
 
-  try {
-    await resolveApiBaseUrl();
-    await applyPricingFromConfig();
-  } catch (err) {
-    console.error(err.message);
-  }
-
   await initSiteNav({ activePage: 'pricing', variant: 'marketing' });
   initAuthAwareLinks(document);
   initScrollAnimations();
@@ -75,7 +68,17 @@ async function boot() {
   initBrandLogos();
   await initPageBack();
 
+  applyPricingFromConfig().catch((err) => {
+    console.warn('Could not load dynamic pricing:', err.message);
+  });
+
   await initEntitlements();
+
+  try {
+    await resolveApiBaseUrl();
+  } catch (err) {
+    console.error(err.message);
+  }
 
   const returnResult = await initCheckoutPage();
   if (returnResult?.type === 'activated') {

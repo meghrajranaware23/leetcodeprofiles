@@ -69,14 +69,16 @@ function buildAppNavHtml({ activePage = 'packs' } = {}) {
   `;
 }
 
-export async function initSiteNav(options = {}) {
-  const { activePage = 'home', variant = 'marketing' } = options;
-  const mount = document.getElementById('site-nav');
-  if (!mount) return;
+function shouldUseAppNav(variant, isLoggedIn, activePage) {
+  return variant === 'app' || (variant === 'auto' && isLoggedIn && activePage === 'packs');
+}
 
-  await waitForAuth();
-  const isLoggedIn = Boolean(getCurrentUser());
-  const useAppNav = variant === 'app' || (variant === 'auto' && isLoggedIn && activePage === 'packs');
+function mountNavContent(mount, { activePage, variant, isLoggedIn, summaries }) {
+  const useAppNav = shouldUseAppNav(variant, isLoggedIn, activePage);
+  const profileOptions = {
+    summaries,
+    deferProgressLine: !summaries,
+  };
 
   mount.innerHTML = useAppNav
     ? buildAppNavHtml({ activePage })
@@ -86,12 +88,41 @@ export async function initSiteNav(options = {}) {
     initNavbarScroll();
     initMobileMenu();
     initAuthAwareLinks(mount);
-    mountProfileMenu('mobile-nav-auth', { compact: true });
+    mountProfileMenu('mobile-nav-auth', { compact: true, ...profileOptions });
   } else {
     initNavbarScroll();
   }
 
-  mountProfileMenu('nav-auth');
+  mountProfileMenu('nav-auth', profileOptions);
+
+  return useAppNav;
+}
+
+export async function initSiteNav(options = {}) {
+  const { activePage = 'home', variant = 'marketing', summaries = null } = options;
+  const mount = document.getElementById('site-nav');
+  if (!mount) return;
+
+  const optimisticLoggedIn = variant === 'app';
+  let lastAppNav = mountNavContent(mount, {
+    activePage,
+    variant,
+    isLoggedIn: optimisticLoggedIn,
+    summaries,
+  });
+
+  await waitForAuth();
+  const isLoggedIn = Boolean(getCurrentUser());
+  const useAppNav = shouldUseAppNav(variant, isLoggedIn, activePage);
+
+  if (isLoggedIn !== optimisticLoggedIn || useAppNav !== lastAppNav) {
+    mountNavContent(mount, {
+      activePage,
+      variant,
+      isLoggedIn,
+      summaries,
+    });
+  }
 }
 
 export function scrollToSection(selector) {
@@ -106,10 +137,12 @@ export function initCtaLinks() {
 }
 
 function initNavbarScroll() {
-  const navbar = document.getElementById('navbar');
-  if (!navbar) return;
+  if (document.body.dataset.navScrollBound) return;
+  document.body.dataset.navScrollBound = 'true';
 
   const onScroll = () => {
+    const navbar = document.getElementById('navbar');
+    if (!navbar) return;
     if (window.scrollY > 50) {
       navbar.classList.add('scrolled');
     } else {
@@ -133,25 +166,31 @@ function setMobileMenuOpen(open) {
 }
 
 function initMobileMenu() {
-  const hamburger = document.getElementById('hamburger');
-  const mobileMenu = document.getElementById('mobile-menu');
-  if (!hamburger || !mobileMenu) return;
+  if (document.body.dataset.navMobileBound) return;
+  document.body.dataset.navMobileBound = 'true';
 
-  hamburger.addEventListener('click', () => {
-    const open = !mobileMenu.classList.contains('active');
-    setMobileMenuOpen(open);
-  });
+  document.addEventListener('click', (e) => {
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (!hamburger || !mobileMenu) return;
 
-  mobileMenu.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
+    if (e.target.closest('#hamburger')) {
+      const open = !mobileMenu.classList.contains('active');
+      setMobileMenuOpen(open);
+      return;
+    }
+
+    if (e.target.closest('#mobile-menu a')) {
       setMobileMenuOpen(false);
-    });
+    }
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburger = document.getElementById('hamburger');
+    if (e.key === 'Escape' && mobileMenu?.classList.contains('active')) {
       setMobileMenuOpen(false);
-      hamburger.focus();
+      hamburger?.focus();
     }
   });
 }

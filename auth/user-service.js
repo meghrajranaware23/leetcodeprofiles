@@ -12,6 +12,20 @@ import {
   USERS_COLLECTION,
 } from './constants.js';
 
+const LAST_LOGIN_SESSION_PREFIX = 'lp_last_login_synced_';
+
+function shouldUpdateLastLogin(uid) {
+  if (!uid) return true;
+  try {
+    const key = `${LAST_LOGIN_SESSION_PREFIX}${uid}`;
+    if (sessionStorage.getItem(key) === '1') return false;
+    sessionStorage.setItem(key, '1');
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 function buildProfileFields(user) {
   return {
     [USER_FIELDS.uid]: user.uid,
@@ -45,11 +59,13 @@ export async function syncUserProfile(user) {
     return { created: true };
   }
 
-  const updates = {
-    [USER_FIELDS.lastLoginAt]: now,
-  };
-
+  const updates = {};
   const existing = snapshot.data();
+
+  if (shouldUpdateLastLogin(user.uid)) {
+    updates[USER_FIELDS.lastLoginAt] = now;
+  }
+
   if (existing[USER_FIELDS.displayName] !== profile[USER_FIELDS.displayName]) {
     updates[USER_FIELDS.displayName] = profile[USER_FIELDS.displayName];
   }
@@ -58,6 +74,10 @@ export async function syncUserProfile(user) {
   }
   if (existing[USER_FIELDS.email] !== profile[USER_FIELDS.email]) {
     updates[USER_FIELDS.email] = profile[USER_FIELDS.email];
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return { created: false };
   }
 
   await updateDoc(userRef, updates);

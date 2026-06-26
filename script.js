@@ -1,5 +1,7 @@
 import './firebase.js';
 import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
+import { showAuthLoader, hideAuthLoader } from './auth/auth-guard.js';
+import { clearBootPending } from './auth/boot-shell.js';
 import { ROUTES, redirectLegacyPaths } from './routes.js';
 import { initSiteNav, initCtaLinks, initScrollAnimations } from './site-nav.js';
 import { initHomeTeaser } from './packs-page.js';
@@ -9,12 +11,16 @@ import { initBrandLogos, injectFavicon } from './brand-logo.js';
 async function boot() {
   if (redirectLegacyPaths()) return;
 
+  showAuthLoader();
   await waitForAuth();
 
   if (getCurrentUser()) {
     window.location.replace(ROUTES.packs);
     return;
   }
+
+  clearBootPending();
+  hideAuthLoader();
 
   initSiteNav({ activePage: 'home' });
   initHomeTeaser();

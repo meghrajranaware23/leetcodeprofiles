@@ -1,4 +1,4 @@
-import { guardPage } from './auth/auth-guard.js';
+import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
 import { initSiteNav } from './site-nav.js';
 import { redirectLegacyPaths } from './routes.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
@@ -8,7 +8,8 @@ async function initMethodPage() {
   if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  initSiteNav({ variant: 'app', activePage: 'method' });
+  await initSiteNav({ variant: 'app', activePage: 'method' });
+  hideAuthLoader();
   injectFavicon();
   initBrandLogos();
   await initPageBack();

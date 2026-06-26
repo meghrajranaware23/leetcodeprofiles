@@ -213,14 +213,34 @@ async function renderAndBindMount(mount, options = {}) {
     return;
   }
 
-  const progressLine = await getProgressLine();
+  const { summaries, deferProgressLine, ...renderOptions } = options;
+  let progressLine = summaries
+    ? formatProfileProgressLine(summaries)
+    : '';
+
+  if (!progressLine && !deferProgressLine) {
+    progressLine = await getProgressLine();
+  }
+
   mount.innerHTML = renderProfileHtml(user, {
-    ...options,
+    ...renderOptions,
     progressLine,
     isSubscribed: hasActiveSubscription(),
     entitlementsLoading: !areEntitlementsReady(),
   });
   bindProfileMenu(mount);
+
+  if (deferProgressLine && !summaries && !progressLine) {
+    getProgressLine().then((line) => {
+      if (!line || !getCurrentUser()) return;
+      const info = mount.querySelector('.auth-profile-info');
+      if (!info || info.querySelector('.auth-profile-progress')) return;
+      const el = document.createElement('span');
+      el.className = 'auth-profile-progress';
+      el.textContent = line;
+      info.appendChild(el);
+    });
+  }
 }
 
 function rerenderAllProfileMenus() {

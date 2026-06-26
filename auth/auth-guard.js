@@ -76,9 +76,9 @@ export async function getPostAuthDestination() {
 export async function guardPage() {
   showAuthLoader();
   await waitForAuth();
-  hideAuthLoader();
 
   if (!getCurrentUser()) {
+    hideAuthLoader();
     window.location.replace(getSignInUrl(getAuthNextPath()));
     return false;
   }
@@ -87,6 +87,11 @@ export async function guardPage() {
 }
 
 export async function navigateToAppRoute(target = DEFAULT_POST_AUTH_URL) {
+  if (getCurrentUser()) {
+    window.location.href = target;
+    return;
+  }
+
   await waitForAuth();
   if (getCurrentUser()) {
     window.location.href = target;
@@ -98,6 +103,8 @@ export async function navigateToAppRoute(target = DEFAULT_POST_AUTH_URL) {
 export function initAuthAwareLinks(root = document) {
   root.querySelectorAll('[data-auth-target]').forEach((el) => {
     el.addEventListener('click', (e) => {
+      if (getCurrentUser()) return;
+
       e.preventDefault();
       const target = el.getAttribute('data-auth-target') || DEFAULT_POST_AUTH_URL;
       navigateToAppRoute(target);
