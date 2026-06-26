@@ -186,7 +186,6 @@ function renderProfileHtml(user, {
           ${progressHtml}
         </div>
         <a href="${ROUTES.profile}" class="auth-profile-link">Profile</a>
-        <a href="${ROUTES.packs}" class="auth-profile-link">Progress</a>
         <button type="button" class="auth-profile-upgrade" data-auth-upgrade-btn${upgradeBusy}>
           ${CROWN_ICON}
           <span>${upgradeLabel}</span>

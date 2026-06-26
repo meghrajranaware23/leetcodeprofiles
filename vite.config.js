@@ -13,6 +13,8 @@ function cleanUrlDevPlugin() {
     '/how-it-works': '/how-it-works.html',
     '/features': '/features.html',
     '/method': '/method.html',
+    '/privacy': '/privacy.html',
+    '/terms': '/terms.html',
     '/starter': '/starter-reader.html',
   };
 
@@ -64,6 +66,8 @@ export default defineConfig(({ mode }) => {
           howItWorks: resolve(__dirname, 'how-it-works.html'),
           features: resolve(__dirname, 'features.html'),
           method: resolve(__dirname, 'method.html'),
+          privacy: resolve(__dirname, 'privacy.html'),
+          terms: resolve(__dirname, 'terms.html'),
         },
       },
     },

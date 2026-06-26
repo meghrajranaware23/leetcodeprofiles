@@ -6,6 +6,8 @@ import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { initHunterHQ, refreshHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
 import { redirectLegacyPaths } from './routes.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
+import { initSiteFooter } from './site-footer.js';
+import { initAuthAwareLinks } from './auth/auth-guard.js';
 
 export function renderPackCard(pack, { featured = false } = {}) {
   const badgeClass = pack.badgeStyle === 'live'
@@ -106,6 +108,8 @@ export async function initPacksPage() {
 
   hideAuthLoader();
   injectFavicon();
+  initSiteFooter({ variant: 'app' });
+  initAuthAwareLinks(document);
   initBrandLogos();
   initScrollAnimations();
 

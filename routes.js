@@ -16,6 +16,8 @@ export const ROUTES = Object.freeze({
   profile: '/profile',
   method: '/method',
   signIn: '/sign-in',
+  privacy: '/privacy',
+  terms: '/terms',
 });
 
 /** Legacy .html and alias paths — redirect to clean URLs. */

@@ -4,23 +4,17 @@ import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
 import { initSiteFooter } from './site-footer.js';
-import { initPageBack } from './page-back.js';
 
 async function boot() {
   if (redirectLegacyPaths()) return;
-
-  injectFavicon();
-  initBrandLogos();
-  initSiteFooter({ variant: 'marketing' });
 
   const activePage = document.body.dataset.page || 'home';
   await initSiteNav({ activePage, variant: 'marketing' });
   initAuthAwareLinks(document);
   initScrollAnimations();
-
-  if (document.body.dataset.pageBack) {
-    await initPageBack();
-  }
+  injectFavicon();
+  initBrandLogos();
+  initSiteFooter({ variant: 'marketing' });
 }
 
 if (document.readyState === 'loading') {

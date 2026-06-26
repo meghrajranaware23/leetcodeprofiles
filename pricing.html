@@ -8,83 +8,83 @@
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./checkout/subscription-checkout.css">
 </head>
-<body data-page="pricing" data-page-back="marketing">
+<body data-page="pricing">
 
   <div id="site-nav"></div>
-  <div id="page-back"></div>
 
-  <section class="marketing-page-hero">
-    <div class="section-overline">INVEST IN YOUR RANK</div>
-    <h1 class="marketing-page-title">FULL ARSENAL</h1>
-    <p class="marketing-page-subtitle">Subscribe once. Unlock every premium pack. Cancel anytime.</p>
+  <section class="pricing-hero">
+    <div class="pricing-hero-inner animate-on-scroll">
+      <div class="section-overline">INVEST IN YOUR RANK</div>
+      <h1 class="pricing-hero-title">UNLOCK THE FULL ARSENAL</h1>
+      <p class="pricing-hero-subtitle">One subscription. Every premium ascension pack. Structured daily missions from E-Rank to S-Rank — built for interview prep, not random grinding.</p>
+      <div class="pricing-hero-trust">
+        <span>Cancel anytime</span>
+        <span>Secure checkout</span>
+        <span>PayPal or Razorpay</span>
+      </div>
+    </div>
   </section>
 
   <div id="subscribeAlert" class="subscribe-alert" hidden></div>
 
   <section id="subscribe" class="subscribe-section animate-on-scroll">
+    <div class="subscribe-intro">
+      <h2 class="subscribe-intro-title">Choose your billing cycle</h2>
+      <p class="subscribe-intro-text">Get immediate access to Arrays &amp; Strings, Recursion, Trees, Graphs, Dynamic Programming, and every future premium pack we release.</p>
+    </div>
+
     <div class="subscribe-cards">
       <div class="subscribe-card" data-subscribe-card data-plan-slug="full_arsenal_monthly">
-        <div class="subscribe-label">MONTHLY</div>
-        <div class="subscribe-amount">$4.99</div>
-        <div class="subscribe-per">per month · billed automatically</div>
-        <hr class="pricing-divider">
+        <div class="subscribe-label">Monthly</div>
+        <div class="subscribe-price-block">
+          <div class="subscribe-amount">$4.99</div>
+          <div class="subscribe-per">per month · billed automatically</div>
+        </div>
+        <hr class="subscribe-divider">
         <ul class="subscribe-features">
-          <li><span class="check">✓</span> All 5 premium ascension packs</li>
-          <li><span class="check">✓</span> Arrays, Recursion, Trees, Graphs, DP</li>
-          <li><span class="check">✓</span> All 6 ranks (E → S) per pack</li>
-          <li><span class="check">✓</span> C++, Python, Java solutions</li>
-          <li><span class="check">✓</span> Cancel anytime</li>
+          <li><span class="check">✓</span> All 5 premium ascension packs today</li>
+          <li><span class="check">✓</span> Full E → S rank progression per pack</li>
+          <li><span class="check">✓</span> C++, Python &amp; Java walkthroughs</li>
+          <li><span class="check">✓</span> Progress sync across devices</li>
+          <li><span class="check">✓</span> Flexible — cancel whenever you want</li>
         </ul>
         <button type="button" class="subscribe-btn subscribe-btn--outline" data-subscribe-btn>
-          SUBSCRIBE MONTHLY
+          Start Monthly Plan
         </button>
         <p class="subscribe-status" data-subscribe-status hidden></p>
       </div>
 
       <div class="subscribe-card subscribe-card--featured" data-subscribe-card data-plan-slug="full_arsenal_yearly">
-        <div class="subscribe-badge">BEST VALUE</div>
-        <div class="subscribe-label">YEARLY</div>
-        <div class="subscribe-amount">$29.99</div>
-        <div class="subscribe-per">per year · save vs monthly</div>
-        <hr class="pricing-divider">
+        <div class="subscribe-badge">Most Popular</div>
+        <div class="subscribe-label">Yearly</div>
+        <div class="subscribe-price-block">
+          <div class="subscribe-amount">$29.99</div>
+          <div class="subscribe-per">per year · billed automatically</div>
+          <div class="subscribe-savings">Save ~50% vs monthly</div>
+        </div>
+        <hr class="subscribe-divider">
         <ul class="subscribe-features">
-          <li><span class="check">✓</span> Everything in Monthly</li>
+          <li><span class="check">✓</span> Everything in Monthly, best long-term value</li>
           <li><span class="check">✓</span> All future premium packs included</li>
-          <li><span class="check">✓</span> 180+ daily problems</li>
-          <li><span class="check">✓</span> Legend certificate on completion</li>
-          <li><span class="check">✓</span> Billed automatically each year</li>
+          <li><span class="check">✓</span> 180+ curated daily problems</li>
+          <li><span class="check">✓</span> Legend certificate on S-Rank completion</li>
+          <li><span class="check">✓</span> One payment — uninterrupted access all year</li>
         </ul>
         <button type="button" class="subscribe-btn subscribe-btn--filled" data-subscribe-btn>
-          SUBSCRIBE YEARLY →
+          Start Yearly Plan →
         </button>
         <p class="subscribe-status" data-subscribe-status hidden></p>
       </div>
     </div>
-    <p style="text-align:center;margin-top:2rem;font-size:0.85rem;color:rgba(255,255,255,0.45);">
-      Recurring billing through PayPal or Razorpay. Premium access continues while your subscription is active.
-    </p>
+
+    <div class="subscribe-trust">
+      <span>Recurring billing via PayPal or Razorpay</span>
+      <span>Premium access while your subscription is active</span>
+      <span>Manage or cancel from your account anytime</span>
+    </div>
   </section>
 
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-left">
-        <a href="/" class="nav-logo" aria-label="LeetCode Profiles home">
-          <span class="logo-mark">■</span>
-          <span class="logo-leet">LEETCODE</span>
-          <span class="logo-profiles">PROFILES</span>
-        </a>
-        <p class="footer-tagline">Made for coders who refuse to stay E-Rank.</p>
-      </div>
-      <div class="footer-links">
-        <a href="/">Home</a>
-        <a href="/packs" data-auth-target="/packs">Packs</a>
-        <a href="/pricing">Pricing</a>
-        <a href="https://www.instagram.com/leetcodeprofiles" target="_blank" rel="noopener noreferrer">Instagram</a>
-        <a href="https://www.youtube.com/@leetcodeprofiless" target="_blank" rel="noopener noreferrer">YouTube</a>
-      </div>
-      <div class="footer-copy">© 2025 LeetCode Profiles. All rights reserved.</div>
-    </div>
-  </footer>
+  <footer id="site-footer"></footer>
 
   <script type="module" src="./pricing-page.js"></script>
 </body>

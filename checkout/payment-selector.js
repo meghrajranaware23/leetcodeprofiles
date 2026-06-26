@@ -1,5 +1,11 @@
 const COUNTRY_CACHE_KEY = 'lp_detected_country';
 
+const PAYPAL_ICON = `<svg class="payment-option__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>`;
+
+const RAZORPAY_ICON = `<svg class="payment-option__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01"/><path d="M11 10h6"/><path d="M7 14h10"/></svg>`;
+
+const CHEVRON_ICON = `<svg class="payment-option__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>`;
+
 let cachedCountry = null;
 
 /**
@@ -58,9 +64,13 @@ function ensureModal() {
     <div class="payment-modal__backdrop" data-payment-modal-close></div>
     <div class="payment-modal__dialog" role="dialog" aria-labelledby="paymentModalTitle" aria-modal="true">
       <button type="button" class="payment-modal__close" data-payment-modal-close aria-label="Close">&times;</button>
-      <h2 id="paymentModalTitle" class="payment-modal__title">Choose payment method</h2>
-      <p class="payment-modal__subtitle">Select how you'd like to pay for your subscription.</p>
+      <div class="payment-modal__header">
+        <p class="payment-modal__eyebrow">Secure checkout</p>
+        <h2 id="paymentModalTitle" class="payment-modal__title">Complete your subscription</h2>
+        <p class="payment-modal__subtitle">Choose how you'd like to pay. Billing continues automatically each cycle until you cancel.</p>
+      </div>
       <div class="payment-modal__options" data-payment-options></div>
+      <p class="payment-modal__secure">Encrypted checkout · Cancel anytime from your account</p>
     </div>
   `;
   document.body.appendChild(modalEl);
@@ -88,12 +98,18 @@ function closePaymentModal(result) {
   }
 }
 
-function buildOption(provider, { recommended, label, description }) {
+function buildOption(provider, { recommended, label, description, hints, icon }) {
+  const hintHtml = hints.map((hint) => `<span class="payment-option__hint">${hint}</span>`).join('');
   return `
     <button type="button" class="payment-option${recommended ? ' payment-option--recommended' : ''}" data-payment-provider="${provider}">
-      ${recommended ? '<span class="payment-option__badge">Recommended</span>' : ''}
-      <span class="payment-option__label">${label}</span>
-      <span class="payment-option__desc">${description}</span>
+      <span class="payment-option__icon-wrap">${icon}</span>
+      <span class="payment-option__body">
+        ${recommended ? '<span class="payment-option__badge">Recommended</span>' : ''}
+        <span class="payment-option__label">${label}</span>
+        <span class="payment-option__desc">${description}</span>
+        <span class="payment-option__hints">${hintHtml}</span>
+      </span>
+      ${CHEVRON_ICON}
     </button>
   `;
 }
@@ -112,13 +128,17 @@ export async function showPaymentSelector() {
   const razorpayOption = buildOption('razorpay', {
     recommended: india,
     label: 'Razorpay',
-    description: india ? 'UPI, cards & net banking (INR)' : 'Cards & UPI',
+    description: india ? 'Best for India — pay in INR' : 'Cards, UPI & net banking',
+    hints: india ? ['UPI', 'Debit & credit cards', 'Net banking'] : ['INR billing', 'UPI supported'],
+    icon: RAZORPAY_ICON,
   });
 
   const paypalOption = buildOption('paypal', {
     recommended: !india,
     label: 'PayPal',
-    description: !india ? 'Credit/debit cards & PayPal balance (USD)' : 'International cards (USD)',
+    description: !india ? 'Best for international cards — pay in USD' : 'International cards & PayPal balance',
+    hints: !india ? ['Credit & debit cards', 'PayPal balance', 'USD billing'] : ['USD billing', 'Global cards'],
+    icon: PAYPAL_ICON,
   });
 
   optionsEl.innerHTML = india

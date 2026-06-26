@@ -6,6 +6,8 @@ import { getAllPackSummaries } from './progress-facade.js';
 import { bindHunterCardActions, renderHunterCard } from './hunter-card.js';
 import { redirectLegacyPaths } from './routes.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
+import { initSiteFooter } from './site-footer.js';
+import { initAuthAwareLinks } from './auth/auth-guard.js';
 import { initPageBack } from './page-back.js';
 
 async function renderProfileContent() {
@@ -28,6 +30,8 @@ async function initProfilePage() {
 
   hideAuthLoader();
   injectFavicon();
+  initSiteFooter({ variant: 'app' });
+  initAuthAwareLinks(document);
   initBrandLogos();
   await initPageBack();
   initScrollAnimations();
