@@ -1,7 +1,7 @@
 import { ROUTES } from './routes.js';
 import { buildLogoHtml } from './brand-logo.js';
 
-const HELP_EMAIL = 'leetcodeprofiles@gmail.com';
+export const HELP_EMAIL = 'leetcodeprofiles@gmail.com';
 const COPYRIGHT = '© 2026 LeetCode Profiles. All rights reserved.';
 
 function exploreLinksHtml() {
@@ -12,6 +12,7 @@ function exploreLinksHtml() {
     <a href="${ROUTES.pricing}">Pricing</a>
     <a href="${ROUTES.ranks}">Ranks</a>
     <a href="${ROUTES.howItWorks}">How It Works</a>
+    <a href="${ROUTES.help}">Help</a>
     <a href="https://www.instagram.com/leetcodeprofiles" target="_blank" rel="noopener noreferrer">Instagram</a>
     <a href="https://www.youtube.com/@leetcodeprofiless" target="_blank" rel="noopener noreferrer">YouTube</a>
   `;
@@ -21,7 +22,7 @@ function legalLinksHtml() {
   return `
     <a href="${ROUTES.privacy}">Privacy Policy</a>
     <a href="${ROUTES.terms}">Terms &amp; Conditions</a>
-    <a href="mailto:${HELP_EMAIL}" class="footer-help-email">Help — ${HELP_EMAIL}</a>
+    <a href="${ROUTES.help}">Help</a>
   `;
 }
 

@@ -15,6 +15,7 @@ function cleanUrlDevPlugin() {
     '/method': '/method.html',
     '/privacy': '/privacy.html',
     '/terms': '/terms.html',
+    '/help': '/help.html',
     '/starter': '/starter-reader.html',
   };
 
@@ -68,6 +69,7 @@ export default defineConfig(({ mode }) => {
           method: resolve(__dirname, 'method.html'),
           privacy: resolve(__dirname, 'privacy.html'),
           terms: resolve(__dirname, 'terms.html'),
+          help: resolve(__dirname, 'help.html'),
         },
       },
     },

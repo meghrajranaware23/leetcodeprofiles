@@ -190,7 +190,7 @@ export async function initSubscriptionButtons(container, { planSlug, onStatus, o
     setStatus('Loading payment options…');
 
     try {
-      const provider = await showPaymentSelector();
+      const provider = await showPaymentSelector({ planSlug, trigger: btn });
       if (!provider) {
         setStatus('');
         return;

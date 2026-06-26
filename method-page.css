@@ -259,7 +259,13 @@
 
 @media (max-width: 1024px) {
   .packs-method-banner-wrap {
-    padding: 0 40px 8px;
+    padding: 0 48px 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .packs-method-banner-wrap {
+    padding: 0 24px 8px;
   }
 }
 

@@ -5,12 +5,14 @@ import { initBrandLogos, injectFavicon } from './brand-logo.js';
 import { initSiteFooter } from './site-footer.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
 import { initPageBack } from './page-back.js';
+import { getAllPackSummaries } from './progress-facade.js';
 
 async function initMethodPage() {
   if (redirectLegacyPaths()) return;
   if (!(await guardPage())) return;
 
-  await initSiteNav({ variant: 'app', activePage: 'method' });
+  const summaries = await getAllPackSummaries();
+  await initSiteNav({ variant: 'app', activePage: 'method', summaries });
   hideAuthLoader();
   injectFavicon();
   initSiteFooter({ variant: 'app' });

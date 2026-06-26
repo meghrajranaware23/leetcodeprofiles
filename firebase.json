@@ -18,6 +18,7 @@
       { "source": "/method", "destination": "/method.html" },
       { "source": "/privacy", "destination": "/privacy.html" },
       { "source": "/terms", "destination": "/terms.html" },
+      { "source": "/help", "destination": "/help.html" },
       { "source": "/starter", "destination": "/starter-reader.html" },
       { "source": "**", "destination": "/index.html" }
     ]

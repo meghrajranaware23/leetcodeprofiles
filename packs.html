@@ -26,13 +26,11 @@
     <div class="packs-page-hero-inner">
       <div class="section-overline">YOUR ARSENAL</div>
       <h1 class="packs-page-title">KEEP RANKING UP</h1>
-      <p class="packs-page-subtitle">
-        <span id="packsReturnXp">0 XP earned</span>
-        <span class="packs-hero-divider">·</span>
-        <span id="packsReturnCount">0 packs in progress</span>
-        <span class="packs-hero-divider">·</span>
-        <span id="packsReturnPeak" class="packs-return-peak">Peak: Not ranked yet</span>
-      </p>
+      <div class="packs-hero-stats" aria-label="Your progress">
+        <span class="packs-hero-stat" id="packsReturnXp">0 XP earned</span>
+        <span class="packs-hero-stat" id="packsReturnCount">0 packs in progress</span>
+        <span class="packs-hero-stat packs-hero-stat--peak" id="packsReturnPeak">Peak: Not ranked yet</span>
+      </div>
     </div>
   </section>
 
@@ -50,20 +48,26 @@
 
   <!-- ======== FEATURED STARTER ======== -->
   <section class="packs-featured-section animate-on-scroll">
-    <div class="packs-featured-header">
-      <h2 class="packs-section-label">START HERE</h2>
-      <p class="packs-section-desc">15-day onboarding before you tackle topic packs.</p>
+    <div class="packs-section-inner">
+      <div class="packs-featured-header">
+        <h2 class="packs-section-label">START HERE</h2>
+        <p class="packs-section-desc">15-day onboarding before you tackle topic packs.</p>
+      </div>
+      <div class="packs-featured-wrap" id="packsFeatured"></div>
     </div>
-    <div class="packs-featured-wrap" id="packsFeatured"></div>
   </section>
 
   <!-- ======== TOPIC PACKS ======== -->
-  <section class="packs animate-on-scroll" id="topic-packs">
-    <div class="packs-featured-header">
-      <h2 class="packs-section-label">ASCENSION PACKS</h2>
-      <p class="packs-section-desc" id="packsAscensionDesc">30 days. 6 ranks. One topic at a time.</p>
+  <section class="packs packs-catalog animate-on-scroll" id="topic-packs">
+    <div class="packs-section-inner">
+      <div class="packs-featured-header">
+        <h2 class="packs-section-label">ASCENSION PACKS</h2>
+        <p class="packs-section-desc" id="packsAscensionDesc">30 days. 6 ranks. One topic at a time.</p>
+      </div>
+      <div class="packs-grid-wrap">
+        <div class="packs-grid" id="packsGrid"></div>
+      </div>
     </div>
-    <div class="packs-grid" id="packsGrid"></div>
   </section>
 
   <footer id="site-footer"></footer>

@@ -12,6 +12,8 @@
   justify-content: center;
   width: 36px;
   height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border-radius: 50%;
   background: var(--bg-elevated);
@@ -189,4 +191,13 @@
   margin-top: 12px;
   box-shadow: none;
   border: 1px solid var(--border);
+}
+
+.auth-profile-menu--account {
+  padding: 8px;
+  min-width: 180px;
+}
+
+.auth-profile-menu--account .auth-profile-upgrade {
+  margin-bottom: 4px;
 }

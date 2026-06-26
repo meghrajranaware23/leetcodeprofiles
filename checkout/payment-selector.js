@@ -1,17 +1,14 @@
+import { fetchRuntimeConfig } from './subscription-status.js';
+import { getPlanDetails, resolvePlanPricing } from './plan-details.js';
+
 const COUNTRY_CACHE_KEY = 'lp_detected_country';
 
-const PAYPAL_ICON = `<svg class="payment-option__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>`;
+const PAYPAL_LOGO = `<span class="payment-btn__brand-paypal" aria-hidden="true"><span class="payment-btn__brand-pay">Pay</span><span class="payment-btn__brand-pal">Pal</span></span>`;
 
-const RAZORPAY_ICON = `<svg class="payment-option__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01"/><path d="M11 10h6"/><path d="M7 14h10"/></svg>`;
-
-const CHEVRON_ICON = `<svg class="payment-option__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>`;
+const RAZORPAY_LOGO = `<svg class="payment-btn__logo payment-btn__logo--razorpay" width="88" height="20" viewBox="0 0 88 20" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><text x="0" y="16" fill="#072654" font-family="Rajdhani, sans-serif" font-size="18" font-weight="700">razorpay</text></svg>`;
 
 let cachedCountry = null;
 
-/**
- * Detect user country via IP (no GPS / permissions).
- * Falls back to null → international (PayPal primary).
- */
 export async function detectUserCountry() {
   if (cachedCountry) return cachedCountry;
 
@@ -53,6 +50,59 @@ export function isIndia(countryCode) {
 
 let modalEl = null;
 let resolveSelection = null;
+let previouslyFocused = null;
+let focusTrapHandler = null;
+
+function getFocusableElements(container) {
+  return [...container.querySelectorAll(
+    'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )];
+}
+
+function trapFocus(container) {
+  focusTrapHandler = (e) => {
+    if (e.key !== 'Tab' || !modalEl || modalEl.hidden) return;
+    const focusable = getFocusableElements(container);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener('keydown', focusTrapHandler);
+}
+
+function releaseFocusTrap() {
+  if (focusTrapHandler) {
+    document.removeEventListener('keydown', focusTrapHandler);
+    focusTrapHandler = null;
+  }
+  if (previouslyFocused?.focus) {
+    previouslyFocused.focus();
+    previouslyFocused = null;
+  }
+}
+
+function setBackgroundHidden(hidden) {
+  const targets = [
+    document.getElementById('site-nav'),
+    document.getElementById('site-footer'),
+    ...document.querySelectorAll('body > main, body > section'),
+  ].filter(Boolean);
+
+  targets.forEach((el) => {
+    if (hidden) {
+      el.setAttribute('aria-hidden', 'true');
+    } else {
+      el.removeAttribute('aria-hidden');
+    }
+  });
+}
 
 function ensureModal() {
   if (modalEl) return modalEl;
@@ -64,12 +114,23 @@ function ensureModal() {
     <div class="payment-modal__backdrop" data-payment-modal-close></div>
     <div class="payment-modal__dialog" role="dialog" aria-labelledby="paymentModalTitle" aria-modal="true">
       <button type="button" class="payment-modal__close" data-payment-modal-close aria-label="Close">&times;</button>
-      <div class="payment-modal__header">
-        <p class="payment-modal__eyebrow">Secure checkout</p>
-        <h2 id="paymentModalTitle" class="payment-modal__title">Complete your subscription</h2>
-        <p class="payment-modal__subtitle">Choose how you'd like to pay. Billing continues automatically each cycle until you cancel.</p>
+      <div class="payment-modal__summary" data-payment-summary>
+        <p class="payment-modal__eyebrow" data-plan-eyebrow>Full Arsenal</p>
+        <h2 id="paymentModalTitle" class="payment-modal__plan-title" data-plan-title>Monthly Plan</h2>
+        <div class="payment-modal__price-row">
+          <span class="payment-modal__price" data-plan-price>$4.99</span>
+          <span class="payment-modal__frequency" data-plan-frequency>USD · billed automatically</span>
+        </div>
+        <p class="payment-modal__description" data-plan-description></p>
       </div>
-      <div class="payment-modal__options" data-payment-options></div>
+      <div class="payment-modal__divider" aria-hidden="true"></div>
+      <p class="payment-modal__pay-label">Choose payment method</p>
+      <div class="payment-modal__options" data-payment-options>
+        <div class="payment-modal__loading" data-payment-loading hidden>
+          <span class="payment-modal__spinner" aria-hidden="true"></span>
+          <span>Loading payment options…</span>
+        </div>
+      </div>
       <p class="payment-modal__secure">Encrypted checkout · Cancel anytime from your account</p>
     </div>
   `;
@@ -92,68 +153,93 @@ function closePaymentModal(result) {
   if (!modalEl) return;
   modalEl.hidden = true;
   document.body.classList.remove('payment-modal-open');
+  setBackgroundHidden(false);
+  releaseFocusTrap();
   if (resolveSelection) {
     resolveSelection(result);
     resolveSelection = null;
   }
 }
 
-function buildOption(provider, { recommended, label, description, hints, icon }) {
-  const hintHtml = hints.map((hint) => `<span class="payment-option__hint">${hint}</span>`).join('');
+function buildPaymentButton(provider, { recommended, logoHtml, variantClass }) {
   return `
-    <button type="button" class="payment-option${recommended ? ' payment-option--recommended' : ''}" data-payment-provider="${provider}">
-      <span class="payment-option__icon-wrap">${icon}</span>
-      <span class="payment-option__body">
-        ${recommended ? '<span class="payment-option__badge">Recommended</span>' : ''}
-        <span class="payment-option__label">${label}</span>
-        <span class="payment-option__desc">${description}</span>
-        <span class="payment-option__hints">${hintHtml}</span>
+    <button type="button" class="payment-btn payment-btn--${variantClass}${recommended ? ' payment-btn--recommended' : ''}" data-payment-provider="${provider}">
+      ${recommended ? '<span class="payment-btn__badge">Recommended</span>' : ''}
+      <span class="payment-btn__content">
+        <span class="payment-btn__phrase">Pay with</span>
+        ${logoHtml}
       </span>
-      ${CHEVRON_ICON}
     </button>
   `;
 }
 
+function renderPlanSummary(modal, planSlug, config, india) {
+  const details = getPlanDetails(planSlug);
+  const pricing = resolvePlanPricing(planSlug, config, india);
+
+  modal.querySelector('[data-plan-eyebrow]').textContent = details.eyebrow;
+  modal.querySelector('[data-plan-title]').textContent = details.title;
+  modal.querySelector('[data-plan-price]').textContent = pricing.display;
+  modal.querySelector('[data-plan-frequency]').textContent = details.frequencyLabel;
+  modal.querySelector('[data-plan-description]').textContent = details.description;
+}
+
+function renderPaymentOptions(optionsEl, india) {
+  const razorpayBtn = buildPaymentButton('razorpay', {
+    recommended: india,
+    logoHtml: RAZORPAY_LOGO,
+    variantClass: 'razorpay',
+  });
+
+  const paypalBtn = buildPaymentButton('paypal', {
+    recommended: !india,
+    logoHtml: PAYPAL_LOGO,
+    variantClass: 'paypal',
+  });
+
+  optionsEl.innerHTML = india ? razorpayBtn + paypalBtn : paypalBtn + razorpayBtn;
+}
+
 /**
  * Show payment method selection modal.
+ * @param {{ planSlug: string, trigger?: HTMLElement }} options
  * @returns {Promise<'paypal'|'razorpay'|null>}
  */
-export async function showPaymentSelector() {
-  const country = await detectUserCountry();
-  const india = isIndia(country);
-
+export async function showPaymentSelector({ planSlug, trigger } = {}) {
   const modal = ensureModal();
   const optionsEl = modal.querySelector('[data-payment-options]');
 
-  const razorpayOption = buildOption('razorpay', {
-    recommended: india,
-    label: 'Razorpay',
-    description: india ? 'Best for India — pay in INR' : 'Cards, UPI & net banking',
-    hints: india ? ['UPI', 'Debit & credit cards', 'Net banking'] : ['INR billing', 'UPI supported'],
-    icon: RAZORPAY_ICON,
-  });
+  optionsEl.innerHTML = `
+    <div class="payment-modal__loading" data-payment-loading>
+      <span class="payment-modal__spinner" aria-hidden="true"></span>
+      <span>Loading payment options…</span>
+    </div>
+  `;
 
-  const paypalOption = buildOption('paypal', {
-    recommended: !india,
-    label: 'PayPal',
-    description: !india ? 'Best for international cards — pay in USD' : 'International cards & PayPal balance',
-    hints: !india ? ['Credit & debit cards', 'PayPal balance', 'USD billing'] : ['USD billing', 'Global cards'],
-    icon: PAYPAL_ICON,
-  });
+  previouslyFocused = trigger || document.activeElement;
+  modal.hidden = false;
+  document.body.classList.add('payment-modal-open');
+  setBackgroundHidden(true);
 
-  optionsEl.innerHTML = india
-    ? razorpayOption + paypalOption
-    : paypalOption + razorpayOption;
+  const dialog = modal.querySelector('.payment-modal__dialog');
+  trapFocus(dialog);
+  modal.querySelector('.payment-modal__close')?.focus();
+
+  const [country, config] = await Promise.all([
+    detectUserCountry(),
+    fetchRuntimeConfig().catch(() => null),
+  ]);
+  const india = isIndia(country);
+
+  renderPlanSummary(modal, planSlug, config, india);
+  renderPaymentOptions(optionsEl, india);
 
   return new Promise((resolve) => {
     resolveSelection = resolve;
-    modal.hidden = false;
-    document.body.classList.add('payment-modal-open');
 
     optionsEl.querySelectorAll('[data-payment-provider]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const provider = btn.dataset.paymentProvider;
-        closePaymentModal(provider);
+        closePaymentModal(btn.dataset.paymentProvider);
       }, { once: true });
     });
   });

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   SITE NAV — Marketing nav + minimal app nav (logged-in)
+   SITE NAV — Marketing nav + app nav (logged-in)
    ══════════════════════════════════════════════════════════ */
 
 import './firebase.js';
@@ -8,8 +8,13 @@ import { mountProfileMenu } from './auth/auth-ui.js';
 import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
 import { ROUTES } from './routes.js';
 import { buildLogoHtml } from './brand-logo.js';
+import { initInProgressNav, refreshInProgressNav } from './app-nav-in-progress.js';
 
 const NAVBAR_OFFSET = 64;
+
+function appNavLinkClass(page, activePage) {
+  return page === activePage ? 'app-nav-link app-nav-link--active' : 'app-nav-link';
+}
 
 function buildMarketingNavHtml({ activePage, isLoggedIn }) {
   const packsActive = activePage === 'packs' ? 'nav-active' : '';
@@ -56,16 +61,34 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
 }
 
 function buildAppNavHtml({ activePage = 'packs' } = {}) {
-  const methodActive = activePage === 'method' ? 'nav-active' : '';
-
   return `
     <nav class="navbar navbar--app" id="navbar">
       ${buildLogoHtml({ href: ROUTES.packs, ariaLabel: 'LeetCode Profiles packs' })}
+      <div class="app-nav-center">
+        <div class="app-nav-links">
+          <a href="${ROUTES.method}" class="${appNavLinkClass('method', activePage)}">Free Guide</a>
+          <div class="app-nav-item app-nav-item--popover">
+            <button type="button" class="app-nav-link app-nav-link--trigger" data-in-progress-trigger aria-expanded="false" aria-haspopup="true">
+              In Progress
+            </button>
+            <div class="app-nav-popover" data-in-progress-popover hidden></div>
+          </div>
+          <a href="${ROUTES.pricing}" class="${appNavLinkClass('pricing', activePage)}">Pricing</a>
+          <a href="${ROUTES.profile}" class="${appNavLinkClass('profile', activePage)}">Profile</a>
+        </div>
+      </div>
       <div class="nav-actions nav-actions--app">
-        <a href="${ROUTES.method}" class="app-nav-link ${methodActive}">How It Works</a>
         <div id="nav-auth" class="nav-auth"></div>
       </div>
+      <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
+    <div class="mobile-menu mobile-menu--app" id="mobile-menu">
+      <a href="${ROUTES.method}">Free Guide</a>
+      <button type="button" class="mobile-menu__in-progress" data-mobile-in-progress-trigger>In Progress</button>
+      <a href="${ROUTES.pricing}">Pricing</a>
+    </div>
   `;
 }
 
@@ -84,16 +107,17 @@ function mountNavContent(mount, { activePage, variant, isLoggedIn, summaries }) 
     ? buildAppNavHtml({ activePage })
     : buildMarketingNavHtml({ activePage, isLoggedIn });
 
-  if (!useAppNav) {
-    initNavbarScroll();
-    initMobileMenu();
-    initAuthAwareLinks(mount);
-    mountProfileMenu('mobile-nav-auth', { compact: true, ...profileOptions });
-  } else {
-    initNavbarScroll();
-  }
+  initNavbarScroll();
+  initMobileMenu();
+  initAuthAwareLinks(mount);
 
-  mountProfileMenu('nav-auth', profileOptions);
+  if (useAppNav) {
+    initInProgressNav();
+    mountProfileMenu('nav-auth', { menu: 'account', ...profileOptions });
+  } else {
+    mountProfileMenu('mobile-nav-auth', { compact: true, ...profileOptions });
+    mountProfileMenu('nav-auth', profileOptions);
+  }
 
   return useAppNav;
 }
@@ -122,6 +146,8 @@ export async function initSiteNav(options = {}) {
       isLoggedIn,
       summaries,
     });
+  } else if (useAppNav && summaries) {
+    refreshInProgressNav();
   }
 }
 

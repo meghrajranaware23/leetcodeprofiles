@@ -108,6 +108,65 @@ export async function getContinuePackSummary() {
   return activeMatch || meaningful[0];
 }
 
+async function resolveDayLabel(summary) {
+  if (!summary) return null;
+
+  if (summary.packId === PACK_IDS.STARTER) {
+    const phase = summary.currentRank?.match(/Phase\s*(\d)/i);
+    if (phase) return `Phase ${phase[1]}`;
+    if (summary.currentRank && !/not started/i.test(summary.currentRank)) {
+      return summary.currentRank;
+    }
+    return null;
+  }
+
+  try {
+    const mod = await getProgressModule(summary.packId);
+    const lessons = mod.AVAILABLE_LESSONS;
+    if (!lessons?.length) return null;
+
+    const idx = summary.lastVisited?.index;
+    const id = summary.lastVisited?.id;
+    let lesson = null;
+    if (Number.isInteger(idx) && lessons[idx]?.id === id) {
+      lesson = lessons[idx];
+    } else if (id) {
+      lesson = lessons.find((l) => l.id === id);
+    } else if (Number.isInteger(idx)) {
+      lesson = lessons[idx];
+    }
+    if (lesson?.day > 0) return `Day ${lesson.day}`;
+  } catch {
+    // ignore lookup failures
+  }
+  return null;
+}
+
+/** Nav popover: primary continue target + recent in-progress packs. */
+export async function getContinueNavContext() {
+  const primary = await getContinuePackSummary();
+  if (!primary) {
+    return { primary: null, continueUrl: null, dayLabel: null, recent: [] };
+  }
+
+  const continueUrl = await getPackContinueUrl(primary.packId);
+  const dayLabel = await resolveDayLabel(primary);
+  const summaries = await loadAllSummaries();
+  const others = summaries.filter(
+    (s) => hasMeaningfulProgress(s) && s.packId !== primary.packId
+  );
+
+  const recent = await Promise.all(
+    others.slice(0, 3).map(async (summary) => ({
+      summary,
+      continueUrl: await getPackContinueUrl(summary.packId),
+      dayLabel: await resolveDayLabel(summary),
+    }))
+  );
+
+  return { primary, continueUrl, dayLabel, recent };
+}
+
 /** Catalog order with in-progress packs first within each group. */
 export async function getTopicPacksSortedForDisplay() {
   const summaries = await loadAllSummaries();

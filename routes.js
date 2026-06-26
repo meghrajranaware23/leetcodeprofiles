@@ -15,6 +15,7 @@ export const ROUTES = Object.freeze({
   starter: '/starter',
   profile: '/profile',
   method: '/method',
+  help: '/help',
   signIn: '/sign-in',
   privacy: '/privacy',
   terms: '/terms',

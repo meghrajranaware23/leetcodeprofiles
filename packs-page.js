@@ -16,7 +16,7 @@ export function renderPackCard(pack, { featured = false } = {}) {
   const borderStyle = pack.badgeStyle === 'live'
     ? 'border-color: var(--red-border);'
     : '';
-  const featuredClass = featured ? ' pack-card-featured' : '';
+  const featuredClass = featured ? ' pack-card-featured pack-card--featured-layout' : '';
 
   const progressHtml = pack.progressId
     ? `<div class="pack-progress" id="${pack.progressId}" hidden>
@@ -31,6 +31,40 @@ export function renderPackCard(pack, { featured = false } = {}) {
       </div>`
     : '';
 
+  const statsHtml = pack.stats.map(s => `<span class="pack-stat">${s}</span>`).join('');
+  const langsHtml = pack.pills.map(p => `<span class="lang-pill">${p}</span>`).join('');
+  const ctaHtml = `<a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${getPackCtaLabel(pack)}</a>`;
+
+  if (featured) {
+    return `
+      <div class="pack-card${featuredClass}" id="pack-${pack.id}" style="${borderStyle}">
+        <div class="pack-featured-body">
+          <div class="pack-featured-main">
+            <div class="pack-top">
+              <span class="pack-icon">${pack.icon}</span>
+              <div class="pack-top-badges">
+                <span class="pack-top-rank pack-rank-pill rank-none" hidden>Not Started</span>
+                <span class="${badgeClass}">${pack.badge}</span>
+              </div>
+            </div>
+            <div class="pack-name">${pack.title}</div>
+            <p class="pack-desc">${pack.description}</p>
+            <div class="pack-stats pack-stats--featured">
+              ${statsHtml}
+            </div>
+            <div class="pack-langs">
+              ${langsHtml}
+            </div>
+            ${progressHtml}
+          </div>
+          <div class="pack-featured-action">
+            ${ctaHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="pack-card${featuredClass}" id="pack-${pack.id}" style="${borderStyle}">
       <div class="pack-top">
@@ -44,14 +78,14 @@ export function renderPackCard(pack, { featured = false } = {}) {
       <p class="pack-desc">${pack.description}</p>
       <hr class="pack-divider">
       <div class="pack-stats">
-        ${pack.stats.map(s => `<span class="pack-stat">${s}</span>`).join('')}
+        ${statsHtml}
       </div>
       <div class="pack-langs">
-        ${pack.pills.map(p => `<span class="lang-pill">${p}</span>`).join('')}
+        ${langsHtml}
       </div>
       ${progressHtml}
       <div class="pack-bottom pack-bottom--cta-only">
-        <a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${getPackCtaLabel(pack)}</a>
+        ${ctaHtml}
       </div>
     </div>
   `;
@@ -108,7 +142,7 @@ export async function initPacksPage() {
 
   hideAuthLoader();
   injectFavicon();
-  initSiteFooter({ variant: 'app' });
+  initSiteFooter({ variant: 'marketing' });
   initAuthAwareLinks(document);
   initBrandLogos();
   initScrollAnimations();

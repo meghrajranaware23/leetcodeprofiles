@@ -52,6 +52,8 @@ function closeAllProfileMenus() {
   });
 }
 
+export { closeAllProfileMenus };
+
 function closeMobileNav() {
   const mobileMenu = document.getElementById('mobile-menu');
   const hamburger = document.getElementById('hamburger');
@@ -119,8 +121,11 @@ function bindProfileMenu(container) {
   const menu = container.querySelector('.auth-profile-menu');
   if (!btn || !menu) return;
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.stopPropagation();
+    const { closeInProgressPopover, closeInProgressSheet } = await import('../app-nav-in-progress.js');
+    closeInProgressPopover();
+    closeInProgressSheet?.();
     const willOpen = menu.hidden;
     closeAllProfileMenus();
     menu.hidden = !willOpen;
@@ -149,6 +154,7 @@ function bindProfileMenu(container) {
 
 function renderProfileHtml(user, {
   compact = false,
+  menu = 'full',
   progressLine = '',
   isSubscribed = false,
   entitlementsLoading = false,
@@ -162,6 +168,7 @@ function renderProfileHtml(user, {
     : `<span class="auth-profile-initials" aria-hidden="true">${initials}</span>`;
 
   const compactClass = compact ? ' auth-profile--compact' : '';
+  const accountClass = menu === 'account' ? ' auth-profile-menu--account' : '';
   const progressHtml = progressLine
     ? `<span class="auth-profile-progress">${escapeHtml(progressLine)}</span>`
     : '';
@@ -171,12 +178,19 @@ function renderProfileHtml(user, {
   const upgradeBusy = entitlementsLoading ? ' aria-busy="true" disabled' : '';
   const upgradeLabel = entitlementsLoading ? 'Checking…' : 'Upgrade';
 
-  return `
-    <div class="auth-profile${compactClass}">
-      <button class="auth-profile-btn" type="button" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
-        ${avatar}
-      </button>
-      <div class="auth-profile-menu" hidden>
+  const upgradeBtn = `
+    <button type="button" class="auth-profile-upgrade" data-auth-upgrade-btn${upgradeBusy}>
+      ${CROWN_ICON}
+      <span>${upgradeLabel}</span>
+    </button>`;
+
+  const signOutBtn = `<button class="auth-sign-out-btn" type="button">Sign Out</button>`;
+
+  let menuBody = '';
+  if (menu === 'account') {
+    menuBody = `${upgradeBtn}${signOutBtn}`;
+  } else {
+    menuBody = `
         <div class="auth-profile-info">
           <div class="auth-profile-name-row">
             <span class="auth-profile-name">${displayName}</span>
@@ -186,12 +200,23 @@ function renderProfileHtml(user, {
           ${progressHtml}
         </div>
         <a href="${ROUTES.profile}" class="auth-profile-link">Profile</a>
-        <button type="button" class="auth-profile-upgrade" data-auth-upgrade-btn${upgradeBusy}>
-          ${CROWN_ICON}
-          <span>${upgradeLabel}</span>
-        </button>
-        <button class="auth-sign-out-btn" type="button">Sign Out</button>
+        ${upgradeBtn}
+        ${signOutBtn}
+    `;
+  }
+
+  const menuHtml = `
+      <div class="auth-profile-menu${accountClass}" hidden>
+        ${menuBody}
       </div>
+  `;
+
+  return `
+    <div class="auth-profile${compactClass}">
+      <button class="auth-profile-btn" type="button" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+        ${avatar}
+      </button>
+      ${menuHtml}
     </div>
   `;
 }
@@ -212,24 +237,25 @@ async function renderAndBindMount(mount, options = {}) {
     return;
   }
 
-  const { summaries, deferProgressLine, ...renderOptions } = options;
+  const { summaries, deferProgressLine, menu = 'full', ...renderOptions } = options;
   let progressLine = summaries
     ? formatProfileProgressLine(summaries)
     : '';
 
-  if (!progressLine && !deferProgressLine) {
+  if (menu !== 'account' && !progressLine && !deferProgressLine) {
     progressLine = await getProgressLine();
   }
 
   mount.innerHTML = renderProfileHtml(user, {
     ...renderOptions,
+    menu,
     progressLine,
     isSubscribed: hasActiveSubscription(),
     entitlementsLoading: !areEntitlementsReady(),
   });
   bindProfileMenu(mount);
 
-  if (deferProgressLine && !summaries && !progressLine) {
+  if (menu !== 'account' && deferProgressLine && !summaries && !progressLine) {
     getProgressLine().then((line) => {
       if (!line || !getCurrentUser()) return;
       const info = mount.querySelector('.auth-profile-info');
