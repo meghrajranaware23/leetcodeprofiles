@@ -3987,3 +3987,217 @@ a.final-btn {
     padding-top: 64px;
   }
 }
+
+/* ============================================
+   COURSES PAGE — MOBILE POLISH (phones only)
+   Scoped to /courses shell — does not affect
+   course readers or desktop layout.
+   ============================================ */
+@media (max-width: 767px) {
+  body[data-page="courses"] .packs-page-hero,
+  body[data-page="courses"] .packs-page-hero--return {
+    padding: 72px 16px 24px;
+  }
+
+  body[data-page="courses"] .packs-page-hero--return {
+    padding-top: 72px;
+  }
+
+  body[data-page="courses"] .packs-page-title {
+    font-size: 40px;
+  }
+
+  body[data-page="courses"] .packs-page-subtitle {
+    font-size: 15px;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  body[data-page="courses"] .packs-hero-stats {
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  body[data-page="courses"] .packs-hero-stat {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  body[data-page="courses"] .packs-method-banner-wrap {
+    padding: 0 16px 8px;
+  }
+
+  body[data-page="courses"] .packs-method-banner {
+    padding: 16px;
+  }
+
+  body[data-page="courses"] .packs-featured-section {
+    padding: 40px 16px 32px;
+  }
+
+  body[data-page="courses"] .packs-catalog {
+    padding: 40px 16px 48px;
+  }
+
+  body[data-page="courses"] .packs-featured-header {
+    margin-bottom: 20px;
+  }
+
+  body[data-page="courses"] .packs-section-label {
+    font-size: 20px;
+  }
+
+  body[data-page="courses"] .packs-section-desc {
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  body[data-page="courses"] .packs-section-inner,
+  body[data-page="courses"] .packs-grid-wrap {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="courses"] .packs-catalog .packs-grid,
+  body[data-page="courses"] .packs-featured-wrap {
+    width: 100%;
+  }
+
+  body[data-page="courses"] .packs-catalog .packs-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  body[data-page="courses"] .pack-card {
+    width: 100%;
+    padding: 20px 16px;
+    border-radius: 8px;
+  }
+
+  body[data-page="courses"] .pack-icon {
+    font-size: 32px;
+  }
+
+  body[data-page="courses"] .pack-name {
+    margin-top: 14px;
+    font-size: 22px;
+  }
+
+  body[data-page="courses"] .pack-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  body[data-page="courses"] .pack-divider {
+    margin: 14px 0;
+  }
+
+  body[data-page="courses"] .pack-stats {
+    gap: 6px 14px;
+  }
+
+  body[data-page="courses"] .pack-stat {
+    font-size: 12px;
+  }
+
+  body[data-page="courses"] .pack-langs {
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  body[data-page="courses"] .pack-progress {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  body[data-page="courses"] .pack-bottom,
+  body[data-page="courses"] .pack-bottom--cta-only {
+    margin-top: 16px;
+  }
+
+  body[data-page="courses"] .pack-card--featured-layout .pack-featured-body {
+    gap: 16px;
+  }
+
+  body[data-page="courses"] .pack-card--featured-layout .pack-featured-action {
+    padding-top: 16px;
+  }
+
+  body[data-page="courses"] .pack-card--featured-layout .pack-stats--featured {
+    gap: 6px 14px;
+  }
+
+  body[data-page="courses"] .pack-card:hover {
+    transform: none;
+  }
+
+  body[data-page="courses"] #panel-guide .method-page {
+    padding: 64px 16px 48px;
+  }
+
+  body[data-page="courses"] .courses-progress-panel {
+    padding: 72px 16px 48px;
+  }
+
+  body[data-page="courses"] .pricing-hero--app {
+    padding: 72px 16px 32px;
+  }
+
+  body[data-page="courses"] .subscribe-section--app {
+    padding: 32px 16px 48px;
+  }
+
+  body[data-page="courses"] #panel-pricing .subscribe-alert {
+    padding: 0 16px;
+  }
+
+  body[data-page="courses"] .profile-page {
+    padding: 72px 16px 48px;
+  }
+
+  body[data-page="courses"] .profile-page-title {
+    font-size: 42px;
+  }
+
+  /* Footer — stack links vertically, use full width */
+  body[data-page="courses"] .footer {
+    padding: 32px 16px calc(32px + var(--safe-bottom));
+  }
+
+  body[data-page="courses"] .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    text-align: left;
+  }
+
+  body[data-page="courses"] .footer-col-brand {
+    max-width: none;
+    text-align: left;
+  }
+
+  body[data-page="courses"] .footer-col-title {
+    margin-bottom: 12px;
+  }
+
+  body[data-page="courses"] .footer-links.footer-links-col {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
+  body[data-page="courses"] .footer-links a {
+    display: block;
+    width: 100%;
+    padding: 2px 0;
+  }
+
+  body[data-page="courses"] .footer-copy-full {
+    text-align: left;
+    padding-top: 16px;
+    margin-top: 4px;
+  }
+}
