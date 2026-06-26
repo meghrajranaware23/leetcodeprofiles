@@ -1,11 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import {
-  browserLocalPersistence,
-  getAuth,
-  indexedDBLocalPersistence,
-  initializeAuth,
-} from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -19,21 +14,7 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-
-function createAuth() {
-  try {
-    return initializeAuth(app, {
-      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-    });
-  } catch (err) {
-    if (err.code === 'auth/already-initialized') {
-      return getAuth(app);
-    }
-    throw err;
-  }
-}
-
-export const auth = createAuth();
+export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export let analytics = null;

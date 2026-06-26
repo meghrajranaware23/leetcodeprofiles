@@ -1,5 +1,6 @@
 import {
   GoogleAuthProvider,
+  browserPopupRedirectResolver,
   getRedirectResult,
   onAuthStateChanged,
   signInWithPopup,
@@ -97,7 +98,7 @@ export function getCurrentUser() {
 
 export async function completeRedirectSignIn() {
   try {
-    const result = await getRedirectResult(auth);
+    const result = await getRedirectResult(auth, browserPopupRedirectResolver);
     if (!result?.user) return null;
     return result.user;
   } catch (err) {
@@ -108,17 +109,15 @@ export async function completeRedirectSignIn() {
 
 export async function signInWithGoogle() {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
     return result.user;
   } catch (error) {
     if (isPopupCancelledError(error)) {
       throw error;
     }
-    // Popup failed (blocked, third-party cookies, cross-origin, etc.) —
-    // fall back to full-page redirect which avoids all popup restrictions.
     console.warn('signInWithPopup failed, falling back to redirect:', error.code || error.message);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithRedirect(auth, googleProvider, browserPopupRedirectResolver);
       return null;
     } catch (redirectError) {
       console.error('signInWithRedirect also failed:', redirectError);
