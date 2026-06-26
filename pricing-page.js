@@ -11,6 +11,9 @@ import {
 } from './checkout/subscription-checkout.js';
 import { resolveApiBaseUrl } from './checkout/subscription-status.js';
 import { detectUserCountry, isIndia } from './checkout/payment-selector.js';
+import { initSubscribeSectionFromHash } from './checkout/pricing-navigation.js';
+import { initBrandLogos, injectFavicon } from './brand-logo.js';
+import { initPageBack } from './page-back.js';
 
 function formatDisplayPrice(price) {
   if (!price?.amount) return null;
@@ -68,6 +71,9 @@ async function boot() {
   await initSiteNav({ activePage: 'pricing', variant: 'marketing' });
   initAuthAwareLinks(document);
   initScrollAnimations();
+  injectFavicon();
+  initBrandLogos();
+  await initPageBack();
 
   await initEntitlements();
 
@@ -81,7 +87,7 @@ async function boot() {
   }
 
   if (hasActiveSubscription()) {
-    showAlert('You have an active subscription. Manage it on your profile.', 'success');
+    showAlert('You have an active subscription. Manage it from the Upgrade menu in your account.', 'success');
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -102,9 +108,7 @@ async function boot() {
     }
   });
 
-  if (window.location.hash === '#subscribe') {
-    document.getElementById('subscribe')?.scrollIntoView({ behavior: 'smooth' });
-  }
+  initSubscribeSectionFromHash();
 }
 
 if (document.readyState === 'loading') {

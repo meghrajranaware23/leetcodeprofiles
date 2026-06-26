@@ -4,106 +4,9 @@ import { waitForProgressSync } from './auth/progress-sync-service.js';
 import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { getAllPackSummaries, invalidateProgressCache } from './progress-facade.js';
 import { bindHunterCardActions, renderHunterCard } from './hunter-card.js';
-import { redirectLegacyPaths, ROUTES } from './routes.js';
-import {
-  initEntitlements,
-  getSubscription,
-  hasActiveSubscription,
-  onEntitlementsChanged,
-} from './auth/entitlements-service.js';
-import {
-  formatPlanLabel,
-  formatBillingInterval,
-  formatDate,
-  getSubscriptionStatusLabel,
-} from './checkout/subscription-status.js';
-import { cancelSubscription } from './checkout/subscription-checkout.js';
-import { cancelRazorpaySubscription } from './checkout/razorpay-checkout.js';
-import { resolveApiBaseUrl } from './checkout/subscription-status.js';
-
-function renderSubscriptionPanel(subscription) {
-  const container = document.getElementById('subscriptionPanel');
-  if (!container) return;
-
-  const subId = subscription.subscriptionId
-    || subscription.paypalSubscriptionId
-    || subscription.razorpaySubscriptionId;
-
-  if (!subId) {
-    container.innerHTML = `
-      <div class="profile-subscription">
-        <div class="profile-subscription-title">SUBSCRIPTION</div>
-        <div class="profile-subscription-status">No active subscription</div>
-        <p class="profile-subscription-meta">
-          Subscribe to Full Arsenal to unlock all premium ascension packs.
-        </p>
-        <div class="profile-subscription-actions">
-          <a href="${ROUTES.pricing}#subscribe" class="profile-subscription-btn">View plans</a>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  const statusLabel = getSubscriptionStatusLabel(subscription);
-  const planLabel = formatPlanLabel(subscription.planSlug);
-  const interval = formatBillingInterval(subscription.billingInterval);
-  const renewal = formatDate(subscription.nextBillingDate || subscription.currentPeriodEnd);
-  const provider = subscription.provider || 'paypal';
-  const canCancel = provider === 'razorpay'
-    ? ['active', 'authenticated'].includes(subscription.status)
-    : ['ACTIVE', 'APPROVED'].includes(subscription.status);
-  const providerLabel = provider === 'razorpay' ? 'Razorpay' : 'PayPal';
-
-  container.innerHTML = `
-    <div class="profile-subscription">
-      <div class="profile-subscription-title">SUBSCRIPTION</div>
-      <div class="profile-subscription-status">${statusLabel}</div>
-      <p class="profile-subscription-meta">
-        <strong>${planLabel}</strong><br>
-        Billed per ${interval} via ${providerLabel}<br>
-        ${canCancel ? `Next billing: ${renewal}` : `Access until: ${renewal}`}
-      </p>
-      <div class="profile-subscription-actions">
-        ${canCancel ? `<button type="button" class="profile-subscription-btn profile-subscription-btn--danger" id="cancelSubscriptionBtn">Cancel subscription</button>` : ''}
-        <a href="${ROUTES.pricing}" class="profile-subscription-btn">Pricing</a>
-      </div>
-      <p class="subscribe-status" id="cancelStatus" hidden></p>
-    </div>
-  `;
-
-  const cancelBtn = document.getElementById('cancelSubscriptionBtn');
-  const cancelStatus = document.getElementById('cancelStatus');
-
-  cancelBtn?.addEventListener('click', async () => {
-    if (!confirm('Cancel your subscription? You will keep access until the end of the current billing period.')) {
-      return;
-    }
-
-    cancelBtn.disabled = true;
-    if (cancelStatus) {
-      cancelStatus.hidden = false;
-      cancelStatus.textContent = 'Cancelling…';
-    }
-
-    try {
-      if (provider === 'razorpay') {
-        await cancelRazorpaySubscription(subId);
-      } else {
-        await cancelSubscription(subId);
-      }
-      if (cancelStatus) {
-        cancelStatus.textContent = 'Subscription cancelled. Access continues until period end.';
-      }
-    } catch (err) {
-      if (cancelStatus) {
-        cancelStatus.textContent = err.message || 'Cancellation failed.';
-        cancelStatus.classList.add('subscribe-status--error');
-      }
-      cancelBtn.disabled = false;
-    }
-  });
-}
+import { redirectLegacyPaths } from './routes.js';
+import { initBrandLogos, injectFavicon } from './brand-logo.js';
+import { initPageBack } from './page-back.js';
 
 async function initProfilePage() {
   if (redirectLegacyPaths()) return;
@@ -112,8 +15,6 @@ async function initProfilePage() {
   showAuthLoader();
   try {
     await waitForProgressSync();
-    await initEntitlements();
-    await resolveApiBaseUrl();
   } finally {
     hideAuthLoader();
   }
@@ -121,16 +22,15 @@ async function initProfilePage() {
   initSiteNav({ variant: 'app', activePage: 'profile' });
   invalidateProgressCache();
 
+  injectFavicon();
+  initBrandLogos();
+  await initPageBack();
+
   const user = getCurrentUser();
   const summaries = await getAllPackSummaries();
   renderHunterCard(user, summaries);
   bindHunterCardActions();
   initScrollAnimations();
-
-  renderSubscriptionPanel(getSubscription());
-  onEntitlementsChanged(() => {
-    renderSubscriptionPanel(getSubscription());
-  });
 }
 
 if (document.body.dataset.page === 'profile') {
@@ -140,5 +40,3 @@ if (document.body.dataset.page === 'profile') {
     initProfilePage();
   }
 }
-
-export { hasActiveSubscription };

@@ -7,12 +7,13 @@ import { initAuthAwareLinks } from './auth/auth-guard.js';
 import { mountProfileMenu } from './auth/auth-ui.js';
 import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
 import { ROUTES } from './routes.js';
+import { buildLogoHtml } from './brand-logo.js';
 
 const NAVBAR_OFFSET = 64;
 
 function buildMarketingNavHtml({ activePage, isLoggedIn }) {
   const packsActive = activePage === 'packs' ? 'nav-active' : '';
-  const pricingActive = activePage === 'pricing' ? 'nav-active' : '';
+  const featuresActive = activePage === 'features' ? 'nav-active' : '';
   const ranksActive = activePage === 'ranks' ? 'nav-active' : '';
   const howActive = activePage === 'how-it-works' ? 'nav-active' : '';
   const homeActive = activePage === 'home' ? 'nav-active' : '';
@@ -26,17 +27,13 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
 
   return `
     <nav class="navbar" id="navbar">
-      <a href="${logoHref}" class="nav-logo" aria-label="LeetCode Profiles home">
-        <span class="logo-mark">■</span>
-        <span class="logo-leet">LEETCODE</span>
-        <span class="logo-profiles">PROFILES</span>
-      </a>
+      ${buildLogoHtml({ href: logoHref, ariaLabel: 'LeetCode Profiles home' })}
       <div class="nav-links">
         <a href="${ROUTES.marketing}" class="${homeActive}">Home</a>
         <a href="${packsHref}" class="${packsActive}" data-auth-target="${packsHref}">${packsLabel}</a>
         <a href="${ROUTES.ranks}" class="${ranksActive}">Ranks</a>
         <a href="${ROUTES.howItWorks}" class="${howActive}">How It Works</a>
-        <a href="${ROUTES.pricing}" class="${pricingActive}">Pricing</a>
+        <a href="${ROUTES.features}" class="${featuresActive}">Features</a>
       </div>
       <div class="nav-actions">
         <div id="nav-auth" class="nav-auth"></div>
@@ -51,22 +48,21 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
       <a href="${packsHref}" data-auth-target="${packsHref}">${packsLabel}</a>
       <a href="${ROUTES.ranks}">Ranks</a>
       <a href="${ROUTES.howItWorks}">How It Works</a>
-      <a href="${ROUTES.pricing}">Pricing</a>
+      <a href="${ROUTES.features}">Features</a>
       <div id="mobile-nav-auth" class="mobile-nav-auth"></div>
       ${navCtaHtml}
     </div>
   `;
 }
 
-function buildAppNavHtml() {
+function buildAppNavHtml({ activePage = 'packs' } = {}) {
+  const methodActive = activePage === 'method' ? 'nav-active' : '';
+
   return `
     <nav class="navbar navbar--app" id="navbar">
-      <a href="${ROUTES.packs}" class="nav-logo" aria-label="LeetCode Profiles packs">
-        <span class="logo-mark">■</span>
-        <span class="logo-leet">LEETCODE</span>
-        <span class="logo-profiles">PROFILES</span>
-      </a>
+      ${buildLogoHtml({ href: ROUTES.packs, ariaLabel: 'LeetCode Profiles packs' })}
       <div class="nav-actions nav-actions--app">
+        <a href="${ROUTES.method}" class="app-nav-link ${methodActive}">How It Works</a>
         <div id="nav-auth" class="nav-auth"></div>
       </div>
     </nav>
@@ -83,7 +79,7 @@ export async function initSiteNav(options = {}) {
   const useAppNav = variant === 'app' || (variant === 'auto' && isLoggedIn && activePage === 'packs');
 
   mount.innerHTML = useAppNav
-    ? buildAppNavHtml()
+    ? buildAppNavHtml({ activePage })
     : buildMarketingNavHtml({ activePage, isLoggedIn });
 
   if (!useAppNav) {

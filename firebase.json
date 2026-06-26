@@ -14,6 +14,8 @@
       { "source": "/pricing", "destination": "/pricing.html" },
       { "source": "/ranks", "destination": "/ranks.html" },
       { "source": "/how-it-works", "destination": "/how-it-works.html" },
+      { "source": "/features", "destination": "/features.html" },
+      { "source": "/method", "destination": "/method.html" },
       { "source": "/starter", "destination": "/starter-reader.html" },
       { "source": "**", "destination": "/index.html" }
     ]

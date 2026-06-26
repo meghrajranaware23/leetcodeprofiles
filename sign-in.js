@@ -4,6 +4,7 @@ import { getPostAuthDestination } from './auth/auth-guard.js';
 import { initSignInPage } from './auth/auth-ui.js';
 import { waitForProgressSync } from './auth/progress-sync-service.js';
 import { redirectLegacyPaths } from './routes.js';
+import { initBrandLogos, injectFavicon } from './brand-logo.js';
 
 async function redirectAfterAuth() {
   await waitForProgressSync();
@@ -34,6 +35,9 @@ async function boot() {
       redirectAfterAuth();
     },
   });
+
+  injectFavicon();
+  initBrandLogos();
 }
 
 if (document.readyState === 'loading') {

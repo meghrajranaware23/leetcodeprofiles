@@ -16,6 +16,26 @@ import {
   getRankPillLabel,
 } from './rank-display.js';
 
+const METHOD_BANNER_DISMISSED_KEY = 'lp.method-banner-dismissed';
+
+export function initMethodBanner(hasAnyProgress) {
+  const banner = document.getElementById('packsMethodBanner');
+  const dismissBtn = document.getElementById('packsMethodBannerDismiss');
+  if (!banner) return;
+
+  const dismissed = localStorage.getItem(METHOD_BANNER_DISMISSED_KEY) === '1';
+  const show = !hasAnyProgress && !dismissed;
+
+  banner.hidden = !show;
+
+  if (!dismissBtn || dismissBtn.dataset.bound) return;
+  dismissBtn.dataset.bound = '1';
+  dismissBtn.addEventListener('click', () => {
+    localStorage.setItem(METHOD_BANNER_DISMISSED_KEY, '1');
+    banner.hidden = true;
+  });
+}
+
 export function hydratePackProgress(pack, summary) {
   const card = document.getElementById(`pack-${pack.id}`);
   const progressEl = document.getElementById(pack.progressId);
@@ -181,6 +201,7 @@ export async function initHunterHQ({ renderPackCard, renderCatalogFeatured }) {
   const activeCount = await getActivePacksCount();
   await renderHunterHero(hasAnyProgress, totalXp, activeCount, summaries);
   updateAscensionHeader(activeCount);
+  initMethodBanner(hasAnyProgress);
 
   renderCatalogFeatured(summaryById);
 

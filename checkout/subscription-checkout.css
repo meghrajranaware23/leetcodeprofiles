@@ -2,6 +2,23 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 0 1.5rem 4rem;
+  border-radius: 12px;
+  transition: box-shadow 0.4s ease;
+}
+
+@keyframes subscribe-section-highlight {
+  0%, 100% {
+    box-shadow: none;
+  }
+  20%, 80% {
+    box-shadow:
+      0 0 0 2px rgba(212, 175, 55, 0.45),
+      0 0 48px rgba(212, 175, 55, 0.14);
+  }
+}
+
+.subscribe-section--highlight {
+  animation: subscribe-section-highlight 2.4s ease-out;
 }
 
 .subscribe-cards {

@@ -11,6 +11,8 @@ function cleanUrlDevPlugin() {
     '/pricing': '/pricing.html',
     '/ranks': '/ranks.html',
     '/how-it-works': '/how-it-works.html',
+    '/features': '/features.html',
+    '/method': '/method.html',
     '/starter': '/starter-reader.html',
   };
 
@@ -60,6 +62,8 @@ export default defineConfig(({ mode }) => {
           pricing: resolve(__dirname, 'pricing.html'),
           ranks: resolve(__dirname, 'ranks.html'),
           howItWorks: resolve(__dirname, 'how-it-works.html'),
+          features: resolve(__dirname, 'features.html'),
+          method: resolve(__dirname, 'method.html'),
         },
       },
     },

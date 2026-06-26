@@ -4,6 +4,7 @@ import { initSiteNav, initScrollAnimations } from './site-nav.js';
 import { waitForProgressSync } from './auth/progress-sync-service.js';
 import { initHunterHQ, hydrateFeaturedPack } from './hunter-hq.js';
 import { redirectLegacyPaths } from './routes.js';
+import { initBrandLogos, injectFavicon } from './brand-logo.js';
 
 export function renderPackCard(pack, { featured = false } = {}) {
   const badgeClass = pack.badgeStyle === 'live'
@@ -98,6 +99,8 @@ export async function initPacksPage() {
     renderPackCard,
     renderCatalogFeatured,
   });
+  injectFavicon();
+  initBrandLogos();
   initScrollAnimations();
 }
 

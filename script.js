@@ -4,6 +4,7 @@ import { ROUTES, redirectLegacyPaths } from './routes.js';
 import { initSiteNav, initCtaLinks, initScrollAnimations } from './site-nav.js';
 import { initHomeTeaser } from './packs-page.js';
 import { initLandingProgress } from './landing-progress.js';
+import { initBrandLogos, injectFavicon } from './brand-logo.js';
 
 async function boot() {
   if (redirectLegacyPaths()) return;
@@ -20,6 +21,8 @@ async function boot() {
   await initLandingProgress();
   initCtaLinks();
   initScrollAnimations();
+  injectFavicon();
+  initBrandLogos();
 }
 
 if (document.readyState === 'loading') {

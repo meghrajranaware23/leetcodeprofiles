@@ -145,15 +145,93 @@ img {
   gap: 16px;
 }
 
+.app-nav-link {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link.nav-active {
+  color: var(--text-primary);
+}
+
+.app-nav-link.nav-active {
+  font-weight: 600;
+}
+
+/* ======== PAGE BACK NAVIGATION ======== */
+.page-back-bar {
+  padding: 80px 80px 0;
+  background: var(--bg-primary);
+}
+
+.page-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.page-back-btn:hover {
+  color: var(--text-primary);
+}
+
+.page-back-btn:focus-visible {
+  outline: 2px solid var(--red-primary);
+  outline-offset: 4px;
+}
+
+.page-back-icon {
+  flex-shrink: 0;
+}
+
+.has-page-back .marketing-page-hero {
+  padding-top: 20px;
+}
+
+.has-page-back .profile-page {
+  padding-top: 24px;
+}
+
+.has-page-back .method-page {
+  padding-top: 16px;
+}
+
 .nav-logo {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   font-size: 20px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   text-decoration: none;
   color: inherit;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.sign-in-logo .logo-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .nav-logo .logo-mark {
@@ -1985,6 +2063,10 @@ a.final-btn {
   .packs-connect-inner {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .page-back-bar {
+    padding: 76px 24px 0;
   }
 }
 

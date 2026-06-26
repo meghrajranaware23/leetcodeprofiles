@@ -3,6 +3,15 @@ import { getAuthErrorMessage, isPopupCancelledError } from './auth-errors.js';
 import { getAllPackSummaries } from '../progress-facade.js';
 import { formatProfileProgressLine } from '../rank-display.js';
 import { ROUTES } from '../routes.js';
+import {
+  initEntitlements,
+  hasActiveSubscription,
+  getSubscription,
+  areEntitlementsReady,
+  onEntitlementsChanged,
+} from './entitlements-service.js';
+import { navigateToSubscriptionSection } from '../checkout/pricing-navigation.js';
+import { openProMemberDialog, showUpgradeDialog } from './upgrade-dialog.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -21,6 +30,19 @@ function getInitials(displayName, email) {
   return source.slice(0, 2).toUpperCase();
 }
 
+const CROWN_ICON = `
+  <svg class="auth-profile-upgrade-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M3 18h18l-2-9-5 4-4-6-4 6-5-4-2 9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M5 20h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>
+`;
+
+const activeMounts = new Map();
+let entitlementsPromise = null;
+let entitlementsListenerBound = false;
+let cachedProgressLine = null;
+let progressLinePromise = null;
+
 function closeAllProfileMenus() {
   document.querySelectorAll('.auth-profile-menu.open').forEach((menu) => {
     menu.classList.remove('open');
@@ -28,6 +50,68 @@ function closeAllProfileMenus() {
     const btn = menu.closest('.auth-profile')?.querySelector('.auth-profile-btn');
     btn?.setAttribute('aria-expanded', 'false');
   });
+}
+
+function closeMobileNav() {
+  const mobileMenu = document.getElementById('mobile-menu');
+  const hamburger = document.getElementById('hamburger');
+  if (!mobileMenu?.classList.contains('active')) return;
+
+  mobileMenu.classList.remove('active');
+  hamburger?.classList.remove('active');
+  hamburger?.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+function ensureEntitlements() {
+  if (!entitlementsPromise) {
+    entitlementsPromise = initEntitlements();
+  }
+  return entitlementsPromise;
+}
+
+function bindEntitlementsRefresh() {
+  if (entitlementsListenerBound) return;
+  entitlementsListenerBound = true;
+
+  onEntitlementsChanged(() => {
+    rerenderAllProfileMenus();
+  });
+}
+
+async function getProgressLine() {
+  if (cachedProgressLine !== null) return cachedProgressLine;
+  if (!progressLinePromise) {
+    progressLinePromise = loadProgressLine().then((line) => {
+      cachedProgressLine = line;
+      return line;
+    });
+  }
+  return progressLinePromise;
+}
+
+async function handleUpgradeClick() {
+  closeAllProfileMenus();
+  closeMobileNav();
+
+  if (!areEntitlementsReady()) {
+    showUpgradeDialog(null, { loading: true });
+    try {
+      await ensureEntitlements();
+    } catch {
+      showUpgradeDialog(null, {
+        error: 'Could not load subscription status. Please try again.',
+      });
+      return;
+    }
+  }
+
+  if (hasActiveSubscription()) {
+    openProMemberDialog(getSubscription());
+    return;
+  }
+
+  navigateToSubscriptionSection({ highlight: true });
 }
 
 function bindProfileMenu(container) {
@@ -45,17 +129,30 @@ function bindProfileMenu(container) {
   });
 
   menu.querySelectorAll('.auth-profile-link').forEach((link) => {
-    link.addEventListener('click', () => closeAllProfileMenus());
+    link.addEventListener('click', () => {
+      closeAllProfileMenus();
+      closeMobileNav();
+    });
+  });
+
+  menu.querySelector('[data-auth-upgrade-btn]')?.addEventListener('click', () => {
+    handleUpgradeClick();
   });
 
   menu.querySelector('.auth-sign-out-btn')?.addEventListener('click', async () => {
     closeAllProfileMenus();
+    closeMobileNav();
     await signOutUser();
     window.location.href = ROUTES.marketing;
   });
 }
 
-function renderProfileHtml(user, { compact = false, progressLine = '' } = {}) {
+function renderProfileHtml(user, {
+  compact = false,
+  progressLine = '',
+  isSubscribed = false,
+  entitlementsLoading = false,
+} = {}) {
   const displayName = escapeHtml(user.displayName || 'Grinder');
   const email = escapeHtml(user.email || '');
   const initials = escapeHtml(getInitials(user.displayName, user.email));
@@ -68,6 +165,11 @@ function renderProfileHtml(user, { compact = false, progressLine = '' } = {}) {
   const progressHtml = progressLine
     ? `<span class="auth-profile-progress">${escapeHtml(progressLine)}</span>`
     : '';
+  const proBadgeHtml = isSubscribed
+    ? '<span class="auth-profile-pro-badge">PRO</span>'
+    : '';
+  const upgradeBusy = entitlementsLoading ? ' aria-busy="true" disabled' : '';
+  const upgradeLabel = entitlementsLoading ? 'Checking…' : 'Upgrade';
 
   return `
     <div class="auth-profile${compactClass}">
@@ -76,12 +178,19 @@ function renderProfileHtml(user, { compact = false, progressLine = '' } = {}) {
       </button>
       <div class="auth-profile-menu" hidden>
         <div class="auth-profile-info">
-          <span class="auth-profile-name">${displayName}</span>
+          <div class="auth-profile-name-row">
+            <span class="auth-profile-name">${displayName}</span>
+            ${proBadgeHtml}
+          </div>
           ${email ? `<span class="auth-profile-email">${email}</span>` : ''}
           ${progressHtml}
         </div>
         <a href="${ROUTES.profile}" class="auth-profile-link">Profile</a>
-        <a href="${ROUTES.packs}" class="auth-profile-link">My Progress</a>
+        <a href="${ROUTES.packs}" class="auth-profile-link">Progress</a>
+        <button type="button" class="auth-profile-upgrade" data-auth-upgrade-btn${upgradeBusy}>
+          ${CROWN_ICON}
+          <span>${upgradeLabel}</span>
+        </button>
         <button class="auth-sign-out-btn" type="button">Sign Out</button>
       </div>
     </div>
@@ -97,20 +206,46 @@ async function loadProgressLine() {
   }
 }
 
+async function renderAndBindMount(mount, options = {}) {
+  const user = getCurrentUser();
+  if (!user) {
+    mount.innerHTML = '';
+    return;
+  }
+
+  const progressLine = await getProgressLine();
+  mount.innerHTML = renderProfileHtml(user, {
+    ...options,
+    progressLine,
+    isSubscribed: hasActiveSubscription(),
+    entitlementsLoading: !areEntitlementsReady(),
+  });
+  bindProfileMenu(mount);
+}
+
+function rerenderAllProfileMenus() {
+  for (const { mount, options } of activeMounts.values()) {
+    renderAndBindMount(mount, options);
+  }
+}
+
 export function mountProfileMenu(mountId, options = {}) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
+
+  activeMounts.set(mountId, { mount, options });
 
   waitForAuth().then(async () => {
     const user = getCurrentUser();
     if (!user) {
       mount.innerHTML = '';
+      activeMounts.delete(mountId);
       return;
     }
 
-    const progressLine = await loadProgressLine();
-    mount.innerHTML = renderProfileHtml(user, { ...options, progressLine });
-    bindProfileMenu(mount);
+    bindEntitlementsRefresh();
+    ensureEntitlements();
+    await renderAndBindMount(mount, options);
 
     if (!document.body.dataset.authProfileBound) {
       document.body.dataset.authProfileBound = 'true';

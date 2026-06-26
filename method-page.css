@@ -1,0 +1,300 @@
+/* ============================================
+   METHOD GUIDE PAGE (logged-in)
+   ============================================ */
+
+.method-page {
+  padding: 48px 24px 80px;
+  background: var(--bg-primary);
+  min-height: calc(100dvh - 64px);
+}
+
+.has-page-back .method-page {
+  padding-top: 16px;
+}
+
+.method-prose {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.method-header {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.method-eyebrow {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+
+.method-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  line-height: 1.05;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.method-lead {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.method-section {
+  margin-bottom: 40px;
+}
+
+.method-section h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.method-section p {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+}
+
+.method-section p:last-child {
+  margin-bottom: 0;
+}
+
+.method-callout {
+  margin: 20px 0 0;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--red-primary);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.method-callout strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.method-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.method-list li {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  padding-left: 20px;
+  position: relative;
+}
+
+.method-list li::before {
+  content: '■';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-size: 10px;
+  color: var(--red-primary);
+}
+
+.method-list li strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.method-steps {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+  counter-reset: method-step;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.method-steps > li {
+  counter-increment: method-step;
+  padding-left: 36px;
+  position: relative;
+}
+
+.method-steps > li::before {
+  content: counter(method-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--red-primary);
+  line-height: 1;
+}
+
+.method-step-label {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.method-steps > li p {
+  margin: 0;
+}
+
+.method-footer {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.method-cta {
+  display: inline-block;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-primary);
+  background: var(--red-primary);
+  padding: 14px 28px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.method-cta:hover {
+  background: var(--red-bright);
+  box-shadow: 0 0 24px var(--red-glow);
+}
+
+/* Packs page banner */
+.packs-method-banner-wrap {
+  padding: 0 80px 8px;
+  background: var(--bg-primary);
+}
+
+.packs-method-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red-primary);
+}
+
+.packs-method-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.packs-method-banner-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.packs-method-banner-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+}
+
+.packs-method-banner-link {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--red-primary);
+  text-decoration: none;
+}
+
+.packs-method-banner-link:hover {
+  color: var(--red-bright);
+  text-decoration: underline;
+}
+
+.packs-method-banner-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: color 0.2s ease;
+}
+
+.packs-method-banner-dismiss:hover {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1024px) {
+  .packs-method-banner-wrap {
+    padding: 0 40px 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .method-page {
+    padding: 32px 20px 64px;
+  }
+
+  .method-title {
+    font-size: 36px;
+  }
+
+  .method-lead {
+    font-size: 16px;
+  }
+
+  .packs-method-banner-wrap {
+    padding: 0 24px 8px;
+  }
+
+  .packs-method-banner {
+    padding: 16px 18px;
+  }
+
+  .app-nav-link {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-actions--app {
+    gap: 10px;
+  }
+
+  .app-nav-link {
+    font-size: 12px;
+  }
+}

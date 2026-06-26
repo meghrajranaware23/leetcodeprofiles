@@ -9,10 +9,12 @@ export const ROUTES = Object.freeze({
   /** @deprecated Use ROUTES.packs — kept for redirects */
   home: '/packs',
   pricing: '/pricing',
+  features: '/features',
   ranks: '/ranks',
   howItWorks: '/how-it-works',
   starter: '/starter',
   profile: '/profile',
+  method: '/method',
   signIn: '/sign-in',
 });
 
@@ -22,6 +24,8 @@ export const LEGACY_REDIRECTS = Object.freeze({
   '/sign-in.html': ROUTES.signIn,
   '/profile.html': ROUTES.profile,
   '/index.html': ROUTES.marketing,
+  '/features.html': ROUTES.features,
+  '/method.html': ROUTES.method,
   '/home': ROUTES.packs,
   '/starter-reader.html': ROUTES.starter,
 });

@@ -209,7 +209,7 @@ export async function initSubscriptionButtons(container, { planSlug, onStatus, o
       }
     } catch (err) {
       if (err.status === 409 || err.code === 'ACTIVE_SUBSCRIPTION_EXISTS') {
-        setStatus('You already have an active subscription. Manage it on your profile.', true);
+        setStatus('You already have an active subscription. Manage it from the Upgrade menu in your account.', true);
       } else if (err.code === 'CHECKOUT_CANCELLED') {
         setStatus('Checkout cancelled. You can subscribe anytime.');
       } else if (err.message === 'Sign in required') {

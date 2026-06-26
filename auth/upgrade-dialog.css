@@ -1,0 +1,213 @@
+.upgrade-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.upgrade-dialog[hidden] {
+  display: none;
+}
+
+body.upgrade-dialog-open {
+  overflow: hidden;
+}
+
+.upgrade-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.upgrade-dialog__panel {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(145deg, rgba(24, 24, 32, 0.98), rgba(12, 12, 18, 0.99));
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 32px rgba(212, 175, 55, 0.08);
+}
+
+.upgrade-dialog__close-x {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.upgrade-dialog__close-x:hover {
+  color: #fff;
+}
+
+.upgrade-dialog__title {
+  margin: 0 0 0.35rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.upgrade-dialog__subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.upgrade-dialog__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.upgrade-dialog__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.upgrade-dialog__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.upgrade-dialog__value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: right;
+}
+
+.upgrade-dialog__future-actions {
+  display: none;
+}
+
+.upgrade-dialog__notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.upgrade-dialog__error {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #fca5a5;
+}
+
+.upgrade-dialog__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.upgrade-dialog__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(212, 175, 55, 0.25);
+  border-top-color: #d4af37;
+  border-radius: 50%;
+  animation: upgrade-dialog-spin 0.7s linear infinite;
+}
+
+@keyframes upgrade-dialog-spin {
+  to { transform: rotate(360deg); }
+}
+
+.upgrade-dialog__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.upgrade-dialog__btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: transform 150ms ease, opacity 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.upgrade-dialog__btn:hover {
+  transform: translateY(-1px);
+}
+
+.upgrade-dialog__btn--primary {
+  background: linear-gradient(135deg, #d4af37, #b8941f);
+  color: #111;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+}
+
+.upgrade-dialog__btn--primary:hover {
+  background: linear-gradient(135deg, #f5d061, #d4af37);
+}
+
+.upgrade-dialog__btn--secondary {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.upgrade-dialog__btn--secondary:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.upgrade-dialog__btn--text {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  border: none;
+  min-height: 36px;
+}
+
+.upgrade-dialog__btn--text:hover {
+  color: #fff;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .upgrade-dialog {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .upgrade-dialog__panel {
+    max-width: none;
+    border-radius: 16px 16px 0 0;
+    padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
