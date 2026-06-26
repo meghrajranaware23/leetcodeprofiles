@@ -1,6 +1,6 @@
 # 📝 Monotonic Stack
 
-> **Day 17** · Monotonic Stack Fundamentals · ★★★★☆ · 25 XP · 15 min read
+> **Day 17** · Monotonic Stack Fundamentals · 25 XP · 15 min read
 
 ---
 

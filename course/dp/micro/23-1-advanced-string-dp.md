@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Advanced String DP
 
-> **Day 23** · Advanced String DP · ★★★★☆ · 20 XP · 15 min read
+> **Day 23** · Advanced String DP · 20 XP · 15 min read
 
 ---
 

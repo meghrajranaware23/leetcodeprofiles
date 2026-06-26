@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DFS: Depth-First Search
 
-> **Day 3** · DFS — Depth-First Search · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 3** · DFS — Depth-First Search · 10 XP · 10 min read
 
 ---
 

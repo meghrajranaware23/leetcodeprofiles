@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Directed Cycle Detection
 
-> **Day 11** · Cycle Detection & Topological Sort · ★★★☆☆ · 15 XP · 15 min read
+> **Day 11** · Cycle Detection & Topological Sort · 15 XP · 15 min read
 
 ---
 

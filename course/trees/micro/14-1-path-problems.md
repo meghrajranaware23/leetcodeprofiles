@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Path Problems: Root-to-Leaf & Any-to-Any
 
-> **Day 14** · Path Problems · ★★★★☆ · 15 XP · 15 min read
+> **Day 14** · Path Problems · 15 XP · 15 min read
 
 ---
 

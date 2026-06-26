@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Dijkstra's Shortest Path
 
-> **Day 19** · Dijkstra's Algorithm · ★★★★☆ · 25 XP · 15 min read
+> **Day 19** · Dijkstra's Algorithm · 25 XP · 15 min read
 
 ---
 

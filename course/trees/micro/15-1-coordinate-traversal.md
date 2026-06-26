@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Width, Depth & Coordinates
 
-> **Day 15** · Tree Coordinates · ★★★★☆ · 15 XP · 15 min read
+> **Day 15** · Tree Coordinates · 15 XP · 15 min read
 
 ---
 

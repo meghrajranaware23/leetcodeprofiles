@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Hop Reachability
 
-> **Day 15** · Graph Reachability · ★★★★☆ · 15 XP · 15 min read
+> **Day 15** · Graph Reachability · 15 XP · 15 min read
 
 ---
 

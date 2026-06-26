@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Base Cases & The Recursive Hypothesis
 
-> **Day 2** · Recursive Hypothesis · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 2** · Recursive Hypothesis · 10 XP · 10 min read
 
 ---
 

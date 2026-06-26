@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Top-Down DFS: Passing State Downward
 
-> **Day 6** · Top-Down DFS · ★★★☆☆ · 10 XP · 15 min read
+> **Day 6** · Top-Down DFS · 10 XP · 15 min read
 
 ---
 

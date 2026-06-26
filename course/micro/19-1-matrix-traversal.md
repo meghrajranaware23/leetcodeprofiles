@@ -1,6 +1,6 @@
 # 📝 Matrix Traversal
 
-> **Day 19** · Matrix Traversal · ★★★★☆ · 15 XP · 12 min read
+> **Day 19** · Matrix Traversal · 15 XP · 12 min read
 
 ---
 

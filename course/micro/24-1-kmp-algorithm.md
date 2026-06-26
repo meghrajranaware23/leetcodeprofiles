@@ -1,6 +1,6 @@
 # 📝 KMP Prefix Function
 
-> **Day 24** · KMP Prefix Function · ★★★★★ · 20 XP · 15 min read
+> **Day 24** · KMP Prefix Function · 20 XP · 15 min read
 
 ---
 

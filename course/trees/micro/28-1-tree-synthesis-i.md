@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Synthesis I: Multi-Pattern Combine
 
-> **Day 28** · Tree Synthesis I · ★★★★★ · 25 XP · 18 min read
+> **Day 28** · Tree Synthesis I · 25 XP · 18 min read
 
 ---
 

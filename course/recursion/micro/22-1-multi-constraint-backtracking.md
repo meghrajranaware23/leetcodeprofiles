@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Constraint Backtracking
 
-> **Day 22** · Advanced Constraint Backtracking · ★★★★☆ · 25 XP · 15 min read
+> **Day 22** · Advanced Constraint Backtracking · 25 XP · 15 min read
 
 ---
 

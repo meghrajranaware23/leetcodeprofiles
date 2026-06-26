@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Advanced Backtracking Patterns
 
-> **Day 24** · Disguised Backtracking · ★★★★☆ · 20 XP · 15 min read
+> **Day 24** · Disguised Backtracking · 20 XP · 15 min read
 
 ---
 

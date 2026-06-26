@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Learn from Editorials
 
-> **Day 8** · Productive Editorial Learning · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 8** · Productive Editorial Learning · 10 XP · 8 min read
 
 ---
 

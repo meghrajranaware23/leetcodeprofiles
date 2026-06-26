@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Threshold BFS / Multi-State Paths
 
-> **Day 28** · Advanced Path Optimization · ★★★★★ · 25 XP · 18 min read
+> **Day 28** · Advanced Path Optimization · 25 XP · 18 min read
 
 ---
 

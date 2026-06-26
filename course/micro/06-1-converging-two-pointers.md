@@ -1,6 +1,6 @@
 # 📝 Converging Two Pointers on Sorted Data
 
-> **Day 6** · Converging Two Pointers · ★★☆☆☆ · 10 min read
+> **Day 6** · Converging Two Pointers · 10 min read
 
 ---
 

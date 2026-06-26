@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Combination Generation
 
-> **Day 13** · Combinations · ★★★☆☆ · 20 XP · 15 min read
+> **Day 13** · Combinations · 20 XP · 15 min read
 
 ---
 

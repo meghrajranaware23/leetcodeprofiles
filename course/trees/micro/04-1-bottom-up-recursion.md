@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Properties via Recursion
 
-> **Day 4** · Tree Properties · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 4** · Tree Properties · 10 XP · 10 min read
 
 ---
 

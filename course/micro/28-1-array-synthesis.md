@@ -1,6 +1,6 @@
 # 📝 Multi-Pattern Array Synthesis
 
-> **Day 28** · Pattern Combination · ★★★★★★ · 25 XP · 15 min read
+> **Day 28** · Pattern Combination · 25 XP · 15 min read
 
 ---
 

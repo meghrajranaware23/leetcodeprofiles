@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BFS Shortest Path
 
-> **Day 8** · Shortest Path (Unweighted) · ★★★☆☆ · 10 XP · 15 min read
+> **Day 8** · Shortest Path (Unweighted) · 10 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Connected Component Discovery
 
-> **Day 5** · Component Exploration · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 5** · Component Exploration · 10 XP · 10 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Take or Skip
 
-> **Day 6** · Take or Skip · ★★★☆☆ · 15 XP · 15 min read
+> **Day 6** · Take or Skip · 15 XP · 15 min read
 
 ---
 

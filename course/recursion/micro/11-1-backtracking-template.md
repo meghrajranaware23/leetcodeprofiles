@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The Backtracking Template
 
-> **Day 11** · The Backtracking Template · ★★★☆☆ · 20 XP · 15 min read
+> **Day 11** · The Backtracking Template · 20 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Contest & Interview Mindset
 
-> **Day 14** · Contest & Interview Mindset · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 14** · Contest & Interview Mindset · 10 XP · 8 min read
 
 ---
 

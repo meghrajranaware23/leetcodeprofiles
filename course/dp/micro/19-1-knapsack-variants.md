@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Knapsack Variants
 
-> **Day 19** · Knapsack Variants · ★★★★☆ · 25 XP · 15 min read
+> **Day 19** · Knapsack Variants · 25 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Expression Generation
 
-> **Day 20** · Expression Generation · ★★★★☆ · 25 XP · 15 min read
+> **Day 20** · Expression Generation · 25 XP · 15 min read
 
 ---
 

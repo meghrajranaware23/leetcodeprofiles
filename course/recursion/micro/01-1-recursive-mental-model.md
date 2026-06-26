@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The Recursive Mental Model
 
-> **Day 1** · Call Stack & Base Cases · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 1** · Call Stack & Base Cases · 10 XP · 10 min read
 
 ---
 

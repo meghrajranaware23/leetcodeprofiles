@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Grid Backtracking
 
-> **Day 16** · Grid Backtracking · ★★★★☆ · 20 XP · 15 min read
+> **Day 16** · Grid Backtracking · 20 XP · 15 min read
 
 ---
 

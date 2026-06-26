@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BFS: Breadth-First Search
 
-> **Day 2** · BFS — Breadth-First Search · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 2** · BFS — Breadth-First Search · 10 XP · 10 min read
 
 ---
 

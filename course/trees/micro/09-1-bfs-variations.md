@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Level-Order Patterns
 
-> **Day 9** · Level-Order Patterns · ★★★☆☆ · 10 XP · 15 min read
+> **Day 9** · Level-Order Patterns · 10 XP · 15 min read
 
 ---
 

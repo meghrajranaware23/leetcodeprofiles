@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Serialization & Deserialization
 
-> **Day 16** · Serialization · ★★★★☆ · 15 XP · 15 min read
+> **Day 16** · Serialization · 15 XP · 15 min read
 
 ---
 

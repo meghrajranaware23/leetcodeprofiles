@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The DP Framework
 
-> **Day 4** · The DP Framework · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 4** · The DP Framework · 10 XP · 10 min read
 
 ---
 

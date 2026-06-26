@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Advanced Trie Applications
 
-> **Day 24** · Advanced Trie · ★★★★☆ · 20 XP · 15 min read
+> **Day 24** · Advanced Trie · 20 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Unbounded Knapsack
 
-> **Day 18** · Unbounded Knapsack · ★★★★☆ · 25 XP · 15 min read
+> **Day 18** · Unbounded Knapsack · 25 XP · 15 min read
 
 ---
 

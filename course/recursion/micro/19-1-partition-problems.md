@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Partition Problems
 
-> **Day 19** · Partition Problems · ★★★★☆ · 25 XP · 15 min read
+> **Day 19** · Partition Problems · 25 XP · 15 min read
 
 ---
 

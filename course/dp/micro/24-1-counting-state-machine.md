@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Counting & State Machine Mastery
 
-> **Day 24** · Counting & State Machine Mastery · ★★★★☆ · 20 XP · 15 min read
+> **Day 24** · Counting & State Machine Mastery · 20 XP · 15 min read
 
 ---
 

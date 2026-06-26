@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Board & Grid Constraint Backtracking
 
-> **Day 18** · Board & Grid CSP · ★★★★☆ · 25 XP · 15 min read
+> **Day 18** · Board & Grid CSP · 25 XP · 15 min read
 
 ---
 

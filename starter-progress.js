@@ -52,11 +52,11 @@ export const AVAILABLE_LESSON_IDS = new Set(AVAILABLE_LESSONS.map(l => l.id));
 
 export const LESSON_STEPS = {
   intro: [
-    { id: 'read_briefing', label: 'Read the welcome briefing', kind: 'auto-scroll' },
+    { id: 'read_briefing', label: 'Read the welcome briefing', kind: 'confirm' },
   ],
   concept: [
-    { id: 'read_lesson', label: 'Read the mentor guide', kind: 'auto-scroll' },
-    { id: 'understand', label: "I've got this workflow", kind: 'confirm' },
+    { id: 'read_lesson', label: 'Read the mentor guide', kind: 'confirm' },
+    { id: 'understand', label: "I've got this workflow", kind: 'confirm', requires: ['read_lesson'] },
   ],
   quest: [
     { id: 'read_mission', label: 'Read the problem on LeetCode', kind: 'confirm' },
@@ -74,7 +74,7 @@ export const LESSON_STEPS = {
     { id: 'review_solution', label: 'Reveal solution walkthrough', kind: 'reveal', requires: ['attempt'] },
   ],
   complete: [
-    { id: 'view_journey', label: 'Review your phase journey', kind: 'auto-scroll' },
+    { id: 'view_journey', label: 'Review your phase journey', kind: 'confirm' },
   ],
 };
 

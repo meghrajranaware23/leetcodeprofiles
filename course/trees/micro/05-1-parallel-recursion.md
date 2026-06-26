@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Same Tree & Subtree Patterns
 
-> **Day 5** · Tree Comparison · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 5** · Tree Comparison · 10 XP · 10 min read
 
 ---
 

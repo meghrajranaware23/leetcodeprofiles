@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Your LeetCode Home Base
 
-> **Day 1** · Platform Setup & Daily Workflow · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 1** · Platform Setup & Daily Workflow · 10 XP · 8 min read
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 # ⚔ Day 1: Array Fundamentals & Traversal Mastery
 
-**Rank:** E-Rank | **Difficulty:** ★☆☆☆☆ | **XP:** 50 | **Time:** 45 min
+**Rank:** E-Rank | **XP:** 50 | **Time:** 45 min
 
 ---
 

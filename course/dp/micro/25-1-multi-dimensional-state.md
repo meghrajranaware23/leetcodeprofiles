@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Dimensional State DP
 
-> **Day 25** · Multi-Dimensional State DP · ★★★★★ · 20 XP · 15 min read
+> **Day 25** · Multi-Dimensional State DP · 20 XP · 15 min read
 
 ---
 

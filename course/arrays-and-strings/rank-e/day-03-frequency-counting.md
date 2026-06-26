@@ -1,7 +1,7 @@
 ---
 # ⚔ Day 3: Frequency Counting & Character Maps
 
-**Rank:** E-Rank | **Difficulty:** ★★☆☆☆ | **XP:** 75 | **Time:** 50 min
+**Rank:** E-Rank | **XP:** 75 | **Time:** 50 min
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 # ⚔ Day 4: Hash Maps — The Swiss Army Knife
 
-**Rank:** E-Rank | **Difficulty:** ★★☆☆☆ | **XP:** 100 | **Time:** 55 min
+**Rank:** E-Rank | **XP:** 100 | **Time:** 55 min
 
 ---
 

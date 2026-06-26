@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Divide and Conquer
 
-> **Day 7** · Split · Solve · Combine · ★★★☆☆ · 15 XP · 15 min read
+> **Day 7** · Split · Solve · Combine · 15 XP · 15 min read
 
 ---
 

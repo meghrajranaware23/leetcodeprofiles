@@ -50,7 +50,6 @@ import {
   areAllStepsDone,
   getStepProgressCount,
   getRecommendedNext,
-  getRecommendedNextIndex,
   getDayLessons,
   getDayProgress,
   getTotalXP,
@@ -932,9 +931,7 @@ function renderLesson(lesson) {
       html += `<span class="cr-meta-pill type">${typeLabels[lesson.type]}</span>`;
     }
   }
-  if (lesson.difficulty) {
-    html += `<span class="cr-meta-pill">${lesson.difficulty}</span>`;
-  }
+
   if (lesson.xp) {
     html += `<span class="cr-meta-pill xp">⭐ ${lesson.xp} XP</span>`;
   }
@@ -1874,11 +1871,6 @@ function hideMilestone() {
   milestoneOverlay.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   deactivateMilestoneDialog();
-
-  const recIdx = getRecommendedNextIndex();
-  if (recIdx !== -1 && recIdx !== currentLessonIndex) {
-    loadLesson(recIdx);
-  }
 }
 
 

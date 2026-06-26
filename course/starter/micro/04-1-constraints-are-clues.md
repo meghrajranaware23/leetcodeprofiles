@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Constraints Are Clues
 
-> **Day 4** · Constraint & Edge Case Analysis · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 4** · Constraint & Edge Case Analysis · 10 XP · 8 min read
 
 ---
 

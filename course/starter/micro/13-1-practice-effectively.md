@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Practice Effectively
 
-> **Day 13** · Effective Practice Planning · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 13** · Effective Practice Planning · 10 XP · 8 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Grids as Graphs
 
-> **Day 4** · Grids as Graphs · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 4** · Grids as Graphs · 10 XP · 10 min read
 
 ---
 

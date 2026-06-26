@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Counting Decompositions
 
-> **Day 7** · Counting Decompositions · ★★★☆☆ · 15 XP · 15 min read
+> **Day 7** · Counting Decompositions · 15 XP · 15 min read
 
 ---
 

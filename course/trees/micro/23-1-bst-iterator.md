@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BST Augmentation & Iterator Patterns
 
-> **Day 23** · BST Augmentation · ★★★★☆ · 20 XP · 15 min read
+> **Day 23** · BST Augmentation · 20 XP · 15 min read
 
 ---
 

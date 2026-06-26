@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Pruning Strategies
 
-> **Day 17** · Pruning Strategies · ★★★★☆ · 25 XP · 15 min read
+> **Day 17** · Pruning Strategies · 25 XP · 15 min read
 
 ---
 

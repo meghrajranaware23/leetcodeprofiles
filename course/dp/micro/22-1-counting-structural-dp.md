@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Counting & Structural DP
 
-> **Day 22** · Counting & Structural DP · ★★★★☆ · 25 XP · 15 min read
+> **Day 22** · Counting & Structural DP · 25 XP · 15 min read
 
 ---
 

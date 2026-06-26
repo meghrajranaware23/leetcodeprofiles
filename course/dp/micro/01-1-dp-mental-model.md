@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The DP Mental Model
 
-> **Day 1** · The DP Mental Model · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 1** · The DP Mental Model · 10 XP · 10 min read
 
 ---
 

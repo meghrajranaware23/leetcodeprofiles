@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The Tree Mental Model
 
-> **Day 1** · The Tree Mental Model · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 1** · The Tree Mental Model · 10 XP · 10 min read
 
 ---
 

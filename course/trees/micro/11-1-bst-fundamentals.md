@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BST Fundamentals: Search & Validate
 
-> **Day 11** · BST Fundamentals · ★★★☆☆ · 15 XP · 15 min read
+> **Day 11** · BST Fundamentals · 15 XP · 15 min read
 
 ---
 

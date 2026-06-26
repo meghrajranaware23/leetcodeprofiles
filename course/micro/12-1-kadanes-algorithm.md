@@ -1,6 +1,6 @@
 # 📝 Kadane's Algorithm
 
-> **Day 12** · Kadane's Algorithm · ★★★★☆ · 15 XP · 12 min read
+> **Day 12** · Kadane's Algorithm · 15 XP · 12 min read
 
 ---
 

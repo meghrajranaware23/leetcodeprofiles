@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree + Graph Hybrid Patterns
 
-> **Day 27** · Tree + Graph Hybrid · ★★★★★ · 20 XP · 15 min read
+> **Day 27** · Tree + Graph Hybrid · 20 XP · 15 min read
 
 ---
 

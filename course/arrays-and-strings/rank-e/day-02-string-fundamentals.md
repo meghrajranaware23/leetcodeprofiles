@@ -1,7 +1,7 @@
 ---
 # ⚔ Day 2: String Fundamentals & Manipulation
 
-**Rank:** E-Rank | **Difficulty:** ★☆☆☆☆ | **XP:** 50 | **Time:** 45 min
+**Rank:** E-Rank | **XP:** 50 | **Time:** 45 min
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Beginner Mistakes to Avoid
 
-> **Day 9** · Mistake Identification · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 9** · Mistake Identification · 10 XP · 8 min read
 
 ---
 

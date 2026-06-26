@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Grid DP Foundations
 
-> **Day 11** · Grid DP Foundations · ★★★☆☆ · 20 XP · 15 min read
+> **Day 11** · Grid DP Foundations · 20 XP · 15 min read
 
 ---
 

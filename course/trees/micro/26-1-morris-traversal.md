@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Morris Traversal & Space-Optimal Techniques
 
-> **Day 26** · Morris Traversal · ★★★★★ · 20 XP · 15 min read
+> **Day 26** · Morris Traversal · 20 XP · 15 min read
 
 ---
 

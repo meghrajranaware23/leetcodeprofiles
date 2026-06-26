@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 String Partition Backtracking
 
-> **Day 14** · Backtracking on Strings · ★★★★☆ · 20 XP · 15 min read
+> **Day 14** · Backtracking on Strings · 20 XP · 15 min read
 
 ---
 

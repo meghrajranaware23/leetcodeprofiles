@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DP Pattern Synthesis
 
-> **Day 26** · DP Pattern Synthesis · ★★★★★ · 20 XP · 15 min read
+> **Day 26** · DP Pattern Synthesis · 20 XP · 15 min read
 
 ---
 

@@ -1,6 +1,6 @@
 # 📝 Multi-Pattern String Synthesis
 
-> **Day 29** · Cross-Domain Pattern Transfer · ★★★★★★ · 25 XP · 15 min read
+> **Day 29** · Cross-Domain Pattern Transfer · 25 XP · 15 min read
 
 ---
 

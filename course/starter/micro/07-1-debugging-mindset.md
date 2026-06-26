@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: The Debugging Mindset
 
-> **Day 7** · Systematic Debugging · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 7** · Systematic Debugging · 10 XP · 8 min read
 
 ---
 

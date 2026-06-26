@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree DP: Optimal Substructure
 
-> **Day 20** · Tree DP · ★★★★☆ · 25 XP · 15 min read
+> **Day 20** · Tree DP · 25 XP · 15 min read
 
 ---
 

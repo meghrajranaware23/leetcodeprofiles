@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 String Decision DP
 
-> **Day 15** · String Decision DP · ★★★★☆ · 20 XP · 15 min read
+> **Day 15** · String Decision DP · 20 XP · 15 min read
 
 ---
 

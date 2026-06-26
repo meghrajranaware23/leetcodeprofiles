@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Review Mistakes
 
-> **Day 12** · Mistake Journal Review · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 12** · Mistake Journal Review · 10 XP · 8 min read
 
 ---
 

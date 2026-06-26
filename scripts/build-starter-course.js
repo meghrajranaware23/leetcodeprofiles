@@ -25,7 +25,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const MICRO_DIR = path.join(ROOT, 'course', 'starter', 'micro');
 
-const STAR = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 const HAND_AUTHORED_MARKER = '<!-- hand-authored -->';
 
 function readMicroFile(file) {
@@ -268,7 +267,7 @@ function genGuide(day) {
 
   return `# 📝 ${concept.title}
 
-> **Day ${dayNum}** · ${concept.skill} · ${STAR(concept.stars)} · ${xp} XP · 8 min read
+> **Day ${dayNum}** · ${concept.skill} · ${xp} XP · 8 min read
 
 ---
 

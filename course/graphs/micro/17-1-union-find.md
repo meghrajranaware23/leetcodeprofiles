@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Union-Find DSU
 
-> **Day 17** · Union-Find Fundamentals · ★★★★☆ · 25 XP · 15 min read
+> **Day 17** · Union-Find Fundamentals · 25 XP · 15 min read
 
 ---
 

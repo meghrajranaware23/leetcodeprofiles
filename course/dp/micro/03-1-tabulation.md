@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tabulation — Building Bottom-Up
 
-> **Day 3** · Tabulation — Building Bottom-Up · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 3** · Tabulation — Building Bottom-Up · 10 XP · 10 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The Final Ascension
 
-> **Day 30** · Final Ascension · ★★★★★ · 25 XP · 18 min read
+> **Day 30** · Final Ascension · 25 XP · 18 min read
 
 ---
 

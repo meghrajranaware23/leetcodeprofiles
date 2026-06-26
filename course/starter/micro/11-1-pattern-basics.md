@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Pattern Recognition Basics
 
-> **Day 11** · Basic Pattern Family Recognition · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 11** · Basic Pattern Family Recognition · 10 XP · 8 min read
 
 ---
 

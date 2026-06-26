@@ -24,7 +24,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const MICRO_DIR = path.join(ROOT, 'course', 'graphs', 'micro');
 
-const STAR = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 const HAND_AUTHORED_MARKER = '<!-- hand-authored -->';
 
 function readMicroFile(file) {
@@ -177,13 +176,12 @@ Complete each rank to unlock the next. No skipping. No shortcuts.
 
 function genConcept(day) {
   const { concept, dayTitle, day: dayNum, rank } = day;
-  const stars = STAR(concept.stars);
   const xp = conceptXp(rank);
   const readMin = rank === 'e' ? 10 : rank === 's' ? 18 : 15;
 
   return `# 📝 ${concept.title}
 
-> **Day ${dayNum}** · ${dayTitle} · ${stars} · ${xp} XP · ${readMin} min read
+> **Day ${dayNum}** · ${dayTitle} · ${xp} XP · ${readMin} min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Distance and Diameter
 
-> **Day 25** · Tree Distance · ★★★★★ · 20 XP · 15 min read
+> **Day 25** · Tree Distance · 20 XP · 15 min read
 
 ---
 

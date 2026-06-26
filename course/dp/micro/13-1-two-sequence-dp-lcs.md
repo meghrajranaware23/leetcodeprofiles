@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Two-Sequence DP — LCS
 
-> **Day 13** · Two-Sequence DP — LCS · ★★★☆☆ · 20 XP · 15 min read
+> **Day 13** · Two-Sequence DP — LCS · 20 XP · 15 min read
 
 ---
 

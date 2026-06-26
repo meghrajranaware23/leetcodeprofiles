@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Cost Optimization
 
-> **Day 8** · Cost Optimization · ★★★☆☆ · 15 XP · 15 min read
+> **Day 8** · Cost Optimization · 15 XP · 15 min read
 
 ---
 

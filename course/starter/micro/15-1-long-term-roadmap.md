@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Long-Term Roadmap
 
-> **Day 15** · Long-Term Roadmap Design · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 15** · Long-Term Roadmap Design · 10 XP · 8 min read
 
 ---
 

@@ -1,6 +1,6 @@
 # 📝 Fast & Slow Pointers
 
-> **Day 8** · Fast & Slow Pointers · ★★★☆☆ · 10 min read
+> **Day 8** · Fast & Slow Pointers · 10 min read
 
 ---
 

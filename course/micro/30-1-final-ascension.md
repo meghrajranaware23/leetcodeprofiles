@@ -1,6 +1,6 @@
 # 📝 The Final Ascension
 
-> **Day 30** · Meta-Strategy & Pattern Synthesis · ★★★★★ · 25 XP · 20 min read
+> **Day 30** · Meta-Strategy & Pattern Synthesis · 25 XP · 20 min read
 
 ---
 

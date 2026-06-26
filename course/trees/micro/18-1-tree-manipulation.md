@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Manipulation: Merge & Transform
 
-> **Day 18** · Tree Manipulation · ★★★★☆ · 25 XP · 15 min read
+> **Day 18** · Tree Manipulation · 25 XP · 15 min read
 
 ---
 

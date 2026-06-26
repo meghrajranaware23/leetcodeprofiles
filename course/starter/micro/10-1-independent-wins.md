@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Independent Wins
 
-> **Day 10** · Independent Solving · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 10** · Independent Solving · 10 XP · 8 min read
 
 ---
 

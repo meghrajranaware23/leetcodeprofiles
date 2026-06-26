@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursive Construction: Building Trees
 
-> **Day 8** · Tree Construction · ★★★☆☆ · 10 XP · 15 min read
+> **Day 8** · Tree Construction · 10 XP · 15 min read
 
 ---
 

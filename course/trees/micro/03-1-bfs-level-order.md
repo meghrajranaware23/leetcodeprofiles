@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BFS: Level-Order Traversal
 
-> **Day 3** · BFS Level-Order · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 3** · BFS Level-Order · 10 XP · 10 min read
 
 ---
 

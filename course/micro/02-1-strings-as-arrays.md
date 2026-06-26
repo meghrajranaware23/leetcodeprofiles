@@ -1,6 +1,6 @@
 # 📝 Strings as Character Arrays
 
-> **Day 2** · String Manipulation · ★☆☆☆☆ · 8 min read
+> **Day 2** · String Manipulation · 8 min read
 
 ---
 

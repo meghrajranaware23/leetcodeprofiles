@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Memoization — Your First DP Optimization
 
-> **Day 2** · Memoization — Your First DP Optimization · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 2** · Memoization — Your First DP Optimization · 10 XP · 10 min read
 
 ---
 

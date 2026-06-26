@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Boundary DFS / Outside-In Thinking
 
-> **Day 7** · Boundary Traversal · ★★★☆☆ · 10 XP · 15 min read
+> **Day 7** · Boundary Traversal · 10 XP · 15 min read
 
 ---
 

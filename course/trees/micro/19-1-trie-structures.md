@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 N-ary Trees and Trie Structures
 
-> **Day 19** · N-ary Trees & Tries · ★★★★☆ · 25 XP · 15 min read
+> **Day 19** · N-ary Trees & Tries · 25 XP · 15 min read
 
 ---
 

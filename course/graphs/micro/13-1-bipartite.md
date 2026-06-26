@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Graph Two-Coloring
 
-> **Day 13** · Bipartite Graphs · ★★★★☆ · 15 XP · 15 min read
+> **Day 13** · Bipartite Graphs · 15 XP · 15 min read
 
 ---
 

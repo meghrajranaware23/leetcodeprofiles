@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Views and Projections
 
-> **Day 17** · Tree Views · ★★★★☆ · 25 XP · 15 min read
+> **Day 17** · Tree Views · 25 XP · 15 min read
 
 ---
 

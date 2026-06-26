@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Palindrome DP
 
-> **Day 14** · Palindrome DP · ★★★★☆ · 20 XP · 15 min read
+> **Day 14** · Palindrome DP · 20 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Direction-Aware Traversal
 
-> **Day 9** · Direction-Aware Traversal · ★★★☆☆ · 10 XP · 15 min read
+> **Day 9** · Direction-Aware Traversal · 10 XP · 15 min read
 
 ---
 

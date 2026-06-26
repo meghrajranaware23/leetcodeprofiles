@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 String Recursion & Generation
 
-> **Day 8** · Choose · Extend · Backtrack · ★★★☆☆ · 15 XP · 15 min read
+> **Day 8** · Choose · Extend · Backtrack · 15 XP · 15 min read
 
 ---
 

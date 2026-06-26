@@ -1,6 +1,6 @@
 # 📝 The Fixed Sliding Window
 
-> **Day 9** · Fixed Sliding Window · ★★★☆☆ · 10 min read
+> **Day 9** · Fixed Sliding Window · 10 min read
 
 ---
 

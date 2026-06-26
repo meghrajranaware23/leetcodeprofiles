@@ -1,7 +1,7 @@
 ---
 # ⚔ Day 5: Prefix Sums — Unlocking Range Queries
 
-**Rank:** E-Rank | **Difficulty:** ★★★☆☆ | **XP:** 100 | **Time:** 60 min
+**Rank:** E-Rank | **XP:** 100 | **Time:** 60 min
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Technique Combination
 
-> **Day 22** · Combined Graph Techniques · ★★★★☆ · 25 XP · 15 min read
+> **Day 22** · Combined Graph Techniques · 25 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursive Synthesis II
 
-> **Day 29** · Recursive Synthesis II · ★★★★★ · 25 XP · 18 min read
+> **Day 29** · Recursive Synthesis II · 25 XP · 18 min read
 
 ---
 

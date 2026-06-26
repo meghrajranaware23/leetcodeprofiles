@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursion on Trees (Consolidation)
 
-> **Day 9** · Postorder Swap · Mirror Pairs · ★★★☆☆ · 15 XP · 15 min read
+> **Day 9** · Postorder Swap · Mirror Pairs · 15 XP · 15 min read
 
 ---
 

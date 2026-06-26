@@ -1,6 +1,6 @@
 # 📝 2D Prefix Sums
 
-> **Day 20** · 2D Prefix Sums · ★★★★★ · 15 XP · 12 min read
+> **Day 20** · 2D Prefix Sums · 15 XP · 12 min read
 
 ---
 

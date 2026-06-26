@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DAG Source/Sink Analysis
 
-> **Day 14** · DAG Reasoning · ★★★★☆ · 15 XP · 15 min read
+> **Day 14** · DAG Reasoning · 15 XP · 15 min read
 
 ---
 

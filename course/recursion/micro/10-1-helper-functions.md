@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Helper Functions & Recursion Design
 
-> **Day 10** · Bounded Helpers · Postorder Rewire · ★★★☆☆ · 15 XP · 15 min read
+> **Day 10** · Bounded Helpers · Postorder Rewire · 15 XP · 15 min read
 
 ---
 

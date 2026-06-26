@@ -1,6 +1,6 @@
 # 📝 Bitmask Strings
 
-> **Day 27** · Bitmask Character Sets · ★★★★☆ · 20 XP · 15 min read
+> **Day 27** · Bitmask Character Sets · 20 XP · 15 min read
 
 ---
 

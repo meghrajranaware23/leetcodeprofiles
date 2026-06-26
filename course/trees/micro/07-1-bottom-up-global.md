@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Bottom-Up DFS: Gathering Results Upward
 
-> **Day 7** · Bottom-Up DFS · ★★★☆☆ · 10 XP · 15 min read
+> **Day 7** · Bottom-Up DFS · 10 XP · 15 min read
 
 ---
 

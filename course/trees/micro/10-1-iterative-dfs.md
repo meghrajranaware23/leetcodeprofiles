@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursion vs Iteration Trade-offs
 
-> **Day 10** · Recursion vs Iteration · ★★★☆☆ · 10 XP · 15 min read
+> **Day 10** · Recursion vs Iteration · 10 XP · 15 min read
 
 ---
 

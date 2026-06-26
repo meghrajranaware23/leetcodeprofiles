@@ -1,6 +1,6 @@
 # 📝 The Variable Sliding Window
 
-> **Day 10** · Variable Sliding Window · ★★★☆☆ · 10 min read
+> **Day 10** · Variable Sliding Window · 10 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Graph DFS with Memoization
 
-> **Day 26** · DFS + Memoization · ★★★★★ · 20 XP · 15 min read
+> **Day 26** · DFS + Memoization · 20 XP · 15 min read
 
 ---
 

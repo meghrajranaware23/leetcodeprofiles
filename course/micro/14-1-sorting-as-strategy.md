@@ -1,6 +1,6 @@
 # 📝 Sorting as Strategy
 
-> **Day 14** · Sorting as Strategy · ★★★☆☆ · 10 min read
+> **Day 14** · Sorting as Strategy · 10 min read
 
 ---
 

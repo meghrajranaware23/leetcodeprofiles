@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Kahn's Algorithm
 
-> **Day 12** · Topological Sort Applications · ★★★☆☆ · 15 XP · 15 min read
+> **Day 12** · Topological Sort Applications · 15 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DFS: Inorder, Preorder, Postorder
 
-> **Day 2** · DFS Traversals · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 2** · DFS Traversals · 10 XP · 10 min read
 
 ---
 

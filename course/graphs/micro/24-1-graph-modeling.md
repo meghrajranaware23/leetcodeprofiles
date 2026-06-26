@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Building Graphs from Non-Graph Inputs
 
-> **Day 24** · Graph Modeling · ★★★★☆ · 20 XP · 15 min read
+> **Day 24** · Graph Modeling · 20 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Backtracking + Memoization Bridge
 
-> **Day 21** · Backtracking + Memoization Bridge · ★★★★☆ · 25 XP · 15 min read
+> **Day 21** · Backtracking + Memoization Bridge · 25 XP · 15 min read
 
 ---
 

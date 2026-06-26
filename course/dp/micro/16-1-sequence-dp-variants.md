@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Sequence DP Variants
 
-> **Day 16** · Sequence DP Variants · ★★★★☆ · 20 XP · 15 min read
+> **Day 16** · Sequence DP Variants · 20 XP · 15 min read
 
 ---
 

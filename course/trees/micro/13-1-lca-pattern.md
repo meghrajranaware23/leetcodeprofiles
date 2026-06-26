@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Lowest Common Ancestor
 
-> **Day 13** · Lowest Common Ancestor · ★★★☆☆ · 15 XP · 15 min read
+> **Day 13** · Lowest Common Ancestor · 15 XP · 15 min read
 
 ---
 

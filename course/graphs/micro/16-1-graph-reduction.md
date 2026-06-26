@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Graph Transformation
 
-> **Day 16** · Graph Reduction · ★★★★☆ · 15 XP · 15 min read
+> **Day 16** · Graph Reduction · 15 XP · 15 min read
 
 ---
 

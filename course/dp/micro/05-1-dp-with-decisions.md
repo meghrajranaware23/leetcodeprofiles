@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DP with Decisions
 
-> **Day 5** · DP with Decisions · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 5** · DP with Decisions · 10 XP · 10 min read
 
 ---
 

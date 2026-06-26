@@ -1,6 +1,6 @@
 # 📝 Advanced Sweep Line
 
-> **Day 22** · Advanced Sweep Line · ★★★★★ · 15 XP · 15 min read
+> **Day 22** · Advanced Sweep Line · 15 XP · 15 min read
 
 ---
 

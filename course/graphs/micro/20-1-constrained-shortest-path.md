@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Constrained Shortest Path
 
-> **Day 20** · Shortest Path Variants · ★★★★☆ · 25 XP · 15 min read
+> **Day 20** · Shortest Path Variants · 25 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Think on Paper First
 
-> **Day 5** · Brute Force Thinking & 5-Minute Rule · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 5** · Brute Force Thinking & 5-Minute Rule · 10 XP · 8 min read
 
 ---
 

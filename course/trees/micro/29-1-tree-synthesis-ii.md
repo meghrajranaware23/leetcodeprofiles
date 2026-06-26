@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Tree Synthesis II: Design + Spatial Trees
 
-> **Day 29** · Tree Synthesis II · ★★★★★ · 25 XP · 18 min read
+> **Day 29** · Tree Synthesis II · 25 XP · 18 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 String Transformation DP
 
-> **Day 21** · String Transformation DP · ★★★★☆ · 25 XP · 15 min read
+> **Day 21** · String Transformation DP · 25 XP · 15 min read
 
 ---
 

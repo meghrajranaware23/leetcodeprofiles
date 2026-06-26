@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Interview Simulation
 
-> **Day 27** · Interview Simulation · ★★★★★ · 20 XP · 15 min read
+> **Day 27** · Interview Simulation · 20 XP · 15 min read
 
 ---
 

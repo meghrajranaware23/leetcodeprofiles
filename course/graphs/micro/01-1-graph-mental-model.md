@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 The Graph Mental Model
 
-> **Day 1** · The Graph Mental Model · ★☆☆☆☆ · 10 XP · 10 min read
+> **Day 1** · The Graph Mental Model · 10 XP · 10 min read
 
 ---
 

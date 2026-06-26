@@ -1,6 +1,6 @@
 # 📝 The Frequency Counting Pattern
 
-> **Day 3** · Frequency Counting · ★★☆☆☆ · 8 min read
+> **Day 3** · Frequency Counting · 8 min read
 
 ---
 

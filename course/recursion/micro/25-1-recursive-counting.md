@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursion in Math & Counting
 
-> **Day 25** · Recursive Counting · ★★★★☆ · 20 XP · 15 min read
+> **Day 25** · Recursive Counting · 20 XP · 15 min read
 
 ---
 

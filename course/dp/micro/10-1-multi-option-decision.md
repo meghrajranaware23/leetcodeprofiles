@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Option Decision DP
 
-> **Day 10** · Multi-Option Decision DP · ★★★☆☆ · 15 XP · 15 min read
+> **Day 10** · Multi-Option Decision DP · 15 XP · 15 min read
 
 ---
 

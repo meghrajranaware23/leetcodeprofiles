@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 State Machine DP
 
-> **Day 20** · State Machine DP · ★★★★☆ · 25 XP · 15 min read
+> **Day 20** · State Machine DP · 25 XP · 15 min read
 
 ---
 

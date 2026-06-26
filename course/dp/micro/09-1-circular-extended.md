@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Circular & Extended Decisions
 
-> **Day 9** · Circular & Extended Decisions · ★★★☆☆ · 15 XP · 15 min read
+> **Day 9** · Circular & Extended Decisions · 15 XP · 15 min read
 
 ---
 

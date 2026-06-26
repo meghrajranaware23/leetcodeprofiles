@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 UF Application Modeling
 
-> **Day 18** · Union-Find Applications · ★★★★☆ · 25 XP · 15 min read
+> **Day 18** · Union-Find Applications · 25 XP · 15 min read
 
 ---
 

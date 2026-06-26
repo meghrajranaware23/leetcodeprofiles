@@ -1,6 +1,6 @@
 # 📝 Difference Arrays
 
-> **Day 13** · Difference Arrays · ★★★☆☆ · 10 min read
+> **Day 13** · Difference Arrays · 10 min read
 
 ---
 

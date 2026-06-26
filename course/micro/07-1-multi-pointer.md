@@ -1,6 +1,6 @@
 # 📝 Multi-Pointer Patterns
 
-> **Day 7** · Multi-Pointer · ★★★☆☆ · 10 min read
+> **Day 7** · Multi-Pointer · 10 min read
 
 ---
 

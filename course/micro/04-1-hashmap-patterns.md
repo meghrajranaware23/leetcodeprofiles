@@ -1,6 +1,6 @@
 # 📝 Hash Map Core Patterns
 
-> **Day 4** · Hash Maps · ★★☆☆☆ · 8 min read
+> **Day 4** · Hash Maps · 8 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multi-Source BFS
 
-> **Day 6** · Multi-Source BFS · ★★★☆☆ · 10 XP · 15 min read
+> **Day 6** · Multi-Source BFS · 10 XP · 15 min read
 
 ---
 

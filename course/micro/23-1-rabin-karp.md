@@ -1,6 +1,6 @@
 # 📝 Rabin-Karp Rolling Hash
 
-> **Day 23** · Rabin-Karp Rolling Hash · ★★★★★ · 20 XP · 15 min read
+> **Day 23** · Rabin-Karp Rolling Hash · 20 XP · 15 min read
 
 ---
 

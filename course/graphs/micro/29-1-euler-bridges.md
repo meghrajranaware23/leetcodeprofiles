@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Euler Paths and Bridges
 
-> **Day 29** · Advanced Graph Algorithms · ★★★★★ · 25 XP · 18 min read
+> **Day 29** · Advanced Graph Algorithms · 25 XP · 18 min read
 
 ---
 

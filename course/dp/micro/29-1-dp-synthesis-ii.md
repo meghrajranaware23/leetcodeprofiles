@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 DP Synthesis II
 
-> **Day 29** · DP Synthesis II · ★★★★★ · 25 XP · 18 min read
+> **Day 29** · DP Synthesis II · 25 XP · 18 min read
 
 ---
 

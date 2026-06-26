@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Index-Based Recursion on Linked Lists
 
-> **Day 3** · Index-Based Recursion · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 3** · Index-Based Recursion · 10 XP · 10 min read
 
 ---
 

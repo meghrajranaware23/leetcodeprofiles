@@ -1,6 +1,6 @@
 # 📝 Multi-Constraint Windows
 
-> **Day 25** · Multi-Constraint Sliding Windows · ★★★★★ · 20 XP · 18 min read
+> **Day 25** · Multi-Constraint Sliding Windows · 20 XP · 18 min read
 
 ---
 

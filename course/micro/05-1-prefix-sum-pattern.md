@@ -1,6 +1,6 @@
 # 📝 The Prefix Sum Pattern
 
-> **Day 5** · Prefix Sums · ★★☆☆☆ · 8 min read
+> **Day 5** · Prefix Sums · 8 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Complex State-Space BFS
 
-> **Day 23** · Advanced State BFS · ★★★★☆ · 20 XP · 15 min read
+> **Day 23** · Advanced State BFS · 20 XP · 15 min read
 
 ---
 

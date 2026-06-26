@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Subsequence DP — LIS
 
-> **Day 12** · Subsequence DP — LIS · ★★★☆☆ · 20 XP · 15 min read
+> **Day 12** · Subsequence DP — LIS · 20 XP · 15 min read
 
 ---
 

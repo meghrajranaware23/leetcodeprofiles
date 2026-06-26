@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Top-Down State Recursion
 
-> **Day 5** · Top-Down State · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 5** · Top-Down State · 10 XP · 10 min read
 
 ---
 

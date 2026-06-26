@@ -1,6 +1,6 @@
 # 📝 Sliding Window + Hash Map
 
-> **Day 11** · Sliding Window + Hash Map · ★★★★☆ · 15 XP · 12 min read
+> **Day 11** · Sliding Window + Hash Map · 15 XP · 12 min read
 
 ---
 

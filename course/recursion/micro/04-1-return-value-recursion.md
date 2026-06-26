@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Bottom-Up Return Recursion
 
-> **Day 4** · Bottom-Up Returns · ★★☆☆☆ · 10 XP · 10 min read
+> **Day 4** · Bottom-Up Returns · 10 XP · 10 min read
 
 ---
 

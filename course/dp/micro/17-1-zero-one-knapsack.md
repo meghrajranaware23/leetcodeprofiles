@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 0/1 Knapsack
 
-> **Day 17** · 0/1 Knapsack · ★★★★☆ · 25 XP · 15 min read
+> **Day 17** · 0/1 Knapsack · 25 XP · 15 min read
 
 ---
 

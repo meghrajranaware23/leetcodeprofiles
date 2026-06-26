@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Permutation Generation
 
-> **Day 12** · Permutations · ★★★☆☆ · 20 XP · 15 min read
+> **Day 12** · Permutations · 20 XP · 15 min read
 
 ---
 

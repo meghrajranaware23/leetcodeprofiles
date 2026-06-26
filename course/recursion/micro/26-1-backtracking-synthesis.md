@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Backtracking Synthesis I
 
-> **Day 26** · Backtracking Synthesis I · ★★★★★ · 20 XP · 15 min read
+> **Day 26** · Backtracking Synthesis I · 20 XP · 15 min read
 
 ---
 

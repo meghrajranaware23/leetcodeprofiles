@@ -1,6 +1,6 @@
 # 📝 The Array Mental Model
 
-> **Day 1** · Array Traversal · ★☆☆☆☆ · 8 min read
+> **Day 1** · Array Traversal · 8 min read
 
 ---
 

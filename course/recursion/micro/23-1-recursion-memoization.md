@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Recursion + Memoization (Top-Down DP)
 
-> **Day 23** · Top-Down DP · ★★★★☆ · 20 XP · 15 min read
+> **Day 23** · Top-Down DP · 20 XP · 15 min read
 
 ---
 

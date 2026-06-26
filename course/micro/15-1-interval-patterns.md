@@ -1,6 +1,6 @@
 # 📝 Interval Patterns
 
-> **Day 15** · Interval Merge / Insert / Sweep Line · ★★★★☆ · 12 min read
+> **Day 15** · Interval Merge / Insert / Sweep Line · 12 min read
 
 ---
 

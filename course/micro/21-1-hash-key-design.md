@@ -1,6 +1,6 @@
 # 📝 Hash Key Design
 
-> **Day 21** · Hash Key Design · ★★★★★ · 15 XP · 14 min read
+> **Day 21** · Hash Key Design · 15 XP · 14 min read
 
 ---
 

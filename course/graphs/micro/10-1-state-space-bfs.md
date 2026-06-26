@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 State-Space BFS
 
-> **Day 10** · State-Space BFS · ★★★☆☆ · 10 XP · 15 min read
+> **Day 10** · State-Space BFS · 10 XP · 15 min read
 
 ---
 

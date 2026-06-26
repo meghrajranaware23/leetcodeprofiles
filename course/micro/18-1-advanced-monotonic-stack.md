@@ -1,6 +1,6 @@
 # 📝 Advanced Monotonic Stack
 
-> **Day 18** · Histogram Stack · Area & Volume · ★★★★★ · 25 XP · 18 min read
+> **Day 18** · Histogram Stack · Area & Volume · 25 XP · 18 min read
 
 ---
 

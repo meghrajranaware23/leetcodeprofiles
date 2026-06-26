@@ -1,6 +1,6 @@
 # 📝 Greedy on Arrays
 
-> **Day 16** · Greedy Choice + Proof Sketches · ★★★★☆ · 12 min read
+> **Day 16** · Greedy Choice + Proof Sketches · 12 min read
 
 ---
 

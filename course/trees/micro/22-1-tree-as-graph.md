@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Advanced BFS: Tree as Graph
 
-> **Day 22** · Advanced BFS · ★★★★☆ · 25 XP · 15 min read
+> **Day 22** · Advanced BFS · 25 XP · 15 min read
 
 ---
 

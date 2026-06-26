@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Read Before You Code
 
-> **Day 2** · 4-Part Problem Reading Framework · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 2** · 4-Part Problem Reading Framework · 10 XP · 8 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Pattern Decision Making
 
-> **Day 27** · Multi-Pattern Synthesis · ★★★★★ · 20 XP · 15 min read
+> **Day 27** · Multi-Pattern Synthesis · 20 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Subtree Patterns: Sum, Count, Compare
 
-> **Day 21** · Subtree Patterns · ★★★★☆ · 25 XP · 15 min read
+> **Day 21** · Subtree Patterns · 25 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 BST Operations: Insert, Delete, Kth
 
-> **Day 12** · BST Operations · ★★★☆☆ · 15 XP · 15 min read
+> **Day 12** · BST Operations · 15 XP · 15 min read
 
 ---
 

@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Dijkstra + Counting/DP
 
-> **Day 25** · Advanced Shortest Paths · ★★★★★ · 20 XP · 15 min read
+> **Day 25** · Advanced Shortest Paths · 20 XP · 15 min read
 
 ---
 

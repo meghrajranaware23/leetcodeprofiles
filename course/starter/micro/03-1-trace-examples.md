@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: Trace the Examples
 
-> **Day 3** · Example Tracing & Custom Test Cases · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 3** · Example Tracing & Custom Test Cases · 10 XP · 8 min read
 
 ---
 

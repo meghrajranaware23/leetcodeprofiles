@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Multiple Recursive Calls
 
-> **Day 6** · Binary Recursion · ★★★☆☆ · 15 XP · 15 min read
+> **Day 6** · Binary Recursion · 15 XP · 15 min read
 
 ---
 

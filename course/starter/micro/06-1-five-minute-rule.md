@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Guide: The 5-Minute Attempt Rule
 
-> **Day 6** · Attempt-First Discipline · ★☆☆☆☆ · 10 XP · 8 min read
+> **Day 6** · Attempt-First Discipline · 10 XP · 8 min read
 
 ---
 

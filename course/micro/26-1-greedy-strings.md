@@ -1,6 +1,6 @@
 # 📝 Greedy Strings
 
-> **Day 26** · Greedy Stack String Construction · ★★★★☆ · 20 XP · 18 min read
+> **Day 26** · Greedy Stack String Construction · 20 XP · 18 min read
 
 ---
 

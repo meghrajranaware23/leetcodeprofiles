@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # 📝 Combination Sum Variants
 
-> **Day 15** · Combination Sum Variants · ★★★★☆ · 20 XP · 15 min read
+> **Day 15** · Combination Sum Variants · 20 XP · 15 min read
 
 ---
 
