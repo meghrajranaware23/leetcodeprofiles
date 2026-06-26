@@ -8,12 +8,20 @@ const AUTH_ERROR_MESSAGES = {
   'auth/operation-not-allowed': 'Google sign-in is not enabled. Please contact support.',
   'auth/account-exists-with-different-credential': 'This email is linked to another sign-in method.',
   'auth/internal-error': 'Something went wrong. Please try again.',
+  'auth/unauthorized-domain': 'This domain is not authorized for sign-in. Please contact support.',
+  'auth/web-storage-unsupported': 'Your browser does not support the required storage. Try disabling private browsing or updating your browser.',
+  'auth/invalid-api-key': 'Application configuration error. Please contact support.',
+  'auth/configuration-not-found': 'Application configuration error. Please contact support.',
 };
 
 export function getAuthErrorMessage(error) {
   if (!error) return 'Something went wrong. Please try again.';
 
   const code = error.code || '';
+  if (code) {
+    console.debug('Auth error code:', code);
+  }
+
   if (AUTH_ERROR_MESSAGES[code]) {
     return AUTH_ERROR_MESSAGES[code];
   }

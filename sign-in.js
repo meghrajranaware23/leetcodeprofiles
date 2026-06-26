@@ -12,20 +12,16 @@ async function redirectAfterAuth() {
   window.location.replace(destination);
 }
 
-async function boot() {
-  if (redirectLegacyPaths()) return;
-
-  const user = await waitForAuth();
-
-  const redirectUser = await completeRedirectSignIn();
-  if (redirectUser || user) {
-    await redirectAfterAuth();
-    return;
-  }
-
+function initSignInForm() {
   const form = document.getElementById('signInForm');
   const button = document.getElementById('googleSignInBtn');
   const errorEl = document.getElementById('signInError');
+
+  if (button) {
+    button.disabled = false;
+    button.classList.remove('is-loading');
+    button.setAttribute('aria-busy', 'false');
+  }
 
   initSignInPage({
     formEl: form,
@@ -40,8 +36,45 @@ async function boot() {
   initBrandLogos();
 }
 
+async function boot() {
+  if (redirectLegacyPaths()) return;
+
+  const button = document.getElementById('googleSignInBtn');
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+  }
+
+  try {
+    const user = await waitForAuth();
+
+    let redirectUser = null;
+    try {
+      redirectUser = await completeRedirectSignIn();
+    } catch (err) {
+      console.warn('Redirect sign-in check failed (non-fatal):', err);
+    }
+
+    if (redirectUser || user) {
+      await redirectAfterAuth();
+      return;
+    }
+  } catch (err) {
+    console.error('Sign-in boot failed (recovering):', err);
+  }
+
+  initSignInForm();
+}
+
+function startBoot() {
+  boot().catch((err) => {
+    console.error('Unhandled sign-in boot error (recovering):', err);
+    initSignInForm();
+  });
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('DOMContentLoaded', startBoot);
 } else {
-  boot();
+  startBoot();
 }

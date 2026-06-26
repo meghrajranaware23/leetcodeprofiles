@@ -7,7 +7,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { auth } from '../firebase.js';
-import { isPopupBlockedError } from './auth-errors.js';
+import { isPopupCancelledError } from './auth-errors.js';
 import { syncUserProfile } from './user-service.js';
 import { initProgressSync } from './progress-sync-service.js';
 
@@ -96,9 +96,14 @@ export function getCurrentUser() {
 }
 
 export async function completeRedirectSignIn() {
-  const result = await getRedirectResult(auth);
-  if (!result?.user) return null;
-  return result.user;
+  try {
+    const result = await getRedirectResult(auth);
+    if (!result?.user) return null;
+    return result.user;
+  } catch (err) {
+    console.warn('getRedirectResult failed (treating as no redirect):', err);
+    return null;
+  }
 }
 
 export async function signInWithGoogle() {
@@ -106,11 +111,19 @@ export async function signInWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
   } catch (error) {
-    if (isPopupBlockedError(error)) {
+    if (isPopupCancelledError(error)) {
+      throw error;
+    }
+    // Popup failed (blocked, third-party cookies, cross-origin, etc.) —
+    // fall back to full-page redirect which avoids all popup restrictions.
+    console.warn('signInWithPopup failed, falling back to redirect:', error.code || error.message);
+    try {
       await signInWithRedirect(auth, googleProvider);
       return null;
+    } catch (redirectError) {
+      console.error('signInWithRedirect also failed:', redirectError);
+      throw error;
     }
-    throw error;
   }
 }
 

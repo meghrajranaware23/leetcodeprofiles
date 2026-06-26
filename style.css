@@ -1124,6 +1124,162 @@ a.btn-ghost {
 }
 
 /* ============================================
+   COMPARISON (homepage)
+   ============================================ */
+.features-compare {
+  padding: 100px 80px;
+  background: var(--bg-primary);
+}
+
+.features-compare-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.features-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.features-compare-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 36px 32px;
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.features-compare-card:hover {
+  transform: translateY(-3px);
+}
+
+.features-compare-card--dim {
+  opacity: 0.75;
+}
+
+.features-compare-card--dim:hover {
+  opacity: 0.85;
+}
+
+.features-compare-card--featured {
+  border-color: var(--red-border);
+  box-shadow: 0 0 40px rgba(229, 0, 0, 0.08);
+}
+
+.features-compare-card--featured:hover {
+  box-shadow: 0 0 60px rgba(229, 0, 0, 0.12);
+}
+
+.features-compare-badge {
+  position: absolute;
+  top: -1px;
+  right: 24px;
+  background: var(--red-primary);
+  color: var(--text-primary);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+}
+
+.features-compare-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.features-compare-card--featured .features-compare-label {
+  color: var(--red-primary);
+}
+
+.features-compare-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: var(--text-primary);
+  margin-top: 8px;
+  line-height: 1.1;
+}
+
+.features-compare-list {
+  list-style: none;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.features-compare-list li {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-left: 20px;
+  position: relative;
+}
+
+.features-compare-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--text-dim);
+}
+
+.features-compare-card--featured .features-compare-list li::before {
+  content: '■';
+  color: var(--red-primary);
+  font-size: 10px;
+  top: 2px;
+}
+
+/* ============================================
+   DAILY SYSTEM (homepage)
+   ============================================ */
+.daily-system-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.daily-system-header {
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.daily-system-header .section-title,
+.daily-system-header .section-subtitle {
+  text-align: left;
+}
+
+.daily-steps-stack {
+  flex-direction: column;
+  margin-top: 40px;
+}
+
+.daily-steps-stack .step {
+  border-right: none;
+  border-bottom: 1px solid var(--border);
+  padding: 32px 0;
+}
+
+.daily-steps-stack .step:last-child {
+  border-bottom: none;
+}
+
+.daily-system-preview {
+  position: sticky;
+  top: 100px;
+}
+
+.daily-system .inside-grid {
+  align-items: start;
+}
+
+/* ============================================
    SECTION 6 — WHAT'S INSIDE
    ============================================ */
 .whats-inside {
@@ -1520,6 +1676,23 @@ a.btn-ghost {
   transform: translateY(-2px);
 }
 
+.final-secondary-link {
+  margin-top: 20px;
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+}
+
+.final-secondary-link a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 200ms ease;
+}
+
+.final-secondary-link a:hover {
+  color: var(--text-primary);
+}
+
 /* ============================================
    SECTION 9 — FOOTER
    ============================================ */
@@ -1652,6 +1825,19 @@ a.btn-ghost {
     padding: 60px 24px;
   }
 
+  .features-compare {
+    padding: 60px 40px;
+  }
+
+  .features-compare-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .daily-system-preview {
+    position: static;
+  }
+
   .steps-container {
     flex-direction: column;
   }
@@ -1758,6 +1944,14 @@ a.btn-ghost {
 
   .step-number {
     font-size: 72px;
+  }
+
+  .features-compare {
+    padding: 60px 24px;
+  }
+
+  .features-compare-heading {
+    font-size: 28px;
   }
 }
 
@@ -1877,6 +2071,17 @@ a.btn-ghost {
   font-size: 13px;
   color: var(--text-dim);
   margin-top: 16px;
+}
+
+.packs-pricing-link {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 200ms ease;
+}
+
+.packs-pricing-link:hover {
+  color: var(--red-primary);
 }
 
 .pack-badge-live {
