@@ -2,6 +2,7 @@ import { getContinueNavContext } from './progress-facade.js';
 import { getRankPillLabel } from './rank-display.js';
 import { ROUTES } from './routes.js';
 import { closeAllProfileMenus } from './auth/auth-ui.js';
+import { closeNavDropdown } from './nav-dropdown.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -252,15 +253,7 @@ function bindMobileTrigger() {
 }
 
 function closeMobileNav() {
-  const mobileMenu = document.getElementById('mobile-menu');
-  const hamburger = document.getElementById('hamburger');
-  if (!mobileMenu?.classList.contains('active')) return;
-  mobileMenu.classList.remove('active');
-  hamburger?.classList.remove('active');
-  hamburger?.setAttribute('aria-expanded', 'false');
-  if (!sheetOpen) {
-    document.body.style.overflow = '';
-  }
+  closeNavDropdown('siteNavDropdown');
 }
 
 function bindGlobalClose() {

@@ -1356,6 +1356,7 @@ body.cr-sidebar-resizing .cr-sidebar {
 
   .cr-sidebar-toggle {
     display: flex;
+    flex-shrink: 0;
   }
 
   .cr-main {
@@ -1384,43 +1385,66 @@ body.cr-sidebar-resizing .cr-sidebar {
   }
 
   .cr-topbar {
+    gap: 8px;
     padding-left: calc(12px + var(--safe-left));
     padding-right: calc(12px + var(--safe-right));
   }
+
+  .cr-topbar-left {
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cr-topbar-right {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   .cr-topbar-divider {
     display: none;
   }
+
   .cr-course-title {
     display: none;
   }
+
+  .cr-back-btn {
+    display: none;
+  }
+
+  .cr-pack-switcher {
+    flex: 1;
+    min-width: 0;
+  }
+
   .cr-pack-switcher-btn {
-    max-width: 140px;
+    max-width: 100%;
+    width: 100%;
     padding: 8px 10px;
     font-size: 12px;
   }
-  .cr-back-btn span {
-    display: none;
-  }
+
   .cr-progress-info {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-  }
-  .cr-progress-text {
-    font-size: 11px;
-    white-space: nowrap;
-    letter-spacing: 0.2px;
-  }
-  .cr-progress-bar-mini {
     display: none;
   }
+
   .cr-xp-badge {
+    flex-shrink: 0;
     font-size: 12px;
     padding: 6px 10px;
     min-height: 44px;
     display: flex;
     align-items: center;
+  }
+
+  .cr-reader-auth {
+    flex-shrink: 0;
+  }
+
+  .cr-reader-auth .auth-profile-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .cr-pack-switcher-menu {

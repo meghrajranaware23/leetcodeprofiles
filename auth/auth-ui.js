@@ -12,6 +12,7 @@ import {
 } from './entitlements-service.js';
 import { navigateToSubscriptionSection } from '../checkout/pricing-navigation.js';
 import { openProMemberDialog, showUpgradeDialog } from './upgrade-dialog.js';
+import { closeNavDropdown } from '../nav-dropdown.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -55,14 +56,7 @@ function closeAllProfileMenus() {
 export { closeAllProfileMenus };
 
 function closeMobileNav() {
-  const mobileMenu = document.getElementById('mobile-menu');
-  const hamburger = document.getElementById('hamburger');
-  if (!mobileMenu?.classList.contains('active')) return;
-
-  mobileMenu.classList.remove('active');
-  hamburger?.classList.remove('active');
-  hamburger?.setAttribute('aria-expanded', 'false');
-  document.body.style.overflow = '';
+  closeNavDropdown('siteNavDropdown');
 }
 
 function ensureEntitlements() {
@@ -186,11 +180,7 @@ function renderProfileHtml(user, {
 
   const signOutBtn = `<button class="auth-sign-out-btn" type="button">Sign Out</button>`;
 
-  let menuBody = '';
-  if (menu === 'account') {
-    menuBody = `${upgradeBtn}${signOutBtn}`;
-  } else {
-    menuBody = `
+  const profileInfoBlock = `
         <div class="auth-profile-info">
           <div class="auth-profile-name-row">
             <span class="auth-profile-name">${displayName}</span>
@@ -198,7 +188,16 @@ function renderProfileHtml(user, {
           </div>
           ${email ? `<span class="auth-profile-email">${email}</span>` : ''}
           ${progressHtml}
-        </div>
+        </div>`;
+
+  let menuBody = '';
+  if (menu === 'account') {
+    menuBody = `${upgradeBtn}${signOutBtn}`;
+  } else if (menu === 'courses') {
+    menuBody = `${profileInfoBlock}${upgradeBtn}${signOutBtn}`;
+  } else {
+    menuBody = `
+        ${profileInfoBlock}
         <a href="${ROUTES.coursesProfile}" class="auth-profile-link">Profile</a>
         ${upgradeBtn}
         ${signOutBtn}

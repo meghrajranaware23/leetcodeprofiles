@@ -33,13 +33,13 @@ function buildMarketingFooterHtml() {
         ${buildLogoHtml({ href: ROUTES.marketing, ariaLabel: 'LeetCode Profiles home' })}
         <p class="footer-tagline">Made for coders who refuse to stay E-Rank.</p>
       </div>
-      <div class="footer-col">
+      <div class="footer-col footer-col--explore">
         <h3 class="footer-col-title">Explore</h3>
         <nav class="footer-links footer-links-col" aria-label="Site links">
           ${exploreLinksHtml()}
         </nav>
       </div>
-      <div class="footer-col">
+      <div class="footer-col footer-col--legal">
         <h3 class="footer-col-title">Legal &amp; Help</h3>
         <nav class="footer-links footer-links-col" aria-label="Legal and help">
           ${legalLinksHtml()}

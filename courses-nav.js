@@ -1,7 +1,8 @@
-import { mountProfileMenu } from './auth/auth-ui.js';
+import { mountProfileMenu, closeAllProfileMenus } from './auth/auth-ui.js';
 import { buildLogoHtml } from './brand-logo.js';
 import { routeForTab } from './routes.js';
 import { initInProgressNav, refreshInProgressNav } from './app-nav-in-progress.js';
+import { createNavDropdownController } from './nav-dropdown.js';
 
 const TAB_LABELS = {
   packs: 'Packs',
@@ -14,6 +15,8 @@ const TAB_LABELS = {
 const TAB_ORDER = ['packs', 'guide', 'progress', 'pricing', 'profile'];
 
 const MOBILE_NAV_MQ = '(max-width: 1024px)';
+
+let coursesDropdownController = null;
 
 function tabLinkClass(tab, activeTab) {
   return tab === activeTab
@@ -40,20 +43,27 @@ function buildDesktopTabs(activeTab) {
 function buildDropdownItems(activeTab) {
   return TAB_ORDER.map((tab) => {
     if (tab === 'progress') {
-      return `<button type="button" class="courses-nav-dropdown__item" data-mobile-in-progress-trigger role="menuitem">${TAB_LABELS[tab]}</button>`;
+      return `<button type="button" class="nav-dropdown__item courses-nav-dropdown__item" data-mobile-in-progress-trigger role="menuitem">${TAB_LABELS[tab]}</button>`;
     }
-    const activeClass = tab === activeTab ? ' courses-nav-dropdown__item--active' : '';
-    return `<a href="${routeForTab(tab)}" class="courses-nav-dropdown__item${activeClass}" data-courses-tab="${tab}" role="menuitem">${TAB_LABELS[tab]}</a>`;
+    const activeClass = tab === activeTab ? ' nav-dropdown__item--active courses-nav-dropdown__item--active' : '';
+    return `<a href="${routeForTab(tab)}" class="nav-dropdown__item courses-nav-dropdown__item${activeClass}" data-courses-tab="${tab}" role="menuitem">${TAB_LABELS[tab]}</a>`;
   }).join('');
 }
 
 export function buildCoursesNavHtml({ activeTab = 'packs' } = {}) {
   return `
     <nav class="navbar navbar--courses" id="navbar">
-      <button class="courses-nav-hamburger" id="coursesNavHamburger" type="button" aria-label="Menu" aria-expanded="false" aria-haspopup="true" aria-controls="coursesNavDropdown">
-        <span></span><span></span><span></span>
-      </button>
-      ${buildLogoHtml({ href: routeForTab('packs'), ariaLabel: 'LeetCode Profiles courses' })}
+      <div class="courses-nav-start">
+        <div class="courses-nav-menu">
+          <button class="courses-nav-hamburger" id="coursesNavHamburger" type="button" aria-label="Menu" aria-expanded="false" aria-haspopup="true" aria-controls="coursesNavDropdown">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="nav-dropdown courses-nav-dropdown" id="coursesNavDropdown" role="menu" hidden>
+            ${buildDropdownItems(activeTab)}
+          </div>
+        </div>
+        ${buildLogoHtml({ href: routeForTab('packs'), ariaLabel: 'LeetCode Profiles courses' })}
+      </div>
       <div class="courses-nav-center">
         <div class="courses-nav-links">
           ${buildDesktopTabs(activeTab)}
@@ -62,20 +72,26 @@ export function buildCoursesNavHtml({ activeTab = 'packs' } = {}) {
       <div class="nav-actions nav-actions--courses">
         <div id="nav-auth" class="nav-auth"></div>
       </div>
-      <div class="courses-nav-dropdown" id="coursesNavDropdown" role="menu" hidden>
-        ${buildDropdownItems(activeTab)}
-      </div>
     </nav>
   `;
 }
 
+function ensureCoursesDropdownController() {
+  if (!coursesDropdownController) {
+    coursesDropdownController = createNavDropdownController({
+      triggerId: 'coursesNavHamburger',
+      dropdownId: 'coursesNavDropdown',
+      align: 'start',
+      bindKey: 'coursesNavDropdownBound',
+      onOpen: () => closeAllProfileMenus(),
+    });
+    coursesDropdownController.bind();
+  }
+  return coursesDropdownController;
+}
+
 export function closeCoursesDropdown() {
-  const dropdown = document.getElementById('coursesNavDropdown');
-  const hamburger = document.getElementById('coursesNavHamburger');
-  if (!dropdown || dropdown.hidden) return;
-  dropdown.hidden = true;
-  hamburger?.classList.remove('active');
-  hamburger?.setAttribute('aria-expanded', 'false');
+  ensureCoursesDropdownController().close();
 }
 
 export function isCoursesMobileNav() {
@@ -99,40 +115,7 @@ export function setCoursesNavActiveTab(activeTab) {
     const isActive = tab === activeTab;
     el.classList.toggle('courses-nav-link--active', el.classList.contains('courses-nav-link') && isActive);
     el.classList.toggle('courses-nav-dropdown__item--active', el.classList.contains('courses-nav-dropdown__item') && isActive);
-  });
-}
-
-function bindCoursesDropdown() {
-  if (document.body.dataset.coursesNavDropdownBound) return;
-  document.body.dataset.coursesNavDropdownBound = 'true';
-
-  document.addEventListener('click', (e) => {
-    const hamburger = document.getElementById('coursesNavHamburger');
-    const dropdown = document.getElementById('coursesNavDropdown');
-    if (!hamburger || !dropdown) return;
-
-    if (e.target.closest('#coursesNavHamburger')) {
-      const open = dropdown.hidden;
-      closeCoursesDropdown();
-      if (open) {
-        dropdown.hidden = false;
-        hamburger.classList.add('active');
-        hamburger.setAttribute('aria-expanded', 'true');
-      }
-      return;
-    }
-
-    if (e.target.closest('.courses-nav-dropdown__item[data-courses-tab]')) {
-      closeCoursesDropdown();
-    }
-
-    if (!e.target.closest('#coursesNavDropdown') && !e.target.closest('#coursesNavHamburger')) {
-      closeCoursesDropdown();
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeCoursesDropdown();
+    el.classList.toggle('nav-dropdown__item--active', el.classList.contains('nav-dropdown__item') && isActive);
   });
 }
 
@@ -167,16 +150,20 @@ function bindCoursesNavInteractions(mount, { onTabSelect } = {}) {
 }
 
 export function initCoursesNav(mount, { activeTab = 'packs', summaries = null, onTabSelect } = {}) {
+  const controller = ensureCoursesDropdownController();
+  controller.close();
+  controller.removeOrphan();
+
   mount._onTabSelect = onTabSelect;
   mount.innerHTML = buildCoursesNavHtml({ activeTab });
   initNavbarScroll();
-  bindCoursesDropdown();
   bindCoursesNavInteractions(mount, { onTabSelect });
   initInProgressNav();
 
   mountProfileMenu('nav-auth', {
     summaries,
     deferProgressLine: !summaries,
+    menu: 'courses',
   });
 }
 

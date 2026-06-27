@@ -4,16 +4,39 @@
 
 import './firebase.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
-import { mountProfileMenu } from './auth/auth-ui.js';
+import { mountProfileMenu, closeAllProfileMenus } from './auth/auth-ui.js';
 import { getCurrentUser, waitForAuth } from './auth/auth-service.js';
 import { ROUTES } from './routes.js';
 import { buildLogoHtml } from './brand-logo.js';
 import { initInProgressNav, refreshInProgressNav } from './app-nav-in-progress.js';
+import { createNavDropdownController, closeNavDropdown } from './nav-dropdown.js';
 
 const NAVBAR_OFFSET = 64;
 
+let siteNavDropdownController = null;
+
 function appNavLinkClass(page, activePage) {
   return page === activePage ? 'app-nav-link app-nav-link--active' : 'app-nav-link';
+}
+
+function siteDropdownItemClass(isActive) {
+  return isActive
+    ? 'nav-dropdown__item site-nav-dropdown__item nav-dropdown__item--active site-nav-dropdown__item--active'
+    : 'nav-dropdown__item site-nav-dropdown__item';
+}
+
+function buildSiteNavMenuHtml({ itemsHtml, footerHtml = '' }) {
+  return `
+    <div class="site-nav-menu">
+      <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-haspopup="true" aria-controls="siteNavDropdown">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-dropdown site-nav-dropdown" id="siteNavDropdown" role="menu" hidden>
+        ${itemsHtml}
+        ${footerHtml}
+      </div>
+    </div>
+  `;
 }
 
 function buildMarketingNavHtml({ activePage, isLoggedIn }) {
@@ -28,7 +51,22 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
   const packsLabel = 'Packs';
   const navCtaHtml = isLoggedIn
     ? ''
-    : `<a href="${ROUTES.courses}" class="nav-cta" data-auth-target="${ROUTES.courses}">START GRINDING →</a>`;
+    : `<a href="${ROUTES.courses}" class="nav-cta" data-auth-target="${ROUTES.courses}" data-nav-close>START GRINDING →</a>`;
+
+  const dropdownItems = `
+    <a href="${ROUTES.marketing}" class="${siteDropdownItemClass(activePage === 'home')}" data-nav-close role="menuitem">Home</a>
+    <a href="${packsHref}" class="${siteDropdownItemClass(activePage === 'packs')}" data-auth-target="${packsHref}" data-nav-close role="menuitem">${packsLabel}</a>
+    <a href="${ROUTES.ranks}" class="${siteDropdownItemClass(activePage === 'ranks')}" data-nav-close role="menuitem">Ranks</a>
+    <a href="${ROUTES.howItWorks}" class="${siteDropdownItemClass(activePage === 'how-it-works')}" data-nav-close role="menuitem">How It Works</a>
+    <a href="${ROUTES.features}" class="${siteDropdownItemClass(activePage === 'features')}" data-nav-close role="menuitem">Features</a>
+  `;
+
+  const dropdownFooter = `
+    <div class="nav-dropdown__footer">
+      <div id="mobile-nav-auth" class="mobile-nav-auth"></div>
+      ${navCtaHtml}
+    </div>
+  `;
 
   return `
     <nav class="navbar" id="navbar">
@@ -44,23 +82,18 @@ function buildMarketingNavHtml({ activePage, isLoggedIn }) {
         <div id="nav-auth" class="nav-auth"></div>
         ${navCtaHtml}
       </div>
-      <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
-        <span></span><span></span><span></span>
-      </button>
+      ${buildSiteNavMenuHtml({ itemsHtml: dropdownItems, footerHtml: dropdownFooter })}
     </nav>
-    <div class="mobile-menu" id="mobile-menu">
-      <a href="${ROUTES.marketing}">Home</a>
-      <a href="${packsHref}" data-auth-target="${packsHref}">${packsLabel}</a>
-      <a href="${ROUTES.ranks}">Ranks</a>
-      <a href="${ROUTES.howItWorks}">How It Works</a>
-      <a href="${ROUTES.features}">Features</a>
-      <div id="mobile-nav-auth" class="mobile-nav-auth"></div>
-      ${navCtaHtml}
-    </div>
   `;
 }
 
 function buildAppNavHtml({ activePage = 'packs' } = {}) {
+  const dropdownItems = `
+    <a href="${ROUTES.method}" class="${siteDropdownItemClass(activePage === 'method')}" data-nav-close role="menuitem">Free Guide</a>
+    <button type="button" class="nav-dropdown__item site-nav-dropdown__item" data-mobile-in-progress-trigger role="menuitem">In Progress</button>
+    <a href="${ROUTES.pricing}" class="${siteDropdownItemClass(activePage === 'pricing')}" data-nav-close role="menuitem">Pricing</a>
+  `;
+
   return `
     <nav class="navbar navbar--app" id="navbar">
       ${buildLogoHtml({ href: ROUTES.packs, ariaLabel: 'LeetCode Profiles packs' })}
@@ -80,20 +113,31 @@ function buildAppNavHtml({ activePage = 'packs' } = {}) {
       <div class="nav-actions nav-actions--app">
         <div id="nav-auth" class="nav-auth"></div>
       </div>
-      <button class="hamburger" id="hamburger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
-        <span></span><span></span><span></span>
-      </button>
+      ${buildSiteNavMenuHtml({ itemsHtml: dropdownItems })}
     </nav>
-    <div class="mobile-menu mobile-menu--app" id="mobile-menu">
-      <a href="${ROUTES.method}">Free Guide</a>
-      <button type="button" class="mobile-menu__in-progress" data-mobile-in-progress-trigger>In Progress</button>
-      <a href="${ROUTES.pricing}">Pricing</a>
-    </div>
   `;
 }
 
 function shouldUseAppNav(variant, isLoggedIn, activePage) {
   return variant === 'app' || (variant === 'auto' && isLoggedIn && activePage === 'packs');
+}
+
+function ensureSiteNavDropdownController() {
+  if (!siteNavDropdownController) {
+    siteNavDropdownController = createNavDropdownController({
+      triggerId: 'hamburger',
+      dropdownId: 'siteNavDropdown',
+      align: 'end',
+      bindKey: 'siteNavDropdownBound',
+      onOpen: () => closeAllProfileMenus(),
+    });
+    siteNavDropdownController.bind();
+  }
+  return siteNavDropdownController;
+}
+
+export function closeSiteNavDropdown() {
+  closeNavDropdown('siteNavDropdown');
 }
 
 function mountNavContent(mount, { activePage, variant, isLoggedIn, summaries }) {
@@ -103,12 +147,15 @@ function mountNavContent(mount, { activePage, variant, isLoggedIn, summaries }) 
     deferProgressLine: !summaries,
   };
 
+  const controller = ensureSiteNavDropdownController();
+  controller.close();
+  controller.removeOrphan();
+
   mount.innerHTML = useAppNav
     ? buildAppNavHtml({ activePage })
     : buildMarketingNavHtml({ activePage, isLoggedIn });
 
   initNavbarScroll();
-  initMobileMenu();
   initAuthAwareLinks(mount);
 
   if (useAppNav) {
@@ -126,6 +173,8 @@ export async function initSiteNav(options = {}) {
   const { activePage = 'home', variant = 'marketing', summaries = null } = options;
   const mount = document.getElementById('site-nav');
   if (!mount) return;
+
+  ensureSiteNavDropdownController();
 
   const optimisticLoggedIn = variant === 'app';
   let lastAppNav = mountNavContent(mount, {
@@ -178,47 +227,6 @@ function initNavbarScroll() {
 
   onScroll();
   window.addEventListener('scroll', onScroll);
-}
-
-function setMobileMenuOpen(open) {
-  const hamburger = document.getElementById('hamburger');
-  const mobileMenu = document.getElementById('mobile-menu');
-  if (!hamburger || !mobileMenu) return;
-
-  hamburger.classList.toggle('active', open);
-  mobileMenu.classList.toggle('active', open);
-  hamburger.setAttribute('aria-expanded', String(open));
-  document.body.style.overflow = open ? 'hidden' : '';
-}
-
-function initMobileMenu() {
-  if (document.body.dataset.navMobileBound) return;
-  document.body.dataset.navMobileBound = 'true';
-
-  document.addEventListener('click', (e) => {
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (!hamburger || !mobileMenu) return;
-
-    if (e.target.closest('#hamburger')) {
-      const open = !mobileMenu.classList.contains('active');
-      setMobileMenuOpen(open);
-      return;
-    }
-
-    if (e.target.closest('#mobile-menu a')) {
-      setMobileMenuOpen(false);
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    const mobileMenu = document.getElementById('mobile-menu');
-    const hamburger = document.getElementById('hamburger');
-    if (e.key === 'Escape' && mobileMenu?.classList.contains('active')) {
-      setMobileMenuOpen(false);
-      hamburger?.focus();
-    }
-  });
 }
 
 export function initScrollAnimations() {
