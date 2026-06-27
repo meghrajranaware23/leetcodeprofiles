@@ -17,6 +17,7 @@ import {
 } from './pack-access.js';
 import { renderPremiumGate } from './premium-gate.js';
 import { createDiagramEnhancer, compactCompleteLabel } from './reader-diagrams.js';
+import { processLessonCodeBlocks, wrapSolutionSection } from './reader-code-blocks.js';
 import {
   activateMilestoneDialog,
   deactivateMilestoneDialog,
@@ -60,7 +61,6 @@ import {
 } from './trees-progress.js';
 
 /* ─── Constants ─── */
-const LANG_TAB_PREF_KEY = 'ascension-lang-pref';
 const SIDEBAR_STATE_KEY = 'ascension-sidebar-state';
 const SIDEBAR_STATE_VERSION = 2;
 
@@ -111,7 +111,6 @@ const milestoneBtn = $('milestoneBtn');
 let currentLessonIndex = 0;
 let expandedRanks = new Set();
 let expandedDays = new Set();
-let preferredLang = localStorage.getItem(LANG_TAB_PREF_KEY) || 'cpp';
 let scrollObserver = null;
 let attemptTimerInterval = null;
 let attemptStartTime = null;
@@ -955,10 +954,8 @@ function renderLesson(lesson) {
 
   // Post-processing
   diagramEnhancer.enhanceVisualBlocks();
-  postProcessCodeBlocks();
-  addCopyButtons();
-  createTabbedCodeBlocks();
   enhanceProblemLayout(lesson);
+  processLessonCodeBlocks(contentEl, lesson);
   applySolutionGating(lesson);
   injectCheckpointStats(lesson);
   injectLiveStats(lesson);
@@ -1066,7 +1063,7 @@ function gateQuestExplanations(lesson) {
   });
 
   const solutionSection = contentEl.querySelector('.cr-solution-zone-content')
-    || wrapSolutionSection(lesson);
+    || wrapSolutionSection(contentEl);
   if (solutionSection) {
     gateSection(
       solutionSection,
@@ -1076,28 +1073,6 @@ function gateQuestExplanations(lesson) {
       solutionRevealed
     );
   }
-}
-
-function wrapSolutionSection(lesson) {
-  const h2s = contentEl.querySelectorAll('h2');
-  let solutionH2 = null;
-  h2s.forEach(h2 => {
-    if (/^solution$/i.test(h2.textContent.trim()) || /solution/i.test(h2.textContent)) {
-      solutionH2 = h2;
-    }
-  });
-  if (!solutionH2 || solutionH2.closest('.cr-solution-zone-content')) return null;
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'cr-solution-zone-content';
-  solutionH2.parentNode.insertBefore(wrapper, solutionH2);
-  let node = solutionH2;
-  while (node) {
-    const next = node.nextElementSibling;
-    wrapper.appendChild(node);
-    node = next;
-  }
-  return wrapper;
 }
 
 function gateTestExplanations(lesson) {
@@ -1120,8 +1095,6 @@ function gateTestExplanations(lesson) {
 function gateTestSolution(lesson, solutionRevealed) {
   const details = contentEl.querySelector('details');
   if (!details) return;
-
-  details.classList.add('cr-test-solution');
 
   if (!solutionRevealed) {
     details.removeAttribute('open');
@@ -1185,9 +1158,7 @@ function revealSolution(lesson) {
       section.querySelector('.cr-section-gate')?.remove();
     });
     diagramEnhancer.enhanceVisualBlocks();
-    postProcessCodeBlocks();
-    addCopyButtons();
-    createTabbedCodeBlocks();
+    processLessonCodeBlocks(contentEl, lesson);
   } else if (lesson.type === 'test') {
     gateTestSolution(lesson, true);
   }
@@ -1458,193 +1429,6 @@ function clearAttemptTimer() {
     attemptTimerInterval = null;
   }
   attemptStartTime = null;
-}
-
-
-/* ═══════════════════════════════════════
-   CODE BLOCK POST-PROCESSING
-   ═══════════════════════════════════════ */
-function postProcessCodeBlocks() {
-  contentEl.querySelectorAll('pre code').forEach(block => {
-    if (block.closest('.cr-diagram-block')) return;
-    if (!block.classList.contains('hljs')) {
-      hljs.highlightElement(block);
-    }
-  });
-}
-
-function addCopyButtons() {
-  contentEl.querySelectorAll('pre').forEach(pre => {
-    if (pre.classList.contains('cr-diagram-block')) return;
-    // Don't add if already has one
-    if (pre.querySelector('.cr-copy-btn')) return;
-
-    const btn = document.createElement('button');
-    btn.className = 'cr-copy-btn';
-    btn.innerHTML = '📋 Copy';
-    btn.addEventListener('click', () => {
-      const code = pre.querySelector('code');
-      if (code) {
-        navigator.clipboard.writeText(code.textContent).then(() => {
-          btn.innerHTML = '✓ Copied!';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.innerHTML = '📋 Copy';
-            btn.classList.remove('copied');
-          }, 2000);
-        });
-      }
-    });
-    pre.style.position = 'relative';
-    pre.appendChild(btn);
-  });
-}
-
-
-/* ═══════════════════════════════════════
-   TABBED CODE BLOCKS
-   Detects consecutive h3 + code patterns
-   for C++, Python, Java and groups them
-   ═══════════════════════════════════════ */
-function createTabbedCodeBlocks() {
-  const LANG_MAP = {
-    'c++':    { lang: 'cpp',    label: 'C++' },
-    'cpp':    { lang: 'cpp',    label: 'C++' },
-    'python': { lang: 'python', label: 'Python' },
-    'java':   { lang: 'java',  label: 'Java' },
-  };
-
-  // Walk through all children of content looking for h3 + pre groups
-  const children = Array.from(contentEl.children);
-  let i = 0;
-
-  while (i < children.length) {
-    const el = children[i];
-
-    // Check if this is an h3 matching a language name
-    if (el.tagName === 'H3') {
-      const headerText = el.textContent.trim().toLowerCase();
-      const langInfo = LANG_MAP[headerText];
-
-      if (langInfo) {
-        // Look for consecutive h3/pre pairs for different languages
-        const group = [];
-        let j = i;
-
-        while (j < children.length) {
-          const hEl = children[j];
-          if (hEl.tagName !== 'H3') break;
-
-          const hText = hEl.textContent.trim().toLowerCase();
-          const hLang = LANG_MAP[hText];
-          if (!hLang) break;
-
-          // Next element should be a pre
-          const preEl = children[j + 1];
-          if (!preEl || preEl.tagName !== 'PRE') break;
-
-          group.push({
-            lang: hLang.lang,
-            label: hLang.label,
-            headerEl: hEl,
-            preEl: preEl,
-          });
-          j += 2;
-        }
-
-        // Only create tabs if we have 2+ languages
-        if (group.length >= 2) {
-          const tabContainer = document.createElement('div');
-          tabContainer.className = 'code-tabs';
-
-          // Tab buttons
-          const btnRow = document.createElement('div');
-          btnRow.className = 'code-tab-buttons';
-
-          group.forEach((item, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'code-tab-btn' + (item.lang === preferredLang ? ' active' : (idx === 0 && !group.some(g => g.lang === preferredLang) ? ' active' : ''));
-            btn.dataset.lang = item.lang;
-            btn.textContent = item.label;
-            btn.addEventListener('click', () => switchTab(tabContainer, item.lang));
-            btnRow.appendChild(btn);
-          });
-
-          // If no preferred lang matched, activate first
-          if (!btnRow.querySelector('.active')) {
-            btnRow.firstChild.classList.add('active');
-          }
-
-          tabContainer.appendChild(btnRow);
-
-          // Tab content panels
-          const activeLang = btnRow.querySelector('.active')?.dataset.lang;
-          group.forEach((item) => {
-            const panel = document.createElement('div');
-            panel.className = 'code-tab-content' + (item.lang === activeLang ? ' active' : '');
-            panel.dataset.lang = item.lang;
-
-            // Move the pre into the panel
-            const clonedPre = item.preEl.cloneNode(true);
-            panel.appendChild(clonedPre);
-
-            // Add copy button to this panel's pre
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'cr-copy-btn';
-            copyBtn.innerHTML = '📋 Copy';
-            copyBtn.addEventListener('click', () => {
-              const code = clonedPre.querySelector('code');
-              if (code) {
-                navigator.clipboard.writeText(code.textContent).then(() => {
-                  copyBtn.innerHTML = '✓ Copied!';
-                  copyBtn.classList.add('copied');
-                  setTimeout(() => {
-                    copyBtn.innerHTML = '📋 Copy';
-                    copyBtn.classList.remove('copied');
-                  }, 2000);
-                });
-              }
-            });
-            clonedPre.style.position = 'relative';
-            clonedPre.appendChild(copyBtn);
-
-            tabContainer.appendChild(panel);
-          });
-
-          // Insert the tab container before the first element, then remove originals
-          group[0].headerEl.parentNode.insertBefore(tabContainer, group[0].headerEl);
-          group.forEach(item => {
-            item.headerEl.remove();
-            item.preEl.remove();
-          });
-
-          // Remove copy buttons from the original (now removed) pres that were standalone
-          // Adjust index: we replaced multiple elements with one
-          // Rebuild children array
-          i = Array.from(contentEl.children).indexOf(tabContainer) + 1;
-          // Rebuild for next iteration
-          children.length = 0;
-          children.push(...Array.from(contentEl.children));
-          continue;
-        }
-      }
-    }
-    i++;
-  }
-}
-
-function switchTab(container, lang) {
-  // Update buttons
-  container.querySelectorAll('.code-tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.lang === lang);
-  });
-  // Update panels
-  container.querySelectorAll('.code-tab-content').forEach(panel => {
-    panel.classList.toggle('active', panel.dataset.lang === lang);
-  });
-  // Save preference
-  preferredLang = lang;
-  localStorage.setItem(LANG_TAB_PREF_KEY, lang);
 }
 
 

@@ -1022,35 +1022,55 @@ body.cr-sidebar-resizing .cr-sidebar {
   color: var(--text-primary);
   white-space: pre;
 }
+.cr-content pre:has(.cr-copy-btn) code {
+  padding-right: 44px !important;
+}
 
 /* ── Copy Button ── */
 .cr-copy-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-bright);
-  color: var(--text-dim);
-  font-family: var(--font-code);
-  font-size: 11px;
-  padding: 8px 12px;
-  min-height: 44px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  z-index: 5;
+  top: 8px;
+  right: 8px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  z-index: 5;
 }
-.cr-copy-btn:hover {
+.cr-content pre:hover .cr-copy-btn,
+.cr-copy-btn:hover,
+.cr-copy-btn:focus-visible {
+  opacity: 1;
   color: var(--text-primary);
-  background: var(--bg-hover);
-  border-color: var(--red-border);
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (hover: none) {
+  .cr-copy-btn {
+    opacity: 0.55;
+  }
+  .cr-copy-btn:active,
+  .cr-copy-btn:focus-visible {
+    opacity: 1;
+  }
 }
 .cr-copy-btn.copied {
+  opacity: 1;
   color: #4AFF9E;
-  border-color: rgba(74, 255, 158, 0.3);
+  background: rgba(74, 255, 158, 0.08);
+}
+.cr-copy-btn svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
 }
 
 /* ── Details / Summary (for rank test reveals) ── */

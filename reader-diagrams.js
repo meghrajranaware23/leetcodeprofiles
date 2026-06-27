@@ -270,6 +270,7 @@ export function createDiagramEnhancer(packId = 'recursion') {
       pre.setAttribute('aria-label', 'ASCII diagram');
 
       stripHighlightFromDiagram(codeEl);
+      // Copy buttons are only attached to solution regions upstream (reader-code-blocks.js)
       pre.querySelector('.cr-copy-btn')?.remove();
     });
 
