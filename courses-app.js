@@ -2,7 +2,8 @@ import './firebase.js';
 import { guardPage, hideAuthLoader } from './auth/auth-guard.js';
 import { waitForSessionBootstrap } from './auth/auth-service.js';
 import { onProgressSyncUpdated } from './auth/progress-sync-service.js';
-import { redirectLegacyPaths } from './routes.js';
+import { redirectLegacyPaths, pathForTab } from './routes.js';
+import { trackPageView } from './analytics.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
 import { initSiteFooter } from './site-footer.js';
 import { initAuthAwareLinks } from './auth/auth-guard.js';
@@ -43,7 +44,12 @@ function bindTabJumpLinks() {
 }
 
 async function showTab(tab, { skipHistory = false, replaceHistory = false } = {}) {
+  const prevTab = state.activeTab;
+
   if (tab === 'progress') {
+    if (tab !== prevTab) {
+      trackPageView(pathForTab('progress'));
+    }
     await openCoursesInProgress();
     syncUrlWithTab(state.activeTab || 'packs', { replace: true });
     return;
@@ -88,6 +94,10 @@ async function showTab(tab, { skipHistory = false, replaceHistory = false } = {}
   document.title = `${tabLabel(tab)} — LeetCode Profiles`;
   window.scrollTo(0, 0);
   bindTabJumpLinks();
+
+  if (tab !== prevTab) {
+    trackPageView(pathForTab(tab), document.title);
+  }
 }
 
 function tabLabel(tab) {

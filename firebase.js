@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { initAnalytics, trackPageView } from './analytics.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBahGrzuNpKtefeO36ED2Z4OD1B0TOdDXM',
@@ -17,10 +17,5 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-export let analytics = null;
-
-isSupported().then((supported) => {
-  if (supported) {
-    analytics = getAnalytics(app);
-  }
-});
+initAnalytics();
+trackPageView();
