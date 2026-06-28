@@ -1,7 +1,7 @@
 <!-- hand-authored -->
 # ⚔ Warmup Quest: FizzBuzz
 
-> **Day 1** · [FizzBuzz #412](https://leetcode.com/problems/fizzbuzz/) · Easy · 10 min · 10 XP
+> **Day 1** · [FizzBuzz #412](https://leetcode.com/problems/fizz-buzz/) · Easy · 10 min · 10 XP
 
 ---
 
@@ -9,7 +9,7 @@
 
 Open the problem on LeetCode and attempt it **before** reading hints or solutions.
 
-**[→ Open FizzBuzz on LeetCode](https://leetcode.com/problems/fizzbuzz/)**
+**[→ Open FizzBuzz on LeetCode](https://leetcode.com/problems/fizz-buzz/)**
 
 > ⚔ **Mentor's rule:** Today's goal is **Accepted**, not optimal. Practice Run → fix → Submit. Spend at least 5 minutes before hints.
 
@@ -91,7 +91,7 @@ Output: ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13"
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [FizzBuzz #412](https://leetcode.com/problems/fizzbuzz/) | Easy | First Submission Workflow |
+| [FizzBuzz #412](https://leetcode.com/problems/fizz-buzz/) | Easy | First Submission Workflow |
 | [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Easy | Simple loop warmup |
 | [Running Sum of 1d Array #1480](https://leetcode.com/problems/running-sum-of-1d-array/) | Easy | Tomorrow's trace practice |
 

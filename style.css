@@ -2690,6 +2690,10 @@ a.btn-ghost {
   .step-number {
     font-size: 56px;
   }
+
+  body[data-page="home"] .daily-steps-stack .step-title {
+    margin-top: -6px;
+  }
 }
 
 /* ============================================
@@ -4323,5 +4327,13 @@ a.final-btn {
     font-size: 14px;
     line-height: 1.5;
     margin-top: 10px;
+  }
+
+  body[data-page="home"] .daily-steps-stack .step-number {
+    line-height: 1.05;
+  }
+
+  body[data-page="home"] .daily-steps-stack .step-title {
+    margin-top: -10px;
   }
 }

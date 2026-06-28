@@ -57,7 +57,7 @@ If you're ahead, repeat the submit flow on any Easy you've already solved elsewh
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [FizzBuzz #412](https://leetcode.com/problems/fizzbuzz/) | Easy | First Submission Workflow |
+| [FizzBuzz #412](https://leetcode.com/problems/fizz-buzz/) | Easy | First Submission Workflow |
 | [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Easy | Warmup repeat |
 
 ---

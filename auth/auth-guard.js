@@ -1,5 +1,6 @@
 import { DEFAULT_POST_AUTH_URL, SIGN_IN_URL } from './constants.js';
-import { getCurrentUser, waitForAuth } from './auth-service.js';
+import { isPopupCancelledError } from './auth-errors.js';
+import { getCurrentUser, signInWithGoogle, waitForAuth } from './auth-service.js';
 
 const LOADER_ID = 'auth-guard-loader';
 
@@ -107,13 +108,35 @@ export async function navigateToAppRoute(target = DEFAULT_POST_AUTH_URL) {
 }
 
 export function initAuthAwareLinks(root = document) {
-  root.querySelectorAll('[data-auth-target]').forEach((el) => {
+  root.querySelectorAll('[data-auth-target]:not([data-google-sign-in])').forEach((el) => {
     el.addEventListener('click', (e) => {
       if (getCurrentUser()) return;
 
       e.preventDefault();
       const target = el.getAttribute('data-auth-target') || DEFAULT_POST_AUTH_URL;
       navigateToAppRoute(target);
+    });
+  });
+}
+
+export function initGoogleSignInLinks(root = document) {
+  root.querySelectorAll('[data-google-sign-in]').forEach((el) => {
+    el.addEventListener('click', async (e) => {
+      if (getCurrentUser()) return;
+
+      e.preventDefault();
+      const target = el.getAttribute('data-auth-target') || el.getAttribute('href') || DEFAULT_POST_AUTH_URL;
+
+      try {
+        const user = await signInWithGoogle();
+        if (user) {
+          window.location.href = target;
+        }
+      } catch (err) {
+        if (!isPopupCancelledError(err)) {
+          window.location.href = getSignInUrl(target);
+        }
+      }
     });
   });
 }

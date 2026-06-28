@@ -8,7 +8,7 @@ import { initHomeTeaser } from './packs-page.js';
 import { initLandingProgress } from './landing-progress.js';
 import { initBrandLogos, injectFavicon } from './brand-logo.js';
 import { initSiteFooter } from './site-footer.js';
-import { initAuthAwareLinks } from './auth/auth-guard.js';
+import { initAuthAwareLinks, initGoogleSignInLinks } from './auth/auth-guard.js';
 
 async function boot() {
   if (redirectLegacyPaths()) return;
@@ -31,6 +31,7 @@ async function boot() {
   initScrollAnimations();
   injectFavicon();
   initSiteFooter({ variant: 'marketing' });
+  initGoogleSignInLinks(document);
   initAuthAwareLinks(document);
   initBrandLogos();
 }

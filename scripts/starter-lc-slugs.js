@@ -23,7 +23,7 @@ export const STARTER_LC_SLUGS = {
   283: 'move-zeroes',
   344: 'reverse-string',
   349: 'intersection-of-two-arrays',
-  412: 'fizzbuzz',
+  412: 'fizz-buzz',
   724: 'find-pivot-index',
   1108: 'defanging-an-ip-address',
   1470: 'shuffle-the-array',
