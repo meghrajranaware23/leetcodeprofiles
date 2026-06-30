@@ -91,7 +91,7 @@ Output: ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13"
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [FizzBuzz #412](https://leetcode.com/problems/fizz-buzz/) | Easy | First Submission Workflow |
+| [Concatenation of Array #1929](https://leetcode.com/problems/concatenation-of-array/) | Easy | Easy loop warmup |
 | [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Easy | Simple loop warmup |
 | [Running Sum of 1d Array #1480](https://leetcode.com/problems/running-sum-of-1d-array/) | Easy | Tomorrow's trace practice |
 

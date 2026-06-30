@@ -60,7 +60,7 @@ Return 6
 
 | Problem | Skill |
 |---|---|
-| [Running Sum #1480](https://leetcode.com/problems/running-sum-of-1d-array/) | 1D trace (today) |
+| [Matrix Diagonal Sum #1572](https://leetcode.com/problems/matrix-diagonal-sum/) | 2D row/column trace |
 | [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Final stretch (Day 15 phase) |
 
 ---

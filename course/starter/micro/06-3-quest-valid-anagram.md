@@ -46,7 +46,7 @@ Count letters in `s`, subtract for `t`. Any negative → false.
 
 | Problem | Skill |
 |---|---|
-| [Valid Anagram #242](https://leetcode.com/problems/valid-anagram/) | Frequency |
+| [Ransom Note #383](https://leetcode.com/problems/ransom-note/) | Letter frequency count |
 | [Contains Duplicate #217](https://leetcode.com/problems/contains-duplicate/) | Set membership |
 
 ---

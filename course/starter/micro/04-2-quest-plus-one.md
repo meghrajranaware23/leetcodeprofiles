@@ -56,7 +56,7 @@ prepend 1 → [1,0,0,0]
 | Problem | Skill |
 |---|---|
 | [Add Binary #67](https://leetcode.com/problems/add-binary/) | Carry (Day 14) |
-| [Length of Last Word #58](https://leetcode.com/problems/length-of-last-word/) | Today's quest 2 |
+| [Add Strings #415](https://leetcode.com/problems/add-strings/) | Decimal carry propagation |
 
 ---
 

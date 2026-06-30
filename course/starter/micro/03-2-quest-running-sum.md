@@ -56,7 +56,7 @@ Return `runningSum` where `runningSum[i] = sum(nums[0]..nums[i])`.
 | Problem | Skill |
 |---|---|
 | [Find Pivot Index #724](https://leetcode.com/problems/find-pivot-index/) | Prefix sums (Day 10) |
-| [Richest Customer Wealth #1672](https://leetcode.com/problems/richest-customer-wealth/) | Today's quest 2 |
+| [Calculate Money in Leetcode Bank #1360](https://leetcode.com/problems/calculate-money-in-leetcode-bank/) | Running total trace |
 
 ---
 

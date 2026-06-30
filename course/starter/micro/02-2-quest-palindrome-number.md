@@ -73,7 +73,7 @@ Given an integer `x`, return `true` if `x` is a palindrome, and `false` otherwis
 | Problem | Difficulty | Skill |
 |---|---|---|
 | [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Easy | Phase 1 proof — string palindrome |
-| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output format reading (today's quest 2) |
+| [Sign of the Product of an Array #1822](https://leetcode.com/problems/sign-of-the-product-of-an-array/) | Easy | Read examples + constraints carefully |
 | [Reverse Integer #7](https://leetcode.com/problems/reverse-integer/) | Medium | Digit reversal (later) |
 
 ---

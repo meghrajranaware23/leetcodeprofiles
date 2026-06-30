@@ -67,9 +67,9 @@ Output: "255[.]100[.]50[.]0"
 
 | Problem | Difficulty | Skill |
 |---|---|---|
-| [Defanging an IP Address #1108](https://leetcode.com/problems/defanging-an-ip-address/) | Easy | Output format |
 | [Goal Parser Interpretation #1678](https://leetcode.com/problems/goal-parser-interpretation/) | Easy | String output rules |
-| [Palindrome Number #9](https://leetcode.com/problems/palindrome-number/) | Easy | Today's reading framework |
+| [License Key Formatting #482](https://leetcode.com/problems/license-key-formatting/) | Easy | Transform string to spec |
+| [Reformat Phone Number #1694](https://leetcode.com/problems/reformat-phone-number/) | Easy | Walk chars, build output |
 
 ---
 
