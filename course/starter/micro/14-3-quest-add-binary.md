@@ -5,15 +5,33 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/add-binary/)**
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Add Binary on LeetCode](https://leetcode.com/problems/add-binary/)**
+
+> ⚔ **Mentor's rule:** Carry from Day 4 Plus One — trace `"11" + "1"` on paper under the timer.
 
 ---
 
 ## The Problem
 
-Add two binary strings. Return sum as binary string.
+Given two binary strings `a` and `b`, return their sum as a binary string.
 
-**Example:** `a = "11", b = "1"` → `"100"`
+**Example 1:**
+```
+Input: a = "11", b = "1"
+Output: "100"
+```
+
+**Example 2:**
+```
+Input: a = "1010", b = "1011"
+Output: "10101"
+```
+
+**Constraints:** `1 <= a.length, b.length <= 10^4`, strings consist only of `'0'` or `'1'`, each string contains no leading zeros except `"0"`
 
 ---
 
@@ -21,7 +39,22 @@ Add two binary strings. Return sum as binary string.
 
 1. Add from right with carry (like Plus One Day 4)
 2. While digits or carry remain, append sum%2, carry/=2
-3. Reverse result string
+3. Reverse result string (or prepend)
+4. Trace `"11" + "1"`: 1+1=2 → write 0, carry 1 → 1+0+1=10 → `"100"`
+
+---
+
+## 📖 Walkthrough
+
+**Example 1:** `a = "11", b = "1"`
+
+```
+right to left:
+  1 + 1 = 2 → digit 0, carry 1
+  1 + 0 + 1 = 2 → digit 0, carry 1
+  carry 1 → digit 1
+built reverse: 0,0,1 → reverse → "100"
+```
 
 ---
 
@@ -85,6 +118,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Carry from Day 4 Plus One — interview-style careful implementation."*
+- *"Different length strings — loop until both indices and carry are done."*
+- *"Built backward, reversed at end — same trick as decimal carry problems."*
 
 > 🎯 **Skill practiced:** Interview Implementation
 

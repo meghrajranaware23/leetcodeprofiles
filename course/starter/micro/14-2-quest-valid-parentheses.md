@@ -5,17 +5,44 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/valid-parentheses/)**
+## 🎯 Try the Problem First
 
-> ⚔ Set a 20-minute timer. Full workflow under pressure.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Valid Parentheses on LeetCode](https://leetcode.com/problems/valid-parentheses/)**
+
+> ⚔ **Mentor's rule:** Set a **20-minute timer**. Full workflow under pressure — read, trace, code.
 
 ---
 
 ## The Problem
 
-Given string of `()[]{}`, determine if valid.
+Given a string `s` containing just `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.
 
-**Example:** `"()[]{}"` → `true`, `"(]"` → `false`
+An input string is valid if:
+1. Open brackets are closed by the same type of brackets.
+2. Open brackets are closed in the correct order.
+3. Every close bracket has a corresponding open bracket of the same type.
+
+**Example 1:**
+```
+Input: s = "()"
+Output: true
+```
+
+**Example 2:**
+```
+Input: s = "()[]{}"
+Output: true
+```
+
+**Example 3:**
+```
+Input: s = "(]"
+Output: false
+```
+
+**Constraints:** `1 <= s.length <= 10^4`, `s` consists of parentheses only
 
 ---
 
@@ -23,8 +50,8 @@ Given string of `()[]{}`, determine if valid.
 
 1. Stack of open brackets
 2. On close: stack must be non-empty and top matches
-3. End: stack empty
-4. Trace `"(]"` — `(` pushed, `]` mismatch
+3. End: stack must be empty
+4. Trace `"(]"` — `(` pushed, `]` mismatch → false
 
 ---
 
@@ -38,6 +65,12 @@ Given string of `()[]{}`, determine if valid.
 { → push
 } → pop match
 stack empty → true
+```
+
+**Failure trace `"(]"`:**
+```
+( → push
+] → top is '(' but need ')' → false
 ```
 
 ---
@@ -96,6 +129,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Timer didn't change workflow — read, trace, code."*
+- *"Empty stack at end — I almost returned true with unmatched opens."*
+- *"string-parse + stack preview — full stack lesson in later packs."*
 
 > 🎯 **Skill practiced:** Stack Intro
 

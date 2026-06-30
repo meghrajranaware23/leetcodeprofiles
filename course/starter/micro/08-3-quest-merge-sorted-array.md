@@ -5,9 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/merge-sorted-array/)**
+## 🎯 Try the Problem First
 
-> ⚔ Compare two approaches in journal after editorial: forward vs **backward** merge.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Merge Sorted Array on LeetCode](https://leetcode.com/problems/merge-sorted-array/)**
+
+> ⚔ **Mentor's rule:** Attempt 5 min first. After editorial: one journal sentence — why forward merge fails.
 
 ---
 
@@ -76,6 +80,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Backward merge was the editorial insight — I wrote one sentence why forward fails."*
+- *"Three pointers from the end — `i`, `j`, `k` — trace on paper before coding."*
+- *"Editorial protocol: idea only, close tab, re-solve tomorrow."*
 
 > 🎯 **Skill practiced:** Approach Comparison
 

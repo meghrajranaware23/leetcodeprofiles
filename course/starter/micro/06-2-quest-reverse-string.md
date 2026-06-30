@@ -5,9 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/reverse-string/)**
+## 🎯 Try the Problem First
 
-> ⚔ 5-minute attempt. Log stuck point before hints.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Reverse String on LeetCode](https://leetcode.com/problems/reverse-string/)**
+
+> ⚔ **Mentor's rule:** 5-minute attempt. Trace l/r swaps on paper — log stuck point before hints.
 
 ---
 
@@ -76,6 +80,7 @@ class Solution {
 
 - *"Two pointers are just tracing from both ends — I attempted 5 min before hints."*
 - *"I logged: stuck at swap loop condition — then fixed it."*
+- *"In-place means no second array — O(1) space was in the constraints."*
 
 > 🎯 **Skill practiced:** In-Place Manipulation
 

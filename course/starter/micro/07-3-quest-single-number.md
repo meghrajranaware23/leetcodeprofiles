@@ -5,7 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/single-number/)**
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Single Number on LeetCode](https://leetcode.com/problems/single-number/)**
+
+> ⚔ **Mentor's rule:** Try hash-set brute force first — print set contents on `[2,2,1]` before hints.
 
 ---
 
@@ -69,6 +75,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Hash set brute force taught the problem; XOR is the editorial upgrade."*
+- *"Debug protocol: reproduce on Example 1 before changing approach."*
+- *"Pairs cancel — XOR is just the compact version of add/remove from set."*
 
 > 🎯 **Skill practiced:** Isolate & Fix
 

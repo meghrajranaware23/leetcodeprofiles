@@ -5,7 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/valid-anagram/)**
+## 🎯 Try the Problem First
+
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Valid Anagram on LeetCode](https://leetcode.com/problems/valid-anagram/)**
+
+> ⚔ **Mentor's rule:** 5-minute attempt. Brute force (sort compare) is valid — log stuck point before hints.
 
 ---
 
@@ -87,6 +93,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Sorted compare worked; frequency table is the upgrade I'll learn from editorial."*
+- *"Different lengths → immediate false — I checked that before sorting."*
+- *"Example 2 (`rat` vs `car`) — letter counts don't match; trace caught it."*
 
 > 🎯 **Skill practiced:** Frequency Counting
 

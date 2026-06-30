@@ -5,9 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)**
+## 🎯 Try the Problem First
 
-> ⚔ Attempt 5 min → read editorial for two-pointer idea → close → code yourself.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Remove Duplicates on LeetCode](https://leetcode.com/problems/remove-duplicates-from-sorted-array/)**
+
+> ⚔ **Mentor's rule:** Attempt 5 min → read editorial for two-pointer idea → close tab → code yourself.
 
 ---
 
@@ -91,6 +95,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Editorial taught slow/fast — I closed it and rewrote from memory."*
+- *"Return `w` — unique prefix length, not array size."*
+- *"Sorted → dupes are adjacent; compare `nums[r]` vs `nums[r-1]`."*
 
 > 🎯 **Skill practiced:** Two-Pointer Intro
 

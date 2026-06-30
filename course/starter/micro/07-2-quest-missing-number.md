@@ -5,9 +5,13 @@
 
 ---
 
-**[→ Open on LeetCode](https://leetcode.com/problems/missing-number/)**
+## 🎯 Try the Problem First
 
-> ⚔ When WA: reproduce on n=1 before changing code.
+Open the problem on LeetCode and attempt it **before** reading hints or solutions.
+
+**[→ Open Missing Number on LeetCode](https://leetcode.com/problems/missing-number/)**
+
+> ⚔ **Mentor's rule:** When WA, reproduce on `n=1` before changing code. Print expected vs actual sum.
 
 ---
 
@@ -77,6 +81,8 @@ class Solution {
 ## 💭 What a Mentor Would Tell You
 
 - *"Print statements found my off-by-one in 2 minutes."*
+- *"`n = len(nums)` not len+1 — that was my Wrong Answer."*
+- *"Sum formula 0..n is easier to debug than XOR on Day 7."*
 
 > 🎯 **Skill practiced:** Off-by-One Debugging
 
