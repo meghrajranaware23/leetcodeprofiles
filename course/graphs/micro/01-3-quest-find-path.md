@@ -90,9 +90,9 @@ Which pattern from today's concept applies? **Adjacency list + connectivity** �
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Number of Provinces #547 (Day 3) | Count components, not one query | Same "same group?" logic |
-| Keys and Rooms #841 (Day 3) | Directed reachability from node 0 | DFS from source with visited |
-| Graph valid tree (later) | Exactly n−1 edges + connected | UF or DFS |
+| [Number of Provinces #547](https://leetcode.com/problems/number-of-provinces/) | Count components, not one query | Same "same group?" logic |
+| [Keys and Rooms #841](https://leetcode.com/problems/keys-and-rooms/) | Directed reachability from node 0 | DFS from source with visited |
+| [Graph Valid Tree #261](https://leetcode.com/problems/graph-valid-tree/) | Exactly n−1 edges + connected | UF or DFS |
 
 Day 1 stores the graph; Day 3 will **walk** it with DFS. Same connectivity idea, different interface.
 

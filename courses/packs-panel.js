@@ -2,6 +2,7 @@ import { initHunterHQ, refreshHunterHQ } from '../hunter-hq.js';
 import { renderPackCard, renderCatalogFeatured } from '../packs-page.js';
 import { initAuthAwareLinks } from '../auth/auth-guard.js';
 import { initScrollAnimations } from '../site-nav.js';
+import { initPackRoadmaps } from '../roadmap.js';
 
 const hunterHQOptions = {
   renderPackCard,
@@ -10,6 +11,7 @@ const hunterHQOptions = {
 
 export async function initPacksPanel() {
   initAuthAwareLinks(document.getElementById('panel-packs') || document);
+  initPackRoadmaps();
   const summaries = await initHunterHQ(hunterHQOptions);
   initScrollAnimations();
   return summaries;

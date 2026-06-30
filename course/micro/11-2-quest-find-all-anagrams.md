@@ -87,7 +87,6 @@ Track how many character types are "fully matched" to avoid comparing entire map
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Find All Anagrams in a String #438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) | Collect all start indices | Fixed window + freq map |
 | [Permutation in String #567](https://leetcode.com/problems/permutation-in-string/) | Return true if any anagram exists | Same window + map, early exit |
 | [Minimum Window Substring #76](https://leetcode.com/problems/minimum-window-substring/) | Variable window, cover all chars | Window + map, shrink while valid |
 | [Valid Anagram #242](https://leetcode.com/problems/valid-anagram/) | Full strings, no window | Same frequency comparison (Day 3) |

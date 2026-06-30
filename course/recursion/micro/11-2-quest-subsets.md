@@ -78,7 +78,7 @@ This is the **pure push/pop template** from today's concept — no dedup needed 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Duplicates — add sort + skip | push → dfs → pop |
+| [Combination Sum #39](https://leetcode.com/problems/combination-sum/) | Reuse allowed, target sum | push → dfs → pop (same index) |
 | [Combinations #77](https://leetcode.com/problems/combinations/) | Fixed size k — record only when `path.size()==k` | start index loop |
 | [Letter Case Permutation #784](https://leetcode.com/problems/letter-case-permutation/) | String index instead of array | push → dfs → pop |
 

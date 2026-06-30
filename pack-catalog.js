@@ -23,6 +23,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'starter-pack-progress',
     startBtnId: 'starter-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'starter-roadmap',
   },
   {
     id: 'recursion',
@@ -43,6 +45,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'recursion-pack-progress',
     startBtnId: 'recursion-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'recursion-roadmap',
   },
   {
     id: 'trees',
@@ -63,6 +67,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'trees-pack-progress',
     startBtnId: 'trees-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'trees-roadmap',
   },
   {
     id: 'graphs',
@@ -83,6 +89,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'graphs-pack-progress',
     startBtnId: 'graphs-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'graphs-roadmap',
   },
   {
     id: 'dynamic-programming',
@@ -103,6 +111,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'dynamic-programming-pack-progress',
     startBtnId: 'dp-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'dp-roadmap',
   },
   {
     id: 'arrays-strings',
@@ -123,6 +133,8 @@ export const PACK_CATALOG = Object.freeze([
     price: '$12',
     progressId: 'arrays-pack-progress',
     startBtnId: 'arrays-strings-start',
+    hasRoadmap: true,
+    roadmapBtnId: 'arrays-strings-roadmap',
   },
 ]);
 

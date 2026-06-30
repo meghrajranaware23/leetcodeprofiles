@@ -94,7 +94,7 @@ If stuck: on the 3-node tree above, you go left to 9, record 9, back to 3, recor
 |---|---|---|
 | [Validate Binary Search Tree #98](https://leetcode.com/problems/validate-binary-search-tree/) | Check inorder is strictly increasing | Inorder visit order |
 | [Kth Smallest Element in a BST #230](https://leetcode.com/problems/kth-smallest-element-in-a-bst/) | Stop at kth record | Inorder with counter |
-| [Binary Tree Preorder Traversal #144](https://leetcode.com/problems/binary-tree-preorder-traversal/) | Record **before** children | Same tree, different order |
+| [Binary Tree Postorder Traversal #145](https://leetcode.com/problems/binary-tree-postorder-traversal/) | Record **after** children | Same tree, different order |
 
 Same DFS frame — only the record line moves.
 

@@ -79,7 +79,7 @@ Compare lowercase versions of characters at the left and right pointers after sk
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
 | [Valid Palindrome II #680](https://leetcode.com/problems/valid-palindrome-ii/) | Allow one character removal | Two pointers + one allowed skip |
-| [Reverse String #344](https://leetcode.com/problems/reverse-string/) | Swap instead of compare | Two pointers converging |
+| [Two Sum II #167](https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/) | Sum instead of compare | Two pointers converging inward |
 | [Reverse Vowels of a String #345](https://leetcode.com/problems/reverse-vowels-of-a-string/) | Skip non-vowels, swap vowels | Two pointers + skip logic |
 
 Master the skip-and-compare skeleton here — it appears in harder palindrome variants.

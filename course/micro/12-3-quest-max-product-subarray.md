@@ -88,10 +88,9 @@ At each element, compute three candidates: extend max, extend min, restart. Upda
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Maximum Product Subarray #152](https://leetcode.com/problems/maximum-product-subarray/) | Product, sign flips | Kadane's min + max |
-| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Sum only | Kadane's max only |
-| [Maximum Swap #670](https://leetcode.com/problems/maximum-swap/) | Single swap allowed | Different pattern — not Kadane's |
-| [Sign of the Product of an Array #1822](https://leetcode.com/problems/sign-of-the-product-of-an-array/) | Count negatives/zeros | Related sign logic, simpler |
+| [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | Profit from prices | Running min + extend-or-restart logic |
+| [Maximum Sum Circular Subarray #918](https://leetcode.com/problems/maximum-sum-circular-subarray/) | Circular wrap-around | Kadane's + total-sum trick |
+| [Maximum Absolute Sum of Any Subarray #1749](https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/) | Max of abs(sum) | Kadane's on both max and min |
 
 When the operation is **addition**, track one running value. When it's **multiplication with negatives**, track two.
 

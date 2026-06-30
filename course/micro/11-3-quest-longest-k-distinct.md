@@ -1,6 +1,6 @@
-# ⚔ Quest: Longest Substring with At Most K Distinct Characters
+# ⚔ Quest: Fruit Into Baskets
 
-> **Day 11** · [Longest Substring with At Most K Distinct Characters #340](https://leetcode.com/problems/longest-substring-with-at-most-k-distinct-characters/) · Medium · 25 XP · 20 min
+> **Day 11** · [Fruit Into Baskets #904](https://leetcode.com/problems/fruit-into-baskets/) · Medium · 25 XP · 20 min
 
 ---
 
@@ -8,7 +8,7 @@
 
 Open the problem on LeetCode and attempt it **before** reading hints or solutions.
 
-**[→ Open Longest Substring with At Most K Distinct Characters on LeetCode](https://leetcode.com/problems/longest-substring-with-at-most-k-distinct-characters/)**
+**[→ Open Fruit Into Baskets on LeetCode](https://leetcode.com/problems/fruit-into-baskets/)**
 
 > ⚔ **Hunter's rule:** Spend at least 5 minutes with pen, paper, or your editor. The hints and walkthrough below are for *after* your attempt.
 
@@ -16,23 +16,27 @@ Open the problem on LeetCode and attempt it **before** reading hints or solution
 
 ## The Problem
 
-Given a string `s` and an integer `k`, return the length of the **longest substring** that contains **at most `k` distinct** characters.
+You are visiting a farm with a row of fruit trees. Each tree produces one type of fruit (represented as an integer). You have **two baskets**, and each basket can only hold **one type** of fruit.
+
+Starting from any tree, you pick exactly one fruit per tree moving right. You stop when you encounter a third type that won't fit in either basket.
+
+Return the **maximum number of fruits** you can pick.
 
 ```
-Input:  s = "eceba", k = 2
+Input:  fruits = [1,2,1]
 Output: 3
-        ("ece")
+        (Pick all — types {1,2} fit in 2 baskets)
 
-Input:  s = "aa", k = 1
-Output: 2
-        ("aa")
+Input:  fruits = [0,1,2,2]
+Output: 3
+        (Pick [1,2,2] — types {1,2}. Starting at [0,1,2,2] would need 3 baskets)
 
-Input:  s = "aabbcc", k = 1
-Output: 2
-        ("aa" or "bb" or "cc")
+Input:  fruits = [1,2,3,2,2]
+Output: 4
+        (Pick [2,3,2,2] — types {2,3})
 ```
 
-Note: This is a LeetCode Premium problem. The same pattern appears in [Fruit Into Baskets #904](https://leetcode.com/problems/fruit-into-baskets/) (at most 2 distinct) and [Longest Repeating Character Replacement #424](https://leetcode.com/problems/longest-repeating-character-replacement/) (budget variant).
+This is the **distinct-budget pattern with k = 2** — longest contiguous subarray with at most 2 distinct values. Same skeleton as "at most k distinct characters," but on an integer array.
 
 ---
 
@@ -40,33 +44,33 @@ Note: This is a LeetCode Premium problem. The same pattern appears in [Fruit Int
 
 This is a **variable sliding window** with a **frequency map** as window state — the C-Rank upgrade from Day 10's hash set.
 
-Expand `right` and add `s[right]` to the map. When `len(map) > k`, shrink from the left until at most k distinct characters remain. Track maximum window length.
+Expand `right` and add `fruits[right]` to the map. When `len(map) > 2`, shrink from the left until at most 2 fruit types remain. Track maximum window length.
 
-**Critical:** When decrementing a count to zero, **remove the key** from the map. Otherwise `len(map)` overcounts distinct characters.
+**Critical:** When decrementing a count to zero, **remove the key** from the map. Otherwise `len(map)` overcounts distinct types.
 
 ---
 
 ## 🔍 Pattern Recognition Breakdown
 
-**Pattern used:** Variable Sliding Window + Hash Map (Distinct Budget)
+**Pattern used:** Variable Sliding Window + Hash Map (Distinct Budget, k = 2)
 
 **How to identify this from the problem statement:**
-- "longest substring" → variable window, maximize length
-- "at most k distinct" → budget on unique character types
-- shrink **when invalid** (distinct > k), not while valid
+- "maximum number of fruits" → variable window, maximize length
+- "two baskets" / "two types" → budget on distinct types (`len(map) ≤ 2`)
+- shrink **when invalid** (distinct > 2), not while valid
 
 | Keyword / phrase | What it signals |
 |---|---|
-| "longest substring" / "maximum length" | Variable window, track max |
-| "at most k distinct" / "at most two types" | `len(map) ≤ k` validity check |
-| "contiguous characters" | Two pointers, not sorting |
-| "fruit into baskets" (k = 2) | Same pattern, different story |
+| "maximum fruits" / "longest subarray" | Variable window, track max |
+| "two baskets" / "at most two types" | `len(map) ≤ 2` validity check |
+| "contiguous" / "moving right" | Two pointers, not sorting |
+| "stop when third type" | Shrink when `len(map) > 2` |
 
 **Why this pattern works:** The map holds exact counts for `[left..right]`. Distinct count = number of keys (with zero-count keys removed). Expand until budget breaks, shrink until valid, record max length at each valid state.
 
 **How a strong solver thinks before coding:**
-1. *"Longest + at most k distinct → variable window + map."*
-2. *"Distinct = len(map). Shrink when len(map) > k."*
+1. *"Maximum contiguous + at most 2 types → variable window + map."*
+2. *"Distinct = len(map). Shrink when len(map) > 2."*
 3. *"Erase key when count hits zero — same rule as today's concept."*
 
 ---
@@ -75,12 +79,12 @@ Expand `right` and add `s[right]` to the map. When `len(map) > k`, shrink from t
 
 | Approach | Problem |
 |---|---|
-| **Check every substring [i..j], count distinct with a set** | O(n² × alphabet) — too slow for n = 10⁵ |
+| **Check every subarray [i..j], count distinct with a set** | O(n²) — too slow for n = 10⁵ |
 | **Sliding window without removing zero-count keys** | `len(map)` stays inflated → never shrinks correctly |
-| **Hash set instead of map** | Can't distinguish "one 'a'" from "three 'a's" — but more importantly, set size ≠ distinct when you forget to remove |
+| **Hash set instead of map** | Can't track when a type fully exits the window |
 | **Fixed window** | Optimal length is unknown — window must grow and shrink |
 
-**The insight brute force misses:** Only `s[right]` enters and `s[left]` exits per step. Maintain distinct count incrementally — O(1) per pointer move.
+**The insight brute force misses:** Only `fruits[right]` enters and `fruits[left]` exits per step. Maintain distinct count incrementally — O(1) per pointer move.
 
 ---
 
@@ -88,42 +92,44 @@ Expand `right` and add `s[right]` to the map. When `len(map) > k`, shrink from t
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Longest Substring with At Most K Distinct #340](https://leetcode.com/problems/longest-substring-with-at-most-k-distinct-characters/) | General k | Window + map, shrink when distinct > k |
-| [Fruit Into Baskets #904](https://leetcode.com/problems/fruit-into-baskets/) | k = 2, array not string | Identical skeleton |
-| [Longest Repeating Character Replacement #424](https://leetcode.com/problems/longest-repeating-character-replacement/) | Budget on replacements, not distinct | Window + frequency, different validity formula |
-| [Subarrays with K Different Integers #992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | Exactly k distinct | Window + map with count-of-windows trick (Hard) |
+| [Longest Repeating Character Replacement #424](https://leetcode.com/problems/longest-repeating-character-replacement/) | Budget on replacements, not distinct types | Window + frequency map, different validity formula |
+| [Subarrays with K Different Integers #992](https://leetcode.com/problems/subarrays-with-k-different-integers/) | Exactly k distinct (count trick) | Window + map with atMost(k) − atMost(k−1) |
+| [Longest Substring Without Repeating Characters #3](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | All unique (k = alphabet) | Day 10 — same variable window, set instead of map |
 
-Fruit Into Baskets (#904) is this exact problem with `k = 2` and an array instead of a string.
+The distinct-budget skeleton is the same across all of these — only the **validity rule** and **answer aggregation** change.
 
 ---
 
 ## 📖 Walkthrough
 
 ```
-s = "eceba",  k = 2
+fruits = [1,2,3,2,2],  baskets = 2
 
-right=0 'e': map={e:1}           distinct=1  len=1  max=1
-right=1 'c': map={e:1,c:1}       distinct=2  len=2  max=2
-right=2 'e': map={e:2,c:1}       distinct=2  len=3  max=3
-right=3 'b': map={e:2,c:1,b:1}   distinct=3  → INVALID (> 2), shrink
-  left=1 remove 'e': map={e:1,c:1,b:1}  distinct=3  shrink
-  left=2 remove 'c': map={e:1,b:1}      distinct=2  len=2  max=3
-right=4 'a': map={e:1,b:1,a:1}   distinct=3  → shrink
-  left=3 remove 'b': map={e:1,a:1}      distinct=2  len=2  max=3
+right=0  1: map={1:1}         distinct=1  len=1  max=1
+right=1  2: map={1:1,2:1}     distinct=2  len=2  max=2
+right=2  3: map={1:1,2:1,3:1} distinct=3  → INVALID (> 2), shrink
+  left=0 remove 1: map={2:1,3:1}    count[1]=0 → erase key
+                                     distinct=2  len=2  max=2
+right=3  2: map={2:2,3:1}     distinct=2  len=3  max=3
+right=4  2: map={2:3,3:1}     distinct=2  len=4  max=4
 
-max = 3  ("ece") ✓
+max = 4  ([2,3,2,2]) ✓
 ```
 
 ```
-s = "aa",  k = 1
+fruits = [0,1,2,2],  baskets = 2
 
-right=0 'a': map={a:1}  distinct=1  len=1  max=1
-right=1 'a': map={a:2}  distinct=1  len=2  max=2
+right=0  0: map={0:1}         distinct=1  len=1  max=1
+right=1  1: map={0:1,1:1}     distinct=2  len=2  max=2
+right=2  2: map={0:1,1:1,2:1} distinct=3  → INVALID, shrink
+  left=0 remove 0: map={1:1,2:1}    count[0]=0 → erase key
+                                     distinct=2  len=2  max=2
+right=3  2: map={1:1,2:2}     distinct=2  len=3  max=3
 
-max = 2 ✓
+max = 3  ([1,2,2]) ✓
 ```
 
-> 💡 **The insight:** Longest valid window → shrink **when invalid** (distinct > k). Same shrink direction as Longest Substring Without Repeating Characters (Day 10), but validity uses map size instead of set membership.
+> 💡 **The insight:** Longest valid window → shrink **when invalid** (distinct > 2). Same shrink direction as Longest Substring Without Repeating Characters (Day 10), but validity uses map size instead of set membership.
 
 ---
 
@@ -133,18 +139,16 @@ max = 2 ✓
 ```cpp
 class Solution {
 public:
-    int lengthOfLongestSubstringKDistinct(string s, int k) {
-        if (k == 0) return 0;
-
-        unordered_map<char, int> freq;
+    int totalFruit(vector<int>& fruits) {
+        unordered_map<int, int> freq;
         int left = 0, maxLen = 0;
 
-        for (int right = 0; right < (int)s.size(); right++) {
-            freq[s[right]]++;                              // EXPAND
+        for (int right = 0; right < (int)fruits.size(); right++) {
+            freq[fruits[right]]++;                         // EXPAND
 
-            while ((int)freq.size() > k) {                 // SHRINK when invalid
-                freq[s[left]]--;
-                if (freq[s[left]] == 0) freq.erase(s[left]);
+            while ((int)freq.size() > 2) {                 // SHRINK when invalid
+                freq[fruits[left]]--;
+                if (freq[fruits[left]] == 0) freq.erase(fruits[left]);
                 left++;
             }
 
@@ -158,20 +162,17 @@ public:
 ### Python
 ```python
 class Solution:
-    def lengthOfLongestSubstringKDistinct(self, s: str, k: int) -> int:
-        if k == 0:
-            return 0
-
+    def totalFruit(self, fruits: list[int]) -> int:
         freq = {}
         left = max_len = 0
 
-        for right in range(len(s)):
-            freq[s[right]] = freq.get(s[right], 0) + 1   # EXPAND
+        for right in range(len(fruits)):
+            freq[fruits[right]] = freq.get(fruits[right], 0) + 1  # EXPAND
 
-            while len(freq) > k:                            # SHRINK when invalid
-                freq[s[left]] -= 1
-                if freq[s[left]] == 0:
-                    del freq[s[left]]
+            while len(freq) > 2:                                   # SHRINK when invalid
+                freq[fruits[left]] -= 1
+                if freq[fruits[left]] == 0:
+                    del freq[fruits[left]]
                 left += 1
 
             max_len = max(max_len, right - left + 1)
@@ -182,19 +183,17 @@ class Solution:
 ### Java
 ```java
 class Solution {
-    public int lengthOfLongestSubstringKDistinct(String s, int k) {
-        if (k == 0) return 0;
-
-        Map<Character, Integer> freq = new HashMap<>();
+    public int totalFruit(int[] fruits) {
+        Map<Integer, Integer> freq = new HashMap<>();
         int left = 0, maxLen = 0;
 
-        for (int right = 0; right < s.length(); right++) {
-            freq.merge(s.charAt(right), 1, Integer::sum);  // EXPAND
+        for (int right = 0; right < fruits.length; right++) {
+            freq.merge(fruits[right], 1, Integer::sum);    // EXPAND
 
-            while (freq.size() > k) {                      // SHRINK when invalid
-                char c = s.charAt(left);
-                freq.put(c, freq.get(c) - 1);
-                if (freq.get(c) == 0) freq.remove(c);
+            while (freq.size() > 2) {                      // SHRINK when invalid
+                int f = fruits[left];
+                freq.put(f, freq.get(f) - 1);
+                if (freq.get(f) == 0) freq.remove(f);
                 left++;
             }
 
@@ -205,7 +204,7 @@ class Solution {
 }
 ```
 
-**Complexity:** O(n) time · O(k) space (at most k+1 keys in map)
+**Complexity:** O(n) time · O(1) space (at most 3 keys in map during shrink)
 
 ---
 
@@ -213,12 +212,12 @@ class Solution {
 
 Before you opened your editor, these thoughts should have fired:
 
-- **"Longest substring, at most k distinct"** → Variable window + hash map. Day 10 skeleton, Day 11 state.
+- **"Two baskets, maximum fruits"** → At most 2 distinct types → variable window + hash map. Day 10 skeleton, Day 11 state.
 - **"Distinct"** → Count keys in map, not values. Erase at zero.
 - **Shrink when invalid** → Opposite of Minimum Subarray Sum (Day 10). Same as Longest Substring Without Repeating.
-- **Fruit Into Baskets** → Same pattern with k = 2 — if you've seen #904, you already know this.
+- **"At most k distinct" generalization** → Replace `2` with `k` and you have the general template for any distinct-budget problem.
 
-If you counted distinct characters by scanning the whole window each step, you found O(n²). The signal was "at most k distinct" — map tracks the inventory, pointers do the rest.
+If you iterated every subarray counting distinct types, you found O(n²). The signal was "at most 2 types" — map tracks the inventory, pointers do the rest.
 
 > 🎯 **Pattern Combo Mastered:** Variable window + frequency map for budget constraints. The map replaces the set whenever counts or distinct types matter.
 

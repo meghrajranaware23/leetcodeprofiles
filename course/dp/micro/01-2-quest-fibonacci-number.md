@@ -86,9 +86,9 @@ Naive tree (n=5):          Tabulation:
 
 | Problem | What changes | Pattern stays |
 |---|---|---|
-| Climbing Stairs #70 (Day 2) | Count ways, not Fib value | Same recurrence, different meaning |
-| N-th Tribonacci #1137 (next quest) | Three-term sum | k=3 recurrence |
-| Min Cost Climbing Stairs #746 | Add min + cost array | Recurrence + optimization |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | Count ways, not Fib value | Same recurrence, different meaning |
+| [Pascal's Triangle #118](https://leetcode.com/problems/pascals-triangle/) | Each cell = sum of two above | Same sum-of-prior recurrence |
+| [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | Add min + cost array | Recurrence + optimization |
 
 ---
 

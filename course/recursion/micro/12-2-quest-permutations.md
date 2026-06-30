@@ -82,7 +82,7 @@ Output: [[1]]
 
 | Problem | What changes |
 |---|---|
-| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Duplicates — sort + skip |
+| [Letter Combinations of a Phone Number #17](https://leetcode.com/problems/letter-combinations-of-a-phone-number/) | Branching per digit — same backtracking |
 | [Next Permutation #31](https://leetcode.com/problems/next-permutation/) | Single next, not all — different algo |
 | [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | Add divisibility constraint in loop |
 

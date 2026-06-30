@@ -747,7 +747,7 @@ export const COURSE_LESSONS = [
   },
   {
     id: '11-3',
-    title: 'Quest: Longest K Distinct',
+    title: 'Quest: Fruit Into Baskets',
     rank: 'c',
     day: 11,
     dayTitle: 'Sliding Window + Hash Map',

@@ -79,9 +79,9 @@ Unique states: n+1 values. Naive tree: exponential nodes.
 
 | Problem | k | Transition |
 |---|---|---|
-| Fibonacci #509 | 2 | dp[i-1] + dp[i-2] |
-| **Tribonacci #1137** | **3** | **dp[i-1] + dp[i-2] + dp[i-3]** |
-| Climbing Stairs #70 | 2 | ways[i-1] + ways[i-2] (count, not sum of values) |
+| [Pascal's Triangle II #119](https://leetcode.com/problems/pascals-triangle-ii/) | 2 | C(n,k) = C(n-1,k-1) + C(n-1,k) |
+| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | 2 | ways[i-1] + ways[i-2] (count, not sum of values) |
+| [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | 2 | cost[i] + min(dp[i-1], dp[i-2]) |
 
 The **shape** of the recurrence is the pattern — meaning of dp[i] changes per problem.
 

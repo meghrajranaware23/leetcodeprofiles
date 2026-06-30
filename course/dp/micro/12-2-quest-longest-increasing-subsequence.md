@@ -80,7 +80,7 @@ All subsequences O(2^n)  vs  dp[i] filled once O(n²) or tails O(n log n)
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Number of LIS #673](https://leetcode.com/problems/number-of-longest-increasing-subsequence/) | Count ways at max length | `len` + `cnt` arrays — next quest |
+| [Longest String Chain #1048](https://leetcode.com/problems/longest-string-chain/) | Sort by word length, check predecessor | Same `dp[i] = max(dp[j]+1)` with custom check |
 | [Wiggle Subsequence #376](https://leetcode.com/problems/wiggle-subsequence/) | Up/down alternation | Day 16 — directional variant |
 | [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) | Sort by end, chain on start | Day 16 — interval LIS cousin |
 

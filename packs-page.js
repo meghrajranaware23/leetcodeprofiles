@@ -3,6 +3,11 @@ import { guardPage } from './auth/auth-guard.js';
 import { redirectLegacyPaths, ROUTES } from './routes.js';
 import { hydrateFeaturedPack } from './hunter-hq.js';
 
+function getRoadmapButtonLabel(pack) {
+  const match = pack.duration?.match(/^(\d+)/);
+  return match ? `View ${match[1]}-Day Plan` : 'View 30-Day Plan';
+}
+
 export function renderPackCard(pack, { featured = false } = {}) {
   const badgeClass = pack.badgeStyle === 'live'
     ? 'pack-badge pack-badge-live'
@@ -28,6 +33,12 @@ export function renderPackCard(pack, { featured = false } = {}) {
   const statsHtml = pack.stats.map(s => `<span class="pack-stat">${s}</span>`).join('');
   const langsHtml = pack.pills.map(p => `<span class="lang-pill">${p}</span>`).join('');
   const ctaHtml = `<a href="${pack.readerUrl}" class="pack-btn pack-btn--full" id="${pack.startBtnId}">${getPackCtaLabel(pack)}</a>`;
+  const roadmapHtml = pack.hasRoadmap
+    ? `<button type="button" class="pack-btn pack-btn--outline pack-btn--full" id="${pack.roadmapBtnId}" data-roadmap-pack="${pack.id}">${getRoadmapButtonLabel(pack)}</button>`
+    : '';
+  const bottomClass = pack.hasRoadmap
+    ? 'pack-bottom pack-bottom--cta-only pack-bottom--stacked'
+    : 'pack-bottom pack-bottom--cta-only';
 
   if (featured) {
     return `
@@ -51,8 +62,9 @@ export function renderPackCard(pack, { featured = false } = {}) {
             </div>
             ${progressHtml}
           </div>
-          <div class="pack-featured-action">
+          <div class="pack-featured-action${pack.hasRoadmap ? ' pack-featured-action--stacked' : ''}">
             ${ctaHtml}
+            ${roadmapHtml}
           </div>
         </div>
       </div>
@@ -78,8 +90,9 @@ export function renderPackCard(pack, { featured = false } = {}) {
         ${langsHtml}
       </div>
       ${progressHtml}
-      <div class="pack-bottom pack-bottom--cta-only">
+      <div class="${bottomClass}">
         ${ctaHtml}
+        ${roadmapHtml}
       </div>
     </div>
   `;

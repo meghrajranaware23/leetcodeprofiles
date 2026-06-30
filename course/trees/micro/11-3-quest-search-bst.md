@@ -76,7 +76,7 @@ If you're stuck after 5 minutes: this is array binary search with pointers. `val
 |---|---|---|
 | [Insert into BST #701](https://leetcode.com/problems/insert-into-a-binary-search-tree/) | Walk to null, attach new node | Same left/right decision |
 | [Delete Node in BST #450](https://leetcode.com/problems/delete-node-in-a-bst/) | Day 12 — find then restructure | Search phase identical |
-| [Closest BST Value #272](https://leetcode.com/problems/closest-binary-search-tree-value/) | Track best so far while walking | Same prune direction |
+| [Two Sum IV - Input is a BST #653](https://leetcode.com/problems/two-sum-iv-input-is-a-bst/) | Search for `target − node` while walking | Same left/right prune per comparison |
 
 Same skeleton: compare at root, go one way.
 

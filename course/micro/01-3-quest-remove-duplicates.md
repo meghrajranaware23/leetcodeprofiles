@@ -78,7 +78,7 @@ The write pointer should only advance when you see a *new* value — compare `nu
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Move Zeroes #283](https://leetcode.com/problems/move-zeroes/) | Keep non-zeros | Read-write with condition |
+| [Merge Sorted Array #88](https://leetcode.com/problems/merge-sorted-array/) | Write pointer fills from back | In-place write pointer with condition |
 | [Remove Element #27](https://leetcode.com/problems/remove-element/) | Keep when `!= val` | Read-write with condition |
 | [Remove Duplicates II #80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) | Allow at most 2 copies | Read-write + compare `nums[write-1]` |
 

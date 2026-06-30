@@ -85,9 +85,9 @@ Example output: 15 ✓
 
 | Problem | Combine with | Transition |
 |---|---|---|
-| Climbing Stairs #70 | **sum** | ways[i-1]+ways[i-2] |
-| **Min Cost Climbing #746** | **min** | cost[i]+min(dp[i-1],dp[i-2]) |
-| House Robber (later) | max | max(take, skip) — Day 5 cousin |
+| [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) | **sum** | dp[i-1]+dp[i-2] |
+| [House Robber #198](https://leetcode.com/problems/house-robber/) | **max** | max(dp[i-1], dp[i-2]+nums[i]) |
+| [Pascal's Triangle #118](https://leetcode.com/problems/pascals-triangle/) | **sum** | cell = sum of two prior values |
 
 ---
 

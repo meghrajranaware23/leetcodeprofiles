@@ -77,7 +77,7 @@ If you're stuck after 5 minutes: trace row 1 of the LeetCode example. For each c
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Unique Paths II #63](https://leetcode.com/problems/unique-paths-ii/) | Sum parents, two directions | Grid DP rolling row |
+| [Maximal Square #221](https://leetcode.com/problems/maximal-square/) | Min of three neighbors + 1 | Grid DP rolling row |
 | [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) | Right+down only, two parents | Min grid DP |
 | [Cherry Pickup #741](https://leetcode.com/problems/cherry-pickup/) | Two walkers, 3D state | Column-choice variant |
 

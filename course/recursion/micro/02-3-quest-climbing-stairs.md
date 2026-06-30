@@ -93,7 +93,7 @@ If you're stuck after 5 minutes: write `ways(n) = ways(n-1) + ways(n-2)`. Base: 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) | Sequence definition | Identical recurrence, different story |
+| [N-th Tribonacci Number #1137](https://leetcode.com/problems/n-th-tribonacci-number/) | Three-step staircase | Same recurrence, one extra term |
 | [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | Min cost, not count | Still choose step 1 or 2 from below |
 | [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Digit constraints | Count splits from current position |
 | [House Robber #198](https://leetcode.com/problems/house-robber/) | Skip-adjacent max sum | 1D DP flavor — next week in this pack |

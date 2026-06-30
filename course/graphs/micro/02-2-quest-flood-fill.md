@@ -90,9 +90,9 @@ Which pattern from today's concept applies? **Grid traversal on `(r,c)`** — 4-
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Number of Islands #200 (Day 4) | Count components, start from each `1` | Same 4-dir flood, different goal |
-| Max Area of Island #695 (Day 5) | Accumulate area during flood | Same walk + counter |
-| Rotting Oranges #994 (next quest) | BFS batch for time, not recolor | Same `(r,c)` neighbor loop |
+| [Number of Islands #200](https://leetcode.com/problems/number-of-islands/) | Count components, start from each `1` | Same 4-dir flood, different goal |
+| [Max Area of Island #695](https://leetcode.com/problems/max-area-of-island/) | Accumulate area during flood | Same walk + counter |
+| [Island Perimeter #463](https://leetcode.com/problems/island-perimeter/) | Count border edges instead of recolor | Same 4-dir neighbor check |
 
 Same grid skeleton: bounds → check condition → mark → expand 4 ways.
 

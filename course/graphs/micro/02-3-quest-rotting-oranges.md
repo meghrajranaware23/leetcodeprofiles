@@ -94,9 +94,9 @@ Which pattern from today's concept applies? **Multi-source BFS with level timeli
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Trees Level Order #102 | Tree children instead of grid | `len(q)` batch |
-| Walls and Gates (premium) | Multi-source BFS from gates | Same init-all-sources |
-| 01 Matrix (later) | Distance to nearest 0 | Multi-source BFS levels |
+| [Binary Tree Level Order Traversal #102](https://leetcode.com/problems/binary-tree-level-order-traversal/) | Tree children instead of grid | `len(q)` batch |
+| [As Far from Land as Possible #1162](https://leetcode.com/problems/as-far-from-land-as-possible/) | Multi-source BFS from all land cells | Same init-all-sources |
+| [01 Matrix #542](https://leetcode.com/problems/01-matrix/) | Distance to nearest 0 | Multi-source BFS levels |
 
 Trees Day 3 taught the batch skeleton; this quest applies it to **grid time**.
 

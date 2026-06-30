@@ -94,7 +94,7 @@ If stuck: compare to inorder on the same tree — inorder gave [9,3,15,20,7]. Pr
 |---|---|---|
 | [Construct Binary Tree from Preorder and Inorder #105](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/) | First preorder val = root; split inorder | Preorder identifies root |
 | [Serialize and Deserialize BST #449](https://leetcode.com/problems/serialize-and-deserialize-bst/) | Add markers | Preorder walk |
-| [Binary Tree Inorder Traversal #94](https://leetcode.com/problems/binary-tree-inorder-traversal/) | Record between children | Same tree, different order |
+| [Same Tree #100](https://leetcode.com/problems/same-tree/) | Compare two trees node-by-node | Preorder visit drives equality check |
 
 Same frame — record moves to the top.
 

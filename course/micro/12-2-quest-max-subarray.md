@@ -90,8 +90,7 @@ Initialize `globalMax` to `nums[0]` — the answer can be negative if all elemen
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Maximum Subarray #53](https://leetcode.com/problems/maximum-subarray/) | Return max sum | Pure Kadane's |
-| [Maximum Product Subarray #152](https://leetcode.com/problems/maximum-product-subarray/) | Product, sign flips | Kadane's with min + max |
+| [Maximum Absolute Sum of Any Subarray #1749](https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/) | Max of abs(sum) | Kadane's on both max and min |
 | [Maximum Sum Circular Subarray #918](https://leetcode.com/problems/maximum-sum-circular-subarray/) | Circular wrap-around | Kadane's + total-sum trick |
 | [Best Time to Buy and Sell Stock #121](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | Profit, not sum | Running min + max diff |
 

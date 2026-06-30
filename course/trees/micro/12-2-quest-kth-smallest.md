@@ -76,7 +76,7 @@ If you're stuck after 5 minutes: iterative version — push all left nodes, pop 
 |---|---|---|
 | [Binary Search Tree Iterator #173](https://leetcode.com/problems/binary-search-tree-iterator/) | C-Rank test — lazy one-at-a-time | Stack of left spines |
 | [Kth Largest in Stream #703](https://leetcode.com/problems/kth-largest-element-in-a-stream/) | Not a tree — heap | Different structure, same "kth order" idea |
-| [Inorder Successor in BST #285](https://leetcode.com/problems/inorder-successor-in-bst/) | Find next after one node | Inorder / successor walk |
+| [Minimum Absolute Difference in BST #530](https://leetcode.com/problems/minimum-absolute-difference-in-bst/) | Track best on consecutive inorder visits | Same left-visit-right walk |
 
 Same skeleton: inorder order unlocks rank queries.
 

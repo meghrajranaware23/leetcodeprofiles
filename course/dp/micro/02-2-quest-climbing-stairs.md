@@ -83,10 +83,9 @@ ways(4)  ways(3)×2              ways(3) second call → 3 ✓
 
 | Problem | dp[i] meaning | Recurrence |
 |---|---|---|
-| Fibonacci #509 | i-th Fib **value** | dp[i-1]+dp[i-2] |
-| **Climbing Stairs #70** | **ways to step i** | **same formula** |
-| Min Cost Climbing #746 | min cost to step i | min + cost (next quest) |
-| Decode Ways (later ranks) | ways with 1/2 digit | similar counting |
+| [Fibonacci Number #509](https://leetcode.com/problems/fibonacci-number/) | i-th Fib **value** | dp[i-1]+dp[i-2] |
+| [N-th Tribonacci Number #1137](https://leetcode.com/problems/n-th-tribonacci-number/) | 3-step variant | dp[i-1]+dp[i-2]+dp[i-3] |
+| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | ways with 1/2 digit | similar counting |
 
 ---
 

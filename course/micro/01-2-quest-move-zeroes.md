@@ -75,7 +75,7 @@ If you're stuck after 5 minutes: the write pointer marks where the next non-zero
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
 | [Remove Element #27](https://leetcode.com/problems/remove-element/) | Keep when `!= val` | Read-write with condition |
-| [Remove Duplicates #26](https://leetcode.com/problems/remove-duplicates-from-sorted-array/) | Keep when value changes | Read-write + adjacent compare |
+| [Remove Duplicates II #80](https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/) | Allow at most 2 copies | Read-write + adjacent compare |
 | [Sort Colors #75](https://leetcode.com/problems/sort-colors/) | Three groups (D-Rank) | Read-write variant (Dutch flag) |
 
 If you recognized Move Zeroes, you already have the skeleton for half of Day 1's practice queue.

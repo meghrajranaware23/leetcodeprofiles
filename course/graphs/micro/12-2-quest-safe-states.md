@@ -73,7 +73,7 @@ Alternative from Day 11: 3-color DFS — gray in cycle = unsafe. Reverse Kahn av
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
 | [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | Forward peel | Day 11 — indeg 0 |
-| [Find All Possible Recipes #2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | Forward with string nodes | Next quest |
+| [Keys and Rooms #841](https://leetcode.com/problems/keys-and-rooms/) | Forward BFS reachability | Same "which nodes are reachable" logic |
 | [Minimum Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Peel degree-1 leaves | Day 16 cousin |
 
 ---

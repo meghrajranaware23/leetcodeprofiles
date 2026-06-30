@@ -69,8 +69,8 @@ Same peel as Course Schedule #207. **Difference:** append each popped course to 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | Boolean only | Same peel, no recording |
-| [Sequence Reconstruction #444](https://leetcode.com/problems/sequence-reconstruction/) | Unique order check | Kahn + verify single choice |
+| [Minimum Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Peel degree-1 leaves inward | Same BFS boundary peel |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Answer depends on all quieter predecessors | Kahn + verify dependency chain |
 | [Find All Possible Recipes #2115](https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/) | String nodes, supplies as indeg-0 | Day 12 — same peel |
 
 ---

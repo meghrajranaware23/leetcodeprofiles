@@ -76,7 +76,7 @@ If you're stuck after 5 minutes: the trap tree is `5 → right child 4`. Node 4 
 |---|---|---|
 | [Recover Binary Search Tree #99](https://leetcode.com/problems/recover-binary-search-tree/) | Inorder finds two swapped nodes | Sorted order property of BST |
 | [Convert Sorted Array to BST #108](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/) | Build, not validate | BST ordering invariant |
-| Recursion pack Validate BST #98 | Helper-function framing | Identical `(lo, hi)` descent |
+| [Range Sum of BST #938](https://leetcode.com/problems/range-sum-of-bst/) | Sum nodes within `[lo, hi]` range | Same bounds-based pruning descent |
 
 Same skeleton: bounds down, boolean up.
 

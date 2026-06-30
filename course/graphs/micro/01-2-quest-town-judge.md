@@ -96,9 +96,9 @@ Which pattern from today's concept applies? **In-degree / out-degree counting** 
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| Course Schedule (in-degree preview) | Count prerequisites per course | in-degree array from edges |
-| Network Delay (later ranks) | Weighted edges | Still build structure from edge list first |
-| Find Eventual Safe States | Out-edges to follow | Directed degree / reachability hybrid |
+| [Find Center of Star Graph #1791](https://leetcode.com/problems/find-center-of-star-graph/) | Node with degree n-1 in undirected star | Degree counting from edge list |
+| [Course Schedule #207](https://leetcode.com/problems/course-schedule/) | In-degree array drives Kahn's peel (Day 11) | Build in-degree from edges, scan for zeros |
+| [Maximal Network Rank #1615](https://leetcode.com/problems/maximal-network-rank/) | Max combined degree of any node pair | Degree array from edges + scan pairs |
 
 Same Day 1 habit: read edges → update counters → scan for the answer.
 

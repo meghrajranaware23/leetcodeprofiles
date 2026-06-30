@@ -91,8 +91,8 @@ If stuck: you don't build a new tree. Swap pointers on the existing nodes.
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
 | [Symmetric Tree #101](https://leetcode.com/problems/symmetric-tree/) | Compare mirror pairs instead of swapping | Mirror thinking |
-| [Flip Binary Tree Upside Down #156](https://leetcode.com/problems/flip-binary-tree-upside-down/) | Different pointer rewiring | In-place DFS mutate |
-| [Invert Binary Tree #226](https://leetcode.com/problems/invert-binary-tree/) | Baseline swap | Recurse + swap |
+| [Flatten Binary Tree to Linked List #114](https://leetcode.com/problems/flatten-binary-tree-to-linked-list/) | Rewire children into linked list | In-place DFS mutate |
+| [Merge Two Binary Trees #617](https://leetcode.com/problems/merge-two-binary-trees/) | Combine two trees node-by-node | DFS mutate + trust recursion on children |
 
 Same skeleton: visit node, mutate locally, trust recursion on children.
 

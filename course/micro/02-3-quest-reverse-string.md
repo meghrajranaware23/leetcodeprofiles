@@ -76,7 +76,7 @@ Stop when the left pointer meets or crosses the right pointer.
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Valid Palindrome #125](https://leetcode.com/problems/valid-palindrome/) | Compare instead of swap | Two pointers converging |
+| [Reverse Vowels of a String #345](https://leetcode.com/problems/reverse-vowels-of-a-string/) | Skip non-vowels, swap vowels | Two pointers converging + skip |
 | [Reverse String II #541](https://leetcode.com/problems/reverse-string-ii/) | Reverse every 2k chars | Swap within sub-ranges |
 | [Reverse Words in a String III #557](https://leetcode.com/problems/reverse-words-in-a-string-iii/) | Reverse per word | Two pointers per segment |
 

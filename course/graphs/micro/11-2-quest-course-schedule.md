@@ -74,9 +74,9 @@ If stuck: build `indeg[]`, queue all courses with no prerequisites. Each pop fre
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Course Schedule II #210](https://leetcode.com/problems/course-schedule-ii/) | Return the order | Same peel, record queue pops |
-| [Alien Dictionary #269](https://leetcode.com/problems/alien-dictionary/) | Build graph from words | Kahn + cycle check |
-| [Parallel Courses #1136](https://leetcode.com/problems/parallel-courses/) | Count layers while peeling | Kahn with level tracking |
+| [Minimum Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Peel degree-1 leaves | Same BFS peel template |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Build graph from richer/poorer pairs | Kahn + propagate answers in topo order |
+| [Find Eventual Safe States #802](https://leetcode.com/problems/find-eventual-safe-states/) | Reverse peel from terminal nodes | Kahn with layer-by-layer peel |
 
 Same skeleton: in-degree table, queue of zeros, peel.
 

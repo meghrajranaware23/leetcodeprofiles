@@ -70,8 +70,8 @@ Map strings to graph nodes. For each recipe, count ingredients **not** already i
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
 | [Course Schedule II #210](https://leetcode.com/problems/course-schedule-ii/) | Integer nodes | Forward Kahn |
-| [Find Eventual Safe States #802](https://leetcode.com/problems/find-eventual-safe-states/) | Reverse peel | Previous quest |
-| [Design Twitter #355](https://leetcode.com/problems/design-twitter/) | Different domain | Feed ordering — not Kahn |
+| [Loud and Rich #851](https://leetcode.com/problems/loud-and-rich/) | Propagate answer via topo order | Forward topological walk |
+| [Minimum Height Trees #310](https://leetcode.com/problems/minimum-height-trees/) | Peel degree-1 leaves layer by layer | Same boundary-peel template |
 
 ---
 

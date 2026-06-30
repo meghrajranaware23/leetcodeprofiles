@@ -79,7 +79,7 @@ Same push/pop skeleton as Subsets (#78). Two additions:
 
 | Problem | What changes | Dedup rule |
 |---|---|---|
-| [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | Subsets + duplicates | `j > start && nums[j]==nums[j-1]` |
+| [Combinations #77](https://leetcode.com/problems/combinations/) | Fixed size k, no duplicates | Start-index loop, no skip guard — baseline |
 | [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | Target sum, single-use | Same skip between include/skip branches (Day 15) |
 | [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | Order matters, used[] | `!used[i-1]` variant (Day 12) |
 

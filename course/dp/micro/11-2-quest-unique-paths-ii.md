@@ -82,7 +82,7 @@ Grid DP: each cell once     → O(m·n)
 |---|---|---|
 | [Unique Paths #62](https://leetcode.com/problems/unique-paths/) | No obstacles | Day 7 — same rolling row |
 | [Minimum Path Sum #64](https://leetcode.com/problems/minimum-path-sum/) | `min` instead of `sum` | Grid DP, right+down |
-| [Minimum Falling Path Sum #931](https://leetcode.com/problems/minimum-falling-path-sum/) | Three parents above | Today's second quest |
+| [Triangle #120](https://leetcode.com/problems/triangle/) | Two diagonal parents above | Grid DP row-by-row, min path |
 
 ---
 

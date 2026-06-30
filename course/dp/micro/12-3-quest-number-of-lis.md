@@ -81,9 +81,9 @@ nums = [1,3,5,4,7]:
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Longest Increasing Subsequence #300](https://leetcode.com/problems/longest-increasing-subsequence/) | Length only | `len[i]` without `cnt` |
-| [Coin Change 2 #518](https://leetcode.com/problems/coin-change-2/) | Sum ways | Different state — counting DP |
-| [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | String partition count | 1D counting, not LIS |
+| [Wiggle Subsequence #376](https://leetcode.com/problems/wiggle-subsequence/) | Up/down alternation | Directional LIS variant with counting |
+| [Maximum Length of Pair Chain #646](https://leetcode.com/problems/maximum-length-of-pair-chain/) | Sort by end, chain on start | Same `dp[i] = max(dp[j]+1)` with pair comparison |
+| [Longest String Chain #1048](https://leetcode.com/problems/longest-string-chain/) | Sort by word length, check predecessor | LIS-style `dp[i] = max(dp[j]+1)` with custom comparison |
 
 ---
 

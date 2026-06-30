@@ -98,7 +98,7 @@ If you're stuck after 5 minutes: write the base case `n <= 1 → return n` first
 
 | Problem | What changes | Pattern stays the same |
 |---|---|---|
-| [Climbing Stairs #70](https://leetcode.com/problems/climbing-stairs/) | Count paths, base `n<=2` | Same `f(n-1)+f(n-2)` + memo |
+| [Pascal's Triangle #118](https://leetcode.com/problems/pascals-triangle/) | Each cell = sum of two above | Same "combine two prior values" recurrence |
 | [N-th Tribonacci Number #1137](https://leetcode.com/problems/n-th-tribonacci-number/) | Three-term sum | `f(n-1)+f(n-2)+f(n-3)` + memo |
 | [Min Cost Climbing Stairs #746](https://leetcode.com/problems/min-cost-climbing-stairs/) | Add cost per step | Same two-step structure, min instead of sum |
 | [Decode Ways #91](https://leetcode.com/problems/decode-ways/) | Constraint on digits | Two-way split from current index + memo |

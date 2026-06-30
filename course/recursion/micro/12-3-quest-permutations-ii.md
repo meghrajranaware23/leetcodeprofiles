@@ -77,7 +77,7 @@ Why different? Subsets track **position in array** (start index). Permutations t
 
 | Problem | Dedup variant |
 |---|---|
-| [Permutations II #47](https://leetcode.com/problems/permutations-ii/) | `!used[i-1]` |
+| [Beautiful Arrangement #526](https://leetcode.com/problems/beautiful-arrangement/) | `used[]` only, no dedup — count valid placements |
 | [Subsets II #90](https://leetcode.com/problems/subsets-ii/) | `j > start` (Day 11) |
 | [Combination Sum II #40](https://leetcode.com/problems/combination-sum-ii/) | while-loop skip (Day 15) |
 
