@@ -31,13 +31,19 @@ export async function createRazorpaySubscription({ planId, uid, planSlug }) {
   const client = getClient();
   const totalCount = RAZORPAY_TOTAL_COUNT[planSlug] || 120;
 
-  return client.subscriptions.create({
+  const payload = {
     plan_id: planId,
     total_count: totalCount,
     quantity: 1,
     customer_notify: 1,
     notes: { uid },
-  });
+  };
+
+  if (planSlug === PLAN_SLUGS.YEARLY) {
+    payload.start_at = Math.floor(Date.now() / 1000) + (3 * 24 * 60 * 60);
+  }
+
+  return client.subscriptions.create(payload);
 }
 
 export async function getRazorpaySubscription(subscriptionId) {
