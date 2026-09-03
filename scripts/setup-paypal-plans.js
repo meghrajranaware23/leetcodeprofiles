@@ -20,17 +20,17 @@ async function createProduct() {
   });
 }
 
-async function createPlan(productId, name, intervalUnit, price) {
+async function createMonthlyPlan(productId) {
   return paypalRequest('/v1/billing/plans', {
     method: 'POST',
     body: {
       product_id: productId,
-      name,
-      description: name,
+      name: 'Full Arsenal — Monthly',
+      description: 'Full Arsenal — Monthly',
       billing_cycles: [
         {
           frequency: {
-            interval_unit: intervalUnit,
+            interval_unit: 'MONTH',
             interval_count: 1,
           },
           tenure_type: 'REGULAR',
@@ -38,7 +38,55 @@ async function createPlan(productId, name, intervalUnit, price) {
           total_cycles: 0,
           pricing_scheme: {
             fixed_price: {
-              value: price,
+              value: '4.99',
+              currency_code: 'USD',
+            },
+          },
+        },
+      ],
+      payment_preferences: {
+        auto_bill_outstanding: true,
+        setup_fee_failure_action: 'CONTINUE',
+        payment_failure_threshold: 3,
+      },
+    },
+  });
+}
+
+async function createYearlyPlanWithTrial(productId) {
+  return paypalRequest('/v1/billing/plans', {
+    method: 'POST',
+    body: {
+      product_id: productId,
+      name: 'Full Arsenal — Yearly',
+      description: 'Full Arsenal — Yearly with 3-day free trial',
+      billing_cycles: [
+        {
+          frequency: {
+            interval_unit: 'DAY',
+            interval_count: 3,
+          },
+          tenure_type: 'TRIAL',
+          sequence: 1,
+          total_cycles: 1,
+          pricing_scheme: {
+            fixed_price: {
+              value: '0',
+              currency_code: 'USD',
+            },
+          },
+        },
+        {
+          frequency: {
+            interval_unit: 'YEAR',
+            interval_count: 1,
+          },
+          tenure_type: 'REGULAR',
+          sequence: 2,
+          total_cycles: 0,
+          pricing_scheme: {
+            fixed_price: {
+              value: '29.99',
               currency_code: 'USD',
             },
           },
@@ -60,20 +108,10 @@ async function main() {
   const product = await createProduct();
   console.log('Product ID:', product.id);
 
-  const monthly = await createPlan(
-    product.id,
-    'Full Arsenal — Monthly',
-    'MONTH',
-    '4.99'
-  );
+  const monthly = await createMonthlyPlan(product.id);
   console.log('Monthly Plan ID:', monthly.id);
 
-  const yearly = await createPlan(
-    product.id,
-    'Full Arsenal — Yearly',
-    'YEAR',
-    '29.99'
-  );
+  const yearly = await createYearlyPlanWithTrial(product.id);
   console.log('Yearly Plan ID:', yearly.id);
 
   const suffix = paypalConfig.mode.toUpperCase();

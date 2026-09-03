@@ -70,7 +70,9 @@ async function applyPricingFromConfig() {
       if (amountEl) amountEl.textContent = formatted;
       if (perEl) {
         const interval = plan.billingInterval === 'year' ? 'year' : 'month';
-        perEl.textContent = `per ${interval} · billed automatically`;
+        perEl.textContent = plan.trialDays > 0
+          ? `${plan.trialDays}-day free trial, then ${formatted}/${interval}`
+          : `per ${interval} · billed automatically`;
       }
     });
 

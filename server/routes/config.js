@@ -33,6 +33,7 @@ router.get('/', async (_req, res) => {
       {
         slug: PLAN_SLUGS.YEARLY,
         billingInterval: 'year',
+        trialDays: 3,
         price: SUBSCRIPTION_PRICES.full_arsenal_yearly,
         razorpayPrice: razorpayPrices?.full_arsenal_yearly || null,
       },

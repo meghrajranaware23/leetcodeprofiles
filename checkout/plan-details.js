@@ -10,8 +10,8 @@ export const PLAN_DETAILS = Object.freeze({
   full_arsenal_yearly: {
     title: 'Yearly Plan',
     eyebrow: 'Full Arsenal',
-    frequencyLabel: 'per year · billed automatically',
-    description: 'Best long-term value. Everything in Monthly with uninterrupted access all year — save ~50% vs monthly billing.',
+    frequencyLabel: '3-day free trial, then per year',
+    description: '3-day free trial. Best long-term value. Everything in Monthly with uninterrupted access all year — save ~50% vs monthly billing.',
   },
 });
 
